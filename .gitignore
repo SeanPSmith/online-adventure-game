@@ -1,0 +1,45 @@
+# macOS
+.DS_Store
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+
+# Local databases / runtime state
+data/
+*.sqlite
+*.sqlite3
+*.db
+
+# Private/exported content backups
+backups/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# AWS build artifacts
+.aws-build/
+cdk.out/
+infra/cdk.out/
+
+# Node
+node_modules/
+frontend/node_modules/
+frontend/dist/
+infra/node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+
+# IDE
+.vscode/
+.idea/

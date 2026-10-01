@@ -1,0 +1,31 @@
+:root {
+  color-scheme: dark;
+
+  --bg: #010501;
+  --bg-elevated: #031003;
+  --bg-deep: #000300;
+  --panel: #041004;
+  --panel-strong: #071807;
+
+  --green: #48ff70;
+  --green-soft: #baffc7;
+  --green-dim: #78b883;
+  --green-muted: #406f49;
+  --green-line: #159437;
+  --green-line-dim: #0d4720;
+
+  --amber: #ffd65c;
+  --red: #ff6363;
+  --cyan: #7adfff;
+
+  --text: #dff6e3;
+  --text-dim: #91b398;
+
+  --font-mono: "Courier New", Courier, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --border: 1px solid var(--green-line);
+  --border-strong: 2px solid var(--green);
+
+  --header-height: 76px;
+  --sidebar-width: 350px;
+}

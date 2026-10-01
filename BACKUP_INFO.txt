@@ -1,0 +1,10 @@
+TALES OF TWO BACKUP
+===================
+
+Created: 20260923_211552
+Status: KNOWN GOOD
+Tests: PASSED
+Project root: /Users/prodigitalvr/PERSONAL/OnlineAdventureGame/root
+Python: /Users/prodigitalvr/PERSONAL/OnlineAdventureGame/root/.venv/bin/python
+Files copied: 64
+Directories copied: 5

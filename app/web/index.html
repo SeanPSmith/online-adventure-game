@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Tales of Two</title>
+
+    <link
+        rel="stylesheet"
+        href="/static/style.css?v=036"
+    >
+
+</head>
+
+
+<body class="is-signed-out">
+
+    <main class="terminal-shell">
+
+
+        <!-- =====================================================
+             HEADER / QUICK ACTIONS
+        ====================================================== -->
+
+        <header class="game-header">
+
+            <a
+                class="game-brand"
+                href="/"
+                aria-label="Tales of Two home"
+            >
+                <span class="game-brand-mark">T2</span>
+
+                <span>
+                    <strong data-crt-glitch>TALES OF TWO</strong>
+                    <small>SHARED STORY SYSTEM_</small>
+                </span>
+            </a>
+
+
+            <div
+                id="signed-out-tools"
+                class="signed-out-tools"
+            >
+
+                <button
+                    id="header-login-button"
+                    class="header-menu-button"
+                    type="button"
+                >
+                    LOGIN
+                </button>
+
+                <button
+                    id="header-register-button"
+                    class="terminal-button primary header-auth-primary"
+                    type="button"
+                >
+                    CREATE ACCOUNT
+                </button>
+
+            </div>
+
+
+            <div
+                id="authenticated-tools"
+                class="header-tools"
+                hidden
+            >
+
+                <div class="hero-picker-shell">
+
+                    <span class="header-control-label">
+                        HERO
+                    </span>
+
+                    <select
+                        id="hero-quick-select"
+                        class="hero-native-select"
+                        aria-hidden="true"
+                        tabindex="-1"
+                    >
+                        <option value="">
+                            SELECT HERO_
+                        </option>
+                    </select>
+
+                    <button
+                        id="hero-picker-button"
+                        class="hero-picker-button"
+                        type="button"
+                        aria-expanded="false"
+                        aria-controls="hero-picker-menu"
+                    >
+                        <span id="hero-picker-name">
+                            SELECT HERO_
+                        </span>
+
+                        <span aria-hidden="true">
+                            ▾
+                        </span>
+                    </button>
+
+                    <div
+                        id="hero-picker-menu"
+                        class="hero-picker-menu"
+                        hidden
+                    ></div>
+
+                </div>
+
+
+                <div class="header-join">
+
+                    <span class="header-control-label">
+                        JOIN ADVENTURE
+                    </span>
+
+                    <div class="header-join-row">
+
+                        <input
+                            id="room-code-input"
+                            class="terminal-input room-code-input header-room-code"
+                            type="text"
+                            maxlength="6"
+                            autocomplete="off"
+                            spellcheck="false"
+                            placeholder="CODE"
+                            aria-label="Adventure room code"
+                        >
+
+                        <button
+                            id="join-room-button"
+                            class="terminal-button primary header-join-button"
+                            type="button"
+                        >
+                            JOIN
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div class="header-menu-shell">
+
+                    <button
+                        id="session-menu-button"
+                        class="header-menu-button"
+                        type="button"
+                        aria-expanded="false"
+                        aria-controls="session-menu"
+                        hidden
+                    >
+                        SESSION ▾
+                    </button>
+
+                    <div
+                        id="session-menu"
+                        class="header-dropdown"
+                        hidden
+                    ></div>
+
+                </div>
+
+
+                <div class="header-menu-shell">
+
+                    <button
+                        id="account-menu-button"
+                        class="header-menu-button"
+                        type="button"
+                        aria-expanded="false"
+                        aria-controls="account-menu"
+                    >
+                        ACCOUNT ▾
+                    </button>
+
+                    <div
+                        id="account-menu"
+                        class="header-dropdown"
+                        hidden
+                    ></div>
+
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <!-- =====================================================
+             PUBLIC HOME
+        ====================================================== -->
+
+        <section
+            id="public-home"
+            class="public-home"
+        >
+
+            <div class="home-hero-grid">
+
+                <div class="home-copy">
+
+                    <div class="home-kicker">
+                        TWO PLAYERS // ONE SHARED STORY
+                    </div>
+
+                    <h1 data-crt-glitch>
+                        CHOOSE ALONE.<br>
+                        FACE IT TOGETHER.
+                    </h1>
+
+                    <p class="home-pitch">
+                        Build a hero, choose an adventure, invite one other
+                        person, and make decisions without knowing what they
+                        chose. The story moves when both of you commit.
+                    </p>
+
+
+                    <div class="home-selling-points">
+
+                        <div>
+                            <strong>HIDDEN CHOICES</strong>
+                            <span>You decide independently.</span>
+                        </div>
+
+                        <div>
+                            <strong>SHARED CONSEQUENCES</strong>
+                            <span>Your decisions collide.</span>
+                        </div>
+
+                        <div>
+                            <strong>PERSISTENT HEROES</strong>
+                            <span>Your character keeps their history.</span>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <pre
+                    class="home-ascii"
+                    aria-label="Retro fantasy landscape"
+                    data-crt-glitch
+                >
+                         .             *              .
+               *                  .             *
+                               _..._
+                            .-'     '-.
+                         .-'           '-.
+                        /       /\        \
+               *       /       /  \        \        .
+                      /___    _/ /\ \_    ___\
+                         \ \_/ /  \ \_/ /
+                          \___/ /\ \___/
+                    .        /_/  \_\        *
+                           __|      |__
+                         .'  | [] [] |  '.
+                        /____|  __   |____\
+                            /__/  \__\
+                 _   _   _ /__________\ _   _   _
+                / \_/ \_/ \            / \_/ \_/ \
+               /         \ \__________/ /         \
+              /___________\____________/___________\
+
+                        T A L E S   O F   T W O
+                </pre>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             INTERNAL STATUS
+        ====================================================== -->
+
+        <section
+            class="status-panel developer-status"
+            aria-hidden="true"
+        >
+
+            <div class="status-row">
+                <span class="status-label">SYSTEM</span>
+                <span id="status">BOOTING_</span>
+            </div>
+
+            <div class="status-row">
+                <span class="status-label">NETWORK</span>
+                <span id="network-status">OFFLINE</span>
+            </div>
+
+            <div class="status-row">
+                <span class="status-label">ACCOUNT</span>
+                <span id="account-status">NONE</span>
+            </div>
+
+            <div class="status-row">
+                <span class="status-label">CHARACTER</span>
+                <span id="character-status">NONE</span>
+            </div>
+
+            <div class="status-row">
+                <span class="status-label">ROOM</span>
+                <span id="room-status">NONE</span>
+            </div>
+
+            <div class="status-row">
+                <span class="status-label">PLAYERS</span>
+                <span id="player-count">00 / 02</span>
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             AUTH
+        ====================================================== -->
+
+        <section
+            id="auth-panel"
+            class="terminal-panel"
+        >
+
+            <div class="panel-heading">
+                PLAYER ACCESS
+            </div>
+
+
+            <div
+                id="login-view"
+                class="auth-view"
+            >
+
+                <div class="section-title">
+                    &gt; WELCOME BACK_
+                </div>
+
+
+                <label class="terminal-label">
+
+                    USERNAME / EMAIL
+
+                    <input
+                        id="login-identifier"
+                        class="terminal-input"
+                        type="text"
+                        autocomplete="username"
+                        maxlength="254"
+                    >
+
+                </label>
+
+
+                <label class="terminal-label">
+
+                    PASSWORD
+
+                    <div class="password-field">
+
+                        <input
+                            id="login-password"
+                            class="terminal-input password-input"
+                            type="password"
+                            autocomplete="current-password"
+                            maxlength="256"
+                        >
+
+                        <button
+                            id="login-password-toggle"
+                            class="password-toggle"
+                            type="button"
+                            aria-label="Show password"
+                        >
+                            ◉
+                        </button>
+
+                    </div>
+
+                </label>
+
+
+                <div class="button-row">
+
+                    <button
+                        id="login-button"
+                        class="terminal-button primary"
+                        type="button"
+                    >
+                        LOGIN
+                    </button>
+
+
+                    <button
+                        id="show-register-button"
+                        class="terminal-button"
+                        type="button"
+                    >
+                        CREATE ACCOUNT
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <div
+                id="register-view"
+                class="auth-view"
+                hidden
+            >
+
+                <div class="section-title">
+                    &gt; CREATE ACCOUNT_
+                </div>
+
+
+                <label class="terminal-label">
+
+                    EMAIL
+
+                    <input
+                        id="register-email"
+                        class="terminal-input"
+                        type="email"
+                        autocomplete="email"
+                        maxlength="254"
+                    >
+
+                </label>
+
+
+                <label class="terminal-label">
+
+                    USERNAME
+
+                    <input
+                        id="register-username"
+                        class="terminal-input"
+                        type="text"
+                        autocomplete="username"
+                        minlength="3"
+                        maxlength="24"
+                    >
+
+                    <span class="input-help">
+                        3–24 characters. Letters, numbers, _ and - only.
+                    </span>
+
+                </label>
+
+
+                <label class="terminal-label">
+
+                    PASSWORD
+
+                    <div class="password-field">
+
+                        <input
+                            id="register-password"
+                            class="terminal-input password-input"
+                            type="password"
+                            autocomplete="new-password"
+                            minlength="10"
+                            maxlength="256"
+                        >
+
+                        <button
+                            id="register-password-toggle"
+                            class="password-toggle"
+                            type="button"
+                            aria-label="Show password"
+                        >
+                            ◉
+                        </button>
+
+                    </div>
+
+                    <span class="input-help">
+                        Minimum 10 characters.
+                    </span>
+
+                </label>
+
+
+                <label class="terminal-label">
+
+                    CONFIRM PASSWORD
+
+                    <div class="password-field">
+
+                        <input
+                            id="register-password-confirm"
+                            class="terminal-input password-input"
+                            type="password"
+                            autocomplete="new-password"
+                            minlength="10"
+                            maxlength="256"
+                        >
+
+                        <button
+                            id="register-password-confirm-toggle"
+                            class="password-toggle"
+                            type="button"
+                            aria-label="Show password"
+                        >
+                            ◉
+                        </button>
+
+                    </div>
+
+                </label>
+
+
+                <div class="button-row">
+
+                    <button
+                        id="register-button"
+                        class="terminal-button primary"
+                        type="button"
+                    >
+                        REGISTER
+                    </button>
+
+
+                    <button
+                        id="show-login-button"
+                        class="terminal-button"
+                        type="button"
+                    >
+                        BACK TO LOGIN
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <div
+                id="auth-message"
+                class="auth-message"
+            ></div>
+
+        </section>
+
+
+        <!-- =====================================================
+             ACCOUNT
+        ====================================================== -->
+
+        <section
+            id="account-panel"
+            class="terminal-panel"
+            hidden
+        >
+
+            <div class="panel-heading">
+                ACCOUNT
+            </div>
+
+
+            <div class="account-grid">
+
+                <div>
+                    <span class="muted">
+                        USER
+                    </span>
+
+                    <span id="account-username">
+                        -
+                    </span>
+                </div>
+
+
+                <div>
+                    <span class="muted">
+                        EMAIL
+                    </span>
+
+                    <span id="account-email">
+                        -
+                    </span>
+                </div>
+
+
+                <div>
+                    <span class="muted">
+                        ACCESS
+                    </span>
+
+                    <span id="account-access">
+                        PLAYER
+                    </span>
+                </div>
+
+            </div>
+
+
+            <div class="account-manager-actions">
+
+                <button
+                    id="account-hero-home-button"
+                    class="terminal-button info"
+                    type="button"
+                >
+                    HERO HOME
+                </button>
+
+
+                <a
+                    id="account-author-link"
+                    class="terminal-button continue account-author-link"
+                    href="/author"
+                    hidden
+                >
+                    AUTHOR PORTAL
+                </a>
+
+
+                <button
+                    id="logout-button"
+                    class="terminal-button danger"
+                    type="button"
+                >
+                    LOGOUT
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             HERO HOME
+        ====================================================== -->
+
+        <section
+            id="character-panel"
+            class="terminal-panel hero-page hero-home-page"
+            hidden
+        >
+
+            <div class="hero-home-header">
+
+                <div>
+                    <div class="eyebrow">
+                        HERO HOME
+                    </div>
+
+                    <div
+                        id="hero-home-name"
+                        class="panel-heading hero-home-title"
+                    >
+                        NO HERO_
+                    </div>
+
+                    <div
+                        id="hero-home-meta"
+                        class="hero-home-meta"
+                    ></div>
+
+                    <div
+                        id="hero-home-mission"
+                        class="hero-home-mission"
+                        hidden
+                    ></div>
+                </div>
+
+
+                <button
+                    id="hero-home-back-button"
+                    class="terminal-button"
+                    type="button"
+                >
+                    ← BACK TO ADVENTURES
+                </button>
+
+            </div>
+
+
+            <nav
+                id="hero-home-tabs"
+                class="hero-home-tabs"
+                aria-label="Hero sections"
+            >
+                <button
+                    class="hero-home-tab is-active"
+                    type="button"
+                    data-hero-tab="character"
+                >
+                    CHARACTER
+                </button>
+
+                <button
+                    class="hero-home-tab"
+                    type="button"
+                    data-hero-tab="stats"
+                >
+                    STATS / ACHIEVEMENTS
+                </button>
+
+                <button
+                    class="hero-home-tab"
+                    type="button"
+                    data-hero-tab="story"
+                >
+                    STORY
+                </button>
+            </nav>
+
+
+            <div
+                id="hero-home-character"
+                class="hero-home-view"
+                data-hero-view="character"
+            ></div>
+
+            <div
+                id="hero-home-stats"
+                class="hero-home-view"
+                data-hero-view="stats"
+                hidden
+            ></div>
+
+            <div
+                id="hero-home-story"
+                class="hero-home-view"
+                data-hero-view="story"
+                hidden
+            ></div>
+
+
+            <div
+                id="hero-home-empty"
+                class="hero-home-empty"
+                hidden
+            >
+                <div class="eyebrow">
+                    NO HEROES YET
+                </div>
+
+                <div class="panel-heading">
+                    CREATE A HERO TO PLAY_
+                </div>
+
+                <p>
+                    Your hero persists between adventures and becomes the
+                    character whose story, stats, and achievements live here.
+                </p>
+
+                <button
+                    id="hero-home-empty-create"
+                    class="terminal-button primary"
+                    type="button"
+                >
+                    + ADD CHARACTER TO PLAY
+                </button>
+            </div>
+
+
+            <!--
+                Compatibility hooks used by the existing character service UI.
+                These are intentionally not player-facing.
+            -->
+            <div
+                id="character-list"
+                class="character-library hero-compat-list"
+                hidden
+            ></div>
+
+            <div
+                id="character-message"
+                class="auth-message"
+            ></div>
+
+            <button
+                id="show-character-builder-button"
+                type="button"
+                hidden
+                tabindex="-1"
+                aria-hidden="true"
+            >
+                CREATE HERO
+            </button>
+
+        </section>
+
+
+        <!-- =====================================================
+             CHARACTER CREATOR
+        ====================================================== -->
+
+        <section
+            id="character-builder-panel"
+            class="terminal-panel character-builder"
+            hidden
+        >
+
+            <div class="builder-header">
+
+                <div>
+
+                    <div class="panel-heading builder-heading">
+                        CHARACTER CREATION
+                    </div>
+
+                    <div class="builder-subtitle">
+                        ALLOCATE YOUR STARTING ATTRIBUTES_
+                    </div>
+
+                </div>
+
+
+                <button
+                    id="cancel-character-builder-button"
+                    class="terminal-button"
+                    type="button"
+                >
+                    CANCEL
+                </button>
+
+            </div>
+
+
+            <div class="creator-section">
+
+                <div class="creator-section-title">
+                    01 // IDENTITY
+                </div>
+
+
+                <label class="terminal-label">
+
+                    CHARACTER NAME
+
+                    <input
+                        id="new-character-name"
+                        class="terminal-input"
+                        type="text"
+                        minlength="2"
+                        maxlength="40"
+                        autocomplete="off"
+                        placeholder="ENTER NAME_"
+                    >
+
+                </label>
+
+            </div>
+
+
+            <div class="creator-section">
+
+                <div class="creator-section-header">
+
+                    <div>
+
+                        <div class="creator-section-title">
+                            02 // CORE STATS
+                        </div>
+
+                        <div class="creator-section-description">
+                            Core attributes contribute directly to checks.
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        id="stat-budget"
+                        class="budget-display"
+                    >
+                        0 / 0
+                    </div>
+
+                </div>
+
+
+                <div
+                    id="stat-allocation-list"
+                    class="allocation-grid"
+                ></div>
+
+            </div>
+
+
+            <div class="creator-section">
+
+                <div class="creator-section-header">
+
+                    <div>
+
+                        <div class="creator-section-title">
+                            03 // SKILLS
+                        </div>
+
+                        <div class="creator-section-description">
+                            Skills specialize your character within their governing stats.
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        id="skill-budget"
+                        class="budget-display"
+                    >
+                        0 / 0
+                    </div>
+
+                </div>
+
+
+                <div
+                    id="skill-allocation-groups"
+                    class="skill-groups"
+                ></div>
+
+            </div>
+
+
+            <div class="creator-section creator-summary">
+
+                <div class="creator-section-title">
+                    04 // BUILD SUMMARY
+                </div>
+
+
+                <div class="build-summary-grid">
+
+                    <div class="build-summary-item">
+
+                        <span class="muted">
+                            STAT POINTS
+                        </span>
+
+                        <strong id="summary-stat-points">
+                            0 / 0
+                        </strong>
+
+                    </div>
+
+
+                    <div class="build-summary-item">
+
+                        <span class="muted">
+                            SKILL POINTS
+                        </span>
+
+                        <strong id="summary-skill-points">
+                            0 / 0
+                        </strong>
+
+                    </div>
+
+
+                    <div class="build-summary-item">
+
+                        <span class="muted">
+                            STARTING HP
+                        </span>
+
+                        <strong>
+                            10 / 10
+                        </strong>
+
+                    </div>
+
+
+                    <div class="build-summary-item">
+
+                        <span class="muted">
+                            STATUS
+                        </span>
+
+                        <strong id="build-validity">
+                            INCOMPLETE
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <button
+                    id="create-character-button"
+                    class="terminal-button primary full-width final-create-button"
+                    type="button"
+                    disabled
+                >
+                    CREATE CHARACTER
+                </button>
+
+
+                <div
+                    id="builder-message"
+                    class="auth-message"
+                ></div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             ADVENTURE LOBBY
+        ====================================================== -->
+
+        <section
+            id="lobby-panel"
+            class="terminal-panel adventure-lobby"
+            hidden
+        >
+
+            <div class="lobby-intro">
+
+                <div>
+
+                    <div class="eyebrow">
+                        ADVENTURE LOBBY
+                    </div>
+
+                    <div class="panel-heading lobby-title">
+                        CHOOSE WHERE YOUR HERO GOES NEXT
+                    </div>
+
+                </div>
+
+
+                <div class="selected-character-banner compact-selected-hero">
+
+                    <span class="muted">
+                        CURRENT HERO
+                    </span>
+
+                    <button
+                        id="selected-character-summary"
+                        class="selected-character-name selected-character-link"
+                        type="button"
+                    >
+                        NONE
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <div
+                id="my-adventures-mount"
+                class="lobby-section"
+            ></div>
+
+
+            <div
+                id="adventure-picker-mount"
+                class="lobby-section"
+            ></div>
+
+
+            <button
+                id="create-room-button"
+                class="terminal-button primary"
+                type="button"
+                hidden
+            >
+                CREATE GAME
+            </button>
+
+        </section>
+
+
+        <!-- =====================================================
+             ROOM
+        ====================================================== -->
+
+        <section
+            id="room-panel"
+            class="terminal-panel"
+            hidden
+        >
+
+            <div class="panel-heading">
+                ACTIVE SESSION
+            </div>
+
+
+            <div class="room-code-line">
+
+                ROOM
+
+                <strong id="room-code-display">
+                    ------
+                </strong>
+
+            </div>
+
+
+            <div
+                id="player-list"
+                class="player-list"
+            ></div>
+
+        </section>
+
+
+        <!-- =====================================================
+             GAME
+        ====================================================== -->
+
+        <section
+            id="game-panel"
+            class="terminal-panel"
+            hidden
+        >
+
+            <div class="panel-heading">
+                LIVE ADVENTURE
+            </div>
+
+
+            <div
+                id="turn-number"
+                class="turn-number"
+            >
+                TURN 001
+            </div>
+
+
+            <div
+                id="scene-title"
+                class="scene-title"
+            >
+                WAITING_
+            </div>
+
+
+            <pre
+                id="scene-art"
+                class="scene-art"
+            ></pre>
+
+
+            <div
+                id="scene-body"
+                class="scene-body"
+            ></div>
+
+
+            <div class="subheading">
+                PARTY STATUS
+            </div>
+
+
+            <div
+                id="ready-list"
+                class="ready-list"
+            ></div>
+
+
+            <div class="subheading">
+                ACTIONS
+            </div>
+
+
+            <div
+                id="choice-list"
+                class="choice-list"
+            ></div>
+
+
+            <!-- =============================================
+                 TURN RESOLUTION
+            ============================================== -->
+
+            <section
+                id="resolution-panel"
+                class="resolution-panel"
+                hidden
+            >
+
+                <div class="resolution-header">
+
+                    <div class="subheading resolution-heading">
+                        TURN RESOLUTION
+                    </div>
+
+
+                    <div
+                        id="resolution-state"
+                        class="resolution-state"
+                    >
+                        RESOLVING_
+                    </div>
+
+                </div>
+
+
+                <div
+                    id="check-result-list"
+                    class="check-result-list"
+                ></div>
+
+
+                <pre
+                    id="resolution-text"
+                    class="resolution-text"
+                ></pre>
+
+            </section>
+
+        </section>
+
+
+        <!-- =====================================================
+             CHAT
+        ====================================================== -->
+
+        <section
+            id="chat-panel"
+            class="terminal-panel"
+            hidden
+        >
+
+            <div class="panel-heading">
+                COMMS
+            </div>
+
+
+            <div
+                id="chat-log"
+                class="chat-log"
+            ></div>
+
+
+            <div class="chat-input-row">
+
+                <input
+                    id="chat-input"
+                    class="terminal-input"
+                    type="text"
+                    maxlength="500"
+                    autocomplete="off"
+                    placeholder="MESSAGE_"
+                >
+
+
+                <button
+                    id="send-chat-button"
+                    class="terminal-button"
+                    type="button"
+                >
+                    SEND
+                </button>
+
+            </div>
+
+        </section>
+
+
+    </main>
+
+
+    <script
+        src="https://cdn.socket.io/4.8.1/socket.io.min.js"
+    ></script>
+
+
+    <script src="/static/app.js?v=043"></script>
+    <script src="/static/adventure_ui.js?v=063"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,88 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  min-width: 320px;
+  background:
+    radial-gradient(circle at 50% -20%, rgba(35, 125, 52, 0.13), transparent 38rem),
+    var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+a {
+  color: var(--green);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--green-soft);
+}
+
+button,
+a,
+input {
+  border-radius: 0;
+}
+
+::selection {
+  background: var(--green);
+  color: #001400;
+}
+
+* {
+  scrollbar-color: var(--green-muted) var(--bg-deep);
+  scrollbar-width: auto;
+}
+
+*::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--bg-deep);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--green-muted);
+  border: 2px solid var(--bg-deep);
+}
+
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+
+h1,
+h2,
+h3,
+strong {
+  color: var(--green-soft);
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}

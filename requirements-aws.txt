@@ -1,0 +1,6 @@
+-r requirements.txt
+
+# Cloud-only dependencies. Local development remains SQLite unless DB_HOST or
+# DB_BACKEND=postgres is present.
+openai==3.20.0
+psycopg[binary]>=3.2,<4

@@ -1,0 +1,5707 @@
+/* =========================================================
+   APPLICATION LAYOUT
+========================================================= */
+
+body {
+
+    padding:
+        10px;
+
+    /*
+       Keep horizontal UI spill clipped without turning BODY into an
+       overflow scrolling ancestor. Sticky positioning needs the viewport
+       to remain its scroll container.
+    */
+
+    overflow-x:
+        clip;
+}
+
+
+body.modal-open {
+
+    overflow:
+        hidden;
+}
+
+
+.terminal-shell {
+
+    width:
+        min(
+            100%,
+            1600px
+        );
+
+    margin:
+        0 auto;
+}
+
+
+/* =========================================================
+   FULL-WIDTH HEADER
+========================================================= */
+
+.terminal-header {
+
+    width:
+        100%;
+
+    margin:
+        0 0 10px;
+
+    padding:
+        14px 18px;
+
+    border:
+        1px solid
+        var(
+            --terminal-border-bright
+        );
+
+    background:
+        var(
+            --terminal-panel
+        );
+
+    overflow:
+        hidden;
+
+    position:
+        relative;
+}
+
+
+.terminal-header::before,
+.terminal-header::after {
+
+    content:
+        "";
+
+    position:
+        absolute;
+
+    left:
+        18px;
+
+    right:
+        18px;
+
+    height:
+        1px;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            var(
+                --terminal-green-muted
+            ),
+            var(
+                --terminal-green
+            ),
+            var(
+                --terminal-green-muted
+            ),
+            transparent
+        );
+
+    opacity:
+        0.7;
+}
+
+
+.terminal-header::before {
+
+    top:
+        7px;
+}
+
+
+.terminal-header::after {
+
+    bottom:
+        7px;
+}
+
+
+.ascii-logo {
+
+    width:
+        100%;
+
+    margin:
+        0;
+
+    max-height:
+        none;
+
+    overflow:
+        visible;
+
+    white-space:
+        pre;
+
+    text-align:
+        center;
+
+    font-size:
+        0.78rem;
+
+    line-height:
+        1.15;
+
+    color:
+        var(
+            --terminal-green-bright
+        );
+
+    text-shadow:
+        0 0 10px
+        var(
+            --terminal-shadow
+        );
+}
+
+
+/* =========================================================
+   COLLAPSIBLE META BAR
+========================================================= */
+
+.meta-stack {
+
+    display:
+        grid;
+
+    grid-template-columns:
+        repeat(
+            3,
+            minmax(
+                0,
+                1fr
+            )
+        );
+
+    gap:
+        6px;
+
+    margin-bottom:
+        10px;
+}
+
+
+.meta-details {
+
+    border:
+        1px solid
+        var(
+            --terminal-border
+        );
+
+    background:
+        var(
+            --terminal-panel
+        );
+
+    min-width:
+        0;
+}
+
+
+.meta-details > summary {
+
+    cursor:
+        pointer;
+
+    list-style:
+        none;
+
+    padding:
+        7px 10px;
+
+    color:
+        var(
+            --terminal-green-bright
+        );
+
+    font-size:
+        0.75rem;
+
+    font-weight:
+        700;
+
+    letter-spacing:
+        0.08em;
+
+    user-select:
+        none;
+}
+
+
+.meta-details > summary::-webkit-details-marker {
+
+    display:
+        none;
+}
+
+
+.meta-details > summary::before {
+
+    content:
+        "[+] ";
+
+    color:
+        var(
+            --terminal-green-muted
+        );
+}
+
+
+.meta-details[open]
+> summary::before {
+
+    content:
+        "[-] ";
+}
+
+
+.meta-details > .terminal-panel,
+.meta-details > .status-panel {
+
+    margin:
+        0;
+
+    border:
+        0;
+
+    border-top:
+        1px solid
+        var(
+            --terminal-border
+        );
+
+    padding:
+        10px;
+}
+
+
+.meta-details:has(
+    > .terminal-panel[hidden]
+) {
+
+    display:
+        none;
+}
+
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+.status-panel {
+
+    margin-bottom:
+        0;
+}
+
+
+.status-row {
+
+    grid-template-columns:
+        82px 1fr;
+
+    padding:
+        2px 0;
+
+    font-size:
+        0.76rem;
+}
+
+
+/* =========================================================
+   ACCOUNT
+========================================================= */
+
+.account-grid {
+
+    margin-bottom:
+        8px;
+
+    font-size:
+        0.76rem;
+}
+
+
+#account-panel
+.panel-heading {
+
+    display:
+        none;
+}
+
+
+#account-panel
+#logout-button {
+
+    min-height:
+        32px;
+
+    padding:
+        5px 8px;
+
+    font-size:
+        0.72rem;
+}
+
+
+/* =========================================================
+   SESSION
+========================================================= */
+
+#room-panel {
+
+    margin:
+        0;
+}
+
+
+#room-panel
+.panel-heading {
+
+    display:
+        none;
+}
+
+
+.room-code-line {
+
+    margin-bottom:
+        7px;
+
+    font-size:
+        0.8rem;
+}
+
+
+.player-list {
+
+    gap:
+        4px;
+
+    font-size:
+        0.78rem;
+}
+
+
+/* =========================================================
+   SESSION CONTROLS
+========================================================= */
+
+.adventure-controls {
+
+    display:
+        grid;
+
+    grid-template-columns:
+        repeat(
+            3,
+            minmax(
+                0,
+                1fr
+            )
+        );
+
+    gap:
+        5px;
+
+    margin-top:
+        9px;
+}
+
+
+.adventure-control-button {
+
+    min-height:
+        34px;
+
+    padding:
+        5px 8px;
+
+    font-size:
+        0.68rem;
+}
+
+
+.adventure-control-button.exit {
+
+    border-color:
+        var(
+            --terminal-green-muted
+        );
+
+    color:
+        var(
+            --terminal-green-bright
+        );
+}
+
+
+.adventure-control-button.leave {
+
+    border-color:
+        var(
+            --terminal-warning
+        );
+
+    color:
+        var(
+            --terminal-warning
+        );
+}
+
+
+.adventure-control-button.abandon {
+
+    border-color:
+        var(
+            --terminal-error
+        );
+
+    color:
+        var(
+            --terminal-error
+        );
+}
+
+
+/* =========================================================
+   ADVENTURE WORKSPACE
+========================================================= */
+
+.adventure-workspace {
+
+    display:
+        grid;
+
+    grid-template-columns:
+        minmax(
+            0,
+            1fr
+        )
+        minmax(
+            290px,
+            340px
+        );
+
+    gap:
+        10px;
+
+    align-items:
+        stretch;
+}
+
+
+#game-panel {
+
+    min-width:
+        0;
+
+    margin:
+        0;
+
+    height:
+        100%;
+}
+
+
+#chat-panel {
+
+    position:
+        sticky;
+
+    top:
+        10px;
+
+    min-width:
+        0;
+
+    margin:
+        0;
+
+    height:
+        100%;
+
+    align-self:
+        stretch;
+}
+
+
+/* =========================================================
+   GAME PANEL
+========================================================= */
+
+#game-panel.terminal-panel {
+
+    padding:
+        13px 16px 14px;
+}
+
+
+#game-panel
+.panel-heading {
+
+    padding-bottom:
+        7px;
+
+    margin-bottom:
+        9px;
+
+    font-size:
+        0.78rem;
+}
+
+
+.turn-number {
+
+    margin-bottom:
+        3px;
+
+    font-size:
+        0.72rem;
+}
+
+
+.scene-title {
+
+    margin-bottom:
+        8px;
+
+    font-size:
+        1.12rem;
+
+    letter-spacing:
+        0.02em;
+}
+
+
+.scene-art {
+
+    margin:
+        8px 0 10px;
+
+    line-height:
+        1;
+
+    font-size:
+        0.84rem;
+
+    overflow:
+        visible;
+
+    overflow-x:
+        visible;
+
+    max-width:
+        100%;
+
+    white-space:
+        pre;
+
+    scrollbar-width:
+        none;
+}
+
+
+.scene-art::-webkit-scrollbar {
+
+    display:
+        none;
+}
+
+
+.scene-body {
+
+    line-height:
+        1.42;
+
+    max-width:
+        1000px;
+}
+
+
+#game-panel
+.subheading {
+
+    margin:
+        13px 0 6px;
+
+    font-size:
+        0.76rem;
+
+    letter-spacing:
+        0.04em;
+}
+
+
+/* =========================================================
+   PARTY STATUS
+========================================================= */
+
+.ready-list {
+
+    display:
+        flex;
+
+    flex-wrap:
+        wrap;
+
+    gap:
+        5px 14px;
+
+    font-size:
+        0.74rem;
+}
+
+
+.ready-row {
+
+    display:
+        inline-flex;
+
+    gap:
+        6px;
+
+    justify-content:
+        flex-start;
+}
+
+
+/* =========================================================
+   CHOICES
+========================================================= */
+
+.choice-list {
+
+    display:
+        grid;
+
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(
+                220px,
+                1fr
+            )
+        );
+
+    gap:
+        7px;
+}
+
+
+.choice-button {
+
+    min-height:
+        50px;
+
+    padding:
+        9px 11px;
+
+    transition:
+        border-color
+        100ms
+        ease,
+        background
+        100ms
+        ease,
+        box-shadow
+        100ms
+        ease,
+        transform
+        80ms
+        ease;
+}
+
+
+.choice-button:hover:not(
+    :disabled
+) {
+
+    transform:
+        translateY(
+            -1px
+        );
+}
+
+
+.choice-check-meta {
+
+    font-size:
+        0.68rem;
+}
+
+
+.choice-button.is-selected {
+
+    border-color:
+        var(
+            --terminal-green
+        );
+
+    background:
+        rgba(
+            114,
+            255,
+            155,
+            0.09
+        );
+
+    box-shadow:
+        inset 3px 0 0
+        var(
+            --terminal-green
+        );
+}
+
+
+.choice-button.is-selected
+.choice-label::after {
+
+    content:
+        "  [SELECTED]";
+
+    color:
+        var(
+            --terminal-green-muted
+        );
+
+    font-size:
+        0.67rem;
+}
+
+
+/* =========================================================
+   CHAT
+========================================================= */
+
+#chat-panel {
+
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    padding:
+        10px;
+}
+
+
+#chat-panel
+.panel-heading {
+
+    flex:
+        0 0 auto;
+
+    padding-bottom:
+        6px;
+
+    margin-bottom:
+        8px;
+
+    font-size:
+        0.76rem;
+}
+
+
+.chat-log {
+
+    flex:
+        1 1 auto;
+
+    height:
+        auto;
+
+    min-height:
+        0;
+
+    max-height:
+        none;
+
+    margin-bottom:
+        7px;
+
+    padding:
+        8px;
+
+    font-size:
+        0.76rem;
+
+    overflow-y:
+        auto;
+}
+
+
+.chat-input-row {
+
+    flex:
+        0 0 auto;
+
+    gap:
+        5px;
+}
+
+
+#chat-input {
+
+    min-height:
+        38px;
+}
+
+
+#send-chat-button {
+
+    min-height:
+        38px;
+
+    padding:
+        6px 10px;
+
+    font-size:
+        0.7rem;
+}
+
+
+/* =========================================================
+   RESOLUTION
+========================================================= */
+
+.resolution-panel {
+
+    margin-top:
+        14px;
+
+    padding:
+        10px;
+}
+
+
+.check-result-list {
+
+    gap:
+        8px;
+}
+
+
+.check-card {
+
+    padding:
+        10px;
+}
+
+
+.dice-stage {
+
+    grid-template-columns:
+        145px 1fr;
+
+    gap:
+        10px;
+}
+
+
+.ascii-d20 {
+
+    min-height:
+        120px;
+
+    font-size:
+        0.74rem;
+}
+
+
+/* =========================================================
+   CHARACTER / LOBBY ALIGNMENT
+========================================================= */
+
+#character-panel,
+#lobby-panel,
+#character-builder-panel {
+
+    max-width:
+        1060px;
+
+    width:
+        100%;
+
+    margin-left:
+        auto;
+
+    margin-right:
+        auto;
+}
+
+
+body:has(
+    #character-panel:not([hidden])
+) .terminal-header,
+body:has(
+    #lobby-panel:not([hidden])
+) .terminal-header,
+body:has(
+    #character-builder-panel:not([hidden])
+) .terminal-header,
+body:has(
+    #character-panel:not([hidden])
+) .meta-stack,
+body:has(
+    #lobby-panel:not([hidden])
+) .meta-stack,
+body:has(
+    #character-builder-panel:not([hidden])
+) .meta-stack {
+
+    max-width:
+        1060px;
+
+    margin-left:
+        auto;
+
+    margin-right:
+        auto;
+}
+
+
+body:has(
+    #character-panel:not([hidden])
+) .meta-stack,
+body:has(
+    #lobby-panel:not([hidden])
+) .meta-stack,
+body:has(
+    #character-builder-panel:not([hidden])
+) .meta-stack {
+
+    grid-template-columns:
+        repeat(
+            2,
+            minmax(
+                0,
+                1fr
+            )
+        );
+}
+
+
+#character-panel,
+#lobby-panel {
+
+    margin-top:
+        10px;
+}
+
+
+#character-panel.terminal-panel,
+#lobby-panel.terminal-panel,
+#character-builder-panel.terminal-panel {
+
+    padding:
+        18px;
+}
+
+
+/* =========================================================
+   CHARACTER LIBRARY
+========================================================= */
+
+.character-library {
+
+    grid-template-columns:
+        1fr;
+}
+
+
+.character-card {
+
+    width:
+        100%;
+}
+
+
+/* =========================================================
+   MY ADVENTURES
+========================================================= */
+
+.my-adventures-section {
+
+    margin:
+        18px 0 22px;
+
+    padding:
+        0;
+}
+
+
+.my-adventures-section[hidden] {
+
+    display:
+        none;
+}
+
+
+.my-adventures-list {
+
+    display:
+        grid;
+
+    gap:
+        8px;
+}
+
+
+.adventure-card {
+
+    display:
+        grid;
+
+    grid-template-columns:
+        minmax(
+            0,
+            1fr
+        )
+        auto;
+
+    gap:
+        18px;
+
+    align-items:
+        center;
+
+    border:
+        1px solid
+        var(
+            --terminal-green-muted
+        );
+
+    background:
+        var(
+            --terminal-card
+        );
+
+    padding:
+        14px;
+}
+
+
+.adventure-card-title {
+
+    color:
+        var(
+            --terminal-green-bright
+        );
+
+    font-weight:
+        700;
+
+    margin-bottom:
+        6px;
+}
+
+
+.adventure-card-meta {
+
+    color:
+        var(
+            --terminal-dim
+        );
+
+    font-size:
+        0.75rem;
+
+    line-height:
+        1.45;
+}
+
+
+.adventure-card-actions {
+
+    display:
+        flex;
+
+    gap:
+        7px;
+}
+
+
+.adventure-card-actions
+.terminal-button {
+
+    min-height:
+        38px;
+
+    padding:
+        7px 12px;
+
+    font-size:
+        0.7rem;
+}
+
+
+/* =========================================================
+   LOBBY ACTIVE-ADVENTURE BLOCKER
+========================================================= */
+
+.adventure-blocker-message {
+
+    margin:
+        8px 0 15px;
+
+    padding:
+        9px 11px;
+
+    border:
+        1px solid
+        var(
+            --terminal-warning
+        );
+
+    background:
+        rgba(
+            255,
+            212,
+            106,
+            0.04
+        );
+
+    color:
+        var(
+            --terminal-warning
+        );
+
+    font-size:
+        0.72rem;
+
+    line-height:
+        1.45;
+
+    letter-spacing:
+        0.02em;
+}
+
+
+.adventure-blocker-message::before {
+
+    content:
+        "! ";
+
+    font-weight:
+        700;
+}
+
+
+/* =========================================================
+   CUSTOM MODAL
+========================================================= */
+
+.game-modal-backdrop {
+
+    position:
+        fixed;
+
+    inset:
+        0;
+
+    z-index:
+        99999;
+
+    display:
+        grid;
+
+    place-items:
+        center;
+
+    padding:
+        20px;
+
+    background:
+        rgba(
+            0,
+            5,
+            1,
+            0.78
+        );
+
+    backdrop-filter:
+        blur(
+            5px
+        );
+
+    animation:
+        modal-backdrop-in
+        140ms
+        ease-out;
+}
+
+
+.game-modal-backdrop[hidden] {
+
+    display:
+        none;
+}
+
+
+@keyframes modal-backdrop-in {
+
+    from {
+
+        opacity:
+            0;
+    }
+
+    to {
+
+        opacity:
+            1;
+    }
+}
+
+
+.game-modal {
+
+    position:
+        relative;
+
+    width:
+        min(
+            100%,
+            520px
+        );
+
+    border:
+        1px solid
+        var(
+            --terminal-green
+        );
+
+    background:
+        var(
+            --terminal-panel
+        );
+
+    box-shadow:
+        0 0 0 1px
+        rgba(
+            114,
+            255,
+            155,
+            0.08
+        ),
+        0 18px 80px
+        rgba(
+            0,
+            0,
+            0,
+            0.65
+        ),
+        0 0 40px
+        rgba(
+            114,
+            255,
+            155,
+            0.07
+        );
+
+    padding:
+        18px;
+
+    animation:
+        modal-window-in
+        170ms
+        cubic-bezier(
+            0.2,
+            0.8,
+            0.2,
+            1
+        );
+}
+
+
+@keyframes modal-window-in {
+
+    from {
+
+        opacity:
+            0;
+
+        transform:
+            translateY(
+                8px
+            )
+            scale(
+                0.985
+            );
+    }
+
+    to {
+
+        opacity:
+            1;
+
+        transform:
+            translateY(
+                0
+            )
+            scale(
+                1
+            );
+    }
+}
+
+
+.game-modal::before {
+
+    content:
+        "";
+
+    position:
+        absolute;
+
+    top:
+        4px;
+
+    left:
+        4px;
+
+    right:
+        4px;
+
+    height:
+        1px;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            var(
+                --terminal-green-muted
+            ),
+            transparent
+        );
+}
+
+
+.game-modal-header {
+
+    border-bottom:
+        1px solid
+        var(
+            --terminal-border
+        );
+
+    padding-bottom:
+        11px;
+
+    margin-bottom:
+        14px;
+}
+
+
+.game-modal-kicker {
+
+    color:
+        var(
+            --terminal-green-muted
+        );
+
+    font-size:
+        0.66rem;
+
+    letter-spacing:
+        0.15em;
+
+    margin-bottom:
+        5px;
+}
+
+
+.game-modal-title {
+
+    color:
+        var(
+            --terminal-green-bright
+        );
+
+    font-size:
+        1rem;
+
+    font-weight:
+        700;
+
+    letter-spacing:
+        0.05em;
+}
+
+
+.game-modal-body {
+
+    color:
+        var(
+            --terminal-green
+        );
+
+    font-size:
+        0.82rem;
+
+    line-height:
+        1.6;
+
+    white-space:
+        pre-wrap;
+
+    margin-bottom:
+        18px;
+}
+
+
+.game-modal-actions {
+
+    display:
+        flex;
+
+    justify-content:
+        flex-end;
+
+    gap:
+        8px;
+}
+
+
+.game-modal-actions
+.terminal-button {
+
+    min-width:
+        110px;
+
+    min-height:
+        38px;
+
+    padding:
+        6px 12px;
+
+    font-size:
+        0.7rem;
+}
+
+
+.game-modal-confirm.danger {
+
+    color:
+        var(
+            --terminal-error
+        );
+
+    border-color:
+        var(
+            --terminal-error
+        );
+}
+
+
+.game-modal-confirm.danger:hover {
+
+    background:
+        var(
+            --terminal-error
+        );
+
+    color:
+        var(
+            --terminal-bg
+        );
+}
+
+
+
+
+/* =========================================================
+   CHOICE INSPECTOR // PHASE E
+========================================================= */
+
+.choice-card {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: stretch;
+}
+
+.choice-card .choice-button {
+    min-width: 0;
+    width: 100%;
+}
+
+.choice-info-button {
+    min-width: 52px;
+    padding: 0 10px;
+    border: 1px solid var(--terminal-border);
+    background: rgba(0, 255, 90, 0.025);
+    color: var(--terminal-green-muted);
+    font: inherit;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+}
+
+.choice-info-button:hover,
+.choice-info-button:focus-visible {
+    border-color: var(--terminal-green);
+    color: var(--terminal-green-bright);
+    background: rgba(0, 255, 90, 0.07);
+    outline: none;
+}
+
+.choice-inspector-modal {
+    width: min(720px, 100%);
+    max-height: min(88dvh, 760px);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.choice-inspector-modal .game-modal-header,
+.choice-inspector-modal .game-modal-actions {
+    flex: 0 0 auto;
+}
+
+.choice-inspector-modal .game-modal-body {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding-right: 4px;
+    white-space: normal;
+}
+
+.choice-detail-summary {
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+    border-bottom: 1px dashed var(--terminal-border);
+    color: var(--terminal-green-bright);
+    font-size: 0.9rem;
+    line-height: 1.55;
+}
+
+.choice-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.choice-detail-grid > div {
+    min-width: 0;
+    padding: 9px 10px;
+    border: 1px solid var(--terminal-border);
+    background: rgba(0, 255, 90, 0.018);
+}
+
+.choice-detail-grid span {
+    display: block;
+    margin-bottom: 3px;
+    color: var(--terminal-dim);
+    font-size: 0.59rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+}
+
+.choice-detail-grid strong {
+    display: block;
+    overflow-wrap: anywhere;
+    color: var(--terminal-green-bright);
+    font-size: 0.76rem;
+    line-height: 1.35;
+}
+
+.choice-detail-columns {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.choice-detail-columns section {
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid var(--terminal-border);
+    background: rgba(0, 255, 90, 0.014);
+}
+
+.choice-detail-columns h4 {
+    margin: 0 0 8px;
+    color: var(--terminal-green-muted);
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+}
+
+.choice-detail-columns ul {
+    margin: 0;
+    padding-left: 18px;
+}
+
+.choice-detail-columns li + li {
+    margin-top: 5px;
+}
+
+.choice-detail-empty {
+    color: var(--terminal-dim);
+}
+
+.choice-detail-note {
+    margin-top: 12px;
+    color: var(--terminal-dim);
+    font-size: 0.58rem;
+    line-height: 1.45;
+    letter-spacing: 0.07em;
+}
+
+@media (max-width: 600px) {
+    .choice-card {
+        grid-template-columns: minmax(0, 1fr) 48px;
+        gap: 6px;
+    }
+
+    .choice-info-button {
+        min-width: 48px;
+        padding: 0 6px;
+    }
+
+    .choice-inspector-modal {
+        width: 100%;
+        max-height: calc(100dvh - 20px);
+        padding: 14px;
+    }
+
+    .choice-inspector-modal .game-modal-body {
+        margin-bottom: 12px;
+        padding-right: 2px;
+    }
+
+    .choice-detail-grid,
+    .choice-detail-columns {
+        grid-template-columns: 1fr;
+    }
+
+    .choice-detail-grid {
+        gap: 6px;
+    }
+
+    .choice-detail-grid > div,
+    .choice-detail-columns section {
+        padding: 9px 10px;
+    }
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (
+    max-width: 900px
+) {
+
+    .meta-stack {
+
+        grid-template-columns:
+            1fr;
+    }
+
+
+    .adventure-workspace {
+
+        grid-template-columns:
+            1fr;
+    }
+
+
+    #chat-panel {
+
+        position:
+            static;
+
+        height:
+            auto;
+    }
+
+
+    .chat-log {
+
+        flex:
+            none;
+
+        height:
+            220px;
+
+        min-height:
+            220px;
+
+        max-height:
+            220px;
+    }
+
+
+    .adventure-controls {
+
+        grid-template-columns:
+            1fr;
+    }
+
+
+    body:has(
+        #character-panel:not([hidden])
+    ) .meta-stack,
+    body:has(
+        #lobby-panel:not([hidden])
+    ) .meta-stack,
+    body:has(
+        #character-builder-panel:not([hidden])
+    ) .meta-stack {
+
+        grid-template-columns:
+            1fr;
+    }
+
+
+    .adventure-card {
+
+        grid-template-columns:
+            1fr;
+    }
+
+
+    .adventure-card-actions {
+
+        display:
+            grid;
+
+        grid-template-columns:
+            1fr 1fr;
+    }
+
+}
+
+
+@media (
+    max-width: 600px
+) {
+
+    body {
+
+        padding:
+            6px;
+    }
+
+
+    .terminal-header {
+
+        padding:
+            10px 8px;
+    }
+
+
+    .ascii-logo {
+
+        font-size:
+            0.66rem;
+    }
+
+
+    #game-panel.terminal-panel,
+    #character-panel.terminal-panel,
+    #lobby-panel.terminal-panel,
+    #character-builder-panel.terminal-panel {
+
+        padding:
+            10px;
+    }
+
+
+    .scene-art {
+
+        font-size:
+            0.68rem;
+
+        overflow:
+            hidden;
+    }
+
+
+    .choice-list {
+
+        grid-template-columns:
+            1fr;
+    }
+
+
+    .dice-stage {
+
+        grid-template-columns:
+            1fr;
+    }
+
+
+    .ascii-d20 {
+
+        min-height:
+            105px;
+    }
+
+
+    .game-modal-backdrop {
+
+        padding:
+            10px;
+    }
+
+
+    .game-modal {
+
+        padding:
+            14px;
+    }
+
+
+    .game-modal-actions {
+
+        display:
+            grid;
+
+        grid-template-columns:
+            1fr;
+    }
+
+
+    .game-modal-actions
+    .terminal-button {
+
+        width:
+            100%;
+
+        min-width:
+            0;
+    }
+
+}
+
+/* =========================================================
+   CHAT PLAYER IDENTITY
+========================================================= */
+
+.chat-message {
+
+    line-height:
+        1.5;
+}
+
+
+.chat-prompt {
+
+    color:
+        var(
+            --terminal-green-muted
+        );
+}
+
+
+.chat-name {
+
+    font-weight:
+        700;
+}
+
+
+.chat-self
+.chat-name {
+
+    font-style:
+        italic;
+
+    text-decoration:
+        underline;
+
+    text-decoration-thickness:
+        1px;
+
+    text-underline-offset:
+        3px;
+}
+
+
+.chat-host-mark {
+
+    color:
+        var(
+            --terminal-warning
+        );
+
+    font-weight:
+        700;
+}
+
+
+.chat-text {
+
+    color:
+        var(
+            --terminal-green
+        );
+}
+
+
+/* Eight future-safe player identity accents. */
+
+.chat-player-1
+.chat-name {
+
+    color:
+        #a4ffbd;
+}
+
+
+.chat-player-2
+.chat-name {
+
+    color:
+        #7ee7ff;
+}
+
+
+.chat-player-3
+.chat-name {
+
+    color:
+        #ffd46a;
+}
+
+
+.chat-player-4
+.chat-name {
+
+    color:
+        #dba0ff;
+}
+
+
+.chat-player-5
+.chat-name {
+
+    color:
+        #ff9f9f;
+}
+
+
+.chat-player-6
+.chat-name {
+
+    color:
+        #8ffff0;
+}
+
+
+.chat-player-7
+.chat-name {
+
+    color:
+        #c4ff72;
+}
+
+
+.chat-player-8
+.chat-name {
+
+    color:
+        #ffb877;
+}
+
+/* =========================================================
+   RPG UI REDESIGN — LATE OVERRIDES
+========================================================= */
+
+body {
+    padding: 10px;
+}
+
+.terminal-shell {
+    width: min(100%, 1480px);
+}
+
+.terminal-header {
+    display: none;
+}
+
+.meta-stack {
+    display: none !important;
+}
+
+#account-panel .panel-heading,
+#room-panel .panel-heading {
+    display: block;
+    margin-bottom: 10px;
+}
+
+#account-panel #logout-button {
+    width: 100%;
+}
+
+#room-panel {
+    margin: 0;
+}
+
+.adventure-workspace {
+    margin-top: 10px;
+}
+
+.my-adventures-section {
+    margin: 0;
+}
+
+.my-adventures-list {
+    display: grid;
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(260px, 1fr)
+        );
+    gap: 9px;
+}
+
+.adventure-card {
+    min-height: 132px;
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    gap: 12px;
+    cursor: pointer;
+}
+
+.adventure-card-title {
+    font-size: 0.88rem;
+}
+
+.adventure-card-meta {
+    line-height: 1.5;
+}
+
+.adventure-card-actions {
+    display: flex;
+    align-items: end;
+}
+
+.adventure-card-actions .terminal-button {
+    min-width: 84px;
+}
+
+.synopsis-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: grid;
+    place-items: center;
+    padding: 18px;
+    background: rgba(0, 0, 0, 0.76);
+    backdrop-filter: blur(5px);
+}
+
+.synopsis-modal {
+    position: relative;
+    width: min(920px, 100%);
+    max-height: min(780px, 92vh);
+    overflow: auto;
+    padding: clamp(18px, 4vw, 34px);
+    border: 1px solid var(--terminal-border-bright);
+    background: #071008;
+    box-shadow:
+        0 30px 90px rgba(0, 0, 0, 0.65),
+        inset 0 0 46px rgba(114, 255, 155, 0.025);
+}
+
+.synopsis-close {
+    position: absolute;
+    right: 12px;
+    top: 10px;
+    width: 38px;
+    height: 38px;
+    border: 1px solid var(--terminal-border);
+    color: var(--terminal-green);
+    background: transparent;
+    font: inherit;
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+
+.synopsis-layout {
+    display: grid;
+    grid-template-columns:
+        minmax(250px, 0.7fr)
+        minmax(0, 1.3fr);
+    gap: 28px;
+    align-items: center;
+}
+
+.synopsis-ascii {
+    margin: 0;
+    overflow: hidden;
+    color: var(--terminal-green-muted);
+    font-size: clamp(0.58rem, 1vw, 0.82rem);
+    line-height: 1.05;
+    text-align: center;
+}
+
+.synopsis-title {
+    margin: 7px 0 8px;
+    color: var(--terminal-green-bright);
+    font-size: clamp(1.55rem, 4vw, 3.2rem);
+    line-height: 1;
+    letter-spacing: -0.035em;
+}
+
+.synopsis-tags {
+    color: var(--terminal-green-muted);
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+}
+
+.synopsis-description {
+    margin: 22px 0;
+    color: #aac6b1;
+    line-height: 1.65;
+}
+
+.synopsis-hero {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 10px 0;
+    border-top: 1px solid var(--terminal-border);
+    border-bottom: 1px solid var(--terminal-border);
+    color: var(--terminal-dim);
+    font-size: 0.74rem;
+}
+
+.synopsis-hero strong {
+    color: var(--terminal-green-bright);
+}
+
+.synopsis-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 20px;
+}
+
+@media (max-width: 720px) {
+    .adventure-workspace {
+        grid-template-columns: 1fr;
+    }
+
+    .synopsis-backdrop {
+        align-items: end;
+        padding: 0;
+    }
+
+    .synopsis-modal {
+        width: 100%;
+        max-height: 94vh;
+        border-left: 0;
+        border-right: 0;
+        border-bottom: 0;
+    }
+
+    .synopsis-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .synopsis-ascii {
+        max-height: 150px;
+    }
+
+    .synopsis-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+
+/* =========================================================
+   RPG UI REDESIGN V2 — LATE OVERRIDES
+========================================================= */
+
+body.is-signed-out #auth-panel {
+    display: block !important;
+}
+
+.hero-page {
+    scroll-margin-top: 92px;
+}
+
+.adventure-lobby {
+    scroll-margin-top: 92px;
+}
+
+@media (max-width: 720px) {
+    .game-header {
+        margin-bottom: 6px;
+    }
+}
+
+
+/* =========================================================
+   GENERATED ADVENTURE POLISH
+========================================================= */
+
+.adventure-card.is-generated {
+    position: relative;
+    border-color:
+        color-mix(
+            in srgb,
+            var(--terminal-green-muted) 78%,
+            var(--terminal-border)
+        );
+    background:
+        linear-gradient(
+            135deg,
+            rgba(114, 255, 155, 0.035),
+            transparent 48%
+        ),
+        var(--terminal-card);
+}
+
+.adventure-card.is-generated::after {
+    content: "";
+    position: absolute;
+    inset: 5px;
+    pointer-events: none;
+    border:
+        1px dashed
+        rgba(
+            114,
+            255,
+            155,
+            0.08
+        );
+}
+
+.adventure-card-title-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-bottom: 7px;
+}
+
+.adventure-card-title-row
+.adventure-card-title {
+    margin: 0;
+}
+
+.adventure-generated-badge,
+.synopsis-generated-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 20px;
+    padding: 3px 6px;
+    border:
+        1px solid
+        var(--terminal-green-muted);
+    color:
+        var(--terminal-green-bright);
+    background:
+        rgba(
+            114,
+            255,
+            155,
+            0.045
+        );
+    font-size: 0.56rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+}
+
+.adventure-card-description {
+    color:
+        var(--terminal-dim);
+    font-size: 0.73rem;
+    line-height: 1.5;
+}
+
+.adventure-card-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 10px;
+}
+
+.adventure-meta-chip {
+    padding: 3px 6px;
+    border:
+        1px solid
+        rgba(
+            62,
+            159,
+            89,
+            0.58
+        );
+    color:
+        var(--terminal-green);
+    background:
+        rgba(
+            114,
+            255,
+            155,
+            0.018
+        );
+    font-size: 0.57rem;
+    line-height: 1.2;
+    letter-spacing: 0.035em;
+}
+
+.adventure-card-source {
+    margin-top: 9px;
+    color:
+        #4f7458;
+    font-size: 0.56rem;
+    line-height: 1.4;
+    letter-spacing: 0.03em;
+}
+
+.synopsis-heading-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-right: 40px;
+}
+
+.synopsis-source {
+    margin-top: 8px;
+    color:
+        #587960;
+    font-size: 0.60rem;
+    line-height: 1.45;
+    letter-spacing: 0.04em;
+}
+
+@media (max-width: 640px) {
+    .adventure-card-title-row {
+        align-items: flex-start;
+    }
+
+    .synopsis-heading-row {
+        align-items: flex-start;
+        flex-direction: column;
+        padding-right: 42px;
+    }
+}
+
+
+/* =========================================================
+   IN-ADVENTURE CHARACTER SHEET
+========================================================= */
+
+.turn-flow-header {
+    display:
+        flex;
+    align-items:
+        center;
+    justify-content:
+        space-between;
+    gap:
+        12px;
+    margin-bottom:
+        8px;
+}
+
+.turn-flow-header .turn-flow-phase {
+    margin-bottom:
+        0;
+}
+
+.turn-flow-sheet-button {
+    flex:
+        0 0 auto;
+    min-height:
+        30px;
+    padding:
+        4px 8px;
+    border:
+        1px solid
+        var(--terminal-border);
+    background:
+        transparent;
+    color:
+        var(--terminal-dim);
+    font:
+        inherit;
+    font-size:
+        0.58rem;
+    letter-spacing:
+        0.07em;
+}
+
+.turn-flow-sheet-button:hover {
+    color:
+        var(--terminal-green-bright);
+    border-color:
+        var(--terminal-green-muted);
+    background:
+        rgba(114, 255, 155, 0.045);
+}
+
+.character-sheet-backdrop {
+    position:
+        fixed;
+    inset:
+        0;
+    z-index:
+        100020;
+    display:
+        grid;
+    place-items:
+        center;
+    padding:
+        18px;
+    background:
+        rgba(0, 4, 1, 0.82);
+    backdrop-filter:
+        blur(5px);
+}
+
+.character-sheet-backdrop[hidden] {
+    display:
+        none;
+}
+
+.character-sheet-modal {
+    width:
+        min(100%, 720px);
+    max-height:
+        min(88vh, 820px);
+    overflow:
+        auto;
+    border:
+        1px solid
+        var(--terminal-green-muted);
+    background:
+        var(--terminal-panel);
+    box-shadow:
+        0 20px 90px
+        rgba(0, 0, 0, 0.72),
+        0 0 32px
+        rgba(114, 255, 155, 0.05);
+    padding:
+        16px;
+}
+
+.character-sheet-header {
+    display:
+        flex;
+    align-items:
+        flex-start;
+    justify-content:
+        space-between;
+    gap:
+        16px;
+    padding-bottom:
+        12px;
+    margin-bottom:
+        14px;
+    border-bottom:
+        1px solid
+        var(--terminal-border);
+}
+
+.character-sheet-header h2 {
+    margin:
+        4px 0 0;
+    color:
+        var(--terminal-green-bright);
+    font-size:
+        1.15rem;
+}
+
+.character-sheet-close {
+    width:
+        36px;
+    height:
+        36px;
+    border:
+        1px solid
+        var(--terminal-border);
+    background:
+        transparent;
+    color:
+        var(--terminal-green);
+    font:
+        inherit;
+    font-size:
+        1.15rem;
+}
+
+.character-sheet-vitals {
+    display:
+        grid;
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+    gap:
+        8px;
+    margin-bottom:
+        12px;
+}
+
+.character-sheet-vitals > div,
+.character-sheet-sections section,
+.character-sheet-effects {
+    padding:
+        11px;
+    border:
+        1px solid
+        var(--terminal-border);
+    background:
+        rgba(0, 0, 0, 0.13);
+}
+
+.character-sheet-vitals span,
+.character-sheet-label {
+    display:
+        block;
+    margin-bottom:
+        6px;
+    color:
+        var(--terminal-dim);
+    font-size:
+        0.58rem;
+    letter-spacing:
+        0.08em;
+}
+
+.character-sheet-vitals strong {
+    color:
+        var(--terminal-green-bright);
+}
+
+.character-sheet-sections {
+    display:
+        grid;
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+    gap:
+        8px;
+    margin-bottom:
+        8px;
+}
+
+.character-sheet-stat-row {
+    display:
+        flex;
+    justify-content:
+        space-between;
+    gap:
+        12px;
+    padding:
+        5px 0;
+    border-bottom:
+        1px solid
+        rgba(114, 255, 155, 0.07);
+}
+
+.character-sheet-stat-row:last-child {
+    border-bottom:
+        0;
+}
+
+.character-sheet-stat-row span {
+    color:
+        var(--terminal-dim);
+}
+
+.character-sheet-stat-row strong {
+    color:
+        var(--terminal-green);
+}
+
+.character-sheet-effect {
+    display:
+        inline-block;
+    margin:
+        3px 6px 3px 0;
+    padding:
+        5px 7px;
+    border:
+        1px solid
+        var(--terminal-warning);
+    color:
+        var(--terminal-warning);
+    font-size:
+        0.64rem;
+}
+
+.character-sheet-effect.none,
+.character-sheet-empty {
+    border-color:
+        var(--terminal-border);
+    color:
+        var(--terminal-dim);
+}
+
+
+@media (max-width: 680px) {
+
+    .turn-flow-header {
+        align-items:
+            flex-start;
+        flex-direction:
+            column;
+    }
+
+    .turn-flow-sheet-button {
+        width:
+            100%;
+    }
+
+    .character-sheet-vitals,
+    .character-sheet-sections {
+        grid-template-columns:
+            1fr;
+    }
+}
+
+
+/* =========================================================
+   DESKTOP VIEWPORT-ANCHORED CHAT
+========================================================= */
+
+@media (min-width: 901px) {
+
+    /*
+       Sticky requires every ancestor between the chat and viewport to avoid
+       becoming an unintended scroll container.
+    */
+
+    .terminal-shell,
+    .adventure-workspace {
+        overflow:
+            visible;
+    }
+
+
+    .adventure-workspace {
+        align-items:
+            start;
+
+        min-height:
+            100%;
+    }
+
+
+    #chat-panel {
+        position:
+            -webkit-sticky;
+
+        position:
+            sticky;
+
+        /*
+           The header is part of normal page flow, not a fixed overlay.
+           Once it scrolls away, chat should hug the viewport rather than
+           permanently reserving a header-sized blank strip.
+        */
+
+        top:
+            10px;
+
+        align-self:
+            start;
+
+        height:
+            calc(
+                100dvh
+                - 20px
+            );
+
+        max-height:
+            calc(
+                100dvh
+                - 20px
+            );
+
+        min-height:
+            360px;
+    }
+
+    #chat-panel .chat-log {
+        flex:
+            1 1 auto;
+
+        min-height:
+            0;
+
+        height:
+            auto;
+
+        max-height:
+            none;
+
+        overflow-y:
+            auto;
+    }
+
+    #chat-panel .chat-input-row {
+        flex:
+            0 0 auto;
+    }
+}
+
+
+/* =========================================================
+   ADVENTURE ENTRY / PREVIOUSLY ON
+========================================================= */
+
+.adventure-entry-backdrop {
+    position:
+        fixed;
+    inset:
+        0;
+    z-index:
+        100030;
+    display:
+        grid;
+    place-items:
+        center;
+    padding:
+        18px;
+    background:
+        rgba(0, 4, 1, 0.88);
+    backdrop-filter:
+        blur(6px);
+}
+
+.adventure-entry-backdrop[hidden] {
+    display:
+        none;
+}
+
+.adventure-entry-modal {
+    width:
+        min(100%, 760px);
+    padding:
+        clamp(20px, 4vw, 34px);
+    border:
+        1px solid
+        var(--terminal-green-muted);
+    background:
+        #071008;
+    box-shadow:
+        0 34px 110px
+        rgba(0, 0, 0, 0.76),
+        inset 0 0 54px
+        rgba(114, 255, 155, 0.025);
+}
+
+.adventure-entry-kicker {
+    color:
+        var(--terminal-warning);
+    font-size:
+        0.62rem;
+    letter-spacing:
+        0.12em;
+}
+
+.adventure-entry-title {
+    margin:
+        9px 0 7px;
+    color:
+        var(--terminal-green-bright);
+    font-size:
+        clamp(1.4rem, 4vw, 2.3rem);
+    line-height:
+        1.05;
+}
+
+.adventure-entry-meta {
+    padding-bottom:
+        13px;
+    border-bottom:
+        1px solid
+        var(--terminal-border);
+    color:
+        var(--terminal-dim);
+    font-size:
+        0.66rem;
+    letter-spacing:
+        0.06em;
+}
+
+.adventure-entry-recap {
+    margin:
+        18px 0;
+    padding:
+        14px;
+    border-left:
+        2px solid
+        var(--terminal-green-muted);
+    background:
+        rgba(114, 255, 155, 0.025);
+    color:
+        var(--terminal-green);
+    line-height:
+        1.7;
+    white-space:
+        pre-wrap;
+}
+
+.adventure-entry-continue {
+    width:
+        100%;
+    min-height:
+        48px;
+}
+
+
+/* =========================================================
+   CHAT INITIAL VIEWPORT FIT
+========================================================= */
+
+@media (min-width: 901px) {
+
+    /*
+       Before scrolling, the chat begins below the real page header. This
+       custom property is the measured chat top edge in the viewport.
+
+       After scrolling, sticky takes over at 10px.
+    */
+
+    #chat-panel {
+        height:
+            min(
+                calc(100dvh - 20px),
+                calc(
+                    100dvh
+                    - var(
+                        --chat-initial-top,
+                        90px
+                    )
+                    - 10px
+                )
+            );
+
+        max-height:
+            min(
+                calc(100dvh - 20px),
+                calc(
+                    100dvh
+                    - var(
+                        --chat-initial-top,
+                        90px
+                    )
+                    - 10px
+                )
+            );
+    }
+}
+
+
+/* =========================================================
+   LOBBY CARD POLISH
+========================================================= */
+
+.dashboard-section
+.my-adventures-list {
+    gap:
+        10px;
+}
+
+.dashboard-section
+.adventure-card {
+    min-height:
+        86px;
+    padding:
+        15px 16px;
+}
+
+.dashboard-section
+.adventure-card-title {
+    font-size:
+        0.92rem;
+    letter-spacing:
+        0.025em;
+}
+
+.dashboard-section
+.adventure-card-description {
+    max-width:
+        760px;
+    margin-top:
+        6px;
+    color:
+        var(--terminal-dim);
+    line-height:
+        1.5;
+}
+
+.dashboard-section
+.adventure-card-meta {
+    margin-top:
+        7px;
+}
+
+.dashboard-section
+.adventure-meta-chip {
+    border-color:
+        rgba(118, 186, 255, 0.18);
+    color:
+        #8fc8ff;
+    background:
+        rgba(118, 186, 255, 0.022);
+}
+
+.active-stories-section
+.adventure-card-meta {
+    color:
+        #c4aa68;
+}
+
+.adventure-generated-badge {
+    color:
+        var(--terminal-orange);
+    border-color:
+        rgba(255, 173, 92, 0.34);
+    background:
+        rgba(255, 173, 92, 0.035);
+}
+
+.adventure-blocker-message {
+    border-color:
+        rgba(255, 173, 92, 0.45);
+    color:
+        var(--terminal-orange);
+    background:
+        rgba(255, 173, 92, 0.045);
+}
+
+@media (max-width: 760px) {
+
+    .dashboard-section
+    .adventure-card {
+        grid-template-columns:
+            1fr;
+    }
+
+    .dashboard-section
+    .adventure-card-actions {
+        width:
+            100%;
+    }
+
+    .dashboard-section
+    .adventure-card-actions
+    .terminal-button {
+        flex:
+            1 1 auto;
+    }
+}
+
+/* =========================================================
+   ACTIVE ADVENTURE APP SHELL
+   Desktop play view owns the viewport. The document itself does not scroll;
+   the story pane and chat log scroll independently.
+========================================================= */
+
+@media (min-width: 901px) {
+
+    body.in-session {
+        height:
+            100dvh;
+        min-height:
+            100dvh;
+        overflow:
+            hidden;
+    }
+
+    body.in-session
+    .terminal-shell {
+        display:
+            flex;
+        flex-direction:
+            column;
+        width:
+            min(100%, 1480px);
+        height:
+            calc(100dvh - 20px);
+        min-height:
+            0;
+        overflow:
+            hidden;
+    }
+
+    body.in-session
+    .game-header {
+        position:
+            relative;
+        top:
+            auto;
+        flex:
+            0 0 auto;
+    }
+
+    body.in-session
+    #room-panel {
+        flex:
+            0 0 auto;
+        min-height:
+            0;
+    }
+
+    body.in-session
+    .adventure-workspace {
+        flex:
+            1 1 auto;
+        min-height:
+            0;
+        height:
+            auto;
+        margin-top:
+            10px;
+        overflow:
+            hidden;
+        align-items:
+            stretch;
+    }
+
+    body.in-session
+    #game-panel {
+        min-height:
+            0;
+        height:
+            auto;
+        max-height:
+            none;
+        overflow-x:
+            hidden;
+        overflow-y:
+            auto;
+        overscroll-behavior:
+            contain;
+    }
+
+    body.in-session
+    #chat-panel {
+        position:
+            relative;
+        top:
+            auto;
+        align-self:
+            stretch;
+        min-height:
+            0;
+        height:
+            auto;
+        max-height:
+            none;
+        overflow:
+            hidden;
+    }
+
+    body.in-session
+    #chat-panel
+    .chat-log {
+        flex:
+            1 1 auto;
+        min-height:
+            0;
+        height:
+            auto;
+        max-height:
+            none;
+        overflow-y:
+            auto;
+        overscroll-behavior:
+            contain;
+    }
+
+    body.in-session
+    #chat-panel
+    .chat-input-row {
+        flex:
+            0 0 auto;
+    }
+}
+
+/* =========================================================
+   SOLO START
+========================================================= */
+
+.solo-start-panel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    margin: 0 0 12px;
+    padding: 11px 14px;
+    border: 1px solid var(--terminal-green-muted);
+    background:
+        linear-gradient(90deg, rgba(110, 255, 150, 0.075), rgba(110, 255, 150, 0.025));
+    box-shadow:
+        inset 0 0 0 1px rgba(110, 255, 150, 0.025),
+        0 0 18px rgba(110, 255, 150, 0.035);
+}
+
+.solo-start-panel[hidden] {
+    display: none !important;
+}
+
+.solo-start-copy {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+}
+
+.solo-start-copy strong {
+    color: var(--terminal-green-bright);
+    letter-spacing: 0.08em;
+}
+
+.solo-start-copy span {
+    color: var(--terminal-green-muted);
+    line-height: 1.45;
+}
+
+.solo-start-button {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+    .solo-start-panel {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .solo-start-button {
+        width: 100%;
+    }
+}
+
+/* =========================================================
+   LIVE HERO HUD // ASCII CAPCOM-STYLE STATUS BAR
+========================================================= */
+
+.live-hero-hud {
+    margin: 0 0 14px;
+    padding: 8px 10px 10px;
+    border: 1px solid var(--terminal-green-muted);
+    background:
+        linear-gradient(180deg, rgba(5, 17, 8, 0.98), rgba(2, 10, 5, 0.96));
+    box-shadow:
+        inset 0 0 20px rgba(110, 255, 150, 0.025),
+        0 0 18px rgba(110, 255, 150, 0.035);
+    color: var(--terminal-green);
+    font-family: "Courier New", monospace;
+    overflow: hidden;
+}
+
+.live-hero-hud[hidden] {
+    display: none !important;
+}
+
+.hero-hud-frame-line {
+    color: var(--terminal-green-muted);
+    font-size: 10px;
+    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.hero-hud-main {
+    display: grid;
+    grid-template-columns: minmax(150px, 0.8fr) minmax(190px, 1fr) minmax(250px, 1.35fr);
+    gap: 16px;
+    align-items: center;
+    padding: 8px 5px 7px;
+}
+
+.hero-hud-identity {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    align-items: baseline;
+}
+
+.hero-hud-identity strong {
+    color: var(--terminal-green-bright);
+    font-size: 15px;
+    letter-spacing: 0.08em;
+    text-shadow: 0 0 8px var(--terminal-shadow);
+}
+
+.hero-hud-identity span,
+.hero-hud-meter span {
+    color: var(--terminal-green);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+}
+
+.hero-hud-identity em {
+    padding: 2px 5px;
+    border: 1px solid var(--terminal-green);
+    background: rgba(110, 255, 150, 0.06);
+    color: var(--terminal-green-bright);
+    font-size: 9px;
+    font-style: normal;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+}
+
+.hero-hud-meter {
+    display: grid;
+    gap: 3px;
+}
+
+.hero-hud-meter code {
+    color: var(--terminal-green-bright);
+    font-family: inherit;
+    font-size: 12px;
+    letter-spacing: 0;
+    white-space: nowrap;
+    text-shadow: 0 0 7px var(--terminal-shadow);
+}
+
+.hero-hud-meter small {
+    color: var(--terminal-green-muted);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+
+.hero-hud-core,
+.hero-hud-effects {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 10px;
+    align-items: start;
+    padding: 7px 5px 5px;
+    border-top: 1px dashed var(--terminal-border);
+}
+
+.hero-hud-core > b,
+.hero-hud-effects > b {
+    color: var(--terminal-green-muted);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+}
+
+.hero-hud-core > div,
+.hero-hud-effects > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.hero-hud-core span {
+    display: inline-flex;
+    gap: 4px;
+    padding: 2px 5px;
+    border: 1px solid var(--terminal-border);
+    color: var(--terminal-green);
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.035em;
+}
+
+.hero-hud-core span b {
+    color: var(--terminal-green-bright);
+}
+
+.hero-hud-effect {
+    display: inline-flex;
+    gap: 5px;
+    align-items: baseline;
+    padding: 3px 6px;
+    border: 1px solid var(--terminal-green-muted);
+    background: rgba(110, 255, 150, 0.045);
+    color: var(--terminal-green-bright);
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 0.045em;
+}
+
+.hero-hud-effect small {
+    color: var(--terminal-green-muted);
+    font-size: 7px;
+}
+
+.hero-hud-effect.none {
+    border-color: var(--terminal-border);
+    background: transparent;
+    color: var(--terminal-green-muted);
+}
+
+.hero-hud-effect.more {
+    color: var(--terminal-green-bright);
+}
+
+.hero-hud-status-notice {
+    margin: 3px 5px 5px;
+    padding: 5px 7px;
+    border-left: 2px solid var(--terminal-green-bright);
+    background: rgba(110, 255, 150, 0.07);
+    color: var(--terminal-green-bright);
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 0.07em;
+}
+
+@media (max-width: 1000px) {
+    .hero-hud-main {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .hero-hud-meter.xp {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 700px) {
+    .hero-hud-main {
+        grid-template-columns: 1fr;
+        gap: 9px;
+    }
+
+    .hero-hud-meter.xp {
+        grid-column: auto;
+    }
+
+    .hero-hud-core,
+    .hero-hud-effects {
+        grid-template-columns: 1fr;
+    }
+}
+
+.choice-xp-meta {
+    color: rgba(180, 255, 215, 0.82);
+}
+
+@media (max-width: 1000px) {
+    .hero-hud-main {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .hero-hud-meter.xp {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 700px) {
+    .hero-hud-main {
+        grid-template-columns: 1fr;
+        gap: 9px;
+    }
+
+    .hero-hud-meter.xp {
+        grid-column: auto;
+    }
+
+    .hero-hud-effects {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* =========================================================
+   EXPLICIT CHOICE COMMIT
+========================================================= */
+
+.choice-commit-panel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin: 9px 0 18px;
+    padding: 10px 12px;
+    border: 1px solid rgba(114, 255, 155, 0.22);
+    background: rgba(114, 255, 155, 0.025);
+}
+
+.choice-commit-status {
+    min-width: 0;
+    color: var(--terminal-dim);
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.choice-commit-button {
+    flex: 0 0 auto;
+    min-width: 156px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+}
+
+.choice-button.is-locked {
+    border-color: var(--terminal-green-bright);
+    box-shadow:
+        inset 3px 0 0 var(--terminal-green-bright),
+        0 0 18px rgba(114, 255, 155, 0.08);
+}
+
+.choice-button.is-locked .choice-label::after {
+    content: "  [LOCKED]";
+    color: var(--terminal-green-bright);
+}
+
+.turn-transition-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100080;
+    display: grid;
+    place-items: center;
+    background: rgba(0, 4, 1, 0.30);
+    opacity: 0;
+    pointer-events: all;
+    transition:
+        opacity 220ms ease,
+        background 520ms ease;
+}
+
+.turn-transition-overlay[hidden] {
+    display: none !important;
+}
+
+.turn-transition-overlay.is-visible {
+    opacity: 1;
+}
+
+.turn-transition-overlay.is-blackout {
+    background: #000;
+}
+
+.turn-transition-content {
+    width: min(88vw, 620px);
+    padding: 28px 24px;
+    border: 1px solid var(--terminal-green-muted);
+    background: rgba(0, 8, 2, 0.92);
+    text-align: center;
+    box-shadow: 0 0 80px rgba(0, 255, 90, 0.08);
+    transition: opacity 280ms ease, transform 280ms ease;
+}
+
+.turn-transition-overlay.is-blackout .turn-transition-content {
+    opacity: 0.18;
+    transform: scale(0.985);
+}
+
+.turn-transition-kicker {
+    color: var(--terminal-green-bright);
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+}
+
+.turn-transition-count {
+    margin: 6px 0;
+    color: var(--terminal-green-bright);
+    font-size: clamp(0.9rem, 2.5vw, 1.5rem);
+    font-weight: 900;
+    line-height: 0.92;
+    white-space: pre;
+    font-family: var(--terminal-font, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+    letter-spacing: 0.08em;
+    text-shadow: 0 0 26px rgba(114, 255, 155, 0.22);
+}
+
+.turn-transition-copy {
+    color: var(--terminal-dim);
+    font-size: 0.72rem;
+    letter-spacing: 0.10em;
+}
+
+@media (max-width: 700px) {
+    .choice-commit-panel {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .choice-commit-status {
+        white-space: normal;
+    }
+
+    .choice-commit-button {
+        width: 100%;
+    }
+}
+
+/* =========================================================
+   COMBINED HERO + TURN STATUS PANEL
+   One Hero occupies the full status width. Two Heroes split
+   the readiness row 50/50 inside the same outer HUD frame.
+========================================================= */
+
+.live-hero-hud .turn-flow-panel {
+    margin: 4px 5px 7px;
+    padding: 8px 0 0;
+    border: 0;
+    border-top: 1px dashed var(--terminal-border);
+    background: transparent;
+}
+
+.live-hero-hud .turn-flow-header {
+    min-height: 0;
+    margin: 0 0 7px;
+    padding: 0;
+}
+
+.live-hero-hud .turn-flow-phase {
+    margin: 0;
+    color: var(--terminal-green-bright);
+    font-size: 0.68rem;
+}
+
+.live-hero-hud .turn-flow-sheet-button {
+    min-height: 0;
+    padding: 5px 8px;
+    border-color: var(--terminal-border);
+    color: var(--terminal-green-muted);
+    font-size: 0.60rem;
+}
+
+.live-hero-hud .turn-flow-players {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.live-hero-hud .turn-flow-player:only-child {
+    grid-column: 1 / -1;
+}
+
+.live-hero-hud .turn-flow-player {
+    min-height: 54px;
+    padding: 8px 10px;
+    border-color: var(--terminal-border);
+    background: rgba(0, 255, 90, 0.018);
+}
+
+.live-hero-hud .turn-flow-player.is-you {
+    border-color: var(--terminal-green-muted);
+    box-shadow: inset 2px 0 0 rgba(114, 255, 155, 0.35);
+}
+
+@media (max-width: 700px) {
+    .live-hero-hud .turn-flow-players {
+        grid-template-columns: 1fr;
+    }
+
+    .live-hero-hud .turn-flow-player {
+        grid-column: auto;
+    }
+}
+
+/* =========================================================
+   TURN TRANSITION MODAL // COUNTDOWN + INTERMISSION + READY
+========================================================= */
+
+.turn-transition-overlay {
+    padding: 20px;
+    background: rgba(0, 4, 1, 0.58);
+    backdrop-filter: blur(2px);
+}
+
+.turn-transition-content {
+    width: min(92vw, 820px);
+    max-height: min(88vh, 760px);
+    padding: 20px;
+    overflow: auto;
+    border: 1px solid var(--terminal-green-muted);
+    background: rgba(0, 8, 2, 0.97);
+    box-shadow:
+        0 0 100px rgba(0, 255, 90, 0.10),
+        inset 0 0 36px rgba(0, 255, 90, 0.025);
+}
+
+.turn-transition-stage {
+    text-align: center;
+}
+
+.turn-transition-overlay.is-blackout {
+    background: #000;
+}
+
+.turn-transition-overlay.is-blackout .turn-transition-content {
+    opacity: 0.12;
+    transform: scale(0.985);
+}
+
+.turn-transition-overlay.is-game .turn-transition-content,
+.turn-transition-overlay.is-story-ready .turn-transition-content {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.turn-transition-overlay.is-game .turn-transition-stage {
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed var(--terminal-border);
+}
+
+.turn-transition-overlay.is-game .turn-transition-count[hidden] {
+    display: none;
+}
+
+.turn-transition-game-slot[hidden] {
+    display: none !important;
+}
+
+.turn-transition-game-slot .intermission-mount {
+    margin: 0;
+}
+
+.turn-transition-game-slot .intermission-panel {
+    margin: 0;
+    border-color: var(--terminal-border);
+    background:
+        linear-gradient(
+            180deg,
+            rgba(0, 255, 90, 0.025),
+            rgba(0, 0, 0, 0.10)
+        );
+}
+
+.turn-transition-overlay.is-story-ready .turn-transition-stage {
+    border-bottom-color: var(--terminal-green-muted);
+}
+
+.turn-transition-overlay.is-story-ready .turn-transition-count {
+    display: block !important;
+    margin: 4px 0 2px;
+    font-size: clamp(0.9rem, 2.5vw, 1.5rem);
+}
+
+.turn-transition-overlay.is-story-ready .turn-transition-kicker {
+    font-size: 0.82rem;
+    font-weight: 900;
+}
+
+.turn-transition-overlay.is-closing {
+    opacity: 0;
+}
+
+.turn-transition-overlay.is-closing .turn-transition-content {
+    transform: scale(0.985);
+}
+
+@media (max-width: 700px) {
+    .turn-transition-overlay {
+        padding: 8px;
+    }
+
+    .turn-transition-content {
+        width: 96vw;
+        max-height: 94vh;
+        padding: 12px;
+    }
+}
+
+/* =========================================================
+   TURN TRANSITION PERFORMANCE / STORY READY FADE
+========================================================= */
+
+.turn-transition-overlay.is-game {
+    backdrop-filter: none;
+}
+
+.turn-transition-overlay.is-story-ready .intermission-panel {
+    transition: opacity 5s linear, filter 5s linear;
+    opacity: 0.72;
+    filter: saturate(0.75);
+}
+
+.turn-recap-panel {
+    position: relative;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+}
+
+.turn-recap-panel::before {
+    content: "LAST TURN";
+    display: block;
+    margin-bottom: 8px;
+    color: var(--terminal-dim);
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+}
+
+/* =========================================================
+   STORY FLOW FLATTENING // SCENE > PARTY STATUS > ACTIONS
+   Keep sections visually distinct without stacking heavy boxes.
+========================================================= */
+
+/* Give the narrative a clean ending before the first utility band. */
+#game-panel .scene-body {
+    margin-bottom: 10px;
+}
+
+/* PARTY STATUS and ACTIONS become thin horizontal section rails. */
+#game-panel > .subheading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 0 5px;
+    padding: 7px 0 0;
+    border-top: 1px solid var(--terminal-border);
+    color: var(--terminal-green-muted);
+    font-size: 0.68rem;
+    line-height: 1;
+    letter-spacing: 0.10em;
+}
+
+#game-panel > .subheading::after {
+    content: "";
+    flex: 1 1 auto;
+    min-width: 24px;
+    border-top: 1px dashed rgba(114, 255, 155, 0.14);
+}
+
+/* Party state should read as one compact terminal status line. */
+#game-panel .ready-list {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    min-height: 0;
+    margin: 0 0 2px;
+    padding: 1px 0 3px;
+    border: 0;
+    background: transparent;
+    font-size: 0.72rem;
+    line-height: 1.25;
+}
+
+#game-panel .ready-row {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+
+/* Choices keep strong tap targets, but lose the nested-panel feeling. */
+#game-panel .choice-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 5px 8px;
+    margin-top: 0;
+}
+
+#game-panel .choice-button {
+    min-height: 44px;
+    padding: 7px 10px;
+    border-width: 1px;
+    background: rgba(114, 255, 155, 0.012);
+    box-shadow: none;
+}
+
+#game-panel .choice-button:hover:not(:disabled) {
+    transform: none;
+    background: rgba(114, 255, 155, 0.045);
+}
+
+#game-panel .choice-button.is-selected {
+    background: rgba(114, 255, 155, 0.065);
+    box-shadow: inset 2px 0 0 var(--terminal-green);
+}
+
+#game-panel .choice-button.is-locked {
+    background: rgba(114, 255, 155, 0.055);
+    box-shadow: inset 2px 0 0 var(--terminal-green-bright);
+}
+
+#game-panel .choice-check-meta,
+#game-panel .choice-xp-meta {
+    margin-top: 2px;
+    font-size: 0.64rem;
+    line-height: 1.15;
+}
+
+/* The commit row should feel like the footer to ACTIONS, not another card. */
+#game-panel .choice-commit-panel {
+    margin: 6px 0 12px;
+    padding: 7px 0 0;
+    border: 0;
+    border-top: 1px dashed rgba(114, 255, 155, 0.14);
+    background: transparent;
+}
+
+@media (max-width: 700px) {
+    #game-panel > .subheading {
+        margin-top: 9px;
+        padding-top: 7px;
+    }
+
+    #game-panel .choice-list {
+        grid-template-columns: 1fr;
+        gap: 5px;
+    }
+
+    #game-panel .choice-button {
+        min-height: 46px;
+        padding: 8px 10px;
+    }
+}
+
+/* =========================================================
+   HERO LEVEL-UP CELEBRATION
+========================================================= */
+
+.hero-level-up-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 12000;
+    display: grid;
+    place-items: center;
+    padding: 18px;
+    background: rgba(0, 8, 3, 0.88);
+    opacity: 0;
+    transition: opacity 280ms ease;
+}
+
+.hero-level-up-overlay[hidden] {
+    display: none;
+}
+
+.hero-level-up-overlay.is-visible {
+    opacity: 1;
+}
+
+.hero-level-up-overlay.is-closing {
+    opacity: 0;
+}
+
+.hero-level-up-card {
+    width: min(100%, 620px);
+    border: 1px solid var(--terminal-green-bright);
+    background: var(--terminal-panel);
+    color: var(--terminal-green);
+    padding: 22px;
+    text-align: center;
+    box-shadow:
+        inset 0 0 0 1px var(--terminal-green-muted),
+        0 0 28px rgba(69, 255, 133, 0.12);
+}
+
+.hero-level-up-kicker {
+    color: var(--terminal-green-muted);
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    margin-bottom: 14px;
+}
+
+.hero-level-up-ascii {
+    margin: 0 auto 14px;
+    padding: 0;
+    overflow: hidden;
+    background: transparent;
+    border: 0;
+    color: var(--terminal-green-bright);
+    font: inherit;
+    font-size: clamp(0.72rem, 2.3vw, 1rem);
+    line-height: 1.15;
+    white-space: pre;
+}
+
+.hero-level-up-levels {
+    margin: 10px 0 4px;
+    color: var(--terminal-green-bright);
+    font-size: clamp(1.5rem, 5vw, 2.35rem);
+    font-weight: 800;
+    letter-spacing: 0.08em;
+}
+
+.hero-level-up-levels span {
+    color: var(--terminal-green-muted);
+    padding: 0 0.35em;
+}
+
+.hero-level-up-xp,
+.hero-level-up-copy {
+    margin-top: 8px;
+    color: var(--terminal-green);
+}
+
+.hero-level-up-copy {
+    color: var(--terminal-green-muted);
+    margin-bottom: 18px;
+}
+
+.hero-level-up-continue {
+    min-width: 180px;
+}
+
+@media (max-width: 640px) {
+    .hero-level-up-card {
+        padding: 16px 12px;
+    }
+
+    .hero-level-up-ascii {
+        font-size: 0.62rem;
+    }
+}
+
+/* =========================================================
+   JOURNEY FINALE
+========================================================= */
+
+.journey-end-panel {
+    margin-top: 18px;
+    padding: 16px 0 4px;
+    border-top: 1px solid rgba(108, 255, 147, 0.34);
+    text-align: center;
+}
+
+.journey-end-line {
+    margin-bottom: 10px;
+    color: var(--terminal-green, #75ff9b);
+    font-family: var(--mono-font, monospace);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+}
+
+.journey-end-copy {
+    max-width: 680px;
+    margin: 0 auto 14px;
+    color: rgba(220, 255, 229, 0.82);
+    font-family: var(--mono-font, monospace);
+    font-size: 0.86rem;
+    line-height: 1.5;
+}
+
+.journey-end-button {
+    min-width: min(100%, 320px);
+}
+
+.journey-finale-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10040;
+    display: grid;
+    place-items: center;
+    padding: 22px;
+    overflow-y: auto;
+    background: rgba(2, 7, 4, 0.96);
+    opacity: 0;
+    transition: opacity 0.32s ease;
+}
+
+.journey-finale-overlay[hidden] {
+    display: none;
+}
+
+.journey-finale-overlay.is-visible {
+    opacity: 1;
+}
+
+.journey-finale-overlay.is-closing {
+    opacity: 0;
+}
+
+.journey-finale-countdown {
+    text-align: center;
+    color: var(--terminal-green, #75ff9b);
+    font-family: var(--mono-font, monospace);
+    letter-spacing: 0.1em;
+}
+
+.journey-finale-countdown pre {
+    margin: 20px 0 0;
+    font: inherit;
+    font-size: clamp(1.2rem, 5vw, 2.8rem);
+    line-height: 0.9;
+    white-space: pre;
+}
+
+.journey-finale-card {
+    width: min(920px, 100%);
+    border: 1px solid rgba(108, 255, 147, 0.58);
+    padding: clamp(18px, 4vw, 34px);
+    background: rgba(3, 12, 7, 0.98);
+    color: var(--terminal-green, #75ff9b);
+    font-family: var(--mono-font, monospace);
+}
+
+.journey-finale-kicker,
+.journey-finale-ending,
+.journey-finale-party-rank,
+.journey-finale-meta {
+    text-align: center;
+    letter-spacing: 0.08em;
+}
+
+.journey-finale-card h2 {
+    margin: 8px 0;
+    text-align: center;
+    color: inherit;
+    font: inherit;
+    font-size: clamp(1.15rem, 3vw, 1.8rem);
+}
+
+.journey-finale-ending {
+    margin: 8px 0 14px;
+    font-size: 0.84rem;
+    opacity: 0.9;
+}
+
+.journey-finale-party-rank {
+    margin: 10px 0 2px;
+    font-size: clamp(1.1rem, 3vw, 1.6rem);
+}
+
+.journey-finale-meta {
+    margin-bottom: 18px;
+    font-size: 0.76rem;
+    opacity: 0.72;
+}
+
+.journey-finale-resolution {
+    max-width: 760px;
+    margin: 0 auto 22px;
+    padding: 14px 0;
+    border-top: 1px solid rgba(108, 255, 147, 0.2);
+    border-bottom: 1px solid rgba(108, 255, 147, 0.2);
+    color: rgba(220, 255, 229, 0.9);
+    font-family: inherit;
+    font-size: 0.9rem;
+    line-height: 1.55;
+    white-space: pre-wrap;
+}
+
+.journey-finale-heroes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+    gap: 12px;
+}
+
+.journey-finale-hero {
+    min-width: 0;
+    padding: 14px;
+    border: 1px solid rgba(108, 255, 147, 0.24);
+}
+
+.journey-finale-hero-head,
+.journey-finale-stats {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.journey-finale-hero-head strong {
+    font-size: 1rem;
+}
+
+.journey-rank {
+    font-weight: 700;
+}
+
+.journey-finale-progression {
+    margin: 10px 0;
+    font-size: 0.84rem;
+}
+
+.journey-finale-stats {
+    justify-content: flex-start;
+    font-size: 0.72rem;
+    opacity: 0.86;
+}
+
+.journey-finale-stats span:not(:last-child)::after {
+    content: " //";
+    opacity: 0.5;
+}
+
+.journey-finale-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px dashed rgba(108, 255, 147, 0.2);
+    font-size: 0.72rem;
+    opacity: 0.82;
+}
+
+.journey-return-button {
+    display: block;
+    width: min(100%, 340px);
+    margin: 24px auto 0;
+}
+
+@media (max-width: 640px) {
+    .journey-finale-overlay {
+        padding: 10px;
+    }
+
+    .journey-finale-card {
+        padding: 16px;
+    }
+
+    .journey-finale-hero {
+        padding: 12px;
+    }
+}
+
+
+/* =========================================================
+   CRITICAL OUTCOME SPLASH
+========================================================= */
+
+.critical-splash {
+    position: fixed;
+    inset: 0;
+    z-index: 14000;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    pointer-events: none;
+    opacity: 0;
+    background: rgba(0, 0, 0, 0.72);
+    transition: opacity 180ms ease;
+}
+
+.critical-splash.is-visible {
+    opacity: 1;
+}
+
+.critical-splash.is-leaving {
+    opacity: 0;
+    transition-duration: 800ms;
+}
+
+.critical-splash-frame {
+    position: relative;
+    width: min(720px, 94vw);
+    overflow: hidden;
+    border: 1px solid currentColor;
+    background: #050706;
+    padding: clamp(28px, 6vw, 58px) clamp(20px, 7vw, 70px);
+    text-align: center;
+    font-family: "Courier New", Courier, monospace;
+    text-transform: uppercase;
+}
+
+.critical-splash-frame::before,
+.critical-splash-frame::after {
+    content: "+------------------------------------------------+";
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    opacity: 0.62;
+}
+
+.critical-splash-success {
+    color: var(--terminal-green, #71ff9a);
+}
+
+.critical-splash-success .critical-splash-frame {
+    box-shadow:
+        0 0 28px rgba(86, 255, 139, 0.22),
+        inset 0 0 36px rgba(86, 255, 139, 0.07);
+}
+
+.critical-splash-failure {
+    color: #ff5252;
+}
+
+.critical-splash-failure .critical-splash-frame {
+    border-color: #ff3d3d;
+    box-shadow:
+        0 0 26px rgba(255, 33, 33, 0.25),
+        inset 0 0 44px rgba(120, 0, 0, 0.16);
+}
+
+.critical-splash-eyebrow {
+    margin: 18px 0 10px;
+    font-size: clamp(0.68rem, 2vw, 0.82rem);
+    letter-spacing: 0.24em;
+    opacity: 0.78;
+}
+
+.critical-splash-sigil {
+    margin: 8px 0;
+    color: currentColor;
+    font: inherit;
+    letter-spacing: 0.14em;
+}
+
+.critical-splash-title {
+    margin: 8px 0 12px;
+    font-size: clamp(1.7rem, 7vw, 4.2rem);
+    font-weight: 900;
+    line-height: 0.95;
+    letter-spacing: 0.06em;
+    text-shadow: 0 0 14px currentColor;
+}
+
+.critical-splash-subtitle {
+    font-size: clamp(0.72rem, 2.5vw, 1rem);
+    letter-spacing: 0.12em;
+}
+
+.critical-splash-timer {
+    margin-top: 20px;
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+    opacity: 0.55;
+}
+
+.critical-splash-blood {
+    position: absolute;
+    inset: -4px 0 auto;
+    height: 86px;
+    overflow: hidden;
+    white-space: pre;
+    color: #b60000;
+    font-size: clamp(0.72rem, 2vw, 1rem);
+    line-height: 0.9;
+    opacity: 0.9;
+    transform: scaleX(1.15);
+}
+
+.critical-splash-failure .critical-splash-title {
+    animation: criticalFailureJolt 160ms steps(2, end) 3;
+}
+
+.critical-splash-success .critical-splash-title {
+    animation: criticalSuccessPulse 520ms ease-out 1;
+}
+
+@keyframes criticalFailureJolt {
+    0%, 100% { transform: translate(0, 0); }
+    25% { transform: translate(-3px, 1px); }
+    50% { transform: translate(3px, -1px); }
+    75% { transform: translate(-1px, 2px); }
+}
+
+@keyframes criticalSuccessPulse {
+    0% { transform: scale(0.92); opacity: 0.1; }
+    70% { transform: scale(1.04); opacity: 1; }
+    100% { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .critical-splash,
+    .critical-splash-title {
+        animation: none !important;
+        transition-duration: 1ms !important;
+    }
+}
+
+/* =========================================================
+   WRAP-UP VOW
+========================================================= */
+
+.adventure-control-button.wrap-up {
+    border-color: rgba(111, 255, 145, 0.46);
+    color: var(--terminal-green, #7dff9a);
+}
+
+.adventure-control-button.wrap-up:not(:disabled):hover,
+.adventure-control-button.wrap-up:not(:disabled):focus-visible {
+    border-color: currentColor;
+    box-shadow: 0 0 0 1px rgba(111, 255, 145, 0.12) inset;
+}
+
+.wrap-up-status {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.5rem;
+    padding: 0.35rem 0.65rem;
+    border-left: 1px solid rgba(111, 255, 145, 0.28);
+    color: rgba(178, 255, 193, 0.78);
+    font-size: 0.72rem;
+    line-height: 1.25;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+@media (max-width: 720px) {
+    .wrap-up-status {
+        width: 100%;
+        border-left: 0;
+        border-top: 1px solid rgba(111, 255, 145, 0.22);
+        padding-left: 0;
+    }
+}
+
+
+/* =========================================================
+   HERO HEALTH STATES
+   ========================================================= */
+
+.hero-hud-health.wounded {
+    color: #d6c86a;
+}
+
+.hero-hud-health.critical,
+.hero-hud-health.fallen {
+    color: #ff6666;
+}
+
+.hero-hud-health.critical code,
+.hero-hud-health.fallen code {
+    text-shadow: 0 0 8px currentColor;
+}
+
+.journey-finale-fate {
+    margin: 0.45rem 0 0.6rem;
+    padding: 0.45rem 0.6rem;
+    border-left: 2px solid currentColor;
+    font-family: var(--terminal-font, monospace);
+    letter-spacing: 0.05em;
+}
+
+.journey-finale-fate.survived {
+    color: var(--terminal-green, #69f59a);
+}
+
+.journey-finale-fate.fallen {
+    color: #ff6b6b;
+}
+
+/* =========================================================
+   FINALE // HERO ASCENDANCY
+========================================================= */
+.journey-advancement {
+    margin: 18px 0;
+    padding: 14px 0;
+    border-top: 1px solid var(--terminal-border, rgba(119, 255, 154, 0.38));
+    border-bottom: 1px solid var(--terminal-border, rgba(119, 255, 154, 0.38));
+}
+
+.journey-advancement-kicker,
+.journey-advancement-earned {
+    color: var(--terminal-green, #78ff98);
+    font-weight: 700;
+    letter-spacing: .06em;
+}
+
+.journey-advancement-copy {
+    margin: 6px 0 10px;
+    opacity: .82;
+}
+
+.journey-advancement-row {
+    display: grid;
+    grid-template-columns: minmax(120px, .7fr) minmax(180px, 1.5fr) auto;
+    gap: 8px;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.journey-advancement-row select {
+    min-height: 42px;
+    width: 100%;
+    background: transparent;
+    color: inherit;
+    border: 1px solid currentColor;
+    padding: 7px 9px;
+    font: inherit;
+}
+
+.journey-advancement-status {
+    min-height: 1.4em;
+    margin-top: 8px;
+    opacity: .75;
+}
+
+@media (max-width: 720px) {
+    .journey-advancement-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* =========================================================
+   MOBILE ADVENTURE RESUME / PREVIOUSLY ON
+   The page is intentionally locked during play, so the resume recap must
+   own its own vertical scroll surface on small screens.
+========================================================= */
+
+@media (max-width: 720px) {
+
+    .adventure-entry-backdrop {
+        place-items: stretch;
+        align-items: stretch;
+        padding:
+            max(8px, env(safe-area-inset-top))
+            8px
+            max(8px, env(safe-area-inset-bottom));
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-y;
+    }
+
+    .adventure-entry-modal {
+        box-sizing: border-box;
+        width: 100%;
+        max-width: 100%;
+        max-height: calc(100dvh - 16px);
+        min-height: 0;
+        margin: auto 0;
+        padding: 18px 16px 14px;
+        overflow-x: hidden;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-y;
+    }
+
+    .adventure-entry-recap {
+        margin: 14px 0;
+        padding: 12px;
+        line-height: 1.55;
+        overflow: visible;
+    }
+
+    .adventure-entry-continue {
+        position: sticky;
+        bottom: 0;
+        z-index: 2;
+        margin-top: 4px;
+        min-height: 52px;
+        background: #071008;
+    }
+}
+
+/* =========================================================
+   HERO EFFECTS // PHASE C
+========================================================= */
+
+.hero-stat-fx {
+    font-style: normal;
+    font-size: 0.78em;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+}
+
+.hero-stat-fx.positive {
+    color: var(--terminal-bright, #9dffb8);
+}
+
+.hero-stat-fx.negative {
+    color: #ff7272;
+}
+
+.hero-effect-acquired-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 14000;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    pointer-events: none;
+    background: rgba(0, 8, 3, 0.58);
+    opacity: 0;
+    transition: opacity 240ms ease;
+}
+
+.hero-effect-acquired-overlay[hidden] {
+    display: none;
+}
+
+.hero-effect-acquired-overlay.show {
+    opacity: 1;
+}
+
+.hero-effect-acquired-card {
+    width: min(620px, 92vw);
+    max-height: min(72vh, 560px);
+    overflow-y: auto;
+    border: 2px solid currentColor;
+    padding: clamp(20px, 4vw, 38px);
+    background: rgba(1, 18, 7, 0.97);
+    color: var(--terminal-bright, #9dffb8);
+    text-align: center;
+    box-shadow: 0 0 0 1px rgba(100, 255, 145, 0.12), 0 0 36px rgba(75, 255, 120, 0.16);
+    transform: translateY(8px) scale(0.97);
+    transition: transform 240ms ease;
+}
+
+.hero-effect-acquired-overlay.show .hero-effect-acquired-card {
+    transform: translateY(0) scale(1);
+}
+
+.hero-effect-acquired-overlay.bane .hero-effect-acquired-card {
+    color: #ff7777;
+    background: rgba(24, 2, 2, 0.97);
+    box-shadow: 0 0 0 1px rgba(255, 85, 85, 0.14), 0 0 36px rgba(255, 55, 55, 0.18);
+}
+
+.hero-effect-acquired-kicker {
+    margin-bottom: 14px;
+    font-size: clamp(0.78rem, 2vw, 0.95rem);
+    letter-spacing: 0.16em;
+    opacity: 0.78;
+}
+
+.hero-effect-acquired-name {
+    font-family: inherit;
+    font-weight: 800;
+    font-size: clamp(1.55rem, 5vw, 3rem);
+    line-height: 1.05;
+    letter-spacing: 0.05em;
+}
+
+.hero-effect-acquired-meta {
+    margin-top: 16px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+}
+
+.hero-effect-acquired-desc {
+    margin: 18px auto 0;
+    max-width: 52ch;
+    line-height: 1.5;
+    opacity: 0.84;
+}
+
+@media (max-width: 640px) {
+    .hero-effect-acquired-overlay {
+        padding: 14px;
+    }
+
+    .hero-effect-acquired-card {
+        width: 100%;
+        max-height: 76vh;
+        padding: 22px 16px;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hero-effect-acquired-overlay,
+    .hero-effect-acquired-card {
+        transition: none;
+    }
+}
+
+/* =========================================================
+   QUICK MICRO-EVENTS
+========================================================= */
+
+.micro-event-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 11950;
+    display: grid;
+    place-items: center;
+    padding: clamp(16px, 4vw, 42px);
+    background: rgba(0, 7, 3, 0.78);
+    backdrop-filter: blur(6px);
+}
+
+.micro-event-backdrop[hidden] {
+    display: none;
+}
+
+.micro-event-window {
+    width: min(720px, 96vw);
+    max-height: min(82vh, 700px);
+    overflow-y: auto;
+    padding: clamp(22px, 4vw, 38px);
+    border: 1px solid rgba(148, 255, 179, 0.58);
+    background:
+        linear-gradient(180deg, rgba(8, 29, 16, 0.98), rgba(2, 14, 7, 0.985));
+    box-shadow:
+        0 0 0 1px rgba(112, 255, 155, 0.08),
+        0 28px 90px rgba(0, 0, 0, 0.62),
+        0 0 40px rgba(80, 255, 130, 0.08);
+}
+
+.micro-event-kicker {
+    margin-bottom: 10px;
+    color: rgba(166, 255, 191, 0.7);
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+}
+
+.micro-event-title {
+    margin: 0;
+    font: inherit;
+    font-size: clamp(1.55rem, 4vw, 2.45rem);
+    font-weight: 900;
+    letter-spacing: 0.055em;
+    line-height: 1.05;
+}
+
+.micro-event-prompt {
+    margin: 18px 0 0;
+    max-width: 62ch;
+    line-height: 1.55;
+    color: rgba(226, 255, 234, 0.88);
+}
+
+.micro-event-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.micro-event-option {
+    min-height: 104px;
+    padding: 16px;
+    border: 1px solid rgba(148, 255, 179, 0.42);
+    background: rgba(16, 58, 31, 0.4);
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition:
+        transform 140ms ease,
+        border-color 140ms ease,
+        background 140ms ease;
+}
+
+.micro-event-option:hover:not(:disabled),
+.micro-event-option:focus-visible:not(:disabled) {
+    transform: translateY(-2px);
+    border-color: rgba(174, 255, 197, 0.9);
+    background: rgba(24, 82, 43, 0.56);
+    outline: none;
+}
+
+.micro-event-option:disabled {
+    cursor: default;
+    opacity: 0.46;
+}
+
+.micro-event-option strong,
+.micro-event-option span {
+    display: block;
+}
+
+.micro-event-option strong {
+    font-size: 0.98rem;
+    letter-spacing: 0.08em;
+}
+
+.micro-event-option span {
+    margin-top: 8px;
+    line-height: 1.42;
+    color: rgba(221, 255, 231, 0.7);
+}
+
+.micro-event-status {
+    margin-top: 18px;
+    color: rgba(164, 255, 190, 0.68);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+}
+
+body.micro-event-open {
+    overflow: hidden;
+}
+
+@media (max-width: 640px) {
+    .micro-event-backdrop {
+        align-items: end;
+        padding: 12px;
+    }
+
+    .micro-event-window {
+        width: 100%;
+        max-height: 86vh;
+        padding: 22px 16px 18px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .micro-event-options {
+        grid-template-columns: 1fr;
+    }
+
+    .micro-event-option {
+        min-height: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .micro-event-option {
+        transition: none;
+    }
+}
+
+
+/* =========================================================
+   PRODUCTION UI PASS 01 // MODERN TERMINAL ADVENTURE SHELL
+========================================================= */
+
+body.in-session {
+    --terminal-dim: #9ab7a0;
+    --terminal-green-muted: #55b970;
+    --terminal-border: #2d7443;
+}
+
+body.in-session * {
+    scrollbar-width: auto;
+    scrollbar-color: #2d7443 #020603;
+}
+
+body.in-session *::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+body.in-session *::-webkit-scrollbar-track {
+    background: #020603;
+}
+
+body.in-session *::-webkit-scrollbar-thumb {
+    background: #2d7443;
+    border: 2px solid #020603;
+    border-radius: 0;
+}
+
+body.in-session *::-webkit-scrollbar-thumb:hover {
+    background: var(--terminal-green-muted);
+}
+
+.adventure-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.adventure-sidebar > .turn-flow-panel {
+    flex: 0 0 auto;
+    margin: 0;
+    padding: 8px;
+    border: 1px solid var(--terminal-green-muted);
+    background: var(--terminal-panel);
+}
+
+.adventure-sidebar .turn-flow-header {
+    margin: 0 0 6px;
+    gap: 7px;
+}
+
+.adventure-sidebar .turn-flow-phase {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--terminal-green-bright);
+    font-size: 0.62rem;
+    font-weight: 800;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.adventure-sidebar .turn-flow-sheet-button {
+    min-height: 24px;
+    padding: 3px 6px;
+    font-size: 0.54rem;
+}
+
+.adventure-sidebar .turn-flow-players {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5px;
+}
+
+.adventure-sidebar .turn-flow-player,
+.adventure-sidebar .turn-flow-player:only-child {
+    grid-column: auto;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    min-width: 0;
+    min-height: 0;
+    padding: 5px 7px;
+    border: 1px solid var(--terminal-border);
+    background: rgba(114, 255, 155, 0.025);
+}
+
+.adventure-sidebar .turn-flow-label {
+    flex: 0 0 auto;
+    color: var(--terminal-green-muted);
+    font-size: 0.55rem;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.adventure-sidebar .turn-flow-label::after {
+    content: " |";
+    color: var(--terminal-border);
+}
+
+.adventure-sidebar .turn-flow-value {
+    min-width: 0;
+    color: var(--terminal-green-bright);
+    font-size: 0.58rem;
+    font-weight: 400;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.adventure-sidebar > .live-hero-hud {
+    flex: 0 0 auto;
+    margin: 0;
+    padding: 9px;
+}
+
+.adventure-sidebar .hero-hud-frame-line {
+    display: none;
+}
+
+.adventure-sidebar .hero-hud-main {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 0;
+}
+
+.adventure-sidebar .hero-hud-identity {
+    justify-content: space-between;
+}
+
+.adventure-sidebar .hero-hud-identity strong {
+    font-size: 1rem;
+}
+
+.adventure-sidebar .hero-hud-meter code {
+    font-size: 0.64rem;
+    overflow: hidden;
+}
+
+.adventure-sidebar .hero-hud-core,
+.adventure-sidebar .hero-hud-effects {
+    grid-template-columns: 1fr;
+    gap: 5px;
+    padding: 7px 0 0;
+    margin-top: 7px;
+}
+
+.adventure-sidebar .hero-hud-core > div,
+.adventure-sidebar .hero-hud-effects > div {
+    gap: 4px;
+}
+
+.adventure-sidebar .hero-hud-core span,
+.adventure-sidebar .hero-hud-effect {
+    padding: 2px 4px;
+    font-size: 0.56rem;
+}
+
+.adventure-sidebar .hero-hud-status-notice {
+    margin: 7px 0 0;
+}
+
+.adventure-sidebar > #chat-panel {
+    position: relative;
+    top: auto;
+    flex: 1 1 auto;
+    align-self: stretch;
+    min-height: 150px;
+    height: auto;
+    max-height: none;
+    margin: 0;
+}
+
+.adventure-sidebar > #chat-panel.is-collapsed {
+    flex: 0 0 auto;
+    min-height: 0;
+    height: auto;
+    padding-bottom: 8px;
+}
+
+.adventure-sidebar > #chat-panel.is-collapsed .chat-log,
+.adventure-sidebar > #chat-panel.is-collapsed .chat-input-row {
+    display: none;
+}
+
+.adventure-sidebar > #chat-panel.is-collapsed .panel-heading {
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+#chat-panel .panel-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.chat-panel-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.chat-collapse-button,
+.chat-ascii-button {
+    border: 1px solid var(--terminal-border);
+    background: #020803;
+    color: var(--terminal-green);
+    font: inherit;
+    font-size: 0.61rem;
+    font-weight: 900;
+}
+
+.chat-collapse-button {
+    padding: 3px 6px;
+}
+
+.chat-ascii-button {
+    min-width: 42px;
+    min-height: 38px;
+    padding: 5px 7px;
+}
+
+.chat-input-row {
+    position: relative;
+}
+
+.chat-ascii-picker {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 5px);
+    z-index: 40;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+    width: min(310px, 90vw);
+    max-height: 220px;
+    padding: 7px;
+    overflow: auto;
+    border: 1px solid var(--terminal-green-muted);
+    background: #010602;
+    box-shadow: 0 12px 38px rgba(0, 0, 0, 0.65);
+}
+
+.chat-ascii-picker[hidden] {
+    display: none;
+}
+
+.chat-ascii-option {
+    min-height: 34px;
+    padding: 5px 3px;
+    border: 1px solid var(--terminal-border);
+    background: #031006;
+    color: var(--terminal-green-bright);
+    font: 0.58rem/1.15 "Courier New", Courier, monospace;
+    white-space: pre-wrap;
+}
+
+.chat-ascii-option:hover {
+    border-color: var(--terminal-green);
+    background: rgba(114, 255, 155, 0.08);
+}
+
+body.in-session .muted,
+body.in-session .choice-check-meta,
+body.in-session .check-choice,
+body.in-session .hero-hud-meter small,
+body.in-session .hero-hud-effect small {
+    color: var(--terminal-dim);
+}
+
+body.in-session .chat-message,
+body.in-session .chat-text {
+    color: #9fd5aa;
+}
+
+body.in-session #game-panel.terminal-panel {
+    padding: 12px 15px 16px;
+}
+
+body.in-session .scene-art {
+    padding: 8px 0 10px;
+    border-top: 1px solid rgba(85, 185, 112, 0.16);
+    border-bottom: 1px solid rgba(85, 185, 112, 0.16);
+    color: var(--terminal-green-bright);
+}
+
+body.in-session .scene-body {
+    color: #c6e8cc;
+    font-size: 0.91rem;
+    line-height: 1.58;
+}
+
+body.in-session .choice-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+body.in-session .choice-card {
+    min-width: 0;
+}
+
+body.in-session .choice-button {
+    min-height: 64px;
+}
+
+body.in-session .check-result-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+}
+
+body.in-session .check-card {
+    min-width: 0;
+}
+
+body.in-session .dice-stage {
+    grid-template-columns: 135px minmax(0, 1fr);
+    gap: 9px;
+}
+
+body.in-session .ascii-d20 {
+    min-height: 118px;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.72rem;
+}
+
+@media (min-width: 901px) {
+    body.in-session .adventure-workspace {
+        grid-template-columns: minmax(0, 1fr) minmax(310px, 350px);
+        overflow: hidden;
+    }
+
+    body.in-session .adventure-sidebar {
+        height: 100%;
+    }
+
+    body.in-session #game-panel {
+        height: 100%;
+        overflow-y: auto;
+    }
+}
+
+@media (max-width: 900px) {
+    .adventure-sidebar {
+        overflow: visible;
+    }
+
+    .adventure-sidebar > #chat-panel {
+        min-height: 260px;
+    }
+
+    body.in-session .check-result-list {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 700px) {
+    body.in-session .choice-list {
+        grid-template-columns: 1fr;
+    }
+
+    .chat-ascii-picker {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* =========================================================
+   PRODUCTION UI PASS 02 // DEFINITIVE ADVENTURE SKIN
+   This block intentionally overrides the legacy adventure look.
+========================================================= */
+
+body.in-session {
+    --ui-bg: #010401;
+    --ui-black: #000000;
+    --ui-panel: #031006;
+    --ui-panel-2: #06180a;
+    --ui-panel-3: #09250f;
+    --ui-green: #53ff7d;
+    --ui-green-bright: #baffc8;
+    --ui-green-mid: #63cb79;
+    --ui-green-dim: #357844;
+    --ui-line: #36cc58;
+    --ui-line-dim: #20572d;
+    --ui-text: #d9f4de;
+    --ui-muted: #91bc99;
+    --ui-warning: #ffd76a;
+    --ui-danger: #ff6565;
+    --ui-info: #77dcff;
+    background: var(--ui-black);
+}
+
+body.in-session .terminal-shell {
+    width: min(100%, 1680px);
+}
+
+body.in-session .adventure-workspace {
+    grid-template-columns: minmax(0, 1fr) minmax(315px, 355px);
+    gap: 12px;
+    align-items: stretch;
+}
+
+body.in-session #game-panel.terminal-panel,
+body.in-session .adventure-sidebar > .terminal-panel,
+body.in-session .adventure-sidebar > .turn-flow-panel,
+body.in-session .adventure-sidebar > .live-hero-hud {
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+
+body.in-session #game-panel.terminal-panel {
+    position: relative;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0 0 16px;
+    border: 2px solid var(--ui-line);
+    background: var(--ui-panel);
+}
+
+body.in-session #game-panel > .panel-heading {
+    margin: 0;
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--ui-line);
+    background: var(--ui-panel-3);
+    color: var(--ui-green-bright);
+    font-size: .68rem;
+    font-weight: 900;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+
+body.in-session #game-panel > .turn-number,
+body.in-session #game-panel > .scene-title,
+body.in-session #game-panel > .scene-art,
+body.in-session #game-panel > .scene-body,
+body.in-session #game-panel > .subheading,
+body.in-session #game-panel > .ready-list,
+body.in-session #game-panel > .choice-list,
+body.in-session #game-panel > .choice-commit-panel,
+body.in-session #game-panel > .adventure-controls,
+body.in-session #game-panel > .wrap-up-status,
+body.in-session #game-panel > .finale-action-wrap {
+    margin-left: 18px;
+    margin-right: 18px;
+}
+
+body.in-session #game-panel > .turn-number {
+    margin-top: 11px;
+    margin-bottom: 4px;
+    color: var(--ui-muted);
+    font-size: .65rem;
+    font-weight: 900;
+    letter-spacing: .1em;
+}
+
+body.in-session #game-panel > .scene-title {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: var(--ui-green-bright);
+    font-size: 1.18rem;
+    font-weight: 900;
+    letter-spacing: .045em;
+    text-transform: uppercase;
+}
+
+body.in-session #game-panel > .scene-art {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 170px;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding: 18px 12px;
+    border: 1px solid var(--ui-line-dim);
+    border-bottom-color: var(--ui-line);
+    background: var(--ui-black);
+    color: var(--ui-green-bright);
+    font-size: clamp(.68rem, .82vw, .88rem);
+    line-height: 1;
+    text-align: center;
+    text-shadow: 0 0 10px rgba(83,255,125,.13);
+}
+
+body.in-session #game-panel > .scene-body {
+    max-width: 980px;
+    margin-top: 15px;
+    margin-bottom: 12px;
+    color: var(--ui-text);
+    font-size: .93rem;
+    line-height: 1.62;
+}
+
+body.in-session #game-panel > .scene-body::first-line {
+    color: var(--ui-green-bright);
+}
+
+body.in-session #game-panel > .subheading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+    margin-bottom: 8px;
+    color: var(--ui-green);
+    font-size: .68rem;
+    font-weight: 900;
+    letter-spacing: .11em;
+    text-transform: uppercase;
+}
+
+body.in-session #game-panel > .subheading::after {
+    content: "";
+    flex: 1 1 auto;
+    height: 1px;
+    background: var(--ui-line-dim);
+}
+
+body.in-session #game-panel .ready-list {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    padding: 0;
+    color: var(--ui-muted);
+    font-size: .66rem;
+}
+
+body.in-session #game-panel .ready-row {
+    padding: 4px 7px;
+    border: 1px solid var(--ui-line-dim);
+    background: rgba(83,255,125,.025);
+}
+
+/* ----- choice cards ----- */
+body.in-session #game-panel .choice-list {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+    gap: 8px !important;
+}
+
+body.in-session #game-panel .choice-card {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) 32px;
+    gap: 0;
+    min-width: 0;
+    border: 1px solid var(--ui-line-dim);
+    background: #020b04;
+}
+
+body.in-session #game-panel .choice-card:hover {
+    border-color: var(--ui-line);
+}
+
+body.in-session #game-panel .choice-card .choice-button {
+    min-height: 72px;
+    margin: 0;
+    padding: 10px 11px;
+    border: 0 !important;
+    border-right: 1px solid var(--ui-line-dim) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: var(--ui-green-bright);
+    box-shadow: none !important;
+    text-align: left;
+    transform: none !important;
+}
+
+body.in-session #game-panel .choice-card .choice-button:hover:not(:disabled),
+body.in-session #game-panel .choice-card .choice-button:focus-visible {
+    background: rgba(83,255,125,.08) !important;
+}
+
+body.in-session #game-panel .choice-card .choice-button.is-selected {
+    background: var(--ui-green) !important;
+    color: #001405 !important;
+}
+
+body.in-session #game-panel .choice-label {
+    color: inherit;
+    font-size: .76rem;
+    font-weight: 900;
+    line-height: 1.25;
+    letter-spacing: .03em;
+}
+
+body.in-session #game-panel .choice-check-meta,
+body.in-session #game-panel .choice-xp-meta {
+    margin-top: 5px;
+    color: var(--ui-muted);
+    font-size: .6rem;
+    line-height: 1.35;
+}
+
+body.in-session #game-panel .choice-button.is-selected .choice-check-meta,
+body.in-session #game-panel .choice-button.is-selected .choice-xp-meta {
+    color: #083813;
+}
+
+body.in-session #game-panel .choice-info-button {
+    width: 32px;
+    min-width: 32px;
+    height: 100%;
+    min-height: 72px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: #031208;
+    color: var(--ui-green-mid);
+    font-size: .76rem;
+    font-weight: 900;
+}
+
+body.in-session #game-panel .choice-info-button:hover,
+body.in-session #game-panel .choice-info-button:focus-visible {
+    background: var(--ui-green);
+    color: #001405;
+}
+
+body.in-session #game-panel .choice-commit-panel {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) auto;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    padding: 8px;
+    border: 1px solid var(--ui-line-dim);
+    background: var(--ui-black);
+}
+
+body.in-session #game-panel .choice-commit-status {
+    color: var(--ui-muted);
+    font-size: .64rem;
+}
+
+body.in-session #game-panel .choice-commit-button {
+    min-height: 38px;
+    padding: 7px 14px;
+    border-radius: 0;
+    font-weight: 900;
+}
+
+/* ----- turn resolution ----- */
+body.in-session #resolution-panel {
+    margin: 0;
+    padding: 12px 18px 14px;
+    border: 0;
+    border-bottom: 2px solid var(--ui-line);
+    background: #010701;
+}
+
+body.in-session #resolution-panel .resolution-header {
+    margin-bottom: 9px;
+}
+
+body.in-session #resolution-panel .resolution-heading,
+body.in-session #resolution-panel .resolution-state {
+    color: var(--ui-green-mid);
+    font-size: .64rem;
+    letter-spacing: .1em;
+}
+
+body.in-session #check-result-list {
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 9px;
+}
+
+body.in-session #check-result-list .check-card {
+    min-width: 0;
+    margin: 0;
+    padding: 10px;
+    border: 1px solid var(--ui-line-dim);
+    border-radius: 0;
+    background: var(--ui-black);
+}
+
+body.in-session #check-result-list .dice-stage {
+    grid-template-columns: 140px minmax(0,1fr);
+    gap: 10px;
+}
+
+body.in-session #check-result-list .ascii-d20 {
+    color: var(--ui-green-bright);
+    font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+    font-size: .72rem;
+    line-height: 1;
+}
+
+body.in-session #resolution-text {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--ui-line-dim);
+    color: var(--ui-text);
+    font-size: .78rem;
+    line-height: 1.55;
+    white-space: pre-wrap;
+}
+
+/* ----- right control rail ----- */
+body.in-session .adventure-sidebar {
+    gap: 9px;
+}
+
+body.in-session .adventure-sidebar > .turn-flow-panel,
+body.in-session .adventure-sidebar > .live-hero-hud,
+body.in-session .adventure-sidebar > #chat-panel {
+    border: 1px solid var(--ui-line);
+    background: var(--ui-panel);
+}
+
+body.in-session .adventure-sidebar > .turn-flow-panel {
+    padding: 7px;
+}
+
+body.in-session .adventure-sidebar .turn-flow-header {
+    margin: 0 0 6px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--ui-line-dim);
+}
+
+body.in-session .adventure-sidebar .turn-flow-phase {
+    color: var(--ui-green-bright);
+    font-size: .62rem;
+    letter-spacing: .06em;
+}
+
+body.in-session .adventure-sidebar .turn-flow-sheet-button {
+    min-height: 25px;
+    border-radius: 0;
+    border-color: var(--ui-line-dim);
+    color: var(--ui-green-mid);
+    font-size: .52rem;
+}
+
+body.in-session .adventure-sidebar .turn-flow-players {
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 5px;
+}
+
+body.in-session .adventure-sidebar .turn-flow-player {
+    min-height: 29px;
+    padding: 5px 6px;
+    border: 1px solid var(--ui-line-dim);
+    background: #020b04;
+}
+
+body.in-session .adventure-sidebar .turn-flow-label {
+    color: var(--ui-muted);
+    font-size: .53rem;
+    font-weight: 900;
+}
+
+body.in-session .adventure-sidebar .turn-flow-value {
+    color: var(--ui-green-bright);
+    font-size: .57rem;
+}
+
+body.in-session .adventure-sidebar > .live-hero-hud {
+    padding: 9px;
+}
+
+body.in-session .adventure-sidebar .hero-hud-main {
+    gap: 7px;
+}
+
+body.in-session .adventure-sidebar .hero-hud-identity {
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--ui-line-dim);
+}
+
+body.in-session .adventure-sidebar .hero-hud-identity strong {
+    color: var(--ui-green-bright);
+    font-size: 1rem;
+    letter-spacing: .04em;
+}
+
+body.in-session .adventure-sidebar .hero-hud-identity span,
+body.in-session .adventure-sidebar .hero-hud-meter span,
+body.in-session .adventure-sidebar .hero-hud-meter small,
+body.in-session .adventure-sidebar .hero-hud-core > b,
+body.in-session .adventure-sidebar .hero-hud-effects > b {
+    color: var(--ui-muted);
+}
+
+body.in-session .adventure-sidebar .hero-hud-meter code {
+    color: var(--ui-green-bright);
+    font-size: .64rem;
+}
+
+body.in-session .adventure-sidebar .hero-hud-core,
+body.in-session .adventure-sidebar .hero-hud-effects {
+    border-top: 1px solid var(--ui-line-dim);
+}
+
+body.in-session .adventure-sidebar .hero-hud-core span,
+body.in-session .adventure-sidebar .hero-hud-effect {
+    border-radius: 0;
+    border-color: var(--ui-line-dim);
+    background: #020b04;
+    color: var(--ui-text);
+}
+
+/* ----- party chat ----- */
+body.in-session .adventure-sidebar > #chat-panel {
+    padding: 0;
+    overflow: visible;
+}
+
+body.in-session #chat-panel > .panel-heading {
+    margin: 0;
+    padding: 7px 8px;
+    border-bottom: 1px solid var(--ui-line);
+    background: var(--ui-panel-3);
+    color: var(--ui-green-bright);
+    font-size: .62rem;
+    letter-spacing: .1em;
+}
+
+body.in-session #chat-panel .chat-panel-controls {
+    gap: 4px;
+}
+
+body.in-session #chat-panel .chat-collapse-button,
+body.in-session #chat-panel .chat-ascii-button {
+    min-height: 24px;
+    border-radius: 0;
+    border-color: var(--ui-line-dim);
+    background: #031008;
+    color: var(--ui-green-mid);
+}
+
+body.in-session #chat-panel .chat-log {
+    margin: 0;
+    padding: 8px;
+    border: 0;
+    background: var(--ui-black);
+    color: var(--ui-text);
+    font-size: .68rem;
+    line-height: 1.45;
+}
+
+body.in-session #chat-panel .chat-message {
+    margin: 0 0 3px;
+}
+
+body.in-session #chat-panel .chat-prompt {
+    color: #578e62;
+}
+
+body.in-session #chat-panel .chat-name {
+    font-weight: 900;
+}
+
+body.in-session #chat-panel .chat-text {
+    color: #c9e9cf;
+}
+
+body.in-session #chat-panel .chat-message.system,
+body.in-session #chat-panel .chat-message.is-system,
+body.in-session #chat-panel [data-message-type="system"] {
+    color: #6db37a;
+}
+
+body.in-session #chat-panel .chat-input-row {
+    margin: 0;
+    padding: 7px;
+    border-top: 1px solid var(--ui-line);
+    background: #020b04;
+}
+
+body.in-session #chat-panel #chat-input {
+    min-height: 34px;
+    border-radius: 0;
+    border-color: var(--ui-line-dim);
+    background: var(--ui-black);
+    color: var(--ui-green-bright);
+}
+
+body.in-session #chat-panel #send-chat-button {
+    min-height: 34px;
+    border-radius: 0;
+}
+
+body.in-session .terminal-button,
+body.in-session button {
+    border-radius: 0;
+}
+
+body.in-session .terminal-button:not(:disabled):hover,
+body.in-session .terminal-button:not(:disabled):focus-visible {
+    background: var(--ui-green);
+    color: #001405;
+}
+
+/* Keep the game frame stable; inner story/chat surfaces do the scrolling. */
+body.in-session {
+    overflow-x: hidden;
+}
+
+@media (max-width: 980px) {
+    body.in-session .adventure-workspace {
+        grid-template-columns: 1fr;
+    }
+
+    body.in-session .adventure-sidebar {
+        order: -1;
+    }
+
+    body.in-session #game-panel .choice-list,
+    body.in-session #check-result-list {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+@media (max-width: 620px) {
+    body.in-session #game-panel > .turn-number,
+    body.in-session #game-panel > .scene-title,
+    body.in-session #game-panel > .scene-art,
+    body.in-session #game-panel > .scene-body,
+    body.in-session #game-panel > .subheading,
+    body.in-session #game-panel > .ready-list,
+    body.in-session #game-panel > .choice-list,
+    body.in-session #game-panel > .choice-commit-panel,
+    body.in-session #game-panel > .adventure-controls,
+    body.in-session #game-panel > .wrap-up-status,
+    body.in-session #game-panel > .finale-action-wrap {
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+
+    body.in-session #game-panel > .scene-art {
+        min-height: 130px;
+        overflow-x: auto;
+        justify-content: flex-start;
+        text-align: left;
+    }
+
+    body.in-session #game-panel .choice-list {
+        grid-template-columns: 1fr !important;
+    }
+
+    body.in-session .adventure-sidebar .turn-flow-players {
+        grid-template-columns: 1fr 1fr;
+    }
+}

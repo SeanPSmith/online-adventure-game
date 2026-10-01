@@ -1,0 +1,490 @@
+
+/* =========================================================
+   TURN FLOW STATUS
+========================================================= */
+
+.turn-flow-panel {
+    margin: 14px 0 16px;
+    padding: 14px;
+    border: 1px solid var(--terminal-green-muted);
+    background: rgba(0, 255, 90, 0.025);
+}
+
+.turn-flow-phase {
+    margin-bottom: 10px;
+    color: var(--terminal-green-bright);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+}
+
+.turn-flow-players {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.turn-flow-player {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 5px 12px;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid rgba(98, 255, 146, 0.18);
+    background: rgba(0, 0, 0, 0.18);
+}
+
+.turn-flow-player.is-you {
+    border-color: var(--terminal-green-muted);
+}
+
+.turn-flow-player strong {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.turn-flow-player span {
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.07em;
+}
+
+.turn-flow-player small {
+    grid-column: 1 / -1;
+    color: var(--terminal-dim);
+    font-size: 0.65rem;
+}
+
+.turn-flow-player .is-ready {
+    color: var(--terminal-green-bright);
+}
+
+.turn-flow-player .is-thinking {
+    color: var(--terminal-warning);
+}
+
+.turn-flow-player .is-offline {
+    color: var(--terminal-danger);
+}
+
+
+/* =========================================================
+   TURN RECAP AT TOP
+========================================================= */
+
+.turn-recap-panel {
+    margin: 12px 0 18px;
+    border-width: 1px 0;
+    background: rgba(255, 255, 255, 0.018);
+}
+
+.turn-recap-panel .resolution-heading {
+    color: var(--terminal-green-bright);
+}
+
+.turn-recap-panel .resolution-text {
+    white-space: pre-wrap;
+}
+
+
+/* =========================================================
+   INTERMISSION
+========================================================= */
+
+.intermission-mount[hidden] {
+    display: none !important;
+}
+
+.intermission-panel {
+    position: relative;
+    margin: 12px 0 18px;
+    padding: 14px;
+    border: 1px solid var(--terminal-green-muted);
+    background:
+        linear-gradient(
+            180deg,
+            rgba(0, 255, 90, 0.035),
+            rgba(0, 0, 0, 0.12)
+        );
+    overflow: hidden;
+}
+
+.intermission-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        repeating-linear-gradient(
+            180deg,
+            transparent 0,
+            transparent 3px,
+            rgba(0, 0, 0, 0.08) 4px
+        );
+}
+
+.intermission-header,
+.intermission-footer,
+.intermission-instructions,
+.intermission-playfield {
+    position: relative;
+    z-index: 1;
+}
+
+.intermission-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.intermission-kicker {
+    color: var(--terminal-warning);
+    font-size: 0.67rem;
+    letter-spacing: 0.1em;
+    margin-bottom: 4px;
+}
+
+.intermission-title {
+    color: var(--terminal-green-bright);
+    font-size: 1rem;
+    letter-spacing: 0.08em;
+}
+
+.intermission-timer {
+    color: var(--terminal-green-bright);
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+}
+
+.intermission-instructions {
+    margin: 11px 0;
+    color: var(--terminal-dim);
+    font-size: 0.7rem;
+}
+
+.intermission-playfield {
+    min-height: 150px;
+    display: grid;
+    place-items: center;
+    padding: 12px;
+    border: 1px dashed rgba(98, 255, 146, 0.22);
+    background: rgba(0, 0, 0, 0.22);
+}
+
+.intermission-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 10px;
+    font-size: 0.7rem;
+}
+
+.intermission-footer strong {
+    color: var(--terminal-green-bright);
+}
+
+.intermission-footer span {
+    color: var(--terminal-dim);
+}
+
+
+/* Rune Catch */
+
+.intermission-playfield:not(.relic-grid) {
+    grid-template-columns: repeat(4, minmax(42px, 1fr));
+    gap: 8px;
+}
+
+.ascii-target {
+    min-height: 42px;
+    border: 1px solid rgba(98, 255, 146, 0.25);
+    background: transparent;
+    color: var(--terminal-green-bright);
+    font: inherit;
+    cursor: pointer;
+}
+
+.ascii-target:hover,
+.ascii-target:focus-visible {
+    background: rgba(98, 255, 146, 0.08);
+}
+
+.ascii-target.hit {
+    opacity: 0.32;
+}
+
+
+/* Lantern Keep */
+
+.lantern-track {
+    position: relative;
+    width: min(100%, 560px);
+    height: 70px;
+    border: 1px solid rgba(98, 255, 146, 0.35);
+    background: transparent;
+    color: var(--terminal-green-bright);
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.lantern-track::before {
+    content: "------------------------------------------------";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 26px;
+    color: rgba(98, 255, 146, 0.24);
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.lantern-sweet {
+    position: absolute;
+    left: 50%;
+    top: 24px;
+    transform: translateX(-50%);
+    color: var(--terminal-warning);
+}
+
+.lantern-marker {
+    position: absolute;
+    top: 20px;
+    transform: translateX(-50%);
+    font-size: 1.4rem;
+    font-weight: 900;
+}
+
+
+/* Relic Scramble */
+
+.intermission-playfield.relic-grid {
+    grid-template-columns: repeat(5, minmax(42px, 1fr));
+    gap: 7px;
+}
+
+.relic-cell {
+    min-height: 42px;
+    border: 1px solid rgba(98, 255, 146, 0.18);
+    background: transparent;
+    color: var(--terminal-dim);
+    font: inherit;
+    cursor: pointer;
+}
+
+.relic-cell.target {
+    color: var(--terminal-warning);
+    border-color: var(--terminal-warning);
+    font-weight: 900;
+}
+
+
+/* Winner flash */
+
+.intermission-result-flash {
+    position: relative;
+    z-index: 2;
+    margin-top: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--terminal-green-bright);
+    color: var(--terminal-green-bright);
+    background: rgba(0, 255, 90, 0.04);
+    text-align: center;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+}
+
+.intermission-panel.is-finished {
+    opacity: 0.86;
+}
+
+
+@media (max-width: 700px) {
+    .turn-flow-players {
+        grid-template-columns: 1fr;
+    }
+
+    .intermission-playfield:not(.relic-grid) {
+        grid-template-columns: repeat(3, minmax(42px, 1fr));
+    }
+
+    .intermission-playfield.relic-grid {
+        grid-template-columns: repeat(4, minmax(42px, 1fr));
+    }
+
+    .intermission-footer {
+        flex-direction: column;
+    }
+}
+
+/* =========================================================
+   INTERMISSION PERFORMANCE + INSTRUCTIONS
+========================================================= */
+
+.intermission-instructions {
+    display: grid;
+    gap: 4px;
+    padding: 9px 10px;
+    border-left: 2px solid var(--terminal-green-muted);
+    background: rgba(0, 255, 90, 0.025);
+    line-height: 1.45;
+}
+
+.intermission-instructions strong {
+    color: var(--terminal-green-bright);
+    font-size: 0.72rem;
+    letter-spacing: 0.045em;
+}
+
+.intermission-instructions span {
+    display: block;
+    color: var(--terminal-dim);
+    font-size: 0.66rem;
+}
+
+.lantern-marker {
+    left: 0;
+    transform: translate3d(0, 0, 0);
+    will-change: transform;
+}
+
+.intermission-playfield,
+.intermission-panel {
+    contain: layout paint;
+}
+
+/* =========================================================
+   PHASE J — ADDITIONAL INTERMISSION GAMES
+========================================================= */
+
+/* Sigil Memory */
+.intermission-playfield.sigil-memory-field {
+    grid-template-columns: repeat(4, minmax(58px, 92px));
+    justify-content: center;
+    gap: 12px;
+}
+
+.sigil-pad {
+    aspect-ratio: 1;
+    border: 1px solid rgba(98, 255, 146, 0.28);
+    background: rgba(0, 0, 0, 0.18);
+    color: var(--terminal-green-bright);
+    font: inherit;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: transform 80ms ease, background 80ms ease, border-color 80ms ease;
+}
+
+.sigil-pad.is-flashing {
+    border-color: var(--terminal-warning);
+    background: rgba(255, 205, 74, 0.12);
+    color: var(--terminal-warning);
+    transform: scale(1.08);
+}
+
+.sigil-pad.is-hit {
+    background: rgba(98, 255, 146, 0.12);
+    transform: scale(0.94);
+}
+
+/* Ward Breaker */
+.intermission-playfield.ward-grid {
+    --ward-charge: 100%;
+    position: relative;
+    grid-template-columns: repeat(4, minmax(44px, 1fr));
+    gap: 8px;
+    padding-top: 20px;
+}
+
+.intermission-playfield.ward-grid::before {
+    content: "";
+    position: absolute;
+    left: 12px;
+    right: calc(100% - var(--ward-charge) + 12px);
+    top: 7px;
+    height: 3px;
+    background: var(--terminal-warning);
+    transition: right 40ms linear;
+}
+
+.ward-cell {
+    min-height: 46px;
+    border: 1px solid rgba(98, 255, 146, 0.18);
+    background: transparent;
+    color: rgba(98, 255, 146, 0.35);
+    font: inherit;
+    cursor: pointer;
+}
+
+.ward-cell.is-live {
+    border-color: var(--terminal-warning);
+    background: rgba(255, 205, 74, 0.08);
+    color: var(--terminal-warning);
+    font-weight: 900;
+}
+
+/* Shadow Step */
+.intermission-playfield.shadow-step-field {
+    grid-template-columns: repeat(3, minmax(70px, 1fr));
+    gap: 10px;
+}
+
+.shadow-lane {
+    position: relative;
+    min-height: 110px;
+    border: 1px solid rgba(98, 255, 146, 0.18);
+    background: rgba(0, 0, 0, 0.12);
+    color: var(--terminal-green-bright);
+    font: inherit;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.shadow-player,
+.shadow-warning {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+}
+
+.shadow-player {
+    bottom: 14px;
+    font-size: 1.3rem;
+    font-weight: 900;
+}
+
+.shadow-warning {
+    top: 12px;
+    color: var(--terminal-warning);
+    font-size: 1.5rem;
+    font-weight: 900;
+}
+
+.shadow-lane.has-player .shadow-player,
+.shadow-lane.is-danger .shadow-warning {
+    opacity: 1;
+}
+
+.shadow-lane.is-danger {
+    border-color: rgba(255, 205, 74, 0.55);
+}
+
+.shadow-lane.is-striking {
+    background: rgba(255, 205, 74, 0.16);
+}
+
+@media (max-width: 700px) {
+    .intermission-playfield.sigil-memory-field {
+        grid-template-columns: repeat(2, minmax(64px, 92px));
+    }
+
+    .intermission-playfield.ward-grid {
+        grid-template-columns: repeat(4, minmax(38px, 1fr));
+    }
+
+    .shadow-lane {
+        min-height: 92px;
+    }
+}

@@ -1,0 +1,29 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - 'echo "Logging in to Amazon ECR..."'
+      - 'AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)'
+      - 'aws ecr get-login-password --region "$AWS_DEFAULT_REGION" | docker login --username AWS --password-stdin "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com"'
+      - 'BUILD_TAG="build-${CODEBUILD_BUILD_NUMBER}"'
+      - 'echo "Repository: $ECR_REPOSITORY_URI"'
+      - 'echo "Stable tag: $IMAGE_TAG"'
+      - 'echo "Build tag: $BUILD_TAG"'
+
+  build:
+    commands:
+      - 'echo "Building backend image..."'
+      - 'docker build --platform linux/amd64 -t "$ECR_REPOSITORY_URI:$IMAGE_TAG" -t "$ECR_REPOSITORY_URI:$BUILD_TAG" .'
+
+  post_build:
+    commands:
+      - 'if [ "$CODEBUILD_BUILD_SUCCEEDING" != "1" ]; then echo "Docker build failed; skipping ECR push."; exit 0; fi'
+      - 'echo "Pushing backend image..."'
+      - 'docker push "$ECR_REPOSITORY_URI:$IMAGE_TAG"'
+      - 'docker push "$ECR_REPOSITORY_URI:$BUILD_TAG"'
+      - 'printf ''{"repository":"%s","stable_tag":"%s","build_tag":"%s"}\n'' "$ECR_REPOSITORY_URI" "$IMAGE_TAG" "$BUILD_TAG" > image-detail.json'
+
+artifacts:
+  files:
+    - image-detail.json

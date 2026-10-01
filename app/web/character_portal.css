@@ -1,0 +1,378 @@
+
+/* =========================================================
+   CHARACTER MANAGEMENT PORTAL
+========================================================= */
+
+#character-panel {
+    position: relative;
+}
+
+.character-portal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin:
+        0
+        0
+        14px;
+    padding:
+        12px;
+    border:
+        1px solid
+        var(--terminal-border);
+    background:
+        rgba(0, 0, 0, 0.14);
+}
+
+.character-portal-kicker {
+    color:
+        var(--terminal-dim);
+    font-size:
+        0.64rem;
+    letter-spacing:
+        0.1em;
+    margin-bottom:
+        4px;
+}
+
+.character-portal-count {
+    color:
+        var(--terminal-green-bright);
+    font-size:
+        0.76rem;
+}
+
+.character-library {
+    grid-template-columns:
+        1fr
+        !important;
+    gap:
+        7px
+        !important;
+}
+
+.character-card {
+    display:
+        grid;
+    grid-template-columns:
+        minmax(
+            160px,
+            0.8fr
+        )
+        minmax(
+            220px,
+            1.4fr
+        )
+        auto;
+    gap:
+        14px;
+    align-items:
+        center;
+    padding:
+        10px
+        12px
+        !important;
+    transition:
+        transform 140ms ease,
+        border-color 140ms ease,
+        background 140ms ease;
+}
+
+.character-card:hover {
+    transform:
+        translateX(
+            3px
+        );
+    border-color:
+        var(--terminal-green-muted);
+}
+
+.character-card-name {
+    margin:
+        0
+        !important;
+}
+
+.character-card-meta {
+    margin:
+        0
+        !important;
+    font-size:
+        0.74rem;
+}
+
+.character-card
+.button-row[hidden] {
+    display:
+        none
+        !important;
+}
+
+.character-portal-row-actions {
+    display:
+        flex;
+    gap:
+        6px;
+    justify-content:
+        flex-end;
+}
+
+.character-portal-row-actions
+.terminal-button {
+    min-height:
+        34px;
+    padding:
+        6px
+        10px;
+    font-size:
+        0.66rem;
+}
+
+.character-create-launch[hidden] {
+    display:
+        none
+        !important;
+}
+
+
+/* =========================================================
+   CHARACTER SHEET WINDOW
+========================================================= */
+
+.character-sheet-backdrop {
+    position:
+        fixed;
+    inset:
+        0;
+    z-index:
+        100100;
+    display:
+        grid;
+    place-items:
+        center;
+    padding:
+        20px;
+    background:
+        rgba(
+            0,
+            5,
+            1,
+            0.82
+        );
+    backdrop-filter:
+        blur(
+            4px
+        );
+}
+
+.character-sheet-window {
+    width:
+        min(
+            760px,
+            100%
+        );
+    max-height:
+        min(
+            86vh,
+            760px
+        );
+    overflow:
+        auto;
+    padding:
+        18px;
+    border:
+        1px solid
+        var(--terminal-green-muted);
+    background:
+        var(--terminal-panel);
+    box-shadow:
+        0 0 40px
+        rgba(
+            98,
+            255,
+            146,
+            0.08
+        );
+    animation:
+        character-sheet-open
+        350ms
+        cubic-bezier(
+            0.16,
+            0.82,
+            0.25,
+            1
+        )
+        both;
+}
+
+@keyframes character-sheet-open {
+    0% {
+        opacity:
+            0;
+        transform:
+            translateY(
+                14px
+            )
+            scale(
+                0.985
+            );
+        clip-path:
+            inset(
+                0
+                0
+                95%
+                0
+            );
+    }
+
+    100% {
+        opacity:
+            1;
+        transform:
+            translateY(
+                0
+            )
+            scale(
+                1
+            );
+        clip-path:
+            inset(
+                0
+            );
+    }
+}
+
+.character-sheet-title {
+    color:
+        var(--terminal-green-bright);
+    font-size:
+        1.25rem;
+    font-weight:
+        800;
+    margin-bottom:
+        5px;
+}
+
+.character-sheet-meta {
+    color:
+        var(--terminal-dim);
+    margin-bottom:
+        18px;
+}
+
+.character-sheet-block {
+    border-top:
+        1px solid
+        var(--terminal-border);
+    padding:
+        13px
+        0;
+}
+
+.character-sheet-block
+span {
+    color:
+        var(--terminal-dim);
+    font-size:
+        0.66rem;
+    letter-spacing:
+        0.1em;
+}
+
+.character-sheet-block
+p {
+    margin:
+        6px
+        0
+        0;
+    line-height:
+        1.55;
+}
+
+.character-sheet-adventure {
+    margin:
+        12px
+        0;
+    padding:
+        10px;
+    border:
+        1px solid
+        rgba(
+            98,
+            255,
+            146,
+            0.16
+        );
+    color:
+        var(--terminal-green);
+}
+
+.character-sheet-lifecycle {
+    display:
+        flex;
+    flex-wrap:
+        wrap;
+    gap:
+        8px;
+    margin-top:
+        16px;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (
+    max-width:
+        700px
+) {
+
+    .character-portal-header {
+        align-items:
+            stretch;
+        flex-direction:
+            column;
+    }
+
+    .character-card {
+        grid-template-columns:
+            1fr;
+        gap:
+            7px;
+    }
+
+    .character-portal-row-actions {
+        justify-content:
+            stretch;
+    }
+
+    .character-portal-row-actions
+    .terminal-button {
+        flex:
+            1;
+    }
+
+    .character-sheet-backdrop {
+        padding:
+            8px;
+    }
+
+    .character-sheet-window {
+        width:
+            100%;
+        max-height:
+            calc(
+                100vh
+                - 16px
+            );
+    }
+
+    .character-sheet-lifecycle {
+        display:
+            grid;
+        grid-template-columns:
+            1fr;
+    }
+}

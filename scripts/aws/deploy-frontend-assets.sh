@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+PROFILE="${AWS_PROFILE:-adventure-staging}"
+REGION="${AWS_REGION:-us-east-1}"
+STACK_NAME="AdventurePlatformFrontend-staging"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+FRONTEND_DIR="$ROOT_DIR/frontend"
+
+output_value() {
+  local key="$1"
+  aws cloudformation describe-stacks \
+    --stack-name "$STACK_NAME" \
+    --region "$REGION" \
+    --profile "$PROFILE" \
+    --query "Stacks[0].Outputs[?OutputKey=='${key}'].OutputValue | [0]" \
+    --output text
+}
+
+BUCKET="$(output_value FrontendBucketName)"
+DISTRIBUTION_ID="$(output_value CloudFrontDistributionId)"
+PUBLIC_URL="$(output_value CloudFrontUrl)"
+
+if [[ -z "$BUCKET" || "$BUCKET" == "None" ]]; then
+  echo "Could not resolve FrontendBucketName from $STACK_NAME." >&2
+  exit 1
+fi
+
+if [[ -z "$DISTRIBUTION_ID" || "$DISTRIBUTION_ID" == "None" ]]; then
+  echo "Could not resolve CloudFrontDistributionId from $STACK_NAME." >&2
+  exit 1
+fi
+
+echo "Building React production bundle..."
+cd "$FRONTEND_DIR"
+npm run build
+
+if [[ ! -f "$FRONTEND_DIR/dist/index.html" ]]; then
+  echo "frontend/dist/index.html was not produced." >&2
+  exit 1
+fi
+
+echo "Uploading static assets to s3://$BUCKET ..."
+aws s3 sync "$FRONTEND_DIR/dist/" "s3://$BUCKET/" \
+  --delete \
+  --region "$REGION" \
+  --profile "$PROFILE" \
+  --cache-control "public,max-age=31536000,immutable"
+
+# index.html must revalidate so a deployment never pins an old hashed bundle.
+aws s3 cp "$FRONTEND_DIR/dist/index.html" "s3://$BUCKET/index.html" \
+  --region "$REGION" \
+  --profile "$PROFILE" \
+  --content-type "text/html" \
+  --cache-control "no-cache,no-store,must-revalidate"
+
+echo "Invalidating CloudFront..."
+INVALIDATION_ID="$(aws cloudfront create-invalidation \
+  --distribution-id "$DISTRIBUTION_ID" \
+  --paths '/*' \
+  --profile "$PROFILE" \
+  --query 'Invalidation.Id' \
+  --output text)"
+
+echo "Invalidation: $INVALIDATION_ID"
+echo "Public URL:   $PUBLIC_URL"
+echo
+echo "CloudFront may need a few minutes before every edge location sees the new bundle."

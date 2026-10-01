@@ -183,6 +183,10 @@ def _npc_canon_constraints(source: dict[str, Any]) -> list[str]:
             ("role", "canonical role"),
             ("relationship", "relationship/context"),
             ("canonical_facts", "canonical facts"),
+            ("occupation", "canonical occupation/affiliation"),
+            ("introduction_conditions", "introduction conditions"),
+            ("location_constraints", "location constraints"),
+            ("forbidden_uses", "forbidden uses"),
         )
         for key, label in fields:
             value = _clean(item.get(key))
@@ -190,6 +194,21 @@ def _npc_canon_constraints(source: dict[str, Any]) -> list[str]:
                 text = f"NPC {name} — {label}: {value}"
                 if text not in constraints:
                     constraints.append(text)
+
+        availability = _clean(item.get("availability")).lower()
+        if availability and availability != "flexible":
+            text = f"NPC {name} — availability: {availability.upper()}"
+            if text not in constraints:
+                constraints.append(text)
+
+        introduction_timing = _clean(item.get("introduction_timing")).lower()
+        if introduction_timing and introduction_timing != "anytime":
+            text = (
+                f"NPC {name} — introduction timing: "
+                f"{introduction_timing.upper()}"
+            )
+            if text not in constraints:
+                constraints.append(text)
     return constraints
 
 

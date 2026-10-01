@@ -4,17 +4,6 @@ This file tracks player-visible behavior, architecture changes, validation resul
 
 ---
 
-## 2026-10-01 — Dev Test Dependency Hotfix
-
-### Infrastructure / workflow
-- Added `pytest-asyncio` to `requirements-dev.txt` so the repository's marked async regression tests execute in clean local and GitHub CI environments.
-- No gameplay, runtime, deployment, or production dependency behavior changed.
-
-### Validation
-- This corrects the local `async def functions are not natively supported` failures from `pytest.mark.asyncio` tests.
-
----
-
 ## 2026-10-01 — Repository Guardrails + Gameplay Stability Regression Lock
 
 ### Infrastructure / workflow

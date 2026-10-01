@@ -454,6 +454,9 @@ const templates = {
         id: makeId(),
         name: "",
         role: "",
+        availability: "flexible",
+        introduction_timing: "anytime",
+        occupation: "",
         appearance: "",
         personality: "",
         wants: "",
@@ -461,6 +464,9 @@ const templates = {
         secret: "",
         relationship: "",
         canonical_facts: "",
+        introduction_conditions: "",
+        location_constraints: "",
+        forbidden_uses: "",
         ai_freedom: "high",
         importance: "supporting",
         recurring: false,
@@ -548,6 +554,13 @@ function makeField(
     } else {
         control = document.createElement("input");
         control.type = type;
+    }
+
+    if (
+        control instanceof HTMLInputElement
+        || control instanceof HTMLTextAreaElement
+    ) {
+        control.spellcheck = true;
     }
 
     if (type === "checkbox") {
@@ -655,6 +668,37 @@ function sectionFields(sectionName, item) {
             makeField("Name", "name", item.name),
             makeField("Role / Archetype", "role", item.role),
             makeField(
+                "Availability",
+                "availability",
+                item.availability ?? "flexible",
+                {
+                    options: [
+                        ["flexible", "FLEXIBLE"],
+                        ["reserved", "RESERVED"],
+                        ["unavailable", "UNAVAILABLE"],
+                    ],
+                },
+            ),
+            makeField(
+                "Introduction Timing",
+                "introduction_timing",
+                item.introduction_timing ?? "anytime",
+                {
+                    options: [
+                        ["anytime", "ANYTIME"],
+                        ["early", "EARLY"],
+                        ["mid", "MID"],
+                        ["late", "LATE"],
+                        ["finale", "FINALE"],
+                    ],
+                },
+            ),
+            makeField(
+                "Occupation / Affiliation",
+                "occupation",
+                item.occupation,
+            ),
+            makeField(
                 "Appearance",
                 "appearance",
                 item.appearance,
@@ -694,6 +738,33 @@ function sectionFields(sectionName, item) {
                 "Canonical Facts",
                 "canonical_facts",
                 item.canonical_facts,
+                {
+                    type: "textarea",
+                    wide: true,
+                },
+            ),
+            makeField(
+                "Introduction Conditions",
+                "introduction_conditions",
+                item.introduction_conditions,
+                {
+                    type: "textarea",
+                    wide: true,
+                },
+            ),
+            makeField(
+                "Location Constraints",
+                "location_constraints",
+                item.location_constraints,
+                {
+                    type: "textarea",
+                    wide: true,
+                },
+            ),
+            makeField(
+                "Forbidden Uses",
+                "forbidden_uses",
+                item.forbidden_uses,
                 {
                     type: "textarea",
                     wide: true,

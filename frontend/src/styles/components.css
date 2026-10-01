@@ -336,9 +336,7 @@
   border: 1px solid var(--green-line-dim);
   padding: 10px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 16px;
-  align-items: center;
+  gap: 9px;
   color: var(--text);
 }
 
@@ -350,6 +348,15 @@
 .journey-row strong,
 .journey-row small {
   display: block;
+}
+
+.journey-row-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  min-width: 0;
+  color: inherit;
 }
 
 .journey-row small {
@@ -364,6 +371,31 @@
   gap: 3px;
   color: var(--green-dim);
   font-size: 9px;
+}
+
+.journey-row-actions {
+  border-top: 1px solid var(--green-line-dim);
+  padding-top: 8px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.journey-row-actions .button {
+  min-height: 34px;
+}
+
+.journey-danger-button {
+  border-color: var(--danger, #d35b5b);
+}
+
+.journey-danger-button:hover:not(:disabled) {
+  border-color: var(--danger, #d35b5b);
+}
+
+.journey-exit-modal {
+  max-width: 620px;
 }
 
 .join-room-form,

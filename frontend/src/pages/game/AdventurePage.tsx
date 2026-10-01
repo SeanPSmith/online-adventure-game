@@ -282,11 +282,24 @@ export function AdventurePage() {
                 <p key={`${scene.id}:${index}`}>{paragraph}</p>
               ))
             ) : (
-              <p className="muted-copy">
-                {live.status === "error"
-                  ? "THE CHRONICLE CANNOT BE OPENED."
-                  : "CONSULTING THE CHRONICLE_"}
-              </p>
+              <>
+                <p className="muted-copy">
+                  {live.status === "error"
+                    ? "THE CHRONICLE CANNOT BE OPENED."
+                    : "CONSULTING THE CHRONICLE_"}
+                </p>
+                {live.status === "error" ? (
+                  <div className="system-notice adventure-restore-failure">
+                    <strong>{live.error || "THE RESTORE DID NOT COMPLETE."}</strong>
+                    <span>
+                      The Adventure Hall now has a recovery/abandon control for this saved room.
+                    </span>
+                    <Link className="button button-primary" to="/game">
+                      RETURN TO ADVENTURE HALL
+                    </Link>
+                  </div>
+                ) : null}
+              </>
             )}
           </article>
 

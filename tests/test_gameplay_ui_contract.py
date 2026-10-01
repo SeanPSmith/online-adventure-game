@@ -81,3 +81,35 @@ def test_legacy_underfilled_started_room_recovery_is_wired_into_resume_and_choic
     assert "recover_legacy_single_player_session(" in choice_handler
     assert "if not room.has_required_party:" in choice_handler
     assert choice_handler.index("recover_legacy_single_player_session(") < choice_handler.index("if not room.has_required_party:")
+
+
+def test_adventure_hall_has_server_backed_emergency_exit_controls() -> None:
+    home = read("pages/game/GameHomePage.tsx")
+    socket_context = read("state/GameSocketContext.tsx")
+
+    assert 'emit("abandon_adventure"' in socket_context
+    assert 'emit("leave_adventure"' in socket_context
+    assert '"ABANDON FOR GOOD"' in home
+    assert '"LEAVE ROOM"' in home
+    assert "adventure.director_retry_required" in home
+    assert "adventure.director_request_active" in home
+
+
+def test_resume_watchdog_prevents_infinite_restoring_screen() -> None:
+    live = read("state/useLiveAdventure.ts")
+    page = read("pages/game/AdventurePage.tsx")
+
+    assert "resumeWatchdog" in live
+    assert "12000" in live
+    assert "did not finish restoring this room" in live
+    assert "RETURN TO ADVENTURE HALL" in page
+
+
+def test_director_wall_clock_timeout_and_abandon_use_real_task_cancellation() -> None:
+    backend = Path("app/main.py").read_text()
+
+    assert "_director_tasks" in backend
+    assert "asyncio.create_task(" in backend
+    assert "done, _pending = await asyncio.wait(" in backend
+    assert "cancel_director_task(" in backend
+    assert "late model response cannot recreate/commit a ghost session" in backend

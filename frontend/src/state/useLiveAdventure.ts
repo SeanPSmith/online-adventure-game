@@ -126,6 +126,14 @@ export function useLiveAdventure(
     const socket = getGameSocket();
     const identity = `${normalizedRoomCode}:${normalizedCharacterId}`;
     identityRef.current = identity;
+    let resumeWatchdog: ReturnType<typeof setTimeout> | null = null;
+
+    const clearResumeWatchdog = () => {
+      if (resumeWatchdog !== null) {
+        clearTimeout(resumeWatchdog);
+        resumeWatchdog = null;
+      }
+    };
 
     const matchesRoom = (candidate?: string | null) =>
       !candidate || candidate.trim().toUpperCase() === normalizedRoomCode;
@@ -133,6 +141,7 @@ export function useLiveAdventure(
     const resume = () => {
       if (identityRef.current !== identity) return;
 
+      clearResumeWatchdog();
       setStatus("resuming");
       setError("");
       setRetryableError(null);
@@ -141,11 +150,24 @@ export function useLiveAdventure(
         room_code: normalizedRoomCode,
         character_id: normalizedCharacterId,
       });
+
+      // Resuming an existing room is a local DB/state operation and should be
+      // fast.  Never leave the page displaying RESTORING THE THREAD forever if
+      // a socket event is lost or the server encounters an unexpected stall.
+      resumeWatchdog = setTimeout(() => {
+        if (identityRef.current !== identity) return;
+
+        setStatus("error");
+        setError(
+          "The adventure server did not finish restoring this room. Return to the Adventure Hall to recover or abandon it.",
+        );
+      }, 12000);
     };
 
     const onResumeSuccess = (payload: ResumeSuccessPayload) => {
       if (!matchesRoom(payload?.room?.code)) return;
 
+      clearResumeWatchdog();
       setRoom(payload.room);
       setPlayerId(payload.player_id);
       setFinale(payload.completed ? payload.finale ?? null : null);
@@ -160,6 +182,8 @@ export function useLiveAdventure(
 
     const onGameState = (payload: GameState) => {
       if (!matchesRoom(payload?.room_code)) return;
+
+      clearResumeWatchdog();
 
       if (
         lastGameTurnRef.current !== null &&
@@ -264,6 +288,7 @@ export function useLiveAdventure(
 
     const onRoomError = (payload: ServerErrorPayload) => {
       if (!matchesRoom(payload?.room_code)) return;
+      clearResumeWatchdog();
       setError(String(payload?.message ?? "The thread slipped."));
       setStatus((current) => current === "resuming" ? "error" : current);
     };
@@ -308,6 +333,7 @@ export function useLiveAdventure(
 
     return () => {
       identityRef.current = "";
+      clearResumeWatchdog();
 
       socket.off("connect", resume);
       socket.off("resume_success", onResumeSuccess);

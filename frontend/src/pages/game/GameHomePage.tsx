@@ -3,7 +3,10 @@ import { Link, useNavigate } from "react-router";
 import { PageTitle } from "../../components/ui/PageTitle";
 import { Panel } from "../../components/ui/Panel";
 import { listCharacters, type Character } from "../../services/characters";
-import type { AdventureCatalogItem } from "../../services/game";
+import type {
+  AdventureCatalogItem,
+  AdventureListItem,
+} from "../../services/game";
 import { rememberGameRoute } from "../../services/gameRouteMemory";
 import { useGameSocket } from "../../state/GameSocketContext";
 
@@ -34,6 +37,8 @@ export function GameHomePage() {
     clearError,
     createRoom,
     joinRoom,
+    leaveAdventure,
+    abandonAdventure,
     lastRoomEntry,
     clearRoomEntry,
   } = useGameSocket();
@@ -43,6 +48,10 @@ export function GameHomePage() {
   const [selectedHeroId, setSelectedHeroId] = useState("");
   const [roomCode, setRoomCode] = useState("");
   const [pendingAdventure, setPendingAdventure] = useState<AdventureCatalogItem | null>(null);
+  const [pendingJourneyExit, setPendingJourneyExit] = useState<{
+    adventure: AdventureListItem;
+    mode: "leave" | "abandon";
+  } | null>(null);
 
   useEffect(() => {
     rememberGameRoute("/game");
@@ -130,6 +139,20 @@ export function GameHomePage() {
     joinRoom(selectedHeroId, roomCode);
   }
 
+  function confirmJourneyExit() {
+    if (!pendingJourneyExit) return;
+
+    const { adventure, mode } = pendingJourneyExit;
+    setPendingJourneyExit(null);
+
+    if (mode === "abandon") {
+      abandonAdventure(adventure.room_code);
+      return;
+    }
+
+    leaveAdventure(adventure.room_code, adventure.character_id);
+  }
+
   return (
     <>
       <PageTitle
@@ -170,29 +193,65 @@ export function GameHomePage() {
           ) : null}
 
           <div className="journey-list">
-            {adventures.map((adventure) => (
-              <Link
+            {adventures.map((adventure) => {
+              const recoveryState = adventure.director_request_active
+                ? "DIRECTOR WORKING"
+                : adventure.director_retry_required
+                  ? "RECOVERY REQUIRED"
+                  : adventure.turn_pending
+                    ? "TURN FROZEN"
+                    : "READY";
+
+              return (
+              <article
                 className="journey-row"
                 key={`${adventure.room_code}:${adventure.character_id}`}
-                to={`/game/adventure/${encodeURIComponent(adventure.room_code)}?hero=${encodeURIComponent(adventure.character_id)}`}
               >
-                <div>
+                <Link
+                  className="journey-row-main"
+                  to={`/game/adventure/${encodeURIComponent(adventure.room_code)}?hero=${encodeURIComponent(adventure.character_id)}`}
+                >
+                  <div>
                   <span className="eyebrow">
                     {adventure.completed
                       ? "SEALED CHRONICLE"
-                      : `TURN ${adventure.turn_number}`}
+                      : `TURN ${adventure.turn_number} // ${recoveryState}`}
                   </span>
                   <strong>{adventure.adventure_title}</strong>
                   <small>{adventure.scene_title}</small>
-                </div>
+                  </div>
 
-                <div className="journey-row-meta">
-                  <span>{adventure.character_name}</span>
-                  <span>{adventure.room_code}</span>
-                  <span>{adventure.play_mode.toUpperCase()}</span>
-                </div>
-              </Link>
-            ))}
+                  <div className="journey-row-meta">
+                    <span>{adventure.character_name}</span>
+                    <span>{adventure.room_code}</span>
+                    <span>{adventure.play_mode.toUpperCase()}</span>
+                  </div>
+                </Link>
+
+                {!adventure.completed ? (
+                  <div className="journey-row-actions">
+                    <Link
+                      className="button"
+                      to={`/game/adventure/${encodeURIComponent(adventure.room_code)}?hero=${encodeURIComponent(adventure.character_id)}`}
+                    >
+                      {adventure.director_retry_required ? "RECOVER" : "RESUME"}
+                    </Link>
+                    <button
+                      className="button journey-danger-button"
+                      type="button"
+                      disabled={!connected}
+                      onClick={() => setPendingJourneyExit({
+                        adventure,
+                        mode: adventure.is_host ? "abandon" : "leave",
+                      })}
+                    >
+                      {adventure.is_host ? "ABANDON" : "LEAVE"}
+                    </button>
+                  </div>
+                ) : null}
+              </article>
+              );
+            })}
           </div>
         </Panel>
 
@@ -371,6 +430,73 @@ export function GameHomePage() {
                 onClick={beginPendingAdventure}
               >
                 ENTER THE STORY
+              </button>
+            </footer>
+          </section>
+        </div>
+      ) : null}
+
+      {pendingJourneyExit ? (
+        <div
+          className="adventure-synopsis-backdrop"
+          role="presentation"
+          onMouseDown={() => setPendingJourneyExit(null)}
+        >
+          <section
+            className="adventure-synopsis-modal journey-exit-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="journey-exit-title"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <header className="adventure-synopsis-header">
+              <div>
+                <span className="eyebrow">EMERGENCY EXIT</span>
+                <h2 id="journey-exit-title">
+                  {pendingJourneyExit.mode === "abandon"
+                    ? "ABANDON THIS ADVENTURE?"
+                    : "LEAVE THIS ADVENTURE?"}
+                </h2>
+              </div>
+              <button
+                className="icon-button"
+                type="button"
+                aria-label="Cancel"
+                onClick={() => setPendingJourneyExit(null)}
+              >
+                ×
+              </button>
+            </header>
+
+            <div className="adventure-synopsis-body">
+              <p>
+                {pendingJourneyExit.mode === "abandon"
+                  ? "This permanently ends the active room and clears its frozen turn state. Your Hero record is not deleted, but this unfinished adventure cannot be resumed afterward."
+                  : "This removes this Hero from the active room. The remaining player keeps the adventure and becomes host if necessary."}
+              </p>
+              <div className="system-notice">
+                {pendingJourneyExit.adventure.adventure_title.toUpperCase()}
+                {" // ROOM "}
+                {pendingJourneyExit.adventure.room_code}
+              </div>
+            </div>
+
+            <footer className="adventure-synopsis-actions">
+              <button
+                className="button"
+                type="button"
+                onClick={() => setPendingJourneyExit(null)}
+              >
+                KEEP PLAYING
+              </button>
+              <button
+                className="button journey-danger-button"
+                type="button"
+                onClick={confirmJourneyExit}
+              >
+                {pendingJourneyExit.mode === "abandon"
+                  ? "ABANDON FOR GOOD"
+                  : "LEAVE ROOM"}
               </button>
             </footer>
           </section>

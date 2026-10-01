@@ -174,6 +174,61 @@ _turn_resolution_locks: dict[
 _director_active_rooms: set[str] = set()
 
 
+# Keep the actual outbound Director task by room as well as the lightweight
+# active-room marker.  This gives recovery/abandon flows a real cancellation
+# target and lets the wall-clock timeout stop waiting immediately instead of
+# depending on a provider coroutine to finish its own cancellation cleanup.
+_director_tasks: dict[
+    str,
+    asyncio.Task,
+] = {}
+
+
+def _consume_director_task_result(
+    task: asyncio.Task,
+) -> None:
+    """Drain a detached/cancelled Director task without surfacing warnings."""
+
+    try:
+        task.result()
+    except asyncio.CancelledError:
+        pass
+    except Exception as error:
+        print(
+            "[DIRECTOR DETACHED TASK] "
+            f"type={type(error).__name__} "
+            f"message={error}"
+        )
+
+
+def cancel_director_task(
+    room_code: str,
+) -> bool:
+    """Cancel a room's in-flight model request, if one still exists."""
+
+    normalized = room_code.strip().upper()
+    task = _director_tasks.pop(
+        normalized,
+        None,
+    )
+
+    _director_active_rooms.discard(
+        normalized
+    )
+
+    if task is None:
+        return False
+
+    if not task.done():
+        task.cancel()
+
+    task.add_done_callback(
+        _consume_director_task_result
+    )
+
+    return True
+
+
 def turn_resolution_lock(
     room_code: str,
 ) -> asyncio.Lock:
@@ -280,6 +335,8 @@ async def lifespan(
 
     _director_active_rooms.clear()
 
+    _director_tasks.clear()
+
 
     print(
         f"[PERSISTENCE] "
@@ -294,7 +351,11 @@ async def lifespan(
     )
 
 
-    yield
+    try:
+        yield
+    finally:
+        for room_code in list(_director_tasks):
+            cancel_director_task(room_code)
 
 
 # =========================================================
@@ -850,6 +911,16 @@ def build_adventure_list(
 
                 "completed":
                     bool(session.completed),
+
+                "turn_pending":
+                    bool(session.pending_turn_facts),
+
+                "director_request_active":
+                    room.code in _director_active_rooms,
+
+                "director_retry_required":
+                    bool(session.pending_turn_facts)
+                    and room.code not in _director_active_rooms,
 
                 "ending_label":
                     str(session.ending_label or ""),
@@ -2795,6 +2866,10 @@ async def leave_adventure(
         room_is_empty
     ):
 
+        cancel_director_task(
+            room_code
+        )
+
         game_sessions.remove(
             room_code
         )
@@ -2949,6 +3024,14 @@ async def abandon_adventure(
 
         if member.sid
     ]
+
+
+    # An abandon is authoritative even if the Story Director is currently
+    # waiting on OpenAI.  Cancel the outbound task before deleting the room so
+    # a late model response cannot recreate/commit a ghost session.
+    cancel_director_task(
+        room_code
+    )
 
 
     await sio.emit(
@@ -3518,27 +3601,40 @@ async def finalize_resolved_turn(
                 ),
             )
 
-            try:
+            director_task = asyncio.create_task(
+                runtime_director.advance(
+                    session=
+                        session,
 
-                director_output = await asyncio.wait_for(
-                    runtime_director.advance(
-                        session=
-                            session,
+                    room=
+                        room,
 
-                        room=
-                            room,
+                    characters_by_player_id=
+                        characters_by_player_id,
 
-                        characters_by_player_id=
-                            characters_by_player_id,
-
-                        turn_facts=
-                            result,
-                    ),
-                    timeout=
-                        hard_timeout_seconds,
+                    turn_facts=
+                        result,
                 )
+            )
 
-            except asyncio.TimeoutError as error:
+            _director_tasks[
+                room.code
+            ] = director_task
+
+            done, _pending = await asyncio.wait(
+                {director_task},
+                timeout=
+                    hard_timeout_seconds,
+            )
+
+            if director_task not in done:
+                # asyncio.wait_for() waits for cancellation to finish, which
+                # can itself stall inside an HTTP client.  Detach cancellation
+                # here so the room returns to its durable RETRY state at the
+                # actual wall-clock deadline.
+                cancel_director_task(
+                    room.code
+                )
 
                 raise DirectorError(
                     (
@@ -3546,7 +3642,42 @@ async def finalize_resolved_turn(
                         f"{int(hard_timeout_seconds)} seconds. "
                         "Your locked choices and dice results were preserved."
                     )
-                ) from error
+                )
+
+            try:
+                director_output = director_task.result()
+            except asyncio.CancelledError:
+                # A host can abandon a wedged adventure from the Adventure
+                # Hall while generation is in flight.  Once the room/session
+                # is gone, the late handler must terminate quietly rather than
+                # recreating state or presenting another retry error.
+                if (
+                    rooms.room_by_code(room.code) is None
+                    or game_sessions.get(room.code) is not session
+                ):
+                    return False
+
+                raise DirectorError(
+                    (
+                        "Story Director generation was interrupted. "
+                        "Your locked choices and dice results were preserved."
+                    )
+                )
+            finally:
+                if _director_tasks.get(room.code) is director_task:
+                    _director_tasks.pop(
+                        room.code,
+                        None,
+                    )
+
+            # The room may have been abandoned in the narrow interval between
+            # model completion and commit.  Never let a late result resurrect
+            # a deleted adventure.
+            if (
+                rooms.room_by_code(room.code) is None
+                or game_sessions.get(room.code) is not session
+            ):
+                return False
 
             result = (
                 game_sessions
@@ -3692,6 +3823,12 @@ async def finalize_resolved_turn(
             room.code
         )
 
+        await refresh_adventure_lists(
+            member.user_id
+            for member
+            in room.players.values()
+        )
+
         return False
 
     except Exception as error:
@@ -3741,6 +3878,12 @@ async def finalize_resolved_turn(
 
         await broadcast_game_state(
             room.code
+        )
+
+        await refresh_adventure_lists(
+            member.user_id
+            for member
+            in room.players.values()
         )
 
         return False

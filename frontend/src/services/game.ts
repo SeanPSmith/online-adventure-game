@@ -41,6 +41,9 @@ export interface AdventureListItem {
   play_mode: "coop" | "solo";
   turn_number: number;
   completed: boolean;
+  turn_pending: boolean;
+  director_request_active: boolean;
+  director_retry_required: boolean;
   ending_label: string;
   scene_id: string;
   scene_title: string;

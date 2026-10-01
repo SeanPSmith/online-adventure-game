@@ -30,6 +30,8 @@ interface GameSocketContextValue {
   createRoom: (characterId: string, adventureId: string) => void;
   joinRoom: (characterId: string, roomCode: string) => void;
   startSolo: (roomCode: string) => void;
+  leaveAdventure: (roomCode: string, characterId: string) => void;
+  abandonAdventure: (roomCode: string) => void;
   lastRoomEntry: RoomJoinedPayload | null;
   clearRoomEntry: () => void;
 }
@@ -136,6 +138,21 @@ export function GameSocketProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const leaveAdventure = useCallback((roomCode: string, characterId: string) => {
+    setLatestError("");
+    getGameSocket().emit("leave_adventure", {
+      room_code: roomCode.trim().toUpperCase(),
+      character_id: characterId.trim(),
+    });
+  }, []);
+
+  const abandonAdventure = useCallback((roomCode: string) => {
+    setLatestError("");
+    getGameSocket().emit("abandon_adventure", {
+      room_code: roomCode.trim().toUpperCase(),
+    });
+  }, []);
+
   const clearError = useCallback(() => setLatestError(""), []);
   const clearRoomEntry = useCallback(() => setLastRoomEntry(null), []);
 
@@ -150,6 +167,8 @@ export function GameSocketProvider({ children }: { children: ReactNode }) {
       createRoom,
       joinRoom,
       startSolo,
+      leaveAdventure,
+      abandonAdventure,
       lastRoomEntry,
       clearRoomEntry,
     }),
@@ -163,6 +182,8 @@ export function GameSocketProvider({ children }: { children: ReactNode }) {
       createRoom,
       joinRoom,
       startSolo,
+      leaveAdventure,
+      abandonAdventure,
       lastRoomEntry,
       clearRoomEntry,
     ],

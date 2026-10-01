@@ -163,6 +163,7 @@ export function GameHomePage() {
             <span className={`network-badge ${connected ? "is-online" : "is-offline"}`}>
               {connected ? "STORY NETWORK ONLINE" : "PICKING UP THE SIGNAL_"}
             </span>
+            <Link className="button" to="/game/arcade">ARCADE LAB</Link>
             <Link className="button" to="/game/heroes">MANAGE HEROES</Link>
           </>
         }

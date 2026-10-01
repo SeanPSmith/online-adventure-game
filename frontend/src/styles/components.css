@@ -2512,3 +2512,220 @@
     width: 100%;
   }
 }
+
+/* =========================================================
+   INTERMISSION ARCADE MICRO-ENGINE // PASS 12
+========================================================= */
+
+.arcade-lab-layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.28fr) minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.arcade-lab-list {
+  display: grid;
+  gap: 5px;
+}
+
+.arcade-lab-list-item {
+  width: 100%;
+  min-height: 52px;
+  border: 1px solid var(--green-line-dim);
+  background: #010501;
+  color: var(--green-soft);
+  padding: 8px 10px;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  display: grid;
+  gap: 4px;
+}
+
+.arcade-lab-list-item span {
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.arcade-lab-list-item small {
+  color: var(--green-dim);
+  font-size: 8px;
+}
+
+.arcade-lab-list-item:hover,
+.arcade-lab-list-item:focus-visible,
+.arcade-lab-list-item.is-active {
+  border-color: var(--green);
+  background: rgba(72, 255, 112, 0.08);
+  outline: none;
+}
+
+.arcade-lab-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--green-line-dim);
+  border: 1px solid var(--green-line-dim);
+}
+
+.arcade-lab-meta > div {
+  min-width: 0;
+  background: #010501;
+  padding: 8px 10px;
+  display: grid;
+  gap: 4px;
+}
+
+.arcade-lab-meta span {
+  color: var(--green-dim);
+  font-size: 8px;
+}
+
+.arcade-lab-meta strong {
+  color: var(--green-soft);
+  font-size: 9px;
+  overflow-wrap: anywhere;
+}
+
+.arcade-lab-game-shell {
+  margin-top: 12px;
+  border: 1px solid var(--green-line-dim);
+  background: #000;
+}
+
+.arcade-lab-actions {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.timing-sport-game {
+  align-content: start;
+}
+
+.retro-sport-stage {
+  width: min(760px, 100%);
+  margin: 0 auto;
+  border: 1px solid var(--green-line-dim);
+  background: #010501;
+  padding: 12px;
+  overflow: auto;
+  outline: none;
+}
+
+.retro-sport-stage:focus {
+  border-color: var(--green);
+}
+
+.retro-sport-ascii {
+  width: max-content;
+  min-width: 100%;
+  margin: 0;
+  color: var(--green-soft);
+  font: 800 clamp(10px, 1.8vw, 17px)/1.18 var(--font-mono);
+  text-align: center;
+  user-select: none;
+}
+
+.timing-shot-meters {
+  width: min(760px, 100%);
+  margin: 0 auto;
+  display: grid;
+  gap: 7px;
+}
+
+.timing-shot-meter {
+  border: 1px solid var(--green-line-dim);
+  background: #010501;
+  padding: 7px 9px;
+  opacity: 0.58;
+}
+
+.timing-shot-meter.is-active {
+  opacity: 1;
+  border-color: var(--green);
+}
+
+.timing-shot-meter-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 5px;
+  color: var(--green-dim);
+  font-size: 8px;
+}
+
+.timing-shot-meter-label strong {
+  color: var(--green-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.timing-shot-track {
+  height: 14px;
+  border: 1px solid rgba(72, 255, 112, 0.28);
+  background: #000;
+  position: relative;
+  overflow: hidden;
+}
+
+.timing-shot-track.is-centered::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0 47%, rgba(72, 255, 112, 0.09) 47% 53%, transparent 53% 100%);
+}
+
+.timing-shot-center {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  background: var(--green-muted);
+}
+
+.timing-shot-marker {
+  position: absolute;
+  top: 1px;
+  bottom: 1px;
+  width: 7px;
+  background: var(--green-soft);
+  transform: translateX(-50%);
+}
+
+.timing-shot-fill {
+  display: block;
+  height: 100%;
+  background: var(--green-muted);
+}
+
+.timing-shot-action {
+  width: min(760px, 100%);
+  min-height: 48px;
+  margin: 0 auto;
+}
+
+@media (max-width: 760px) {
+  .arcade-lab-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .arcade-lab-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .arcade-lab-meta {
+    grid-template-columns: 1fr;
+  }
+
+  .retro-sport-ascii {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 460px) {
+  .arcade-lab-list {
+    grid-template-columns: 1fr;
+  }
+}

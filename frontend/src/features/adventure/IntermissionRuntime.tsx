@@ -9,37 +9,10 @@ import type {
   IntermissionResult,
   StoryAdvancingPayload,
 } from "../../services/game";
-import { ArcheryGame } from "./ArcheryGame";
-import { FindOutlierGame } from "./FindOutlierGame";
+import {
+  liveArcadeGameForServerSlot,
+} from "../arcade/ArcadeGameRegistry";
 import { IntermissionGameBoundary } from "./IntermissionGameBoundary";
-import { MazeGame } from "./MazeGame";
-import { MissileDefenseGame } from "./MissileDefenseGame";
-import { PongGame } from "./PongGame";
-import { WordPuzzleGame } from "./WordPuzzleGame";
-
-function wordCabinetName(turnNumber: number) {
-  const cycle = Math.floor(Math.max(0, turnNumber - 1) / 6);
-  return cycle % 2 === 0 ? "WORD SEARCH" : "HANGMAN";
-}
-
-function displayGameName(gameId: string, turnNumber: number) {
-  switch (gameId) {
-    case "rune_catch":
-      return "FIND THE OUTLIER";
-    case "lantern_keep":
-      return "TERMINAL PONG";
-    case "relic_scramble":
-      return "MISSILE DEFENSE";
-    case "sigil_memory":
-      return "ARCHERY RANGE";
-    case "ward_breaker":
-      return "MAZE RUNNER";
-    case "shadow_step":
-      return wordCabinetName(turnNumber);
-    default:
-      return "FIND THE OUTLIER";
-  }
-}
 
 function matchingResult(
   result: IntermissionResult | null,
@@ -50,76 +23,6 @@ function matchingResult(
     result.turn_number === payload.turn_number &&
     result.game_id === payload.game_id
   );
-}
-
-function GameForPayload({
-  payload,
-  score,
-  onScoreChange,
-  storyReady,
-}: {
-  payload: StoryAdvancingPayload;
-  score: number;
-  onScoreChange: (score: number) => void;
-  storyReady: boolean;
-}) {
-  switch (payload.game_id) {
-    case "lantern_keep":
-      return (
-        <PongGame
-          score={score}
-          onScoreChange={onScoreChange}
-          storyReady={storyReady}
-        />
-      );
-
-    case "relic_scramble":
-      return (
-        <MissileDefenseGame
-          score={score}
-          onScoreChange={onScoreChange}
-          storyReady={storyReady}
-        />
-      );
-
-    case "sigil_memory":
-      return (
-        <ArcheryGame
-          score={score}
-          onScoreChange={onScoreChange}
-          storyReady={storyReady}
-        />
-      );
-
-    case "ward_breaker":
-      return (
-        <MazeGame
-          score={score}
-          onScoreChange={onScoreChange}
-          storyReady={storyReady}
-        />
-      );
-
-    case "shadow_step":
-      return (
-        <WordPuzzleGame
-          turnNumber={payload.turn_number}
-          score={score}
-          onScoreChange={onScoreChange}
-          storyReady={storyReady}
-        />
-      );
-
-    case "rune_catch":
-    default:
-      return (
-        <FindOutlierGame
-          score={score}
-          onScoreChange={onScoreChange}
-          storyReady={storyReady}
-        />
-      );
-  }
 }
 
 export function IntermissionRuntime({
@@ -235,10 +138,9 @@ export function IntermissionRuntime({
     ? result?.scores.find((entry) => entry.player_id === playerId)
     : null;
 
-  const gameName = displayGameName(
-    payload.game_id,
-    payload.turn_number,
-  );
+  const arcadeGame = liveArcadeGameForServerSlot(payload.game_id);
+  const ArcadeGame = arcadeGame.component;
+  const gameName = arcadeGame.title;
 
   return (
     <div className="intermission-runtime">
@@ -290,11 +192,12 @@ export function IntermissionRuntime({
             score={score}
             onScoreChange={updateScore}
           >
-            <GameForPayload
-              payload={payload}
+            <ArcadeGame
               score={score}
               onScoreChange={updateScore}
               storyReady={storyReady}
+              turnNumber={payload.turn_number}
+              playMode={payload.play_mode}
             />
           </IntermissionGameBoundary>
 

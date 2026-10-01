@@ -113,3 +113,36 @@ def test_director_wall_clock_timeout_and_abandon_use_real_task_cancellation() ->
     assert "done, _pending = await asyncio.wait(" in backend
     assert "cancel_director_task(" in backend
     assert "late model response cannot recreate/commit a ghost session" in backend
+
+
+def test_intermission_runtime_uses_arcade_registry_without_changing_server_rotation() -> None:
+    runtime = read("features/adventure/IntermissionRuntime.tsx")
+    registry = read("features/arcade/ArcadeGameRegistry.tsx")
+
+    assert "liveArcadeGameForServerSlot" in runtime
+    assert "const ArcadeGame = arcadeGame.component" in runtime
+    for server_game_id in (
+        "rune_catch",
+        "lantern_keep",
+        "relic_scramble",
+        "sigil_memory",
+        "ward_breaker",
+        "shadow_step",
+    ):
+        assert server_game_id in registry
+
+
+def test_arcade_micro_engine_exposes_lab_and_timing_sport_cabinets() -> None:
+    router = read("router.tsx")
+    home = read("pages/game/GameHomePage.tsx")
+    registry = read("features/arcade/ArcadeGameRegistry.tsx")
+    engine = read("features/arcade/engine/useTimingShotEngine.ts")
+
+    assert 'path: "arcade"' in router
+    assert 'to="/game/arcade"' in home
+    assert 'id: "bowling"' in registry
+    assert 'id: "golf"' in registry
+    assert 'id: "projectile_duel"' in registry
+    assert 'live: false' in registry
+    assert '"aim" | "power" | "modifier" | "resolving"' in engine
+    assert "requestAnimationFrame" in engine

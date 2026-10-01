@@ -33,6 +33,11 @@ const ui = {
     worldLinkPanel: byId("world-link-panel"),
     worldLinkTitle: byId("world-link-title"),
 
+    authorAssistPanel: byId("author-assist-panel"),
+    authorAssistPrompt: byId("author-assist-prompt"),
+    authorAssistButton: byId("author-assist-button"),
+    authorAssistState: byId("author-assist-state"),
+
     generationPanel: byId("generation-panel"),
     generationProviderName: byId("generation-provider-name"),
     generationProviderModel: byId("generation-provider-model"),
@@ -96,6 +101,7 @@ let autosaveTimer = null;
 let toastTimer = null;
 let currentFilter = "all";
 let createContextParentId = null;
+let authorAssistInFlight = false;
 
 
 /*
@@ -426,6 +432,256 @@ function assessStrength(source) {
             )
         ),
     };
+}
+
+
+/* =========================================================
+   AI AUTHOR ASSIST
+========================================================= */
+
+const authorAssistPlaceholders = {
+    world_truths: "Rough canon fact: the mine fire never actually went out...",
+    locations: "Some field behind a farm; seems ordinary now, matters later...",
+    npcs: "An unnamed evil entity; mysterious, cruel, speaks in riddles...",
+    lore_secrets: "People think the bell is haunted, but it is warning them...",
+    moments: "At some point the power dies while they are separated...",
+    forbidden_rules: "Never reveal the creature's true name...",
+    story_threads: "A missing delivery keeps resurfacing in increasingly weird ways...",
+};
+
+
+function renderAuthorAssistState(message = null, isError = false) {
+    if (!ui.authorAssistState) {
+        return;
+    }
+
+    const available = Boolean(generationProviderStatus.available);
+
+    ui.authorAssistState.textContent = (
+        message
+        ?? (
+            authorAssistInFlight
+                ? "WRITING_"
+                : available
+                    ? "READY"
+                    : "AI OFFLINE"
+        )
+    );
+
+    ui.authorAssistState.classList.toggle(
+        "working",
+        authorAssistInFlight && !isError,
+    );
+    ui.authorAssistState.classList.toggle(
+        "error",
+        Boolean(isError),
+    );
+}
+
+
+function scheduleAiAssistedAutosave() {
+    dirty = true;
+    revision += 1;
+    ui.saveState.textContent = "UNSAVED // AI ASSIST";
+
+    clearTimeout(autosaveTimer);
+
+    renderEditor();
+
+    autosaveTimer = setTimeout(() => {
+        saveDraft({
+            silent: true,
+        });
+    }, 2200);
+}
+
+
+async function stableSourceForAiAssist() {
+    if (
+        !activeSource
+        || !activeVersion
+        || activeVersion.status !== "draft"
+    ) {
+        throw new Error("AI assistance is only available on a draft.");
+    }
+
+    syncFormToSource();
+
+    if (dirty) {
+        const saved = await saveDraft({
+            silent: true,
+        });
+
+        if (!saved) {
+            throw new Error(
+                "Save the current draft before asking AI to expand it."
+            );
+        }
+    }
+
+    return {
+        source: structuredClone(activeSource),
+        revisionAtStart: revision,
+    };
+}
+
+
+function applyAiAssistResult(result, revisionAtStart, successMessage) {
+    if (revision !== revisionAtStart) {
+        throw new Error(
+            "The draft changed while AI was writing. Nothing was applied; run the helper again."
+        );
+    }
+
+    if (!result?.source) {
+        throw new Error("AI assistance returned no source update.");
+    }
+
+    activeSource = structuredClone(result.source);
+    scheduleAiAssistedAutosave();
+
+    const changedCount = Array.isArray(result.changed_paths)
+        ? result.changed_paths.length
+        : 0;
+
+    showToast(
+        changedCount
+            ? `${successMessage} // ${changedCount} FIELD${changedCount === 1 ? "" : "S"}`
+            : "AI FOUND NO SAFE GAPS TO FILL_"
+    );
+}
+
+
+async function runDocumentAiAssist() {
+    const instruction = (
+        ui.authorAssistPrompt.value
+        ?? ""
+    ).trim();
+
+    if (!instruction) {
+        showToast("GIVE THE AI HELPER A ROUGH IDEA FIRST_", true);
+        ui.authorAssistPrompt.focus();
+        return;
+    }
+
+    if (authorAssistInFlight) {
+        return;
+    }
+
+    authorAssistInFlight = true;
+    ui.authorAssistButton.disabled = true;
+    renderAuthorAssistState("BUILDING SOURCE_");
+
+    try {
+        const {
+            source,
+            revisionAtStart,
+        } = await stableSourceForAiAssist();
+
+        const result = await api(
+            "/api/author/assist",
+            {
+                method: "POST",
+                body: JSON.stringify({
+                    source,
+                    instruction,
+                    section: "document",
+                    item_index: null,
+                }),
+            }
+        );
+
+        applyAiAssistResult(
+            result,
+            revisionAtStart,
+            "AI POPULATED SOURCE",
+        );
+
+        ui.authorAssistPrompt.value = "";
+        renderAuthorAssistState("APPLIED");
+
+    } catch (error) {
+        renderAuthorAssistState("FAILED", true);
+        showToast(error.message, true);
+
+    } finally {
+        authorAssistInFlight = false;
+
+        if (activeVersion?.status === "draft") {
+            ui.authorAssistButton.disabled = (
+                !generationProviderStatus.available
+            );
+        }
+
+        setTimeout(() => {
+            renderAuthorAssistState();
+        }, 1600);
+    }
+}
+
+
+async function runRepeatItemAiAssist(
+    sectionName,
+    index,
+    instruction,
+    button,
+    statusNode,
+) {
+    const note = String(instruction ?? "").trim();
+
+    if (!note) {
+        showToast("GIVE THIS ITEM A ONE-LINE AI NOTE FIRST_", true);
+        return;
+    }
+
+    if (authorAssistInFlight) {
+        return;
+    }
+
+    authorAssistInFlight = true;
+    button.disabled = true;
+    statusNode.textContent = "WRITING_";
+    renderAuthorAssistState("WRITING ITEM_");
+
+    try {
+        const {
+            source,
+            revisionAtStart,
+        } = await stableSourceForAiAssist();
+
+        const result = await api(
+            "/api/author/assist",
+            {
+                method: "POST",
+                body: JSON.stringify({
+                    source,
+                    instruction: note,
+                    section: sectionName,
+                    item_index: index,
+                }),
+            }
+        );
+
+        applyAiAssistResult(
+            result,
+            revisionAtStart,
+            `AI EXPANDED ${sectionName.replaceAll("_", " ").toUpperCase()}`,
+        );
+
+        renderAuthorAssistState("APPLIED");
+
+    } catch (error) {
+        statusNode.textContent = "FAILED";
+        renderAuthorAssistState("FAILED", true);
+        showToast(error.message, true);
+
+    } finally {
+        authorAssistInFlight = false;
+
+        setTimeout(() => {
+            renderAuthorAssistState();
+        }, 1600);
+    }
 }
 
 
@@ -912,6 +1168,69 @@ function renderRepeatSection(sectionName) {
 
         header.append(title, remove);
 
+        const aiAssist = document.createElement("div");
+        aiAssist.className = "repeat-card-ai";
+
+        const aiPrompt = document.createElement("input");
+        aiPrompt.type = "text";
+        aiPrompt.spellcheck = true;
+        aiPrompt.placeholder = (
+            authorAssistPlaceholders[sectionName]
+            ?? "Give AI a rough one-line note..."
+        );
+        aiPrompt.disabled = (
+            !isDraft
+            || !generationProviderStatus.available
+        );
+
+        const aiButton = document.createElement("button");
+        aiButton.type = "button";
+        aiButton.className = "button subtle";
+        aiButton.textContent = "AI EXPAND";
+        aiButton.disabled = (
+            !isDraft
+            || !generationProviderStatus.available
+            || authorAssistInFlight
+        );
+
+        const aiStatus = document.createElement("span");
+        aiStatus.className = "repeat-card-ai-status";
+        aiStatus.textContent = (
+            generationProviderStatus.available
+                ? "OPTIONAL"
+                : "AI OFFLINE"
+        );
+
+        aiButton.addEventListener(
+            "click",
+            () => runRepeatItemAiAssist(
+                sectionName,
+                index,
+                aiPrompt.value,
+                aiButton,
+                aiStatus,
+            )
+        );
+
+        aiPrompt.addEventListener(
+            "keydown",
+            event => {
+                if (
+                    event.key === "Enter"
+                    && !event.shiftKey
+                ) {
+                    event.preventDefault();
+                    aiButton.click();
+                }
+            }
+        );
+
+        aiAssist.append(
+            aiPrompt,
+            aiButton,
+            aiStatus,
+        );
+
         const fields = document.createElement("div");
         fields.className = "repeat-card-fields";
 
@@ -939,7 +1258,7 @@ function renderRepeatSection(sectionName) {
             fields.appendChild(label);
         }
 
-        card.append(header, fields);
+        card.append(header, aiAssist, fields);
         container.appendChild(card);
     });
 }
@@ -1084,6 +1403,18 @@ function renderEditor() {
     ui.newVersionButton.hidden = isDraft;
     ui.newBriefButton.hidden = !isWorld;
     ui.archiveButton.textContent = archived ? "RESTORE" : "ARCHIVE";
+
+    ui.authorAssistPrompt.disabled = (
+        !isDraft
+        || !generationProviderStatus.available
+        || authorAssistInFlight
+    );
+    ui.authorAssistButton.disabled = (
+        !isDraft
+        || !generationProviderStatus.available
+        || authorAssistInFlight
+    );
+    renderAuthorAssistState();
 
     ui.worldLinkPanel.hidden = (
         kind !== "brief"
@@ -1488,6 +1819,11 @@ async function refreshGenerationProviderStatus() {
     );
 
     renderGenerationProviderStatus();
+    renderAuthorAssistState();
+
+    if (activeVersion && activeSource) {
+        renderEditor();
+    }
 }
 
 
@@ -2763,6 +3099,24 @@ ui.generateSeedButton.addEventListener(
 ui.refreshGeneratedButton.addEventListener(
     "click",
     refreshGenerated
+);
+
+ui.authorAssistButton.addEventListener(
+    "click",
+    runDocumentAiAssist
+);
+
+ui.authorAssistPrompt.addEventListener(
+    "keydown",
+    event => {
+        if (
+            event.key === "Enter"
+            && (event.metaKey || event.ctrlKey)
+        ) {
+            event.preventDefault();
+            runDocumentAiAssist();
+        }
+    }
 );
 
 window.addEventListener("beforeunload", event => {

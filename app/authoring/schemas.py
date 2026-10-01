@@ -88,6 +88,40 @@ class PreviewAdventureRequest(
     ]
 
 
+class AuthorAssistRequest(
+    BaseModel
+):
+
+    source: dict[
+        str,
+        Any,
+    ]
+
+    instruction: str = Field(
+        min_length=1,
+        max_length=1200,
+    )
+
+    section: Literal[
+        "document",
+        "world_truths",
+        "locations",
+        "npcs",
+        "lore_secrets",
+        "moments",
+        "forbidden_rules",
+        "story_threads",
+    ] = "document"
+
+    item_index: (
+        int
+        | None
+    ) = Field(
+        default=None,
+        ge=0,
+    )
+
+
 class AuthorMessageResponse(
     BaseModel
 ):

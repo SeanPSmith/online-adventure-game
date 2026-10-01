@@ -28,10 +28,20 @@ from app.auth.sessions import (
 
 from app.authoring.schemas import (
     ArchiveAdventureRequest,
+    AuthorAssistRequest,
     CreateAdventureRequest,
     DuplicateAdventureRequest,
     PreviewAdventureRequest,
     SaveAdventureRequest,
+)
+
+from app.authoring.ai_assist import (
+    author_assist_service,
+)
+
+from app.generation.provider import (
+    AdventureGenerationConfigurationError,
+    AdventureGenerationResponseError,
 )
 
 from app.authoring.service import (
@@ -425,6 +435,73 @@ async def preview_source(
                     payload.source
                 ),
         }
+
+    except ValueError as error:
+
+        raise HTTPException(
+            status_code=
+                status.HTTP_422_UNPROCESSABLE_ENTITY,
+
+            detail=
+                str(
+                    error
+                ),
+        ) from error
+
+
+@router.post(
+    "/api/author/assist"
+)
+async def assist_author_source(
+    payload: AuthorAssistRequest,
+    user=Depends(
+        require_author_write
+    ),
+):
+
+    try:
+
+        return (
+            await author_assist_service
+            .assist(
+
+                source=
+                    payload.source,
+
+                instruction=
+                    payload.instruction,
+
+                section=
+                    payload.section,
+
+                item_index=
+                    payload.item_index,
+            )
+        )
+
+    except AdventureGenerationConfigurationError as error:
+
+        raise HTTPException(
+            status_code=
+                status.HTTP_503_SERVICE_UNAVAILABLE,
+
+            detail=
+                str(
+                    error
+                ),
+        ) from error
+
+    except AdventureGenerationResponseError as error:
+
+        raise HTTPException(
+            status_code=
+                status.HTTP_502_BAD_GATEWAY,
+
+            detail=
+                str(
+                    error
+                ),
+        ) from error
 
     except ValueError as error:
 

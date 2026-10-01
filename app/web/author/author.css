@@ -1052,3 +1052,97 @@ dialog::backdrop {
     margin-top: 18px;
     justify-content: flex-end;
 }
+
+/* =========================================================
+   AI AUTHOR ASSIST
+========================================================= */
+
+.author-assist-panel {
+    margin: 0 0 18px;
+    padding: 18px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.018);
+}
+
+.author-assist-header,
+.author-assist-actions,
+.repeat-card-ai {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.author-assist-header {
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.author-assist-header h3 {
+    margin: 3px 0 0;
+}
+
+.author-assist-state {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+}
+
+.author-assist-state.working {
+    color: var(--accent);
+}
+
+.author-assist-state.error {
+    color: var(--danger);
+}
+
+.author-assist-panel > label {
+    display: grid;
+    gap: 8px;
+}
+
+.author-assist-panel textarea {
+    width: 100%;
+}
+
+.author-assist-actions {
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+
+.repeat-card-ai {
+    margin: 0 0 14px;
+    padding: 10px;
+    border: 1px dashed var(--border);
+    background: rgba(255, 255, 255, 0.012);
+}
+
+.repeat-card-ai input {
+    min-width: 0;
+    flex: 1 1 280px;
+}
+
+.repeat-card-ai .button {
+    flex: 0 0 auto;
+}
+
+.repeat-card-ai-status {
+    flex: 0 0 auto;
+    min-width: 70px;
+    text-align: right;
+    color: var(--muted);
+    font-size: 11px;
+    letter-spacing: 0.07em;
+}
+
+@media (max-width: 720px) {
+    .author-assist-header,
+    .repeat-card-ai {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .repeat-card-ai-status {
+        min-width: 0;
+        text-align: left;
+    }
+}

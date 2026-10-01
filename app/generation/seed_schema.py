@@ -172,3 +172,34 @@ class AdventureSeedDraft(
                 cleaned.append(text)
 
         return cleaned
+
+
+class PlayerSynopsisDraft(
+    BaseModel
+):
+    """
+    Small storefront-facing copy pass used when the primary seed synopsis is too
+    close to the author's rough pitch or otherwise reads like source notes.
+    """
+
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+
+    player_synopsis: str = Field(
+        min_length=80,
+        max_length=700,
+    )
+
+
+    @field_validator(
+        "player_synopsis",
+        mode="after",
+    )
+    @classmethod
+    def strip_synopsis(
+        cls,
+        value: str,
+    ) -> str:
+
+        return value.strip()

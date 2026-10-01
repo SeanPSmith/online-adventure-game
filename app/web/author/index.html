@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Tales of Two — Author Console</title>
-    <link rel="stylesheet" href="/static/author/author.css?v=006">
+    <link rel="stylesheet" href="/static/author/author.css?v=007">
 </head>
 <body>
 <header class="topbar">
@@ -190,6 +190,40 @@
                     id="generated-seed-list"
                     class="generated-seed-list"
                 ></div>
+            </section>
+
+            <section id="author-assist-panel" class="author-assist-panel">
+                <div class="author-assist-header">
+                    <div>
+                        <div class="section-kicker">AI ASSIST</div>
+                        <h3>One-Sentence Population</h3>
+                    </div>
+                    <div id="author-assist-state" class="author-assist-state">READY</div>
+                </div>
+
+                <p class="helper">
+                    Give the copilot the lazy version. It fills blank fields and untouched defaults,
+                    while preserving canon and details you already authored. Nothing is published automatically.
+                </p>
+
+                <label>
+                    Rough idea
+                    <textarea
+                        id="author-assist-prompt"
+                        rows="3"
+                        spellcheck="true"
+                        placeholder="NPC: some evil entity with no name; mysterious, cruel, speaks in riddles. Or: a field behind a farm that seems unimportant now but matters later."
+                    ></textarea>
+                </label>
+
+                <div class="author-assist-actions">
+                    <button id="author-assist-button" class="button primary" type="button">
+                        AI POPULATE GAPS
+                    </button>
+                    <span class="field-help">
+                        Uses the fast authoring model. Review everything before publishing.
+                    </span>
+                </div>
             </section>
 
             <form id="adventure-form" autocomplete="off" spellcheck="true">

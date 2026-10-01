@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 
+from difflib import SequenceMatcher
 from typing import (
     Any,
 )
@@ -19,6 +20,7 @@ from app.generation.provider import (
 
 from app.generation.seed_schema import (
     AdventureSeedDraft,
+    PlayerSynopsisDraft,
 )
 
 
@@ -53,9 +55,11 @@ DESIGN GOALS
 - Use authored names, places, truths, and secrets when they matter.
 - Do not spoil hidden truths in the public-facing premise, player synopsis, or core goal.
 - PLAYER SYNOPSIS is storefront copy for players, not design documentation. Write 2-4
-  punchy sentences that establish the hook, immediate situation, and flavor without
-  exposing hidden truths, planned twists, finale details, author notes, or mechanical
-  instructions. Never simply copy the raw Adventure Brief.
+  punchy, polished sentences that establish the hook, immediate situation, and flavor
+  without exposing hidden truths, planned twists, finale details, author notes, or
+  mechanical instructions. Transform the author's rough pitch into finished teaser copy;
+  never copy it verbatim or merely clean up its grammar. Prefer a concrete place, time,
+  oddity, or pressure point over generic phrases such as "our heroes have to figure it out."
 - Keep a SHORT adventure genuinely compact when the brief requests short.
 - Avoid generic filler. Build concrete tensions, motives, reversals, and
   opportunities for player agency.
@@ -721,6 +725,310 @@ class OpenAIAdventureGenerationProvider(
             ) from error
 
 
+    @staticmethod
+    def _brief_pitch(
+        brief_version: dict[
+            str,
+            Any,
+        ],
+    ) -> str:
+
+        source = (
+            brief_version.get(
+                "source",
+                {},
+            )
+        )
+
+        identity = (
+            source.get(
+                "identity",
+                {},
+            )
+            if isinstance(
+                source.get(
+                    "identity"
+                ),
+                dict,
+            )
+            else {}
+        )
+
+        return (
+            _clean(
+                identity.get(
+                    "one_sentence_pitch"
+                )
+            )
+            or _clean(
+                source.get(
+                    "premise"
+                )
+            )
+        )
+
+
+    @staticmethod
+    def _normalized_copy_text(
+        value: str,
+    ) -> str:
+
+        return " ".join(
+            "".join(
+                character.lower()
+                if character.isalnum()
+                else " "
+                for character
+                in str(
+                    value
+                    or ""
+                )
+            ).split()
+        )
+
+
+    @classmethod
+    def _synopsis_needs_polish(
+        cls,
+        draft: AdventureSeedDraft,
+        brief_version: dict[
+            str,
+            Any,
+        ],
+    ) -> bool:
+
+        synopsis = _clean(
+            draft.player_synopsis
+        )
+
+        if len(synopsis) < 120:
+            return True
+
+        sentence_marks = sum(
+            synopsis.count(mark)
+            for mark
+            in (".", "!", "?")
+        )
+
+        if sentence_marks < 2:
+            return True
+
+        pitch = cls._brief_pitch(
+            brief_version
+        )
+
+        if not pitch:
+            return False
+
+        normalized_synopsis = (
+            cls._normalized_copy_text(
+                synopsis
+            )
+        )
+
+        normalized_pitch = (
+            cls._normalized_copy_text(
+                pitch
+            )
+        )
+
+        if not normalized_pitch:
+            return False
+
+        if (
+            normalized_pitch
+            in normalized_synopsis
+            and len(
+                normalized_synopsis
+            )
+            < len(
+                normalized_pitch
+            ) + 140
+        ):
+            return True
+
+        similarity = SequenceMatcher(
+            None,
+            normalized_pitch,
+            normalized_synopsis,
+        ).ratio()
+
+        return similarity >= 0.68
+
+
+    async def _polish_player_synopsis(
+        self,
+        *,
+        draft: AdventureSeedDraft,
+        brief_version: dict[
+            str,
+            Any,
+        ],
+    ) -> tuple[
+        str,
+        dict[
+            str,
+            Any,
+        ],
+    ]:
+
+        client = (
+            self._client_instance()
+        )
+
+        payload = {
+            "rough_author_pitch":
+                self._brief_pitch(
+                    brief_version
+                ),
+
+            "adventure": {
+                "title":
+                    draft.title,
+
+                "subtitle":
+                    draft.subtitle,
+
+                "primary_type":
+                    draft.primary_type,
+
+                "secondary_type":
+                    draft.secondary_type,
+
+                "tone":
+                    draft.tone,
+
+                "premise":
+                    draft.premise,
+
+                "core_goal":
+                    draft.core_goal,
+
+                "major_locations":
+                    draft.major_locations,
+
+                "major_npcs":
+                    draft.major_npcs,
+            },
+        }
+
+        response = (
+            await client
+            .responses
+            .create(
+                model=
+                    self.economy_model,
+
+                instructions=(
+                    "Write player-facing storefront copy for a Tales of Two adventure. "
+                    "Return 2-4 vivid sentences, roughly 60-110 words. Make it "
+                    "feel like finished game copy rather than an author's note. Establish "
+                    "the immediate situation and intriguing pressure without revealing "
+                    "hidden truths, twists, the finale, or mechanical instructions. Do not "
+                    "copy or lightly edit the rough author pitch. Do not mention prompts, "
+                    "seeds, AI, the Director, or design notes."
+                ),
+
+                input=(
+                    "Create a distinct player synopsis from this safe public planning data:\n\n"
+                    + json.dumps(
+                        payload,
+                        ensure_ascii=False,
+                        separators=(
+                            ",",
+                            ":",
+                        ),
+                    )
+                ),
+
+                reasoning={
+                    "effort":
+                        self.economy_reasoning,
+                },
+
+                max_output_tokens=
+                    min(
+                        self.max_output_tokens,
+                        1000,
+                    ),
+
+                text={
+                    "format": {
+                        "type":
+                            "json_schema",
+
+                        "name":
+                            "player_synopsis",
+
+                        "strict":
+                            True,
+
+                        "schema":
+                            PlayerSynopsisDraft
+                            .model_json_schema(),
+                    },
+                },
+
+                store=
+                    False,
+            )
+        )
+
+        output_text = (
+            getattr(
+                response,
+                "output_text",
+                "",
+            )
+            or ""
+        ).strip()
+
+        if not output_text:
+            raise AdventureGenerationResponseError(
+                "OpenAI returned no player synopsis text."
+            )
+
+        try:
+            polished = (
+                PlayerSynopsisDraft
+                .model_validate(
+                    json.loads(
+                        output_text
+                    )
+                )
+            )
+        except (
+            json.JSONDecodeError,
+            ValidationError,
+        ) as error:
+            raise AdventureGenerationResponseError(
+                "OpenAI returned an invalid player synopsis."
+            ) from error
+
+        return (
+            polished.player_synopsis,
+            {
+                "model":
+                    self.economy_model,
+
+                "reasoning":
+                    self.economy_reasoning,
+
+                "response_id":
+                    getattr(
+                        response,
+                        "id",
+                        None,
+                    ),
+
+                "usage":
+                    self._usage_data(
+                        response
+                    ),
+            },
+        )
+
+
     async def _repair_draft(
         self,
         *,
@@ -882,6 +1190,36 @@ class OpenAIAdventureGenerationProvider(
                     "OpenAI returned an invalid seed and the single repair pass failed."
                 ) from error
 
+        synopsis_polish = None
+
+        if self._synopsis_needs_polish(
+            draft,
+            brief_version,
+        ):
+            try:
+                (
+                    polished_synopsis,
+                    synopsis_polish,
+                ) = await self._polish_player_synopsis(
+                    draft=
+                        draft,
+
+                    brief_version=
+                        brief_version,
+                )
+
+                draft = draft.model_copy(
+                    update={
+                        "player_synopsis":
+                            polished_synopsis,
+                    }
+                )
+
+            except Exception:
+                # The seed itself is already valid. Storefront copy polish is an
+                # enhancement and must never make author seed generation fail.
+                synopsis_polish = None
+
         seed = (
             draft
             .model_dump(
@@ -955,6 +1293,9 @@ class OpenAIAdventureGenerationProvider(
 
                 "usage":
                     usage,
+
+                "synopsis_polish":
+                    synopsis_polish,
             },
 
             "source": {

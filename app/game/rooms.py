@@ -243,6 +243,50 @@ class GameRoom:
         }
 
 
+def recover_legacy_single_player_session(
+    room: GameRoom,
+    session,
+) -> bool:
+
+    """
+    Repair adventures created before the co-op party gate was enforced.
+
+    Older builds could start a room marked ``coop`` with only the host. Once
+    such a room had already resolved (or frozen) a turn, newer party-gate
+    logic would correctly refuse to advance the next turn forever because
+    the room still advertised that it required two players.
+
+    A one-player co-op room that has *never* advanced is still a normal lobby
+    waiting for a guest and must not be converted.  We only migrate a durable
+    session that proves gameplay already started under the old behavior.
+    """
+
+    if (
+        room is None
+        or session is None
+        or room.play_mode != PLAY_MODE_COOP
+        or room.player_count != 1
+        or bool(getattr(session, "completed", False))
+    ):
+        return False
+
+    only_player = next(iter(room.players.values()), None)
+    if only_player is None or not only_player.is_host:
+        return False
+
+    gameplay_already_started = bool(
+        int(getattr(session, "turn_number", 1) or 1) > 1
+        or str(getattr(session, "last_resolution", "") or "").strip()
+        or getattr(session, "pending_turn_facts", None) is not None
+    )
+
+    if not gameplay_already_started:
+        return False
+
+    room.play_mode = PLAY_MODE_SOLO
+    return True
+
+
 # =========================================================
 # ROOM MANAGER
 # =========================================================

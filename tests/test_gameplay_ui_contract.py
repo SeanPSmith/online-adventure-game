@@ -64,3 +64,20 @@ def test_retry_pending_turn_reuses_frozen_snapshot_without_readiness_recheck() -
     assert "resolve_turn(" in retry_handler
     assert "all_players_ready(" not in retry_handler
     assert "The locked turn is incomplete and cannot be retried yet." not in retry_handler
+
+
+def test_legacy_underfilled_started_room_recovery_is_wired_into_resume_and_choice_flow() -> None:
+    backend = Path("app/main.py").read_text()
+
+    resume_start = backend.index("async def resume_adventure")
+    resume_end = backend.index("# =========================================================\n# LEAVE ADVENTURE", resume_start)
+    resume_handler = backend[resume_start:resume_end]
+
+    choice_start = backend.index("async def submit_choice")
+    choice_end = backend.index("# =========================================================\n# QUICK MICRO-EVENT RESPONSE", choice_start)
+    choice_handler = backend[choice_start:choice_end]
+
+    assert "recover_legacy_single_player_session(" in resume_handler
+    assert "recover_legacy_single_player_session(" in choice_handler
+    assert "if not room.has_required_party:" in choice_handler
+    assert choice_handler.index("recover_legacy_single_player_session(") < choice_handler.index("if not room.has_required_party:")

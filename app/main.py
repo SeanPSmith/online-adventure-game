@@ -95,6 +95,7 @@ from app.adventures.registry import (
 )
 
 from app.game.rooms import (
+    recover_legacy_single_player_session,
     rooms,
 )
 
@@ -2485,6 +2486,29 @@ async def resume_adventure(
     )
 
 
+    session = (
+        game_sessions.get_or_create(
+            room.code
+        )
+    )
+
+
+    legacy_mode_repaired = (
+        recover_legacy_single_player_session(
+            room,
+            session,
+        )
+    )
+
+
+    if legacy_mode_repaired:
+        print(
+            "[ROOM MODE RECOVERY] "
+            f"room={room.code} "
+            "legacy single-player coop -> solo"
+        )
+
+
     await persist_room_state(
         room.code
     )
@@ -2503,13 +2527,6 @@ async def resume_adventure(
         "character_id":
             player.character_id,
     }
-
-
-    session = (
-        game_sessions.get_or_create(
-            room.code
-        )
-    )
 
 
     if session.completed:
@@ -3889,6 +3906,29 @@ async def submit_choice(
         return
 
 
+    session = (
+        game_sessions.get_or_create(
+            room.code
+        )
+    )
+
+
+    legacy_mode_repaired = (
+        recover_legacy_single_player_session(
+            room,
+            session,
+        )
+    )
+
+
+    if legacy_mode_repaired:
+        print(
+            "[ROOM MODE RECOVERY] "
+            f"room={room.code} "
+            "legacy single-player coop -> solo"
+        )
+
+
     await persist_room_state(
         room.code
     )
@@ -3912,6 +3952,12 @@ async def submit_choice(
         to=
             sid,
     )
+
+
+    if legacy_mode_repaired:
+        await broadcast_room_state(
+            room.code
+        )
 
 
     await broadcast_game_state(
@@ -3953,14 +3999,6 @@ async def submit_choice(
             )
         ):
             return
-
-        session = (
-            game_sessions
-            .get_or_create(
-                room.code
-            )
-        )
-
 
         lock_countdown_seconds = 3
 

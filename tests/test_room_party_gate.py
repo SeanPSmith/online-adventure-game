@@ -1,4 +1,6 @@
-from app.game.rooms import RoomManager
+from types import SimpleNamespace
+
+from app.game.rooms import RoomManager, recover_legacy_single_player_session
 
 
 def test_coop_room_waits_for_required_party():
@@ -45,4 +47,79 @@ def test_explicit_solo_room_has_required_party_with_host_only():
 
     assert room.play_mode == "solo"
     assert room.player_count == 1
+    assert room.has_required_party is True
+
+
+def test_legacy_single_player_coop_that_already_advanced_is_recovered_as_solo():
+    manager = RoomManager()
+
+    room, _host = manager.create_room(
+        sid="socket-host",
+        user_id="user-host",
+        character_id="hero-host",
+        player_name="Legacy Solo Hero",
+    )
+
+    legacy_session = SimpleNamespace(
+        turn_number=2,
+        last_resolution="The first turn already happened.",
+        pending_turn_facts=None,
+        completed=False,
+    )
+
+    assert room.play_mode == "coop"
+    assert room.has_required_party is False
+
+    repaired = recover_legacy_single_player_session(room, legacy_session)
+
+    assert repaired is True
+    assert room.play_mode == "solo"
+    assert room.has_required_party is True
+
+
+def test_fresh_single_player_coop_lobby_is_not_auto_converted():
+    manager = RoomManager()
+
+    room, _host = manager.create_room(
+        sid="socket-host",
+        user_id="user-host",
+        character_id="hero-host",
+        player_name="Waiting Host",
+    )
+
+    fresh_session = SimpleNamespace(
+        turn_number=1,
+        last_resolution="",
+        pending_turn_facts=None,
+        completed=False,
+    )
+
+    repaired = recover_legacy_single_player_session(room, fresh_session)
+
+    assert repaired is False
+    assert room.play_mode == "coop"
+    assert room.has_required_party is False
+
+
+def test_legacy_single_player_coop_with_frozen_turn_is_recovered_as_solo():
+    manager = RoomManager()
+
+    room, _host = manager.create_room(
+        sid="socket-host",
+        user_id="user-host",
+        character_id="hero-host",
+        player_name="Frozen Legacy Hero",
+    )
+
+    frozen_session = SimpleNamespace(
+        turn_number=1,
+        last_resolution="",
+        pending_turn_facts={"turn_number": 1, "results": []},
+        completed=False,
+    )
+
+    repaired = recover_legacy_single_player_session(room, frozen_session)
+
+    assert repaired is True
+    assert room.play_mode == "solo"
     assert room.has_required_party is True

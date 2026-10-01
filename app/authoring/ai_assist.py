@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import json
 import os
+import re
 
 from difflib import SequenceMatcher
 from typing import Any, Literal
@@ -74,6 +75,10 @@ Importance = Literal[
 
 class _StrictModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
+
+
+class AuthorFieldAssistDraft(_StrictModel):
+    value: str = Field(max_length=2400)
 
 
 class IdentityAssistDraft(_StrictModel):
@@ -206,6 +211,61 @@ SECTION_MODELS: dict[str, type[_StrictModel]] = {
 }
 
 
+SIMPLE_TEXT_FIELD_PATHS = {
+    "identity.title",
+    "identity.genre",
+    "identity.tone",
+    "identity.one_sentence_pitch",
+    "identity.player_experience",
+    "premise",
+    "story_guidance.humor",
+    "story_guidance.danger",
+    "story_guidance.violence",
+    "story_guidance.weirdness",
+    "story_guidance.choice_guidance",
+    "story_guidance.failure_philosophy",
+    "replayability.variable_elements",
+    "replayability.fixed_elements",
+    "replayability.notes",
+    "freeform_notes",
+}
+
+
+REPEAT_TEXT_FIELDS: dict[str, set[str]] = {
+    "world_truths": {"text"},
+    "locations": {"name", "role", "description", "canon"},
+    "npcs": {
+        "name",
+        "role",
+        "occupation",
+        "appearance",
+        "personality",
+        "wants",
+        "knows",
+        "secret",
+        "relationship",
+        "canonical_facts",
+        "introduction_conditions",
+        "location_constraints",
+        "forbidden_uses",
+    },
+    "lore_secrets": {
+        "title",
+        "text",
+        "who_knows",
+        "reveal_guidance",
+    },
+    "moments": {"text"},
+    "forbidden_rules": {"text"},
+    "story_threads": {"title", "description"},
+}
+
+
+_REPEAT_FIELD_PATH = re.compile(
+    r"^(?P<section>[a-z_]+)\[(?P<index>\d+)\]\.(?P<key>[a-z_]+)$"
+)
+
+
 SECTION_DEFAULTS: dict[str, dict[str, Any]] = {
     "world_truths": {
         "authority": "canon",
@@ -330,6 +390,9 @@ class AuthorAssistService:
         if section == "document":
             return "author_document_assist", AuthorDocumentAssistDraft
 
+        if section == "field":
+            return "author_field_assist", AuthorFieldAssistDraft
+
         model = SECTION_MODELS.get(section)
         if model is None:
             raise ValueError("Unknown AI authoring section.")
@@ -395,28 +458,47 @@ class AuthorAssistService:
         instruction: str,
         source: dict[str, Any],
         current_item: dict[str, Any] | None,
+        field_path: str | None = None,
     ) -> dict[str, Any]:
         schema_name, model_type = self._schema_for(section)
         client = self._client_instance()
 
         payload = {
-            "task": "expand_author_note",
+            "task": (
+                "expand_single_author_field"
+                if section == "field"
+                else "expand_author_note"
+            ),
             "scope": section,
+            "field_path": field_path,
             "author_note": instruction.strip(),
             "current_item": current_item,
             "source_context": self._compact_context(source, section),
         }
+
+        task_instruction = (
+            "Rewrite only the requested author field from the one-sentence note. "
+            "Use the current field value and surrounding source as context. Preserve "
+            "canon, uncertainty, delayed reveals, and intentionally unnamed elements. "
+            "Return useful source prose, not player-facing narration.\n\n"
+            if section == "field"
+            else "Expand this author note into the requested structured authoring data.\n\n"
+        )
 
         try:
             response = await client.responses.create(
                 model=self.model,
                 instructions=AUTHOR_ASSIST_SYSTEM_INSTRUCTIONS,
                 input=(
-                    "Expand this author note into the requested structured authoring data.\n\n"
+                    task_instruction
                     + json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
                 ),
                 reasoning={"effort": self.reasoning},
-                max_output_tokens=self.max_output_tokens,
+                max_output_tokens=(
+                    min(self.max_output_tokens, 1400)
+                    if section == "field"
+                    else self.max_output_tokens
+                ),
                 text={
                     "format": {
                         "type": "json_schema",
@@ -665,6 +747,79 @@ class AuthorAssistService:
 
         return normalize_source_document(result), changed
 
+    @classmethod
+    def _resolve_text_field(
+        cls,
+        source: dict[str, Any],
+        field_path: str,
+    ) -> tuple[str, dict[str, Any] | None]:
+        path = str(field_path or "").strip()
+
+        if path in SIMPLE_TEXT_FIELD_PATHS:
+            current: Any = source
+            parts = path.split(".")
+            for part in parts:
+                if not isinstance(current, dict) or part not in current:
+                    raise ValueError("That author field no longer exists.")
+                current = current[part]
+            return str(current or ""), None
+
+        match = _REPEAT_FIELD_PATH.fullmatch(path)
+        if match is None:
+            raise ValueError("That field is not available to the AI helper.")
+
+        section = match.group("section")
+        index = int(match.group("index"))
+        key = match.group("key")
+
+        if key not in REPEAT_TEXT_FIELDS.get(section, set()):
+            raise ValueError("That field is not available to the AI helper.")
+
+        items = source.get(section)
+        if not isinstance(items, list) or index < 0 or index >= len(items):
+            raise ValueError("That author item no longer exists.")
+
+        item = items[index]
+        if not isinstance(item, dict) or key not in item:
+            raise ValueError("That author field no longer exists.")
+
+        return str(item.get(key, "") or ""), copy.deepcopy(item)
+
+    @classmethod
+    def _apply_text_field(
+        cls,
+        source: dict[str, Any],
+        field_path: str,
+        value: str,
+    ) -> tuple[dict[str, Any], list[str]]:
+        normalized = normalize_source_document(source)
+        value = str(value or "").strip()
+        if not value:
+            raise ValueError("AI returned an empty field value.")
+
+        current_value, _ = cls._resolve_text_field(normalized, field_path)
+        if current_value.strip() == value:
+            return normalized, []
+
+        path = str(field_path or "").strip()
+        if path in SIMPLE_TEXT_FIELD_PATHS:
+            target: Any = normalized
+            parts = path.split(".")
+            for part in parts[:-1]:
+                target = target[part]
+            target[parts[-1]] = value
+            return normalize_source_document(normalized), [path]
+
+        match = _REPEAT_FIELD_PATH.fullmatch(path)
+        if match is None:
+            raise ValueError("That field is not available to the AI helper.")
+
+        section = match.group("section")
+        index = int(match.group("index"))
+        key = match.group("key")
+        normalized[section][index][key] = value
+        return normalize_source_document(normalized), [path]
+
     async def assist(
         self,
         *,
@@ -672,6 +827,7 @@ class AuthorAssistService:
         instruction: str,
         section: str = "document",
         item_index: int | None = None,
+        field_path: str | None = None,
     ) -> dict[str, Any]:
         normalized = normalize_source_document(source)
         instruction = str(instruction or "").strip()
@@ -679,7 +835,32 @@ class AuthorAssistService:
         if not instruction:
             raise ValueError("Give the AI helper a rough note first.")
 
-        if section == "document":
+        if section == "field":
+            if not field_path:
+                raise ValueError("An author field path is required.")
+
+            current_value, current_item = self._resolve_text_field(
+                normalized,
+                field_path,
+            )
+            proposal = await self._request(
+                section=section,
+                instruction=instruction,
+                source=normalized,
+                current_item={
+                    "field_path": field_path,
+                    "current_value": current_value,
+                    "item": current_item,
+                },
+                field_path=field_path,
+            )
+            merged, changed = self._apply_text_field(
+                normalized,
+                field_path,
+                proposal.get("value", ""),
+            )
+
+        elif section == "document":
             proposal = await self._request(
                 section=section,
                 instruction=instruction,

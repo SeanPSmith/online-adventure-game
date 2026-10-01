@@ -104,6 +104,7 @@ class AuthorAssistRequest(
 
     section: Literal[
         "document",
+        "field",
         "world_truths",
         "locations",
         "npcs",
@@ -119,6 +120,14 @@ class AuthorAssistRequest(
     ) = Field(
         default=None,
         ge=0,
+    )
+
+    field_path: (
+        str
+        | None
+    ) = Field(
+        default=None,
+        max_length=160,
     )
 
 

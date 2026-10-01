@@ -14,14 +14,16 @@ class AuthorUiRegressionTests(unittest.TestCase):
         self.assertIn('control.spellcheck = true', js)
 
 
-    def test_author_console_exposes_ai_population_controls(self) -> None:
+    def test_author_console_exposes_scoped_ai_helper_controls(self) -> None:
         html = Path("app/web/author/index.html").read_text()
         js = Path("app/web/author/author.js").read_text()
 
-        self.assertIn('id="author-assist-prompt"', html)
-        self.assertIn('id="author-assist-button"', html)
-        self.assertIn('AI POPULATE GAPS', html)
-        self.assertIn('AI EXPAND', js)
+        self.assertIn('id="author-ai-dialog"', html)
+        self.assertIn('id="author-ai-prompt"', html)
+        self.assertNotIn('id="author-assist-panel"', html)
+        self.assertIn('author-ai-pill', js)
+        self.assertIn('kind: "field"', js)
+        self.assertIn('kind: "item"', js)
         self.assertIn('/api/author/assist', js)
 
     def test_npc_editor_exposes_structured_canon_controls(self) -> None:

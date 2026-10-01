@@ -476,6 +476,9 @@ async def assist_author_source(
 
                 item_index=
                     payload.item_index,
+
+                field_path=
+                    payload.field_path,
             )
         )
 

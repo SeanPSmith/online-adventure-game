@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import unittest
 
+import pytest
+
 from app.authoring.ai_assist import (
     AuthorAssistService,
 )
@@ -302,3 +304,55 @@ class StorefrontSynopsisTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def test_field_assist_changes_only_requested_text_field() -> None:
+    source = default_source_document(
+        title="Saturday Shift",
+        slug="saturday_shift",
+        document_kind="brief",
+    )
+    source["identity"]["tone"] = "Dry and eerie."
+    source["premise"] = "Two clerks are stuck working late."
+
+    merged, changed = AuthorAssistService._apply_text_field(
+        source,
+        "premise",
+        "Two clerks work a dead Saturday shift while impossible details slowly invade the store.",
+    )
+
+    assert changed == ["premise"]
+    assert merged["identity"]["tone"] == "Dry and eerie."
+    assert merged["identity"]["title"] == "Saturday Shift"
+    assert merged["premise"].startswith("Two clerks work")
+
+
+def test_field_assist_supports_repeat_item_text_and_rejects_slug() -> None:
+    source = default_source_document(
+        title="Field",
+        slug="field",
+    )
+    source["locations"] = [
+        {
+            "id": "loc-1",
+            "name": "Back Field",
+            "role": "",
+            "description": "",
+            "canon": "",
+            "ai_freedom": "medium",
+            "importance": "supporting",
+        }
+    ]
+
+    merged, changed = AuthorAssistService._apply_text_field(
+        source,
+        "locations[0].description",
+        "An ordinary field behind a working farm that becomes important only after dark.",
+    )
+
+    assert changed == ["locations[0].description"]
+    assert merged["locations"][0]["name"] == "Back Field"
+    assert "after dark" in merged["locations"][0]["description"]
+
+    with pytest.raises(ValueError):
+        AuthorAssistService._resolve_text_field(source, "identity.slug")

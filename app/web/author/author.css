@@ -1146,3 +1146,92 @@ dialog::backdrop {
         text-align: left;
     }
 }
+
+/* =========================================================
+   AI HELPER // FIELD + ITEM PILLS
+========================================================= */
+
+.author-field-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-width: 0;
+}
+
+.author-field-heading > span:first-child {
+    min-width: 0;
+}
+
+.author-ai-pill {
+    flex: 0 0 auto;
+    border: 1px solid var(--accent-dim);
+    border-radius: 999px;
+    background: rgba(185, 242, 124, 0.055);
+    color: var(--accent);
+    padding: 3px 7px;
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: .08em;
+    cursor: pointer;
+}
+
+.author-ai-pill:hover,
+.author-ai-pill:focus-visible {
+    border-color: var(--accent);
+    background: rgba(185, 242, 124, 0.12);
+    outline: none;
+}
+
+.author-ai-pill:disabled {
+    opacity: .35;
+    cursor: not-allowed;
+}
+
+.repeat-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.author-ai-card {
+    width: min(680px, calc(100vw - 32px));
+}
+
+.author-ai-context {
+    margin: 0 0 16px;
+    color: var(--muted);
+    line-height: 1.55;
+}
+
+.author-ai-card label {
+    display: grid;
+    gap: 8px;
+}
+
+.author-ai-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.author-ai-footer .field-help {
+    margin: 0;
+}
+
+@media (max-width: 640px) {
+    .author-field-heading {
+        align-items: flex-start;
+    }
+
+    .repeat-card-actions {
+        justify-content: flex-start;
+    }
+}

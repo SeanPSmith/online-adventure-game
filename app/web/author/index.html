@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Tales of Two — Author Console</title>
-    <link rel="stylesheet" href="/static/author/author.css?v=007">
+    <link rel="stylesheet" href="/static/author/author.css?v=008">
 </head>
 <body>
 <header class="topbar">
@@ -192,40 +192,6 @@
                 ></div>
             </section>
 
-            <section id="author-assist-panel" class="author-assist-panel">
-                <div class="author-assist-header">
-                    <div>
-                        <div class="section-kicker">AI ASSIST</div>
-                        <h3>One-Sentence Population</h3>
-                    </div>
-                    <div id="author-assist-state" class="author-assist-state">READY</div>
-                </div>
-
-                <p class="helper">
-                    Give the copilot the lazy version. It fills blank fields and untouched defaults,
-                    while preserving canon and details you already authored. Nothing is published automatically.
-                </p>
-
-                <label>
-                    Rough idea
-                    <textarea
-                        id="author-assist-prompt"
-                        rows="3"
-                        spellcheck="true"
-                        placeholder="NPC: some evil entity with no name; mysterious, cruel, speaks in riddles. Or: a field behind a farm that seems unimportant now but matters later."
-                    ></textarea>
-                </label>
-
-                <div class="author-assist-actions">
-                    <button id="author-assist-button" class="button primary" type="button">
-                        AI POPULATE GAPS
-                    </button>
-                    <span class="field-help">
-                        Uses the fast authoring model. Review everything before publishing.
-                    </span>
-                </div>
-            </section>
-
             <form id="adventure-form" autocomplete="off" spellcheck="true">
                 <details open>
                     <summary><span>01</span>Identity & Controls</summary>
@@ -380,6 +346,39 @@
         </div>
     </section>
 </main>
+
+<dialog id="author-ai-dialog" class="author-ai-dialog">
+    <div class="dialog-card author-ai-card">
+        <div class="preview-header">
+            <div>
+                <div class="section-kicker">AI HELPER</div>
+                <h2 id="author-ai-title">Expand Field</h2>
+            </div>
+            <button id="author-ai-close" class="icon-button" type="button" aria-label="Close AI helper">×</button>
+        </div>
+
+        <p id="author-ai-context" class="author-ai-context"></p>
+
+        <label>One-sentence direction
+            <textarea
+                id="author-ai-prompt"
+                rows="4"
+                spellcheck="true"
+                placeholder="Give the helper the rough version. It will expand only this field or item."
+            ></textarea>
+        </label>
+
+        <div class="author-ai-footer">
+            <span id="author-ai-state" class="author-assist-state">READY</span>
+            <span class="field-help">Uses the fast authoring model. Nothing is published automatically.</span>
+        </div>
+
+        <div class="dialog-actions">
+            <button id="author-ai-cancel" class="button subtle" type="button">CANCEL</button>
+            <button id="author-ai-submit" class="button primary" type="button">EXPAND WITH AI</button>
+        </div>
+    </div>
+</dialog>
 
 <dialog id="author-confirm-dialog" class="author-confirm-dialog">
     <div class="dialog-card author-confirm-card">
@@ -619,6 +618,6 @@
 </dialog>
 
 <div id="toast" class="toast" hidden></div>
-<script src="/static/author/author.js?v=010" defer></script>
+<script src="/static/author/author.js?v=011" defer></script>
 </body>
 </html>

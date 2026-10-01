@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Navigate } from "react-router";
+import { Link, Navigate } from "react-router";
 import { PageTitle } from "../../components/ui/PageTitle";
 import { Panel } from "../../components/ui/Panel";
 import {
   contentImportErrorMessage,
+  getAdminAnalytics,
   importAuthorContent,
   listUsers,
   setAuthorAccess,
+  type AdminAnalyticsSnapshot,
   type ContentImportReport,
 } from "../../services/admin";
 import type { User } from "../../services/auth";
@@ -42,6 +44,8 @@ export function AdminPage() {
   const [importing, setImporting] = useState(false);
   const [importError, setImportError] = useState("");
   const [importReport, setImportReport] = useState<ContentImportReport | null>(null);
+  const [analytics, setAnalytics] = useState<AdminAnalyticsSnapshot | null>(null);
+  const [analyticsError, setAnalyticsError] = useState("");
 
   const loadUsers = useCallback(async (query = "") => {
     setLoading(true);
@@ -57,6 +61,18 @@ export function AdminPage() {
     }
   }, []);
 
+  const loadAnalytics = useCallback(async () => {
+    try {
+      const snapshot = await getAdminAnalytics();
+      setAnalytics(snapshot);
+      setAnalyticsError("");
+    } catch (reason) {
+      setAnalyticsError(
+        reason instanceof Error ? reason.message : "Control-room telemetry unavailable.",
+      );
+    }
+  }, []);
+
   useEffect(() => {
     if (!isAdmin) {
       setLoading(false);
@@ -64,9 +80,20 @@ export function AdminPage() {
     }
 
     void loadUsers();
-  }, [isAdmin, loadUsers]);
+    void loadAnalytics();
+
+    const interval = window.setInterval(() => {
+      void loadAnalytics();
+    }, 10000);
+
+    return () => window.clearInterval(interval);
+  }, [isAdmin, loadAnalytics, loadUsers]);
 
   const visibleUsers = useMemo(() => users, [users]);
+  const maxDailyTurns = useMemo(
+    () => Math.max(1, ...(analytics?.daily_activity.map((day) => day.turns) ?? [1])),
+    [analytics],
+  );
 
   if (!isAdmin) {
     return <Navigate to="/game" replace />;
@@ -133,6 +160,103 @@ export function AdminPage() {
   return (
     <>
       <PageTitle eyebrow="SUPERUSER" title="CONTROL ROOM" />
+
+      <div className="admin-control-actions">
+        <Link className="button primary" to="/game/arcade">ARCADE LAB</Link>
+        <button className="button subtle" type="button" onClick={() => void loadAnalytics()}>
+          REFRESH TELEMETRY
+        </button>
+        <span className="admin-live-pulse">LIVE // 10 SEC REFRESH</span>
+      </div>
+
+      <Panel title="LIVE OPERATIONS">
+        {analyticsError ? <div className="form-error">{analyticsError}</div> : null}
+
+        <div className="admin-stat-grid">
+          <div><span>ONLINE PLAYERS</span><strong>{analytics?.live.online_players ?? "—"}</strong></div>
+          <div><span>LIVE ROOMS</span><strong>{analytics?.live.rooms ?? "—"}</strong></div>
+          <div><span>RECENT USERS</span><strong>{analytics?.accounts.recently_active_users ?? "—"}</strong></div>
+          <div><span>REGISTERED</span><strong>{analytics?.accounts.registered_users ?? "—"}</strong></div>
+          <div><span>ADVENTURES COMPLETE</span><strong>{analytics?.totals.adventures_completed ?? "—"}</strong></div>
+          <div><span>RESOLVED TURNS</span><strong>{analytics?.totals.turns_completed ?? "—"}</strong></div>
+          <div><span>AVG TURNS / RUN</span><strong>{analytics?.totals.average_turns ?? "—"}</strong></div>
+          <div><span>AUTHORS</span><strong>{analytics?.accounts.authors ?? "—"}</strong></div>
+        </div>
+
+        <div className="admin-live-room-list">
+          {(analytics?.live.rooms_detail ?? []).map((room) => (
+            <article className="admin-live-room" key={room.room_code}>
+              <div>
+                <span className="eyebrow">{room.state}</span>
+                <strong>{room.adventure_title}</strong>
+                <small>ROOM {room.room_code} // {room.play_mode.toUpperCase()} // TURN {room.turn_number}</small>
+              </div>
+              <div className="admin-live-players">
+                {room.players.map((player) => (
+                  <span key={`${room.room_code}-${player.user_id}-${player.hero_name}`}>
+                    {player.is_online ? "●" : "○"} {player.username} / {player.hero_name}
+                    {player.is_host ? " [HOST]" : ""}
+                  </span>
+                ))}
+              </div>
+            </article>
+          ))}
+          {analytics && analytics.live.rooms_detail.length === 0 ? (
+            <div className="empty-state"><strong>THE TAVERN IS QUIET.</strong><span>No rooms are active right now.</span></div>
+          ) : null}
+        </div>
+      </Panel>
+
+      <Panel title="PLAY ACTIVITY // LAST 14 COMPLETION DAYS">
+        <div className="admin-activity-chart">
+          {(analytics?.daily_activity ?? []).map((day) => (
+            <div className="admin-activity-day" key={day.day}>
+              <span>{day.day.slice(5)}</span>
+              <div className="admin-activity-track">
+                <i style={{ width: `${Math.max(4, (day.turns / maxDailyTurns) * 100)}%` }} />
+              </div>
+              <strong>{day.turns}T / {day.adventures}A</strong>
+            </div>
+          ))}
+        </div>
+      </Panel>
+
+      <div className="admin-ranking-grid">
+        <Panel title="POPULAR ADVENTURES">
+          <div className="admin-ranking-list">
+            {(analytics?.popular_adventures ?? []).map((adventure, index) => (
+              <div key={adventure.adventure_id}>
+                <b>{String(index + 1).padStart(2, "0")}</b>
+                <span><strong>{adventure.adventure_title}</strong><small>{adventure.completions} completions // {adventure.turns} turns // avg {adventure.average_turns}</small></span>
+              </div>
+            ))}
+          </div>
+        </Panel>
+
+        <Panel title="TOP PLAYERS // BY TURNS">
+          <div className="admin-ranking-list">
+            {(analytics?.top_players ?? []).map((player, index) => (
+              <div key={player.user_id}>
+                <b>{String(index + 1).padStart(2, "0")}</b>
+                <span><strong>{player.username}</strong><small>{player.turns_played} turns // {player.adventures_completed} adventures // {player.intermission_wins} arcade wins</small></span>
+              </div>
+            ))}
+          </div>
+        </Panel>
+      </div>
+
+      <Panel title="RECENT COMPLETIONS">
+        <div className="admin-recent-list">
+          {(analytics?.recent_completions ?? []).map((entry) => (
+            <div key={entry.history_id}>
+              <span><strong>{entry.adventure_title}</strong><small>{entry.heroes || "UNKNOWN HEROES"}</small></span>
+              <span>{entry.turn_count} TURNS</span>
+              <span>{entry.ending_label || "COMPLETE"}</span>
+              <time>{entry.completed_at ? new Date(entry.completed_at).toLocaleString() : ""}</time>
+            </div>
+          ))}
+        </div>
+      </Panel>
 
       <Panel title="AUTHOR ACCESS">
         <p className="muted-copy">

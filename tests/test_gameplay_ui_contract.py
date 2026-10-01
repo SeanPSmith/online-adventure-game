@@ -146,3 +146,31 @@ def test_arcade_micro_engine_exposes_lab_and_timing_sport_cabinets() -> None:
     assert 'live: false' in registry
     assert '"aim" | "power" | "modifier" | "resolving"' in engine
     assert "requestAnimationFrame" in engine
+
+
+def test_author_ai_helper_is_field_and_item_scoped_not_whole_document() -> None:
+    author_html = Path("app/web/author/index.html").read_text()
+    author_js = Path("app/web/author/author.js").read_text()
+
+    assert 'id="author-ai-dialog"' in author_html
+    assert 'id="author-assist-panel"' not in author_html
+    assert 'className = "author-ai-pill"' in author_js
+    assert 'kind: "field"' in author_js
+    assert 'kind: "item"' in author_js
+    assert 'section: "document"' not in author_js
+    assert 'field_path' in author_js
+
+
+def test_admin_control_room_exposes_live_analytics_and_arcade_navigation() -> None:
+    page = read("pages/admin/AdminPage.tsx")
+    service = read("services/admin.ts")
+    layout = read("layouts/AccountLayout.tsx")
+
+    assert 'getAdminAnalytics' in page
+    assert 'LIVE OPERATIONS' in page
+    assert 'POPULAR ADVENTURES' in page
+    assert 'TOP PLAYERS // BY TURNS' in page
+    assert 'RECENT COMPLETIONS' in page
+    assert 'to="/game/arcade"' in page
+    assert '"/api/auth/admin/analytics"' in service
+    assert '<NavLink to="/game/arcade">ARCADE</NavLink>' in layout

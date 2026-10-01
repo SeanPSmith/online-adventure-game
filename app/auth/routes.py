@@ -44,6 +44,10 @@ from app.admin.content_portability import (
     import_author_content_bundle,
 )
 
+from app.admin.analytics import (
+    admin_analytics_service,
+)
+
 from app.auth.sessions import (
     SESSION_COOKIE_NAME,
     SESSION_LIFETIME,
@@ -435,6 +439,13 @@ async def admin_me(
         "authorized": True,
         "user": user_response(user).model_dump(),
     }
+
+
+@router.get("/admin/analytics")
+async def admin_analytics(
+    user=Depends(require_admin_user),
+):
+    return await admin_analytics_service.snapshot()
 
 
 @router.get("/admin/users")

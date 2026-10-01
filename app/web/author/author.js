@@ -33,10 +33,14 @@ const ui = {
     worldLinkPanel: byId("world-link-panel"),
     worldLinkTitle: byId("world-link-title"),
 
-    authorAssistPanel: byId("author-assist-panel"),
-    authorAssistPrompt: byId("author-assist-prompt"),
-    authorAssistButton: byId("author-assist-button"),
-    authorAssistState: byId("author-assist-state"),
+    authorAiDialog: byId("author-ai-dialog"),
+    authorAiTitle: byId("author-ai-title"),
+    authorAiContext: byId("author-ai-context"),
+    authorAiPrompt: byId("author-ai-prompt"),
+    authorAiState: byId("author-ai-state"),
+    authorAiSubmit: byId("author-ai-submit"),
+    authorAiCancel: byId("author-ai-cancel"),
+    authorAiClose: byId("author-ai-close"),
 
     generationPanel: byId("generation-panel"),
     generationProviderName: byId("generation-provider-name"),
@@ -102,6 +106,7 @@ let toastTimer = null;
 let currentFilter = "all";
 let createContextParentId = null;
 let authorAssistInFlight = false;
+let authorAiTarget = null;
 
 
 /*
@@ -451,13 +456,13 @@ const authorAssistPlaceholders = {
 
 
 function renderAuthorAssistState(message = null, isError = false) {
-    if (!ui.authorAssistState) {
+    if (!ui.authorAiState) {
         return;
     }
 
     const available = Boolean(generationProviderStatus.available);
 
-    ui.authorAssistState.textContent = (
+    ui.authorAiState.textContent = (
         message
         ?? (
             authorAssistInFlight
@@ -468,11 +473,11 @@ function renderAuthorAssistState(message = null, isError = false) {
         )
     );
 
-    ui.authorAssistState.classList.toggle(
+    ui.authorAiState.classList.toggle(
         "working",
         authorAssistInFlight && !isError,
     );
-    ui.authorAssistState.classList.toggle(
+    ui.authorAiState.classList.toggle(
         "error",
         Boolean(isError),
     );
@@ -547,30 +552,103 @@ function applyAiAssistResult(result, revisionAtStart, successMessage) {
     showToast(
         changedCount
             ? `${successMessage} // ${changedCount} FIELD${changedCount === 1 ? "" : "S"}`
-            : "AI FOUND NO SAFE GAPS TO FILL_"
+            : "AI FOUND NOTHING TO CHANGE_"
     );
 }
 
 
-async function runDocumentAiAssist() {
-    const instruction = (
-        ui.authorAssistPrompt.value
-        ?? ""
-    ).trim();
+function aiHelperAvailable() {
+    return Boolean(
+        activeVersion?.status === "draft"
+        && generationProviderStatus.available
+        && !authorAssistInFlight
+    );
+}
 
-    if (!instruction) {
-        showToast("GIVE THE AI HELPER A ROUGH IDEA FIRST_", true);
-        ui.authorAssistPrompt.focus();
+
+function fieldLabelForPath(path) {
+    return String(path ?? "")
+        .replaceAll("_", " ")
+        .replace(/\[(\d+)\]/g, " $1")
+        .split(".")
+        .at(-1)
+        ?.toUpperCase()
+        ?? "FIELD";
+}
+
+
+function openAuthorAiHelper(target) {
+    if (!activeVersion || activeVersion.status !== "draft") {
+        showToast("AI HELPERS ARE ONLY AVAILABLE ON A DRAFT_", true);
         return;
     }
 
+    if (!generationProviderStatus.available) {
+        showToast("THE AI AUTHORING HELPER IS OFFLINE_", true);
+        return;
+    }
+
+    authorAiTarget = target;
+    ui.authorAiPrompt.value = "";
+
+    if (target.kind === "field") {
+        ui.authorAiTitle.textContent = `EXPAND // ${target.label}`;
+        ui.authorAiContext.textContent = (
+            `Only ${target.label} will change. Give the helper one rough sentence; `
+            + "it will use the rest of this source as context."
+        );
+        ui.authorAiPrompt.placeholder = (
+            target.placeholder
+            || `Rough direction for ${target.label.toLowerCase()}...`
+        );
+    } else {
+        ui.authorAiTitle.textContent = `EXPAND // ${target.label}`;
+        ui.authorAiContext.textContent = (
+            `This fills blank/default fields inside ${target.label} while preserving `
+            + "details you already authored."
+        );
+        ui.authorAiPrompt.placeholder = (
+            authorAssistPlaceholders[target.section]
+            ?? "Give the helper one rough sentence about this item..."
+        );
+    }
+
+    ui.authorAiSubmit.disabled = false;
+    renderAuthorAssistState();
+    ui.authorAiDialog.showModal();
+
+    requestAnimationFrame(() => {
+        ui.authorAiPrompt.focus();
+    });
+}
+
+
+function closeAuthorAiHelper() {
     if (authorAssistInFlight) {
         return;
     }
 
+    authorAiTarget = null;
+    ui.authorAiDialog.close();
+}
+
+
+async function submitAuthorAiHelper() {
+    if (!authorAiTarget || authorAssistInFlight) {
+        return;
+    }
+
+    const instruction = String(ui.authorAiPrompt.value ?? "").trim();
+    if (!instruction) {
+        showToast("GIVE THE AI HELPER ONE ROUGH SENTENCE FIRST_", true);
+        ui.authorAiPrompt.focus();
+        return;
+    }
+
     authorAssistInFlight = true;
-    ui.authorAssistButton.disabled = true;
-    renderAuthorAssistState("BUILDING SOURCE_");
+    ui.authorAiSubmit.disabled = true;
+    renderAuthorAssistState("WRITING_");
+    refreshAiHelperButtons();
 
     try {
         const {
@@ -578,27 +656,45 @@ async function runDocumentAiAssist() {
             revisionAtStart,
         } = await stableSourceForAiAssist();
 
+        const body = {
+            source,
+            instruction,
+            section: (
+                authorAiTarget.kind === "field"
+                    ? "field"
+                    : authorAiTarget.section
+            ),
+            item_index: (
+                authorAiTarget.kind === "item"
+                    ? authorAiTarget.index
+                    : null
+            ),
+            field_path: (
+                authorAiTarget.kind === "field"
+                    ? authorAiTarget.fieldPath
+                    : null
+            ),
+        };
+
         const result = await api(
             "/api/author/assist",
             {
                 method: "POST",
-                body: JSON.stringify({
-                    source,
-                    instruction,
-                    section: "document",
-                    item_index: null,
-                }),
+                body: JSON.stringify(body),
             }
         );
 
         applyAiAssistResult(
             result,
             revisionAtStart,
-            "AI POPULATED SOURCE",
+            authorAiTarget.kind === "field"
+                ? `AI UPDATED ${authorAiTarget.label}`
+                : `AI EXPANDED ${authorAiTarget.label}`,
         );
 
-        ui.authorAssistPrompt.value = "";
         renderAuthorAssistState("APPLIED");
+        authorAiTarget = null;
+        ui.authorAiDialog.close();
 
     } catch (error) {
         renderAuthorAssistState("FAILED", true);
@@ -606,12 +702,8 @@ async function runDocumentAiAssist() {
 
     } finally {
         authorAssistInFlight = false;
-
-        if (activeVersion?.status === "draft") {
-            ui.authorAssistButton.disabled = (
-                !generationProviderStatus.available
-            );
-        }
+        ui.authorAiSubmit.disabled = false;
+        refreshAiHelperButtons();
 
         setTimeout(() => {
             renderAuthorAssistState();
@@ -620,68 +712,89 @@ async function runDocumentAiAssist() {
 }
 
 
-async function runRepeatItemAiAssist(
-    sectionName,
-    index,
-    instruction,
-    button,
-    statusNode,
-) {
-    const note = String(instruction ?? "").trim();
+function createAiPill({label = "AI", title, onClick}) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "author-ai-pill";
+    button.textContent = label;
+    button.title = title;
+    button.setAttribute("aria-label", title);
+    button.dataset.authorAiTrigger = "1";
+    button.disabled = !aiHelperAvailable();
+    button.addEventListener("click", event => {
+        event.preventDefault();
+        event.stopPropagation();
+        onClick();
+    });
+    return button;
+}
 
-    if (!note) {
-        showToast("GIVE THIS ITEM A ONE-LINE AI NOTE FIRST_", true);
+
+function refreshAiHelperButtons() {
+    for (const button of document.querySelectorAll("[data-author-ai-trigger]")) {
+        button.disabled = !aiHelperAvailable();
+    }
+}
+
+
+function decorateSimpleAiFields() {
+    if (!ui.form) {
         return;
     }
 
-    if (authorAssistInFlight) {
-        return;
+    for (const control of ui.form.querySelectorAll("[data-path]")) {
+        if (
+            control.dataset.aiDecorated === "1"
+            || !(
+                control instanceof HTMLTextAreaElement
+                || (
+                    control instanceof HTMLInputElement
+                    && control.type === "text"
+                )
+            )
+            || control.dataset.path === "identity.slug"
+        ) {
+            continue;
+        }
+
+        const label = control.closest("label");
+        if (!label) {
+            continue;
+        }
+
+        const textNode = Array.from(label.childNodes).find(
+            node => node.nodeType === Node.TEXT_NODE && String(node.textContent ?? "").trim()
+        );
+        const labelText = String(textNode?.textContent ?? fieldLabelForPath(control.dataset.path)).trim();
+
+        if (textNode) {
+            textNode.remove();
+        }
+
+        const heading = document.createElement("span");
+        heading.className = "author-field-heading";
+
+        const title = document.createElement("span");
+        title.textContent = labelText;
+
+        const pill = createAiPill({
+            title: `AI helper for ${labelText}`,
+            onClick: () => openAuthorAiHelper({
+                kind: "field",
+                fieldPath: control.dataset.path,
+                label: labelText.toUpperCase(),
+                placeholder: control.placeholder
+                    ? `Rough idea: ${control.placeholder}`
+                    : "One sentence is enough...",
+            }),
+        });
+
+        heading.append(title, pill);
+        label.insertBefore(heading, control);
+        control.dataset.aiDecorated = "1";
     }
 
-    authorAssistInFlight = true;
-    button.disabled = true;
-    statusNode.textContent = "WRITING_";
-    renderAuthorAssistState("WRITING ITEM_");
-
-    try {
-        const {
-            source,
-            revisionAtStart,
-        } = await stableSourceForAiAssist();
-
-        const result = await api(
-            "/api/author/assist",
-            {
-                method: "POST",
-                body: JSON.stringify({
-                    source,
-                    instruction: note,
-                    section: sectionName,
-                    item_index: index,
-                }),
-            }
-        );
-
-        applyAiAssistResult(
-            result,
-            revisionAtStart,
-            `AI EXPANDED ${sectionName.replaceAll("_", " ").toUpperCase()}`,
-        );
-
-        renderAuthorAssistState("APPLIED");
-
-    } catch (error) {
-        statusNode.textContent = "FAILED";
-        renderAuthorAssistState("FAILED", true);
-        showToast(error.message, true);
-
-    } finally {
-        authorAssistInFlight = false;
-
-        setTimeout(() => {
-            renderAuthorAssistState();
-        }, 1600);
-    }
+    refreshAiHelperButtons();
 }
 
 
@@ -789,7 +902,13 @@ function makeField(
         label.classList.add("wide");
     }
 
-    label.append(document.createTextNode(labelText));
+    const heading = document.createElement("span");
+    heading.className = "author-field-heading";
+
+    const headingText = document.createElement("span");
+    headingText.textContent = labelText;
+    heading.appendChild(headingText);
+    label.appendChild(heading);
 
     let control;
 
@@ -831,6 +950,7 @@ function makeField(
         label,
         control,
         key,
+        labelText,
     };
 }
 
@@ -1168,75 +1288,52 @@ function renderRepeatSection(sectionName) {
 
         header.append(title, remove);
 
-        const aiAssist = document.createElement("div");
-        aiAssist.className = "repeat-card-ai";
-
-        const aiPrompt = document.createElement("input");
-        aiPrompt.type = "text";
-        aiPrompt.spellcheck = true;
-        aiPrompt.placeholder = (
-            authorAssistPlaceholders[sectionName]
-            ?? "Give AI a rough one-line note..."
-        );
-        aiPrompt.disabled = (
-            !isDraft
-            || !generationProviderStatus.available
-        );
-
-        const aiButton = document.createElement("button");
-        aiButton.type = "button";
-        aiButton.className = "button subtle";
-        aiButton.textContent = "AI EXPAND";
-        aiButton.disabled = (
-            !isDraft
-            || !generationProviderStatus.available
-            || authorAssistInFlight
-        );
-
-        const aiStatus = document.createElement("span");
-        aiStatus.className = "repeat-card-ai-status";
-        aiStatus.textContent = (
-            generationProviderStatus.available
-                ? "OPTIONAL"
-                : "AI OFFLINE"
-        );
-
-        aiButton.addEventListener(
-            "click",
-            () => runRepeatItemAiAssist(
-                sectionName,
+        const itemAiButton = createAiPill({
+            label: "AI ITEM",
+            title: `AI helper for ${title.textContent}`,
+            onClick: () => openAuthorAiHelper({
+                kind: "item",
+                section: sectionName,
                 index,
-                aiPrompt.value,
-                aiButton,
-                aiStatus,
-            )
-        );
+                label: title.textContent,
+            }),
+        });
 
-        aiPrompt.addEventListener(
-            "keydown",
-            event => {
-                if (
-                    event.key === "Enter"
-                    && !event.shiftKey
-                ) {
-                    event.preventDefault();
-                    aiButton.click();
-                }
-            }
-        );
+        const headerActions = document.createElement("div");
+        headerActions.className = "repeat-card-actions";
+        headerActions.append(itemAiButton, remove);
 
-        aiAssist.append(
-            aiPrompt,
-            aiButton,
-            aiStatus,
-        );
+        header.replaceChildren(title, headerActions);
 
         const fields = document.createElement("div");
         fields.className = "repeat-card-fields";
 
         for (const definition of sectionFields(sectionName, item)) {
-            const {label, control, key} = definition;
+            const {label, control, key, labelText} = definition;
             control.disabled = !isDraft;
+
+            if (
+                control instanceof HTMLTextAreaElement
+                || (control instanceof HTMLInputElement && control.type === "text")
+            ) {
+                const heading = label.querySelector(".author-field-heading");
+                if (heading) {
+                    heading.appendChild(
+                        createAiPill({
+                            title: `AI helper for ${labelText}`,
+                            onClick: () => openAuthorAiHelper({
+                                kind: "field",
+                                fieldPath: `${sectionName}[${index}].${key}`,
+                                label: `${title.textContent} // ${labelText.toUpperCase()}`,
+                                placeholder: (
+                                    authorAssistPlaceholders[sectionName]
+                                    ?? "One sentence is enough..."
+                                ),
+                            }),
+                        })
+                    );
+                }
+            }
 
             control.dataset.repeatSection = sectionName;
             control.dataset.repeatIndex = String(index);
@@ -1258,7 +1355,7 @@ function renderRepeatSection(sectionName) {
             fields.appendChild(label);
         }
 
-        card.append(header, aiAssist, fields);
+        card.append(header, fields);
         container.appendChild(card);
     });
 }
@@ -1404,16 +1501,6 @@ function renderEditor() {
     ui.newBriefButton.hidden = !isWorld;
     ui.archiveButton.textContent = archived ? "RESTORE" : "ARCHIVE";
 
-    ui.authorAssistPrompt.disabled = (
-        !isDraft
-        || !generationProviderStatus.available
-        || authorAssistInFlight
-    );
-    ui.authorAssistButton.disabled = (
-        !isDraft
-        || !generationProviderStatus.available
-        || authorAssistInFlight
-    );
     renderAuthorAssistState();
 
     ui.worldLinkPanel.hidden = (
@@ -1452,11 +1539,13 @@ function renderEditor() {
     }
 
     renderSimpleFields();
+    decorateSimpleAiFields();
 
     for (const sectionName of Object.keys(containers)) {
         renderRepeatSection(sectionName);
     }
 
+    refreshAiHelperButtons();
     updateStrengthUI();
 }
 
@@ -3101,12 +3190,22 @@ ui.refreshGeneratedButton.addEventListener(
     refreshGenerated
 );
 
-ui.authorAssistButton.addEventListener(
+ui.authorAiSubmit.addEventListener(
     "click",
-    runDocumentAiAssist
+    submitAuthorAiHelper
 );
 
-ui.authorAssistPrompt.addEventListener(
+ui.authorAiCancel.addEventListener(
+    "click",
+    closeAuthorAiHelper
+);
+
+ui.authorAiClose.addEventListener(
+    "click",
+    closeAuthorAiHelper
+);
+
+ui.authorAiPrompt.addEventListener(
     "keydown",
     event => {
         if (
@@ -3114,7 +3213,24 @@ ui.authorAssistPrompt.addEventListener(
             && (event.metaKey || event.ctrlKey)
         ) {
             event.preventDefault();
-            runDocumentAiAssist();
+            void submitAuthorAiHelper();
+        }
+    }
+);
+
+ui.authorAiDialog.addEventListener(
+    "cancel",
+    event => {
+        event.preventDefault();
+        closeAuthorAiHelper();
+    }
+);
+
+ui.authorAiDialog.addEventListener(
+    "click",
+    event => {
+        if (event.target === ui.authorAiDialog) {
+            closeAuthorAiHelper();
         }
     }
 );

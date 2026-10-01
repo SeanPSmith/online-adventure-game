@@ -1469,6 +1469,15 @@ class RoomManager:
     # LOOKUPS
     # =====================================================
 
+    def all_rooms(
+        self,
+    ) -> tuple[GameRoom, ...]:
+
+        return tuple(
+            self._rooms.values()
+        )
+
+
     def room_by_code(
         self,
         code: str,

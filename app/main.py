@@ -4229,28 +4229,12 @@ async def retry_pending_turn(
             )
             return
 
-        if not game_sessions.all_players_ready(
-            room.code,
-            list(
-                room.players.keys()
-            ),
-            required_players=
-                room.required_players,
-        ):
-
-            await sio.emit(
-                "game_error",
-                {
-                    "room_code":
-                        room.code,
-                    "message":
-                        "The locked turn is incomplete and cannot be retried yet.",
-                    "retryable":
-                        False,
-                },
-                to=sid,
-            )
-            return
+        # A persisted pending_turn_facts snapshot is authoritative proof that
+        # this turn already passed the normal party/readiness gate and that its
+        # choices + rolls were frozen. Do NOT re-check current submissions or
+        # party readiness here: reconnects/restarts can legitimately make those
+        # transient collections differ even though the frozen turn is complete.
+        # The retry path must replay the snapshot, never ask players to re-lock.
 
         try:
 

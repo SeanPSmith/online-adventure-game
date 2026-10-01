@@ -42,3 +42,25 @@ def test_ascii_picker_is_interactive_and_inserts_chat_text() -> None:
     assert "setAsciiPickerOpen((current) => !current)" in page
     assert "function insertAsciiFace(face: string)" in page
     assert "onClick={() => insertAsciiFace(face)}" in page
+
+
+def test_director_retry_failure_stays_in_turn_theater_modal() -> None:
+    page = read("pages/game/AdventurePage.tsx")
+    theater = read("features/adventure/useTurnTheater.ts")
+
+    assert "error: live.error" in page
+    assert "!live.game?.director_retry_required" in page
+    assert "director-retry-panel" not in page
+    assert "game?.director_retry_required ? error" in theater
+
+
+def test_retry_pending_turn_reuses_frozen_snapshot_without_readiness_recheck() -> None:
+    backend = Path("app/main.py").read_text()
+    start = backend.index("async def retry_pending_turn")
+    end = backend.index("# =========================================================\n# INTERMISSION SCORE", start)
+    retry_handler = backend[start:end]
+
+    assert "session.pending_turn_facts" in retry_handler
+    assert "resolve_turn(" in retry_handler
+    assert "all_players_ready(" not in retry_handler
+    assert "The locked turn is incomplete and cannot be retried yet." not in retry_handler

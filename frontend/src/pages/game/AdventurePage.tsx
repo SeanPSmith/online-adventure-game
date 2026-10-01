@@ -78,6 +78,7 @@ export function AdventurePage() {
     storyAdvancing: live.storyAdvancing,
     lastTurn: live.lastTurn,
     retryableError: live.retryableError,
+    error: live.error,
   });
 
   const [chatText, setChatText] = useState("");
@@ -442,29 +443,6 @@ export function AdventurePage() {
               </button>
             ) : null}
 
-            {(live.game?.director_retry_required || live.retryableError) ? (
-              <div className="director-retry-panel">
-                <strong>DIRECTOR // RECOVERY REQUIRED</strong>
-                <span>
-                  {live.retryableError?.message
-                    ?? "The locked turn is preserved and can be generated again without rerolling."}
-                </span>
-                <button
-                  className="button button-primary full-width-button"
-                  type="button"
-                  disabled={Boolean(live.game?.director_request_active)}
-                  onClick={() => {
-                    live.clearRetryableError();
-                    live.retryPendingTurn();
-                  }}
-                >
-                  {live.game?.director_request_active
-                    ? "DIRECTOR STILL WORKING_"
-                    : "RETRY STORY GENERATION"}
-                </button>
-              </div>
-            ) : null}
-
             {live.game?.wrap_up_available && !live.game.wrap_up_active ? (
               <button
                 className="button full-width-button"
@@ -621,7 +599,7 @@ export function AdventurePage() {
             ) : null}
           </Panel>
 
-          {live.error && !live.retryableError ? (
+          {live.error && !live.retryableError && !live.game?.director_retry_required ? (
             <div className="adventure-error">
               <strong>SOMETHING SLIPPED OUT OF THE THREAD.</strong>
               <span>{live.error}</span>

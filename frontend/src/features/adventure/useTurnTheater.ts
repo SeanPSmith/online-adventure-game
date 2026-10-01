@@ -73,6 +73,7 @@ export function useTurnTheater({
   storyAdvancing,
   lastTurn,
   retryableError,
+  error,
 }: {
   roomCode: string;
   characterId: string;
@@ -81,6 +82,7 @@ export function useTurnTheater({
   storyAdvancing: StoryAdvancingPayload | null;
   lastTurn: TurnResolvedPayload | null;
   retryableError: ServerErrorPayload | null;
+  error: string;
 }): TurnTheaterState {
   const [phase, setPhase] = useState<TurnTheaterPhase>("none");
   const [countdownValue, setCountdownValue] = useState(0);
@@ -95,8 +97,11 @@ export function useTurnTheater({
   const lastLockSignalRef = useRef("");
 
   const retryMessage = useMemo(
-    () => retryableError?.message ?? "The Story Director paused before finishing this turn.",
-    [retryableError],
+    () =>
+      retryableError?.message
+      || (game?.director_retry_required ? error : "")
+      || "The Story Director paused before finishing this turn.",
+    [retryableError, game?.director_retry_required, error],
   );
 
   const clearLockTimer = useCallback(() => {

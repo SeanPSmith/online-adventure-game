@@ -54,6 +54,11 @@ export interface ChoiceCheck {
   difficulty: number;
   skill: string | null;
   stat: string | null;
+  base_difficulty?: number | null;
+  challenge_tier?: string | null;
+  effective_party_level?: number | null;
+  level_adjustment?: number;
+  adventure_adjustment?: number;
 }
 
 export interface SceneChoice {
@@ -113,6 +118,11 @@ export interface CheckResult {
   character_id: string;
   character_name: string;
   difficulty: number;
+  base_difficulty?: number | null;
+  challenge_tier?: string | null;
+  effective_party_level?: number | null;
+  level_adjustment?: number;
+  adventure_adjustment?: number;
   roll: number;
   stat: string;
   stat_value: number;
@@ -123,6 +133,8 @@ export interface CheckResult {
   performance_modifier: number;
   effect_modifier: number;
   effect_details: CheckEffectDetail[];
+  talent_modifier: number;
+  talent_details: Array<{ id: string; label: string; modifier: number }>;
   total_modifier: number;
   total: number;
   outcome: "critical_failure" | "failure" | "success" | "critical_success" | string;
@@ -222,8 +234,11 @@ export interface FinaleHero {
   death_record: Record<string, unknown> | null;
   advancement_stat_points_earned: number;
   advancement_skill_points_earned: number;
+  advancement_talent_points_earned: number;
   unspent_stat_points: number;
   unspent_skill_points: number;
+  unspent_talent_points: number;
+  talents: string[];
   advancement_stat_cap: number;
   advancement_skill_cap: number;
   stats: Record<string, number>;

@@ -89,6 +89,14 @@ class CheckSpec:
 
     performance_modifier: int = 0
 
+    # AI-directed checks retain their pre-scaling difficulty for telemetry and
+    # balancing. Static adventures can ignore these fields.
+    base_difficulty: int | None = None
+    challenge_tier: str = ""
+    effective_party_level: int | None = None
+    level_adjustment: int = 0
+    adventure_adjustment: int = 0
+
 
     def __post_init__(
         self,
@@ -136,6 +144,12 @@ class CheckSpec:
                     if self.stat
                     else None
                 ),
+
+            "base_difficulty": self.base_difficulty,
+            "challenge_tier": self.challenge_tier or None,
+            "effective_party_level": self.effective_party_level,
+            "level_adjustment": self.level_adjustment,
+            "adventure_adjustment": self.adventure_adjustment,
         }
 
 
@@ -166,6 +180,12 @@ class CheckSpec:
                     performance=
                         self.performance_modifier,
                 ),
+
+            base_difficulty=self.base_difficulty,
+            challenge_tier=self.challenge_tier,
+            effective_party_level=self.effective_party_level,
+            level_adjustment=self.level_adjustment,
+            adventure_adjustment=self.adventure_adjustment,
         )
 
 

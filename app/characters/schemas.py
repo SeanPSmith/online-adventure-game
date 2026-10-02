@@ -18,6 +18,8 @@ class CreationStatDefinition(
 
     label: str
 
+    description: str = ""
+
 
 class CreationSkillDefinition(
     BaseModel,
@@ -28,6 +30,17 @@ class CreationSkillDefinition(
     label: str
 
     stat: str
+
+    description: str = ""
+
+
+class TalentDefinitionResponse(BaseModel):
+    id: str
+    label: str
+    description: str
+    min_level: int
+    stat_modifiers: dict[str, int] = Field(default_factory=dict)
+    skill_modifiers: dict[str, int] = Field(default_factory=dict)
 
 
 class CharacterCreationRulesResponse(
@@ -48,6 +61,12 @@ class CharacterCreationRulesResponse(
 
     advancement_stat_cap: int = 6
     advancement_skill_cap: int = 5
+
+    skill_points_per_level: int = 2
+    talent_points_start_level: int = 3
+    talent_point_interval: int = 2
+
+    talents: list[TalentDefinitionResponse] = Field(default_factory=list)
 
     stats: list[
         CreationStatDefinition
@@ -71,6 +90,8 @@ class CreateCharacterRequest(
         max_length=40,
     )
 
+    bio: str = Field(default="", max_length=800)
+
     stats: dict[
         str,
         int,
@@ -90,6 +111,11 @@ class AdvanceCharacterRequest(BaseModel):
 
     stats: dict[str, int] = Field(default_factory=dict)
     skills: dict[str, int] = Field(default_factory=dict)
+    talents: list[str] = Field(default_factory=list)
+
+
+class UpdateCharacterProfileRequest(BaseModel):
+    bio: str = Field(default="", max_length=800)
 
 
 class CharacterResponse(
@@ -102,6 +128,8 @@ class CharacterResponse(
 
     name: str
 
+    bio: str = ""
+
     created_at: str
 
     updated_at: str
@@ -112,6 +140,9 @@ class CharacterResponse(
 
     unspent_stat_points: int = 0
     unspent_skill_points: int = 0
+    unspent_talent_points: int = 0
+    talents: list[str] = Field(default_factory=list)
+    progression_version: int = 2
     advancement_history: list[dict] = Field(default_factory=list)
 
     max_health: int

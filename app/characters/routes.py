@@ -30,6 +30,7 @@ from app.characters.schemas import (
     CharacterListResponse,
     CharacterResponse,
     CreateCharacterRequest,
+    UpdateCharacterProfileRequest,
 )
 
 from app.characters.service import (
@@ -216,6 +217,9 @@ async def create_character(
                 name=
                     payload.name,
 
+                bio=
+                    payload.bio,
+
                 stats=
                     payload.stats,
 
@@ -260,6 +264,34 @@ async def advance_character(
             character_id,
             stats=payload.stats,
             skills=payload.skills,
+            talents=payload.talents,
+        )
+    except (CharacterNotFoundError, CharacterOwnershipError) as error:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Character does not exist.") from error
+    except CharacterValidationError as error:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(error)) from error
+    return character_response(character)
+
+
+# =========================================================
+# PROFILE
+# =========================================================
+
+@router.patch(
+    "/{character_id}/profile",
+    response_model=CharacterResponse,
+)
+async def update_character_profile(
+    character_id: str,
+    payload: UpdateCharacterProfileRequest,
+    session_token: str | None = Cookie(default=None, alias=SESSION_COOKIE_NAME),
+):
+    user = await require_user(session_token)
+    try:
+        character = await character_service.update_profile(
+            user.user_id,
+            character_id,
+            bio=payload.bio,
         )
     except (CharacterNotFoundError, CharacterOwnershipError) as error:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Character does not exist.") from error

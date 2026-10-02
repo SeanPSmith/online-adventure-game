@@ -38,7 +38,7 @@ DATABASE_PATH = (
 )
 
 
-CHARACTER_SCHEMA_VERSION = 1
+CHARACTER_SCHEMA_VERSION = 2
 
 
 # =========================================================

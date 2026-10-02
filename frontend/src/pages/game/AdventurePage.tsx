@@ -350,7 +350,7 @@ export function AdventurePage() {
                           <small>
                             {[
                               choice.check
-                                ? `${(choice.check.skill ?? choice.check.stat ?? "CHECK").toUpperCase()} DC ${choice.check.difficulty}`
+                                ? `${(choice.check.skill ?? choice.check.stat ?? "CHECK").toUpperCase()} ${choice.check.challenge_tier ? `${choice.check.challenge_tier.toUpperCase()} ` : ""}DC ${choice.check.difficulty}`
                                 : "NO CHECK",
                               choice.risk_level
                                 ? `${choice.risk_level.toUpperCase()} RISK`

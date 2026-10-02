@@ -14,7 +14,7 @@ function listOrFallback(items: string[], fallback: string) {
 
 export function ChoiceInspector({ choice }: { choice: SceneChoice }) {
   const checkLabel = choice.check
-    ? `${(choice.check.skill ?? choice.check.stat ?? "CHECK").replaceAll("_", " ").toUpperCase()} // DC ${choice.check.difficulty}`
+    ? `${(choice.check.skill ?? choice.check.stat ?? "CHECK").replaceAll("_", " ").toUpperCase()} // ${choice.check.challenge_tier ? `${choice.check.challenge_tier.toUpperCase()} // ` : ""}DC ${choice.check.difficulty}`
     : "NONE";
 
   return (

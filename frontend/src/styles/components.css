@@ -2990,3 +2990,343 @@
     width: 100%;
   }
 }
+
+/* =========================================================
+   RPG SYSTEM PASS 15 — HERO CREATION + CHARACTER SHEET
+========================================================= */
+
+.hero-bio-field {
+  margin-top: 12px;
+}
+
+.hero-bio-field textarea,
+.hero-bio-editor textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 112px;
+}
+
+.hero-bio-field small,
+.hero-bio-editor small,
+.sheet-stat-rich > small,
+.talent-card small {
+  color: var(--green-dim);
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.attribute-allocation-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.allocation-row-rich {
+  align-items: flex-start;
+  min-height: 74px;
+}
+
+.allocation-row-rich > span {
+  min-width: 0;
+}
+
+.allocation-row-rich small {
+  max-width: 42ch;
+  line-height: 1.35;
+  text-transform: none;
+  font-weight: 400;
+}
+
+.skill-family-grid,
+.sheet-skill-families {
+  display: grid;
+  gap: 10px;
+}
+
+.skill-family,
+.sheet-skill-family {
+  border: 1px solid var(--green-line-dim);
+  padding: 8px;
+}
+
+.skill-family > header,
+.sheet-skill-family > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--green);
+  border-bottom: 1px solid var(--green-line-dim);
+  padding-bottom: 7px;
+  margin-bottom: 7px;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.progression-rules-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.progression-rules-grid > div {
+  border: 1px solid var(--green-line-dim);
+  padding: 9px;
+}
+
+.progression-rules-grid strong,
+.progression-rules-grid span {
+  display: block;
+}
+
+.progression-rules-grid strong {
+  color: var(--green-dim);
+  font-size: 8px;
+}
+
+.progression-rules-grid span {
+  color: var(--green-soft);
+  margin-top: 5px;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.hero-sheet-vitals-dense {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.hero-sheet-xp {
+  margin-top: 8px;
+  display: grid;
+  gap: 5px;
+}
+
+.hero-sheet-xp > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 8px;
+  color: var(--green-dim);
+}
+
+.hero-bio-readout {
+  display: grid;
+  gap: 10px;
+}
+
+.hero-bio-readout p {
+  margin: 0;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.hero-bio-readout .button {
+  justify-self: start;
+}
+
+.hero-bio-editor {
+  display: grid;
+  gap: 8px;
+}
+
+.hero-bio-editor > div {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.sheet-attribute-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.sheet-stat-rich {
+  min-height: 116px;
+}
+
+.sheet-stat-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sheet-stat-heading > span {
+  color: var(--green-dim);
+  font-size: 8px;
+}
+
+.sheet-stat-heading > strong {
+  font-size: 18px;
+  color: var(--green);
+}
+
+.segmented-meter {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 3px;
+}
+
+.segmented-meter > span {
+  height: 9px;
+  border: 1px solid var(--green-line-dim);
+  background: transparent;
+}
+
+.segmented-meter > span.is-filled {
+  background: var(--green);
+  border-color: var(--green);
+}
+
+.sheet-skill-family .sheet-skill-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.talent-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.talent-card {
+  border: 1px solid var(--green-line-dim);
+  background: #001000;
+  color: var(--text);
+  padding: 10px;
+  text-align: left;
+  min-width: 0;
+}
+
+.talent-card strong,
+.talent-card p,
+.talent-card small,
+.talent-card > span {
+  display: block;
+}
+
+.talent-card strong {
+  color: var(--green);
+  font-size: 10px;
+}
+
+.talent-card p {
+  margin: 7px 0;
+  line-height: 1.45;
+  font-size: 9px;
+}
+
+.talent-card.is-owned {
+  border-color: var(--green);
+}
+
+.talent-card-button {
+  cursor: pointer;
+  font: inherit;
+}
+
+.talent-card-button:hover,
+.talent-card-button.is-selected {
+  border-color: var(--green);
+  background: rgba(72, 255, 112, 0.08);
+}
+
+.talent-card-button > span:last-child {
+  border-top: 1px solid var(--green-line-dim);
+  margin-top: 8px;
+  padding-top: 7px;
+  color: var(--green);
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.talent-available {
+  border-top: var(--border);
+  margin-top: 12px;
+  padding-top: 10px;
+}
+
+.talent-available > .eyebrow {
+  margin-bottom: 8px;
+}
+
+.compact-empty {
+  min-height: auto;
+  padding: 10px;
+}
+
+@media (max-width: 1000px) {
+  .sheet-attribute-grid,
+  .sheet-skill-family .sheet-skill-grid,
+  .talent-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .hero-sheet-vitals-dense,
+  .progression-rules-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .attribute-allocation-grid,
+  .sheet-attribute-grid,
+  .sheet-skill-family .sheet-skill-grid,
+  .talent-grid,
+  .hero-sheet-vitals-dense,
+  .progression-rules-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.rulebook-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.rulebook-grid p {
+  line-height: 1.65;
+}
+
+.rulebook-definition-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.rulebook-definition-grid > div {
+  border: 1px solid var(--green-line-dim);
+  padding: 9px;
+}
+
+.rulebook-definition-grid strong,
+.rulebook-definition-grid span {
+  display: block;
+}
+
+.rulebook-definition-grid strong {
+  color: var(--green);
+  font-size: 9px;
+}
+
+.rulebook-definition-grid span {
+  margin-top: 5px;
+  color: var(--text-dim);
+  line-height: 1.45;
+  font-size: 8px;
+}
+
+@media (max-width: 800px) {
+  .rulebook-grid,
+  .rulebook-definition-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.hero-card-bio {
+  margin: 7px 0;
+  color: var(--text-dim);
+  font-size: 8px;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

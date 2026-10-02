@@ -49,6 +49,12 @@ function CheckBreakdown({ result, rolling }: { result: TurnResult; rolling: bool
       : "Status FX";
     rows.push([effectName, signed(check.effect_modifier)]);
   }
+  if (check.talent_modifier) {
+    const talentName = check.talent_details.length === 1
+      ? String(check.talent_details[0]?.label ?? "Talent")
+      : "Talents";
+    rows.push([talentName, signed(check.talent_modifier)]);
+  }
 
   rows.push(["TOTAL", rolling ? "..." : String(check.total)]);
 
@@ -134,7 +140,7 @@ function AnimatedResultCard({
           <span className="eyebrow">{result.player_name}</span>
           <strong>{result.choice_label}</strong>
         </div>
-        <span>{result.check ? `DC ${result.check.difficulty}` : "NO CHECK"}</span>
+        <span>{result.check ? `${result.check.challenge_tier ? `${titleCase(result.check.challenge_tier).toUpperCase()} // ` : ""}DC ${result.check.difficulty}` : "NO CHECK"}</span>
       </header>
 
       {result.check ? (

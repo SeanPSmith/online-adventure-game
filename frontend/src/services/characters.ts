@@ -4,12 +4,16 @@ export interface Character {
   character_id: string;
   owner_user_id: string;
   name: string;
+  bio: string;
   created_at: string;
   updated_at: string;
   level: number;
   experience: number;
   unspent_stat_points: number;
   unspent_skill_points: number;
+  unspent_talent_points: number;
+  talents: string[];
+  progression_version: number;
   advancement_history: Record<string, unknown>[];
   max_health: number;
   health: number;
@@ -33,6 +37,15 @@ export interface CharacterListResponse {
   characters: Character[];
 }
 
+export interface TalentDefinition {
+  id: string;
+  label: string;
+  description: string;
+  min_level: number;
+  stat_modifiers: Record<string, number>;
+  skill_modifiers: Record<string, number>;
+}
+
 export interface CreationRules {
   stat_point_budget: number;
   skill_point_budget: number;
@@ -42,8 +55,12 @@ export interface CreationRules {
   skill_max: number;
   advancement_stat_cap: number;
   advancement_skill_cap: number;
-  stats: { id: string; label: string }[];
-  skills: { id: string; label: string; stat: string }[];
+  skill_points_per_level: number;
+  talent_points_start_level: number;
+  talent_point_interval: number;
+  talents: TalentDefinition[];
+  stats: { id: string; label: string; description: string }[];
+  skills: { id: string; label: string; stat: string; description: string }[];
 }
 
 export interface CompletedStoryPlayer {
@@ -84,12 +101,13 @@ export function getCreationRules() {
 
 export function createCharacter(
   name: string,
+  bio: string,
   stats: Record<string, number>,
   skills: Record<string, number>,
 ) {
   return apiFetch<Character>("/api/characters", {
     method: "POST",
-    body: JSON.stringify({ name, stats, skills }),
+    body: JSON.stringify({ name, bio, stats, skills }),
   });
 }
 
@@ -101,12 +119,23 @@ export function advanceCharacter(
   characterId: string,
   stats: Record<string, number>,
   skills: Record<string, number>,
+  talents: string[] = [],
 ) {
   return apiFetch<Character>(
     `/api/characters/${encodeURIComponent(characterId)}/advance`,
     {
       method: "POST",
-      body: JSON.stringify({ stats, skills }),
+      body: JSON.stringify({ stats, skills, talents }),
+    },
+  );
+}
+
+export function updateCharacterProfile(characterId: string, bio: string) {
+  return apiFetch<Character>(
+    `/api/characters/${encodeURIComponent(characterId)}/profile`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({ bio }),
     },
   );
 }

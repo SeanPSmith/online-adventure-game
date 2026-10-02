@@ -45,9 +45,12 @@ export function HeroManagerPage() {
             <div className="panel-body">
               <div className="eyebrow">LEVEL {hero.level}</div>
               <h2>{hero.name}</h2>
+              {hero.bio ? <p className="hero-card-bio">{hero.bio}</p> : null}
               <div className="hero-card-stats">
                 <span>HP {hero.health}/{hero.max_health}</span>
                 <span>XP {hero.experience}</span>
+                <span>PTS {hero.unspent_stat_points + hero.unspent_skill_points + hero.unspent_talent_points}</span>
+                <span>TALENTS {hero.talents.length}</span>
               </div>
             </div>
           </Link>

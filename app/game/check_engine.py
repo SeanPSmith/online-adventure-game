@@ -14,6 +14,10 @@ from app.characters.effects import (
     effect_modifier_for_check,
 )
 
+from app.characters.talents import (
+    talent_modifier_for_check,
+)
+
 from app.game.dice import (
     d20,
 )
@@ -92,6 +96,12 @@ class CheckRequest:
         CheckModifiers()
     )
 
+    base_difficulty: int | None = None
+    challenge_tier: str = ""
+    effective_party_level: int | None = None
+    level_adjustment: int = 0
+    adventure_adjustment: int = 0
+
 
 # =========================================================
 # CHECK RESULT
@@ -107,6 +117,12 @@ class CheckResult:
     character_name: str
 
     difficulty: int
+
+    base_difficulty: int | None
+    challenge_tier: str
+    effective_party_level: int | None
+    level_adjustment: int
+    adventure_adjustment: int
 
     d20: int
 
@@ -127,6 +143,10 @@ class CheckResult:
     effect_modifier: int
 
     effect_details: tuple[dict, ...]
+
+    talent_modifier: int
+
+    talent_details: tuple[dict, ...]
 
     total_modifier: int
 
@@ -171,6 +191,12 @@ class CheckResult:
             "difficulty":
                 self.difficulty,
 
+            "base_difficulty": self.base_difficulty,
+            "challenge_tier": self.challenge_tier or None,
+            "effective_party_level": self.effective_party_level,
+            "level_adjustment": self.level_adjustment,
+            "adventure_adjustment": self.adventure_adjustment,
+
             "roll":
                 self.d20,
 
@@ -205,6 +231,14 @@ class CheckResult:
             "effect_details": [
                 dict(item)
                 for item in self.effect_details
+            ],
+
+            "talent_modifier":
+                self.talent_modifier,
+
+            "talent_details": [
+                dict(item)
+                for item in self.talent_details
             ],
 
             "total_modifier":
@@ -363,6 +397,12 @@ def perform_character_check(
         )
     )
 
+    talent_modifier, applied_talents = talent_modifier_for_check(
+        character,
+        stat=stat,
+        skill=request.skill,
+    )
+
 
     roll = d20()
 
@@ -372,6 +412,7 @@ def perform_character_check(
         + skill_value
         + request.modifiers.total
         + effect_modifier
+        + talent_modifier
     )
 
 
@@ -404,6 +445,12 @@ def perform_character_check(
         difficulty=
             request.difficulty,
 
+        base_difficulty=request.base_difficulty,
+        challenge_tier=request.challenge_tier,
+        effective_party_level=request.effective_party_level,
+        level_adjustment=request.level_adjustment,
+        adventure_adjustment=request.adventure_adjustment,
+
         d20=
             roll.result,
 
@@ -434,6 +481,14 @@ def perform_character_check(
         effect_details=tuple(
             item.to_dict()
             for item in applied_effects
+        ),
+
+        talent_modifier=
+            talent_modifier,
+
+        talent_details=tuple(
+            dict(item)
+            for item in applied_talents
         ),
 
         total_modifier=

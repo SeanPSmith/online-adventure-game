@@ -28,6 +28,14 @@ from app.characters.models import (
     Stat,
 )
 
+from app.characters.talents import (
+    get_talent,
+)
+
+from app.game.challenge_scaling import (
+    build_challenge_profile,
+)
+
 
 SYSTEM_INSTRUCTIONS = """
 You are the live Story Director for TALES OF TWO, a sustained interactive
@@ -47,21 +55,37 @@ SERVER AUTHORITY
 - runtime.recent_micro_events contains lightweight player reactions that happened
   between full story nodes. Treat those reactions as established narrative facts
   and callbacks you may honor, but never invent extra mechanics from them.
+- runtime.players[].character.bio is player-authored Hero canon. Use it as
+  characterization/background when relevant, but do not dump it back verbatim or
+  invent contradictions to it.
+- runtime.players[].character.talents are permanent Hero capabilities. Let them
+  inform believable approaches and competence, while the server remains the sole
+  authority on their mechanical bonuses.
 
 DICE AND CHECKS
 - Dice are part of the fun. Most meaningful choices should involve a check.
-- Truly automatic actions may remain unchecked, but do not make "no roll" the
-  default simply because an action is ordinary.
-- Difficulty bands:
-  3-7  = EASY. Competent characters should usually succeed.
-  8-11 = STANDARD. Meaningful uncertainty.
-  12-14 = HARD. Real risk.
-  15-16 = EXTREME. Reserve for genuinely difficult attempts.
-- Prefer EASY or STANDARD checks more often than HARD or EXTREME checks.
-- Do not repeatedly hammer the same player with high-DC checks.
+- Truly automatic actions may remain unchecked. More importantly, actions that
+  are now beneath these Heroes' demonstrated capability should often be
+  automatic instead of receiving an artificially inflated check.
+- The difficulty field you return is a RELATIVE CHALLENGE SEED, not the final
+  player-facing DC. The server scales it for the party's progression and the
+  authored adventure difficulty. Never try to compensate for Hero level by
+  inventing a larger numeric DC yourself.
+- Relative challenge seed bands:
+  3-7  = EASY. A low-pressure challenge appropriate to the current Heroes.
+  8-11 = STANDARD. Meaningful uncertainty for the current Heroes.
+  12-14 = HARD. Real risk requiring relevant competence.
+  15    = SEVERE. A major challenge.
+  16    = LEGENDARY. Reserve for extraordinary/desperate attempts.
+- runtime.challenge_profile tells you the party's effective level and the final
+  DC bands the server will use. Scale the FICTION, not mundane objects: a
+  veteran should casually clear routine obstacles and face more consequential
+  threats rather than discovering that every ordinary door became harder.
+- Prefer EASY or STANDARD checks more often than HARD/SEVERE/LEGENDARY checks.
+- Do not repeatedly hammer the same player with high-tier checks.
 - Use only the VALID SKILLS and VALID STATS supplied in runtime context.
 - A check uses either one skill OR one stat, never both.
-- The server validates the proposal and performs the actual roll later.
+- The server validates the proposal, computes the final DC, and rolls later.
 
 CHOICE DESIGN
 - For every active turn, return at least 3 choices.
@@ -117,9 +141,9 @@ CHOICE SET DIVERSITY
   MEANINGFUL = changes leverage/relationships/resources/thread state;
   SCENE_SHIFTING = can redirect the immediate situation, location, allegiance,
   threat structure, or available routes.
-- The check DC must match the actual proposed action, not be normalized so all
-  menu options cost roughly the same. EASY/STANDARD/HARD/EXTREME should appear
-  when the fiction warrants them.
+- The relative check tier must match the actual proposed action, not be
+  normalized so all menu options cost roughly the same. EASY/STANDARD/HARD/
+  SEVERE/LEGENDARY should appear when the fiction warrants them.
 - Do not narrate offered choices as if the players already performed them.
 
 PLAYER OUTCOMES MUST MATTER
@@ -644,6 +668,9 @@ def _character_context(
                 "max_health",
                 None,
             ),
+
+        "bio":
+            str(getattr(character, "bio", "") or ""),
     }
 
 
@@ -693,6 +720,20 @@ def _character_context(
             for key, value
             in skills.items()
         }
+
+
+    talent_ids = getattr(character, "talents", None)
+    if isinstance(talent_ids, list):
+        data["talents"] = []
+        for talent_id in talent_ids:
+            definition = get_talent(str(talent_id))
+            if definition is None:
+                continue
+            data["talents"].append({
+                "id": definition.talent_id,
+                "label": definition.label,
+                "description": definition.description,
+            })
 
 
     effects = getattr(
@@ -1243,6 +1284,16 @@ class OpenAIRuntimeDirector:
             })
 
 
+        challenge_profile = build_challenge_profile(
+            [
+                int(player.get("character", {}).get("level", 1) or 1)
+                for player in player_context
+                if isinstance(player.get("character"), dict)
+            ],
+            adventure_difficulty=seed.get("difficulty"),
+        )
+
+
         play_mode = str(
             getattr(
                 room,
@@ -1309,6 +1360,9 @@ class OpenAIRuntimeDirector:
 
                 "wrap_up_turns_remaining":
                     wrap_up_turns_remaining,
+
+                "challenge_profile":
+                    challenge_profile.to_dict(),
 
                 "current_scene": {
                     "id":

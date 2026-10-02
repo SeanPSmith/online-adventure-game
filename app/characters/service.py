@@ -6,7 +6,7 @@ from app.auth.sessions import (
     utc_now,
 )
 
-from app.characters.advancement import apply_advancement_allocation
+from app.characters.advancement import apply_advancement_allocation, migrate_progression
 
 from app.characters.creation import (
     CreationRulesError,
@@ -105,6 +105,16 @@ class CharacterService:
         return name
 
 
+
+    @staticmethod
+    def validate_bio(
+        bio: str | None,
+    ) -> str:
+        bio = str(bio or "").strip()
+        if len(bio) > 800:
+            raise CharacterValidationError("Hero bio cannot exceed 800 characters.")
+        return bio
+
     # =====================================================
     # CREATE
     # =====================================================
@@ -113,6 +123,7 @@ class CharacterService:
         self,
         owner_user_id: str,
         name: str,
+        bio: str,
         stats: dict[
             str,
             int,
@@ -126,6 +137,7 @@ class CharacterService:
         name = self.validate_name(
             name
         )
+        bio = self.validate_bio(bio)
 
 
         existing = (
@@ -181,6 +193,9 @@ class CharacterService:
             name=
                 name,
 
+            bio=
+                bio,
+
             created_at=
                 now,
 
@@ -228,11 +243,12 @@ class CharacterService:
         Character
     ]:
 
-        return (
-            await character_store.list_for_user(
-                owner_user_id
-            )
-        )
+        characters = await character_store.list_for_user(owner_user_id)
+        for character in characters:
+            if migrate_progression(character):
+                character.updated_at = utc_now()
+                await character_store.save(character)
+        return characters
 
 
     # =====================================================
@@ -268,6 +284,10 @@ class CharacterService:
                 "You do not own this character."
             )
 
+
+        if migrate_progression(character):
+            character.updated_at = utc_now()
+            await character_store.save(character)
 
         return character
 
@@ -317,16 +337,33 @@ class CharacterService:
         *,
         stats: dict[str, int] | None = None,
         skills: dict[str, int] | None = None,
+        talents: list[str] | None = None,
     ) -> Character:
 
         character = await self.get_owned_character(owner_user_id, character_id)
 
         try:
-            apply_advancement_allocation(character, stats=stats, skills=skills)
+            apply_advancement_allocation(character, stats=stats, skills=skills, talents=talents)
         except ValueError as error:
             raise CharacterValidationError(str(error)) from error
 
         return await self.save_owned_character(owner_user_id, character)
+
+    # =====================================================
+    # PROFILE
+    # =====================================================
+
+    async def update_profile(
+        self,
+        owner_user_id: str,
+        character_id: str,
+        *,
+        bio: str,
+    ) -> Character:
+        character = await self.get_owned_character(owner_user_id, character_id)
+        character.bio = self.validate_bio(bio)
+        return await self.save_owned_character(owner_user_id, character)
+
 
     # =====================================================
     # DELETE

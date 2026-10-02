@@ -42,6 +42,11 @@ from app.game.check_engine import (
     perform_character_check,
 )
 
+from app.game.challenge_scaling import (
+    build_challenge_profile,
+    scale_director_difficulty,
+)
+
 from app.game.micro_events import (
     MAX_MICRO_EVENT_HISTORY,
     build_micro_event,
@@ -593,6 +598,21 @@ class GameSession:
 
                 stat=
                     stat,
+
+                base_difficulty=(
+                    int(raw_check["base_difficulty"])
+                    if raw_check.get("base_difficulty") is not None
+                    else None
+                ),
+
+                challenge_tier=str(raw_check.get("challenge_tier") or ""),
+                effective_party_level=(
+                    int(raw_check["effective_party_level"])
+                    if raw_check.get("effective_party_level") is not None
+                    else None
+                ),
+                level_adjustment=int(raw_check.get("level_adjustment", 0) or 0),
+                adventure_adjustment=int(raw_check.get("adventure_adjustment", 0) or 0),
             )
 
 
@@ -2072,6 +2092,9 @@ class GameSessionManager:
                     "character_id":
                         player.character_id,
 
+                    "hero_level":
+                        int(character.level or 1),
+
                     "player_name":
                         player.name,
 
@@ -2255,6 +2278,7 @@ class GameSessionManager:
         *,
         turn_facts: dict,
         director_output: dict,
+        characters_by_player_id: dict[str, Character] | None = None,
     ) -> dict:
 
         session = (
@@ -2289,6 +2313,30 @@ class GameSessionManager:
             else deepcopy(
                 turn_facts
             )
+        )
+
+
+        supplied_characters = characters_by_player_id or {}
+        hero_levels = [
+            int(character.level or 1)
+            for character in supplied_characters.values()
+            if character is not None
+        ]
+
+        if not hero_levels:
+            hero_levels = [
+                int(item.get("hero_level", 1) or 1)
+                for item in canonical_turn_facts.get("results", [])
+                if isinstance(item, dict)
+            ]
+
+        challenge_profile = build_challenge_profile(
+            hero_levels,
+            adventure_difficulty=(
+                session.adventure.metadata.get("difficulty")
+                if isinstance(session.adventure.metadata, dict)
+                else None
+            ),
         )
 
 
@@ -2474,18 +2522,30 @@ class GameSessionManager:
                     )
 
 
-                    # Constructing CheckSpec is the final server-side
-                    # validation boundary. The AI only proposes.
+                    # The Director proposes only a novice-band relative
+                    # difficulty (3-16). The server owns the final level-aware
+                    # DC presented to the players and used for the roll.
+                    scaled = scale_director_difficulty(
+                        difficulty,
+                        challenge_profile,
+                    )
+
                     check_spec = CheckSpec(
 
                         difficulty=
-                            difficulty,
+                            int(scaled["difficulty"]),
 
                         skill=
                             skill,
 
                         stat=
                             stat,
+
+                        base_difficulty=int(scaled["base_difficulty"]),
+                        challenge_tier=str(scaled["challenge_tier"]),
+                        effective_party_level=int(scaled["effective_party_level"]),
+                        level_adjustment=int(scaled["level_adjustment"]),
+                        adventure_adjustment=int(scaled["adventure_adjustment"]),
                     )
 
 

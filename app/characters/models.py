@@ -25,6 +25,8 @@ class Stat(str, Enum):
 
     WILLPOWER = "willpower"
 
+    LUCK = "luck"
+
 
 # =========================================================
 # SKILLS
@@ -55,6 +57,22 @@ class Skill(str, Enum):
     INTIMIDATION = "intimidation"
 
     DISCIPLINE = "discipline"
+
+    BRAWL = "brawl"
+
+    SLEIGHT = "sleight"
+
+    MEDICINE = "medicine"
+
+    MECHANICS = "mechanics"
+
+    NAVIGATION = "navigation"
+
+    INSIGHT = "insight"
+
+    PERFORMANCE = "performance"
+
+    COMPOSURE = "composure"
 
 
 # =========================================================
@@ -101,6 +119,30 @@ DEFAULT_SKILL_STATS: dict[
 
     Skill.DISCIPLINE:
         Stat.WILLPOWER,
+
+    Skill.BRAWL:
+        Stat.STRENGTH,
+
+    Skill.SLEIGHT:
+        Stat.AGILITY,
+
+    Skill.MEDICINE:
+        Stat.INTELLECT,
+
+    Skill.MECHANICS:
+        Stat.INTELLECT,
+
+    Skill.NAVIGATION:
+        Stat.PERCEPTION,
+
+    Skill.INSIGHT:
+        Stat.PERCEPTION,
+
+    Skill.PERFORMANCE:
+        Stat.PRESENCE,
+
+    Skill.COMPOSURE:
+        Stat.WILLPOWER,
 }
 
 
@@ -121,6 +163,8 @@ class Character:
 
     updated_at: datetime
 
+    bio: str = ""
+
 
     level: int = 1
 
@@ -128,6 +172,9 @@ class Character:
 
     unspent_stat_points: int = 0
     unspent_skill_points: int = 0
+    unspent_talent_points: int = 0
+    talents: list[str] = field(default_factory=list)
+    progression_version: int = 2
     advancement_history: list[dict] = field(default_factory=list)
 
 
@@ -212,6 +259,10 @@ class Character:
 
         self.unspent_stat_points = max(0, int(self.unspent_stat_points or 0))
         self.unspent_skill_points = max(0, int(self.unspent_skill_points or 0))
+        self.unspent_talent_points = max(0, int(self.unspent_talent_points or 0))
+        self.talents = list(dict.fromkeys(str(item).strip().lower() for item in (self.talents or []) if str(item).strip()))
+        self.bio = str(self.bio or "").strip()[:800]
+        self.progression_version = max(1, int(self.progression_version or 1))
         self.advancement_history = [dict(item) for item in (self.advancement_history or []) if isinstance(item, dict)]
 
 
@@ -393,6 +444,9 @@ class Character:
             "name":
                 self.name,
 
+            "bio":
+                self.bio,
+
             "created_at":
                 self.created_at.isoformat(),
 
@@ -407,6 +461,9 @@ class Character:
 
             "unspent_stat_points": self.unspent_stat_points,
             "unspent_skill_points": self.unspent_skill_points,
+            "unspent_talent_points": self.unspent_talent_points,
+            "talents": list(self.talents),
+            "progression_version": self.progression_version,
             "advancement_history": [dict(item) for item in self.advancement_history],
 
             "max_health":
@@ -539,6 +596,8 @@ class Character:
                     ]
                 ),
 
+            bio=str(data.get("bio", "") or ""),
+
             created_at=
                 datetime.fromisoformat(
                     data[
@@ -571,6 +630,9 @@ class Character:
 
             unspent_stat_points=int(data.get("unspent_stat_points", 0) or 0),
             unspent_skill_points=int(data.get("unspent_skill_points", 0) or 0),
+            unspent_talent_points=int(data.get("unspent_talent_points", 0) or 0),
+            talents=list(data.get("talents", []) or []),
+            progression_version=int(data.get("progression_version", 1) or 1),
             advancement_history=[dict(item) for item in data.get("advancement_history", []) if isinstance(item, dict)],
 
             max_health=

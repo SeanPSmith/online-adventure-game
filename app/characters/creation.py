@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from app.characters.advancement import ADVANCEMENT_SKILL_CAP, ADVANCEMENT_STAT_CAP
+from app.characters.advancement import advancement_public_data
 
 from app.characters.models import (
     DEFAULT_SKILL_STATS,
@@ -15,9 +15,9 @@ from app.characters.models import (
 # CREATION RULES
 # =========================================================
 
-STAT_POINT_BUDGET = 8
+STAT_POINT_BUDGET = 9
 
-SKILL_POINT_BUDGET = 6
+SKILL_POINT_BUDGET = 8
 
 MIN_STAT_VALUE = 0
 
@@ -54,6 +54,9 @@ STAT_LABELS: dict[
 
     Stat.WILLPOWER:
         "Willpower",
+
+    Stat.LUCK:
+        "Luck",
 }
 
 
@@ -97,6 +100,65 @@ SKILL_LABELS: dict[
 
     Skill.DISCIPLINE:
         "Discipline",
+
+    Skill.BRAWL:
+        "Brawl",
+
+    Skill.SLEIGHT:
+        "Sleight",
+
+    Skill.MEDICINE:
+        "Medicine",
+
+    Skill.MECHANICS:
+        "Mechanics",
+
+    Skill.NAVIGATION:
+        "Navigation",
+
+    Skill.INSIGHT:
+        "Insight",
+
+    Skill.PERFORMANCE:
+        "Performance",
+
+    Skill.COMPOSURE:
+        "Composure",
+}
+
+
+STAT_DESCRIPTIONS: dict[Stat, str] = {
+    Stat.STRENGTH: "Raw force, lifting, breaking, grappling, and physical drive.",
+    Stat.AGILITY: "Speed, balance, coordination, reflexes, and delicate movement.",
+    Stat.INTELLECT: "Reasoning, memory, technical understanding, and learned expertise.",
+    Stat.PERCEPTION: "Attention, instinct, sensory detail, and reading the environment.",
+    Stat.PRESENCE: "Charm, force of personality, social pressure, and performance.",
+    Stat.WILLPOWER: "Nerve, discipline, emotional control, and resistance to fear or coercion.",
+    Stat.LUCK: "Fortune, timing, coincidence, and improbable breaks when chance truly matters.",
+}
+
+
+SKILL_DESCRIPTIONS: dict[Skill, str] = {
+    Skill.ATHLETICS: "Running, climbing, jumping, swimming, and sustained physical effort.",
+    Skill.BRAWL: "Close physical confrontation, grappling, rough fighting, and overpowering someone.",
+    Skill.ACROBATICS: "Balance, tumbling, landing, dodging, and difficult body control.",
+    Skill.STEALTH: "Moving unseen, hiding, shadowing, and avoiding attention.",
+    Skill.SLEIGHT: "Palming, lock manipulation, pickpocketing, and precise hand tricks.",
+    Skill.INVESTIGATION: "Connecting clues, searching deliberately, reconstructing events, and deduction.",
+    Skill.KNOWLEDGE: "History, culture, research, academics, trivia, and remembered facts.",
+    Skill.TECHNOLOGY: "Computers, electronics, software, signals, and modern technical systems.",
+    Skill.MEDICINE: "First aid, diagnosis, treatment, anatomy, and stabilizing injuries.",
+    Skill.MECHANICS: "Machines, engines, tools, repair, fabrication, and physical systems.",
+    Skill.AWARENESS: "Spotting danger, noticing changes, hearing movement, and immediate observation.",
+    Skill.SURVIVAL: "Weather, shelter, wilderness judgment, scavenging, and enduring hostile conditions.",
+    Skill.NAVIGATION: "Finding routes, reading maps, orientation, pathfinding, and spatial memory.",
+    Skill.INSIGHT: "Reading motives, emotional cues, lies, tension, and what someone is not saying.",
+    Skill.PERSUASION: "Reasoning with people, bargaining, inspiring, and winning cooperation.",
+    Skill.DECEPTION: "Lying, bluffing, disguising intent, and maintaining a false story.",
+    Skill.INTIMIDATION: "Threats, pressure, menace, and making consequences feel immediate.",
+    Skill.PERFORMANCE: "Entertaining, acting, public speaking, distraction, and commanding an audience.",
+    Skill.DISCIPLINE: "Focus, resisting manipulation, maintaining control, and following through under pressure.",
+    Skill.COMPOSURE: "Keeping calm, concealing fear, enduring social pressure, and staying functional in chaos.",
 }
 
 
@@ -436,8 +498,7 @@ def creation_rules_public_data(
         "skill_max":
             MAX_SKILL_VALUE,
 
-        "advancement_stat_cap": ADVANCEMENT_STAT_CAP,
-        "advancement_skill_cap": ADVANCEMENT_SKILL_CAP,
+        **advancement_public_data(),
 
 
         "stats": [
@@ -450,6 +511,9 @@ def creation_rules_public_data(
                     STAT_LABELS[
                         stat
                     ],
+
+                "description":
+                    STAT_DESCRIPTIONS[stat],
             }
 
             for stat
@@ -472,6 +536,9 @@ def creation_rules_public_data(
                     DEFAULT_SKILL_STATS[
                         skill
                     ].value,
+
+                "description":
+                    SKILL_DESCRIPTIONS[skill],
             }
 
             for skill

@@ -27,6 +27,7 @@ export function HeroCreatePage() {
 
   const [rules, setRules] = useState<CreationRules | null>(null);
   const [name, setName] = useState("");
+  const [bio, setBio] = useState("");
   const [stats, setStats] = useState<Record<string, number>>({});
   const [skills, setSkills] = useState<Record<string, number>>({});
   const [error, setError] = useState("");
@@ -57,6 +58,14 @@ export function HeroCreatePage() {
     () => Object.values(skills).reduce((total, value) => total + value, 0),
     [skills],
   );
+
+  const groupedSkills = useMemo(() => {
+    if (!rules) return [];
+    return rules.stats.map((stat) => ({
+      stat,
+      skills: rules.skills.filter((skill) => skill.stat === stat.id),
+    })).filter((group) => group.skills.length > 0);
+  }, [rules]);
 
   function nudge(
     kind: "stat" | "skill",
@@ -93,7 +102,7 @@ export function HeroCreatePage() {
     if (!rules) return;
 
     if (statUsed !== rules.stat_point_budget) {
-      setError(`Spend exactly ${rules.stat_point_budget} stat points.`);
+      setError(`Spend exactly ${rules.stat_point_budget} attribute points.`);
       return;
     }
 
@@ -106,7 +115,7 @@ export function HeroCreatePage() {
     setError("");
 
     try {
-      const hero = await createCharacter(name.trim(), stats, skills);
+      const hero = await createCharacter(name.trim(), bio.trim(), stats, skills);
       navigate(`/game/heroes/${encodeURIComponent(hero.character_id)}`, {
         replace: true,
       });
@@ -127,7 +136,7 @@ export function HeroCreatePage() {
       />
 
       <form className="hero-create-layout" onSubmit={submit}>
-        <Panel title="IDENTITY">
+        <Panel title="IDENTITY // DIRECTOR CANON">
           <label className="field-label">
             <span>HERO NAME</span>
             <input
@@ -139,20 +148,37 @@ export function HeroCreatePage() {
             />
           </label>
 
+          <label className="field-label hero-bio-field">
+            <span>BIO // BACKGROUND, TEMPERAMENT, QUIRKS</span>
+            <textarea
+              value={bio}
+              onChange={(event) => setBio(event.target.value)}
+              maxLength={800}
+              rows={5}
+              placeholder="A former night-shift paramedic who hates confined spaces, talks too much when nervous, and never leaves anyone behind."
+            />
+            <small>{bio.length}/800 // AUTHOR CANON — THE DIRECTOR MAY USE THIS IN PLAY</small>
+          </label>
+
           <p className="muted-copy">
-            This Hero can walk into fantasy, horror, office politics, alien ruins,
-            a grocery store at 2 AM, or whatever else the story machine produces.
+            Keep it useful rather than exhaustive. A few strong facts give the Director
+            enough material to make choices, callbacks, NPC reactions, and story beats feel
+            like they belong to this Hero.
           </p>
         </Panel>
 
-        <Panel title={`CORE STATS // ${statUsed}/${rules?.stat_point_budget ?? "—"}`}>
-          <div className="allocation-grid">
+        <Panel title={`ATTRIBUTES // ${statUsed}/${rules?.stat_point_budget ?? "—"}`}>
+          <div className="allocation-grid attribute-allocation-grid">
             {rules?.stats.map((stat) => (
-              <div className="allocation-row" key={stat.id}>
-                <span>{stat.label}</span>
+              <div className="allocation-row allocation-row-rich" key={stat.id}>
+                <span>
+                  {stat.label}
+                  <small>{stat.description}</small>
+                </span>
                 <div>
                   <button
                     type="button"
+                    aria-label={`Lower ${stat.label}`}
                     onClick={() => nudge("stat", stat.id, -1)}
                   >
                     −
@@ -160,6 +186,7 @@ export function HeroCreatePage() {
                   <strong>{stats[stat.id] ?? rules.stat_min}</strong>
                   <button
                     type="button"
+                    aria-label={`Raise ${stat.label}`}
                     onClick={() => nudge("stat", stat.id, 1)}
                   >
                     +
@@ -171,31 +198,55 @@ export function HeroCreatePage() {
         </Panel>
 
         <Panel title={`SKILLS // ${skillUsed}/${rules?.skill_point_budget ?? "—"}`}>
-          <div className="allocation-grid allocation-grid-wide">
-            {rules?.skills.map((skill) => (
-              <div className="allocation-row" key={skill.id}>
-                <span>
-                  {skill.label}
-                  <small>{skill.stat.toUpperCase()}</small>
-                </span>
-                <div>
-                  <button
-                    type="button"
-                    onClick={() => nudge("skill", skill.id, -1)}
-                  >
-                    −
-                  </button>
-                  <strong>{skills[skill.id] ?? rules.skill_min}</strong>
-                  <button
-                    type="button"
-                    onClick={() => nudge("skill", skill.id, 1)}
-                  >
-                    +
-                  </button>
+          <div className="skill-family-grid">
+            {groupedSkills.map(({ stat, skills: statSkills }) => (
+              <section className="skill-family" key={stat.id}>
+                <header>
+                  <strong>{stat.label.toUpperCase()}</strong>
+                  <span>{stats[stat.id] ?? rules?.stat_min ?? 0}</span>
+                </header>
+                <div className="allocation-grid">
+                  {statSkills.map((skill) => (
+                    <div className="allocation-row allocation-row-rich" key={skill.id}>
+                      <span>
+                        {skill.label}
+                        <small>{skill.description}</small>
+                      </span>
+                      <div>
+                        <button
+                          type="button"
+                          aria-label={`Lower ${skill.label}`}
+                          onClick={() => nudge("skill", skill.id, -1)}
+                        >
+                          −
+                        </button>
+                        <strong>{skills[skill.id] ?? rules?.skill_min ?? 0}</strong>
+                        <button
+                          type="button"
+                          aria-label={`Raise ${skill.label}`}
+                          onClick={() => nudge("skill", skill.id, 1)}
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </div>
+              </section>
             ))}
           </div>
+        </Panel>
+
+        <Panel title="HOW ADVANCEMENT WORKS">
+          <div className="progression-rules-grid">
+            <div><strong>EVERY LEVEL</strong><span>+{rules?.skill_points_per_level ?? 2} SKILL POINTS</span></div>
+            <div><strong>EVEN LEVELS</strong><span>+1 ATTRIBUTE POINT</span></div>
+            <div><strong>LEVEL {rules?.talent_points_start_level ?? 3}+</strong><span>NEW TALENT POINT EVERY {rules?.talent_point_interval ?? 2} LEVELS</span></div>
+          </div>
+          <p className="muted-copy">
+            XP still marks experience, but levels now create permanent choices: specialize
+            skills, raise attributes, and unlock Talents that change how this Hero performs.
+          </p>
         </Panel>
 
         <div className="hero-create-submit">

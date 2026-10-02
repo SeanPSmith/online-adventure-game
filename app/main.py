@@ -1367,12 +1367,13 @@ def _persistent_effect_from_consequence(*, room_code: str, turn_number: int, eff
     modifier_skill = str(effect.get("modifier_skill", "") or "").strip().lower()
 
     valid_stats = {
-        "strength", "agility", "intellect", "perception", "presence", "willpower"
+        "strength", "agility", "intellect", "perception", "presence", "willpower", "luck"
     }
     valid_skills = {
         "athletics", "acrobatics", "stealth", "investigation", "knowledge",
         "technology", "awareness", "survival", "persuasion", "deception",
-        "intimidation", "discipline",
+        "intimidation", "discipline", "brawl", "sleight", "medicine",
+        "mechanics", "navigation", "insight", "performance", "composure",
     }
 
     stat_modifiers = {}
@@ -1528,6 +1529,10 @@ async def apply_turn_progression(
             adventure_totals["advancement_skill_points_earned"] = (
                 max(0, int(adventure_totals.get("advancement_skill_points_earned", 0) or 0))
                 + advancement_award.skill_points
+            )
+            adventure_totals["advancement_talent_points_earned"] = (
+                max(0, int(adventure_totals.get("advancement_talent_points_earned", 0) or 0))
+                + advancement_award.talent_points
             )
 
         health_before = max(0, min(int(character.health or 0), int(character.max_health or 1)))
@@ -1743,9 +1748,11 @@ async def commit_completed_adventure_advancement(
             continue
         stat_points = max(0, int(stats.get("advancement_stat_points_earned", 0) or 0))
         skill_points = max(0, int(stats.get("advancement_skill_points_earned", 0) or 0))
-        if stat_points or skill_points:
+        talent_points = max(0, int(stats.get("advancement_talent_points_earned", 0) or 0))
+        if stat_points or skill_points or talent_points:
             character.unspent_stat_points += stat_points
             character.unspent_skill_points += skill_points
+            character.unspent_talent_points += talent_points
             await character_service.save_owned_character(character.owner_user_id, character)
         stats["advancement_committed"] = True
 
@@ -3493,8 +3500,11 @@ def build_adventure_finale_payload(
             "death_record": (dict(character.death_record) if isinstance(getattr(character, "death_record", None), dict) else None),
             "advancement_stat_points_earned": max(0, int(stats.get("advancement_stat_points_earned", 0) or 0)),
             "advancement_skill_points_earned": max(0, int(stats.get("advancement_skill_points_earned", 0) or 0)),
+            "advancement_talent_points_earned": max(0, int(stats.get("advancement_talent_points_earned", 0) or 0)),
             "unspent_stat_points": max(0, int(getattr(character, "unspent_stat_points", 0) or 0)),
             "unspent_skill_points": max(0, int(getattr(character, "unspent_skill_points", 0) or 0)),
+            "unspent_talent_points": max(0, int(getattr(character, "unspent_talent_points", 0) or 0)),
+            "talents": list(getattr(character, "talents", []) or []),
             "advancement_stat_cap": ADVANCEMENT_STAT_CAP,
             "advancement_skill_cap": ADVANCEMENT_SKILL_CAP,
             "stats": {key.value: int(value) for key, value in character.stats.items()},
@@ -3687,6 +3697,7 @@ async def finalize_resolved_turn(
                         result,
                     director_output=
                         director_output,
+                    characters_by_player_id=characters_by_player_id,
                 )
             )
 

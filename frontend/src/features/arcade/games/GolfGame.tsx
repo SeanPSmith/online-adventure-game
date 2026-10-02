@@ -197,18 +197,135 @@ export function GolfGame({ score, onScoreChange, storyReady }: ArcadeGameProps) 
         ctx.moveTo(lx + 7, GROUND - 7);
         ctx.lineTo(lx - 7, GROUND + 7);
         ctx.stroke();
-
-        // Tiny top-down dispersion inset: lateral error finally has a visible consequence.
-        ctx.strokeStyle = "#235f31";
-        ctx.strokeRect(WIDTH - 142, 18, 120, 72);
-        ctx.beginPath();
-        ctx.arc(WIDTH - 82, 54, 4, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.fillStyle = "#7dff9b";
-        ctx.fillRect(WIDTH - 84 + clamp(last.lateral, -28, 28) * 1.7, 69, 4, 4);
-        ctx.font = "700 8px monospace";
-        ctx.fillText("TOP VIEW", WIDTH - 134, 32);
       }
+
+      // Live top-down course map. Unlike the old decorative inset, both axes
+      // are meaningful: vertical position is carry distance and horizontal
+      // position is lateral drift. The rendered curve uses the same aim,
+      // shot-shape, and wind inputs that determine the authoritative landing.
+      const mapX = WIDTH - 194;
+      const mapY = 16;
+      const mapW = 172;
+      const mapH = 128;
+      const mapCenterX = mapX + mapW / 2;
+      const mapTop = mapY + 22;
+      const mapBottom = mapY + mapH - 12;
+      const mapMaxDistance = Math.max(190, currentHole.target + 22);
+      const mapUsableHeight = mapBottom - mapTop;
+      const lateralScale = (mapW * 0.39) / 35;
+
+      const mapPoint = (distance: number, lateral: number) => ({
+        x: mapCenterX + clamp(lateral, -35, 35) * lateralScale,
+        y: mapBottom - clamp(distance / mapMaxDistance, 0, 1) * mapUsableHeight,
+      });
+
+      ctx.fillStyle = "#030c04";
+      ctx.fillRect(mapX, mapY, mapW, mapH);
+      ctx.strokeStyle = "#235f31";
+      ctx.strokeRect(mapX, mapY, mapW, mapH);
+
+      // Crude VGA fairway taper.
+      ctx.fillStyle = "#071807";
+      ctx.beginPath();
+      ctx.moveTo(mapCenterX - 22, mapBottom);
+      ctx.lineTo(mapCenterX - 58, mapTop);
+      ctx.lineTo(mapCenterX + 58, mapTop);
+      ctx.lineTo(mapCenterX + 22, mapBottom);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = "#164822";
+      ctx.stroke();
+
+      ctx.setLineDash([2, 4]);
+      ctx.strokeStyle = "#164822";
+      ctx.beginPath();
+      ctx.moveTo(mapCenterX, mapBottom);
+      ctx.lineTo(mapCenterX, mapTop);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      const pinMap = mapPoint(currentHole.target, 0);
+      ctx.fillStyle = "#0b2611";
+      ctx.beginPath();
+      ctx.ellipse(pinMap.x, pinMap.y, 13, 6, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#3aa653";
+      ctx.stroke();
+      ctx.strokeStyle = "#7dff9b";
+      ctx.beginPath();
+      ctx.moveTo(pinMap.x, pinMap.y + 4);
+      ctx.lineTo(pinMap.x, pinMap.y - 11);
+      ctx.lineTo(pinMap.x + 7, pinMap.y - 8);
+      ctx.stroke();
+
+      const teeMap = mapPoint(0, 0);
+      ctx.fillStyle = "#7dff9b";
+      ctx.fillRect(teeMap.x - 2, teeMap.y - 2, 4, 4);
+
+      const mapShot = shotRef.current;
+      if (mapShot) {
+        const duration = 1150;
+        const rawProgress = clamp((now - mapShot.startedAt) / duration, 0, 1);
+        const progress = 1 - Math.pow(1 - rawProgress, 1.55);
+        const aimComponent = mapShot.sample.aim * 24;
+        const curveComponent = (mapShot.sample.modifier * 18) + (currentHole.wind * 1.4);
+        const lateralAt = (q: number) => (aimComponent * q) + (curveComponent * q * q);
+
+        // Full predicted shot shape, then brighter traveled portion over it.
+        ctx.setLineDash([2, 4]);
+        ctx.strokeStyle = "#1e5b2d";
+        ctx.beginPath();
+        for (let i = 0; i <= 24; i += 1) {
+          const q = i / 24;
+          const point = mapPoint(mapShot.distance * q, lateralAt(q));
+          if (i === 0) ctx.moveTo(point.x, point.y);
+          else ctx.lineTo(point.x, point.y);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.strokeStyle = "#7dff9b";
+        ctx.beginPath();
+        const traveledSteps = Math.max(1, Math.ceil(progress * 24));
+        for (let i = 0; i <= traveledSteps; i += 1) {
+          const q = Math.min(progress, (i / traveledSteps) * progress);
+          const point = mapPoint(mapShot.distance * q, lateralAt(q));
+          if (i === 0) ctx.moveTo(point.x, point.y);
+          else ctx.lineTo(point.x, point.y);
+        }
+        ctx.stroke();
+
+        const liveMapBall = mapPoint(mapShot.distance * progress, lateralAt(progress));
+        ctx.fillStyle = "#7dff9b";
+        ctx.beginPath();
+        ctx.arc(liveMapBall.x, liveMapBall.y, 3, 0, Math.PI * 2);
+        ctx.fill();
+
+        const predictedLanding = mapPoint(mapShot.distance, mapShot.lateral);
+        ctx.strokeStyle = "#7dff9b";
+        ctx.strokeRect(predictedLanding.x - 4, predictedLanding.y - 4, 8, 8);
+
+        const offline = Math.abs(mapShot.lateral);
+        const side = mapShot.lateral < 0 ? "L" : mapShot.lateral > 0 ? "R" : "C";
+        ctx.fillStyle = "#7dff9b";
+        ctx.font = "700 8px monospace";
+        ctx.textAlign = "left";
+        ctx.fillText(`${Math.round(mapShot.distance * progress)}Y // ${side}${offline}`, mapX + 7, mapY + mapH - 4);
+      } else if (last) {
+        const landingMap = mapPoint(last.distance, last.lateral);
+        ctx.strokeStyle = "#7dff9b";
+        ctx.beginPath();
+        ctx.moveTo(landingMap.x - 5, landingMap.y - 5);
+        ctx.lineTo(landingMap.x + 5, landingMap.y + 5);
+        ctx.moveTo(landingMap.x + 5, landingMap.y - 5);
+        ctx.lineTo(landingMap.x - 5, landingMap.y + 5);
+        ctx.stroke();
+      }
+
+      ctx.fillStyle = "#7dff9b";
+      ctx.font = "700 8px monospace";
+      ctx.textAlign = "left";
+      ctx.fillText("TOP VIEW // LIVE", mapX + 7, mapY + 12);
 
       frameRef.current = requestAnimationFrame(draw);
     };
@@ -260,7 +377,7 @@ export function GolfGame({ score, onScoreChange, storyReady }: ArcadeGameProps) 
         {buttonLabel}
       </button>
 
-      <footer className="intermission-game-message"><span>{message}</span><strong>{landing ? `${landing.distance}Y // ${Math.abs(landing.lateral)}Y OFFLINE` : "PAR IS A SUGGESTION"}</strong></footer>
+      <footer className="intermission-game-message"><span>{message}</span><strong>{landing ? `${landing.distance}Y // ${landing.lateral === 0 ? "ON LINE" : `${landing.lateral < 0 ? "L" : "R"}${Math.abs(landing.lateral)}Y`}` : "PAR IS A SUGGESTION"}</strong></footer>
     </div>
   );
 }

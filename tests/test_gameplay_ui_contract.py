@@ -174,3 +174,26 @@ def test_admin_control_room_exposes_live_analytics_and_arcade_navigation() -> No
     assert 'to="/game/arcade"' in page
     assert '"/api/auth/admin/analytics"' in service
     assert '<NavLink to="/game/arcade">ARCADE</NavLink>' in layout
+
+
+def test_arcade_content_pass_retires_archery_and_adds_motion_cabinets() -> None:
+    registry = read("features/arcade/ArcadeGameRegistry.tsx")
+    bowling = read("features/arcade/games/BowlingGame.tsx")
+    golf = read("features/arcade/games/GolfGame.tsx")
+    artillery = read("features/adventure/ProjectileDuelGame.tsx")
+
+    assert 'sigil_memory: "road_racer"' in registry
+    assert 'id: "road_racer"' in registry
+    assert 'id: "brick_breaker"' in registry
+    assert 'id: "data_snake"' in registry
+    assert 'id: "light_cycles"' in registry
+    assert 'title: "ARCHERY RANGE"' in registry
+    archery_start = registry.index('id: "archery"')
+    archery_end = registry.index('id: "maze"', archery_start)
+    assert 'live: false' in registry[archery_start:archery_end]
+    assert "requestAnimationFrame" in bowling
+    assert "BALL AWAY" in bowling
+    assert "requestAnimationFrame" in golf
+    assert "BALL IN FLIGHT" in golf
+    assert "const startY = GROUND_Y - 2" in artillery
+    assert "for (let t = 0.04" in artillery

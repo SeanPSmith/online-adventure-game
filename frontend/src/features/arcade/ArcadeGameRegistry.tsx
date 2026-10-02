@@ -7,7 +7,11 @@ import { ProjectileDuelGame } from "../adventure/ProjectileDuelGame";
 import { WordPuzzleGame } from "../adventure/WordPuzzleGame";
 import type { ArcadeGameDefinition, ArcadeGameProps } from "./arcadeTypes";
 import { BowlingGame } from "./games/BowlingGame";
+import { BrickBreakerGame } from "./games/BrickBreakerGame";
 import { GolfGame } from "./games/GolfGame";
+import { LightCyclesGame } from "./games/LightCyclesGame";
+import { RoadRacerGame } from "./games/RoadRacerGame";
+import { SnakeGame } from "./games/SnakeGame";
 
 function OutlierAdapter(props: ArcadeGameProps) {
   return <FindOutlierGame {...props} />;
@@ -83,7 +87,7 @@ export const ARCADE_GAMES: readonly ArcadeGameDefinition[] = [
     supportsCoop: true,
     supportsTouch: true,
     controls: "SPACE / TAP",
-    live: true,
+    live: false,
     component: ArcheryAdapter,
   },
   {
@@ -109,6 +113,55 @@ export const ARCADE_GAMES: readonly ArcadeGameDefinition[] = [
     controls: "KEYBOARD / TAP",
     live: true,
     component: WordAdapter,
+  },
+
+  {
+    id: "road_racer",
+    title: "HIGHWAY 84",
+    category: "racing",
+    description: "Three-lane traffic dodging with pointer steering and steadily rising speed.",
+    supportsSolo: true,
+    supportsCoop: true,
+    supportsTouch: true,
+    controls: "A/D / ARROWS / POINTER",
+    live: true,
+    component: RoadRacerGame,
+  },
+  {
+    id: "brick_breaker",
+    title: "WALL//BREAKER",
+    category: "action",
+    description: "Classic paddle-and-ball brick destruction with cheap terminal dignity.",
+    supportsSolo: true,
+    supportsCoop: true,
+    supportsTouch: true,
+    controls: "A/D / ARROWS / POINTER",
+    live: false,
+    component: BrickBreakerGame,
+  },
+  {
+    id: "data_snake",
+    title: "DATA SNAKE",
+    category: "movement",
+    description: "Eat bytes, grow longer, and avoid recursively consuming yourself.",
+    supportsSolo: true,
+    supportsCoop: true,
+    supportsTouch: true,
+    controls: "WASD / ARROWS / D-PAD",
+    live: false,
+    component: SnakeGame,
+  },
+  {
+    id: "light_cycles",
+    title: "LIGHT//CYCLES",
+    category: "action",
+    description: "Trap a machine rider with persistent light trails without walling yourself in.",
+    supportsSolo: true,
+    supportsCoop: true,
+    supportsTouch: true,
+    controls: "WASD / ARROWS / D-PAD",
+    live: false,
+    component: LightCyclesGame,
   },
   {
     id: "projectile_duel",
@@ -152,7 +205,7 @@ const LIVE_SLOT_TO_CABINET: Record<string, string> = {
   rune_catch: "outlier",
   lantern_keep: "pong",
   relic_scramble: "missile_defense",
-  sigil_memory: "archery",
+  sigil_memory: "road_racer",
   ward_breaker: "maze",
   shadow_step: "word_puzzle",
 };

@@ -7,7 +7,8 @@ export type ArcadeCategory =
   | "movement"
   | "sport"
   | "timing"
-  | "strategy";
+  | "strategy"
+  | "racing";
 
 export interface ArcadeGameProps {
   score: number;

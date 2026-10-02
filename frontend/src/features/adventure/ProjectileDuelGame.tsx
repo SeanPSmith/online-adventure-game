@@ -30,38 +30,45 @@ function clamp(value: number, minimum: number, maximum: number) {
 
 function trajectory(angle: number, power: number, wind: number, enemyX: number) {
   const radians = (angle * Math.PI) / 180;
-  const speed = power * 0.18;
+  const speed = power * 0.28;
   const vx = Math.cos(radians) * speed;
   const vy = Math.sin(radians) * speed;
-  const gravity = 5.8;
-  const windAcceleration = wind * 0.085;
+  const gravity = 6.0;
+  const windAcceleration = wind * 0.045;
+  const startX = 3;
+  const startY = GROUND_Y - 2;
   const points: Point[] = [];
   let hit = false;
 
-  for (let t = 0; t <= 8; t += 0.055) {
-    const x = 3 + (vx * t) + (0.5 * windAcceleration * t * t);
-    const vertical = (vy * t) - (0.5 * gravity * t * t);
-    const y = GROUND_Y - vertical;
+  for (let t = 0.04; t <= 8; t += 0.04) {
+    const x = startX + (vx * t) + (0.5 * windAcceleration * t * t);
+    const rise = (vy * t) - (0.5 * gravity * t * t);
+    const y = startY - rise;
 
-    if (x < 1 || x >= WIDTH - 1 || y < 1) continue;
+    if (x >= WIDTH - 1) break;
+    if (x < 1) continue;
 
     const point = {
       x: Math.round(x),
       y: Math.round(y),
     };
 
-    points.push(point);
+    // Keep off-screen apex points out of the draw list, but keep simulating
+    // so high-angle shots can come back down into the field.
+    if (point.y >= 1 && point.y <= GROUND_Y) {
+      points.push(point);
+    }
 
     if (
       Math.abs(point.x - enemyX) <= 1 &&
-      point.y >= GROUND_Y - 2 &&
+      point.y >= GROUND_Y - 3 &&
       point.y <= GROUND_Y
     ) {
       hit = true;
       break;
     }
 
-    if (point.y >= GROUND_Y) break;
+    if (t > 0.18 && point.y >= GROUND_Y) break;
   }
 
   return { points, hit };
@@ -139,7 +146,10 @@ export function ProjectileDuelGame({
   const animationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const settleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const storyReadyRef = useRef(storyReady);
+  const scoreRef = useRef(score);
   const fieldRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => { scoreRef.current = score; }, [score]);
 
   useEffect(() => {
     storyReadyRef.current = storyReady;
@@ -181,7 +191,9 @@ export function ProjectileDuelGame({
     if (hit) {
       const nextEnemyHp = enemyHp - 1;
       setEnemyHp(nextEnemyHp);
-      onScoreChange(Math.min(999, score + (nextEnemyHp <= 0 ? 25 : 10)));
+      const nextScore = Math.min(999, scoreRef.current + (nextEnemyHp <= 0 ? 25 : 10));
+      scoreRef.current = nextScore;
+      onScoreChange(nextScore);
 
       if (nextEnemyHp <= 0) {
         setMessage("DIRECT HIT // TARGET DOWN // +25_");
@@ -203,7 +215,9 @@ export function ProjectileDuelGame({
     setPlayerHp(nextPlayerHp);
 
     if (nextPlayerHp <= 0) {
-      onScoreChange(Math.max(0, score - 5));
+      const nextScore = Math.max(0, scoreRef.current - 5);
+      scoreRef.current = nextScore;
+      onScoreChange(nextScore);
       setMessage("RETURN FIRE // YOU GOT FLATTENED // -5_");
       settleTimerRef.current = setTimeout(
         () => resetExchange(false, true),
@@ -216,7 +230,7 @@ export function ProjectileDuelGame({
         480,
       );
     }
-  }, [enemyHp, playerHp, score, onScoreChange, resetExchange]);
+  }, [enemyHp, playerHp, onScoreChange, resetExchange]);
 
   const fire = useCallback(() => {
     if (busy) return;

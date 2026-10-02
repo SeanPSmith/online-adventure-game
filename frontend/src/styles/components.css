@@ -2920,3 +2920,73 @@
     gap: 0.4rem;
   }
 }
+
+/* =========================================================
+   ARCADE CONTENT PASS 14 // MOTION + CLASSIC CABINETS
+========================================================= */
+
+.retro-sport-canvas,
+.road-racer-canvas,
+.brick-breaker-canvas,
+.grid-arcade-canvas {
+  aspect-ratio: 720 / 380;
+}
+
+.retro-sport-canvas {
+  aspect-ratio: 2 / 1;
+}
+
+.arcade-touch-dpad {
+  width: min(230px, 100%);
+  margin: 0 auto;
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+}
+
+.arcade-touch-dpad > div {
+  display: grid;
+  grid-template-columns: repeat(3, 54px);
+  gap: 5px;
+}
+
+.arcade-touch-dpad button {
+  width: 54px;
+  height: 42px;
+  border: 1px solid var(--green-line-dim);
+  background: #010701;
+  color: var(--green-soft);
+  font: 900 16px/1 var(--font-mono);
+  cursor: pointer;
+}
+
+.arcade-touch-dpad button:hover,
+.arcade-touch-dpad button:focus-visible,
+.arcade-touch-dpad button:active {
+  border-color: var(--green);
+  background: rgba(72, 255, 112, 0.14);
+  outline: none;
+}
+
+.road-racer-game,
+.brick-breaker-game,
+.snake-game,
+.light-cycles-game {
+  align-content: start;
+}
+
+@media (min-width: 761px) and (hover: hover) and (pointer: fine) {
+  .snake-game .arcade-touch-dpad,
+  .light-cycles-game .arcade-touch-dpad {
+    opacity: 0.72;
+  }
+}
+
+@media (max-width: 760px) {
+  .retro-sport-canvas,
+  .road-racer-canvas,
+  .brick-breaker-canvas,
+  .grid-arcade-canvas {
+    width: 100%;
+  }
+}

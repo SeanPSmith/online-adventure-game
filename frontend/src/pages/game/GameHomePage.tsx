@@ -8,6 +8,7 @@ import type {
   AdventureListItem,
 } from "../../services/game";
 import { rememberGameRoute } from "../../services/gameRouteMemory";
+import { useAuth } from "../../state/AuthContext";
 import { useGameSocket } from "../../state/GameSocketContext";
 
 const HIDDEN_INTERNAL_ADVENTURES = new Set([
@@ -25,8 +26,27 @@ function generatedSynopsis(adventure: AdventureCatalogItem) {
   return adventure.description;
 }
 
+function journeyState(adventure: AdventureListItem) {
+  if (adventure.completed) return "SEALED";
+  if (adventure.director_request_active) return "DIRECTOR WORKING";
+  if (adventure.director_retry_required) return "RECOVERY REQUIRED";
+  if (adventure.turn_pending) return "TURN FROZEN";
+  return "READY";
+}
+
+function advancementTotal(hero: Character) {
+  return (
+    hero.unspent_stat_points +
+    hero.unspent_skill_points +
+    hero.unspent_talent_points
+  );
+}
+
 export function GameHomePage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const canAuthor = user?.permissions.includes("author") ?? false;
+  const isAdmin = user?.permissions.includes("admin") ?? false;
 
   const {
     connected,
@@ -48,6 +68,8 @@ export function GameHomePage() {
   const [heroError, setHeroError] = useState("");
   const [selectedHeroId, setSelectedHeroId] = useState("");
   const [roomCode, setRoomCode] = useState("");
+  const [catalogSearch, setCatalogSearch] = useState("");
+  const [selectedTag, setSelectedTag] = useState("ALL");
   const [pendingAdventure, setPendingAdventure] = useState<AdventureCatalogItem | null>(null);
   const [pendingJourneyExit, setPendingJourneyExit] = useState<{
     adventure: AdventureListItem;
@@ -102,7 +124,7 @@ export function GameHomePage() {
   }, [lastRoomEntry, clearRoomEntry, navigate]);
 
   const occupiedHeroIds = useMemo(
-    () => new Set(adventures.map((item) => item.character_id)),
+    () => new Set(adventures.filter((item) => !item.completed).map((item) => item.character_id)),
     [adventures],
   );
 
@@ -122,13 +144,48 @@ export function GameHomePage() {
     setSelectedHeroId(selectableHeroes[0]?.character_id ?? "");
   }, [selectedHeroId, selectableHeroes]);
 
-  const visibleCatalog = catalog.filter(
-    (adventure) => !HIDDEN_INTERNAL_ADVENTURES.has(adventure.adventure_id),
+  const visibleCatalog = useMemo(
+    () => catalog.filter(
+      (adventure) => !HIDDEN_INTERNAL_ADVENTURES.has(adventure.adventure_id),
+    ),
+    [catalog],
   );
+
+  const catalogTags = useMemo(() => {
+    const tags = new Set<string>();
+    visibleCatalog.forEach((adventure) => {
+      adventure.tags.forEach((tag) => tags.add(tag.toUpperCase()));
+    });
+    return ["ALL", ...Array.from(tags).sort()];
+  }, [visibleCatalog]);
+
+  const filteredCatalog = useMemo(() => {
+    const needle = catalogSearch.trim().toLowerCase();
+
+    return visibleCatalog.filter((adventure) => {
+      const matchesTag = selectedTag === "ALL" || adventure.tags.some(
+        (tag) => tag.toUpperCase() === selectedTag,
+      );
+
+      if (!matchesTag) return false;
+      if (!needle) return true;
+
+      const haystack = [
+        adventure.title,
+        adventure.description,
+        generatedSynopsis(adventure),
+        ...adventure.tags,
+      ].join(" ").toLowerCase();
+
+      return haystack.includes(needle);
+    });
+  }, [visibleCatalog, catalogSearch, selectedTag]);
 
   const selectedHero = heroes.find(
     (hero) => hero.character_id === selectedHeroId,
   ) ?? null;
+
+  const primaryJourney = adventures.find((adventure) => !adventure.completed) ?? null;
 
   function inspectAdventure(adventure: AdventureCatalogItem) {
     if (!selectedHeroId) return;
@@ -165,15 +222,21 @@ export function GameHomePage() {
   return (
     <>
       <PageTitle
-        eyebrow="ADVENTURE HALL"
-        title="WHERE DOES THE TROUBLE START?"
+        eyebrow="PLAYER DASHBOARD"
+        title="WHAT HAPPENS NEXT?"
         actions={
           <>
             <span className={`network-badge ${connected ? "is-online" : "is-offline"}`}>
               {connected ? "STORY NETWORK ONLINE" : "PICKING UP THE SIGNAL_"}
             </span>
-            <Link className="button" to="/game/arcade">ARCADE LAB</Link>
-            <Link className="button" to="/game/heroes">MANAGE HEROES</Link>
+            {primaryJourney ? (
+              <Link
+                className="button button-primary"
+                to={`/game/adventure/${encodeURIComponent(primaryJourney.room_code)}?hero=${encodeURIComponent(primaryJourney.character_id)}`}
+              >
+                {primaryJourney.director_retry_required ? "RECOVER JOURNEY" : "CONTINUE JOURNEY"}
+              </Link>
+            ) : null}
           </>
         }
       />
@@ -189,32 +252,24 @@ export function GameHomePage() {
         </div>
       ) : null}
 
-      <section className="adventure-hall-grid">
-        <Panel title="YOUR ACTIVE JOURNEYS" className="journey-list-panel">
+      <section className="dashboard-command-grid">
+        <Panel title="CONTINUE JOURNEY" className="dashboard-journey-panel">
           {!directoryReady ? (
             <p className="muted-copy">CONSULTING THE ARCHIVE_</p>
           ) : null}
 
           {directoryReady && adventures.length === 0 ? (
-            <div className="empty-state">
-              <strong>NO JOURNEYS CURRENTLY UNDERWAY.</strong>
-              <span>That seems fixable.</span>
+            <div className="dashboard-empty-callout">
+              <span className="eyebrow">NO ACTIVE THREAD</span>
+              <strong>YOU ARE BETWEEN BAD DECISIONS.</strong>
+              <p>Pick an adventure below or join somebody else's room.</p>
             </div>
           ) : null}
 
-          <div className="journey-list">
-            {adventures.map((adventure) => {
-              const recoveryState = adventure.director_request_active
-                ? "DIRECTOR WORKING"
-                : adventure.director_retry_required
-                  ? "RECOVERY REQUIRED"
-                  : adventure.turn_pending
-                    ? "TURN FROZEN"
-                    : "READY";
-
-              return (
+          <div className="journey-list dashboard-journey-list">
+            {adventures.map((adventure) => (
               <article
-                className="journey-row"
+                className={`journey-row dashboard-journey-row ${adventure.director_retry_required ? "needs-recovery" : ""}`}
                 key={`${adventure.room_code}:${adventure.character_id}`}
               >
                 <Link
@@ -222,26 +277,26 @@ export function GameHomePage() {
                   to={`/game/adventure/${encodeURIComponent(adventure.room_code)}?hero=${encodeURIComponent(adventure.character_id)}`}
                 >
                   <div>
-                  <span className="eyebrow">
-                    {adventure.completed
-                      ? "SEALED CHRONICLE"
-                      : `TURN ${adventure.turn_number} // ${recoveryState}`}
-                  </span>
-                  <strong>{adventure.adventure_title}</strong>
-                  <small>{adventure.scene_title}</small>
+                    <span className="eyebrow">
+                      {adventure.completed
+                        ? "SEALED CHRONICLE"
+                        : `TURN ${adventure.turn_number} // ${journeyState(adventure)}`}
+                    </span>
+                    <strong>{adventure.adventure_title}</strong>
+                    <small>{adventure.scene_title}</small>
                   </div>
 
                   <div className="journey-row-meta">
                     <span>{adventure.character_name}</span>
-                    <span>{adventure.room_code}</span>
-                    <span>{adventure.play_mode.toUpperCase()}</span>
+                    <span>{adventure.play_mode.toUpperCase()} // {adventure.online_count}/{adventure.player_count} ONLINE</span>
+                    <span>ROOM {adventure.room_code}</span>
                   </div>
                 </Link>
 
                 {!adventure.completed ? (
                   <div className="journey-row-actions">
                     <Link
-                      className="button"
+                      className="button button-primary"
                       to={`/game/adventure/${encodeURIComponent(adventure.room_code)}?hero=${encodeURIComponent(adventure.character_id)}`}
                     >
                       {adventure.director_retry_required ? "RECOVER" : "RESUME"}
@@ -260,13 +315,154 @@ export function GameHomePage() {
                   </div>
                 ) : null}
               </article>
-              );
-            })}
+            ))}
           </div>
         </Panel>
 
-        <Panel title="JOIN BY ROOM CODE">
-          <div className="join-room-form">
+        <Panel title="YOUR HEROES" className="dashboard-hero-panel">
+          {heroes.length === 0 && !heroError ? (
+            <div className="dashboard-empty-callout">
+              <strong>NO HEROES YET.</strong>
+              <Link className="button button-primary" to="/game/heroes/new">CREATE YOUR FIRST HERO</Link>
+            </div>
+          ) : null}
+
+          <div className="dashboard-hero-stack">
+            {heroes.slice(0, 4).map((hero) => {
+              const busy = occupiedHeroIds.has(hero.character_id);
+              const points = advancementTotal(hero);
+              const selected = hero.character_id === selectedHeroId;
+
+              return (
+                <article className={`dashboard-hero-card ${selected ? "is-selected" : ""}`} key={hero.character_id}>
+                  <div className="dashboard-hero-copy">
+                    <span className="eyebrow">
+                      LVL {hero.level} // {busy ? "IN JOURNEY" : selected ? "SELECTED" : "AVAILABLE"}
+                    </span>
+                    <strong>{hero.name}</strong>
+                    <p>{hero.bio || "No background written yet."}</p>
+                  </div>
+                  <div className="dashboard-hero-vitals">
+                    <span>HP {hero.health}/{hero.max_health}</span>
+                    <span>XP {Math.round(hero.xp_progress_percent)}%</span>
+                    {points > 0 ? <b>{points} ADVANCEMENT WAITING</b> : null}
+                  </div>
+                  <div className="dashboard-hero-actions">
+                    {!busy ? (
+                      <button
+                        className={`button ${selected ? "button-primary" : ""}`}
+                        type="button"
+                        onClick={() => setSelectedHeroId(hero.character_id)}
+                      >
+                        {selected ? "ACTIVE HERO" : "PLAY AS"}
+                      </button>
+                    ) : null}
+                    <Link className="button" to={`/game/heroes/${encodeURIComponent(hero.character_id)}`}>
+                      OPEN SHEET
+                    </Link>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+
+          <Link className="dashboard-section-link" to="/game/heroes">
+            MANAGE ALL HEROES →
+          </Link>
+        </Panel>
+      </section>
+
+      <section className="dashboard-adventure-browser">
+        <div className="dashboard-section-header">
+          <div>
+            <span className="eyebrow">ADVENTURE LIBRARY</span>
+            <h2>FIND YOUR NEXT PROBLEM.</h2>
+            <p>Search the shelf, filter by flavor, then choose who is walking into it.</p>
+          </div>
+          <label className="catalog-hero-select">
+            <span>ENTER AS</span>
+            <select
+              value={selectedHeroId}
+              onChange={(event) => setSelectedHeroId(event.target.value)}
+              disabled={selectableHeroes.length === 0}
+            >
+              {selectableHeroes.map((hero) => (
+                <option value={hero.character_id} key={hero.character_id}>
+                  {hero.name} // LVL {hero.level}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        {heroes.length > 0 && selectableHeroes.length === 0 ? (
+          <div className="system-notice">
+            EVERY HERO YOU OWN IS ALREADY BUSY MAKING CONSEQUENCES.
+          </div>
+        ) : null}
+
+        <div className="catalog-toolbar">
+          <label className="catalog-search-field">
+            <span>SEARCH</span>
+            <input
+              type="search"
+              value={catalogSearch}
+              onChange={(event) => setCatalogSearch(event.target.value)}
+              placeholder="TITLE, SETTING, TAG, VIBE..."
+            />
+          </label>
+
+          <label className="catalog-filter-field">
+            <span>FILTER</span>
+            <select value={selectedTag} onChange={(event) => setSelectedTag(event.target.value)}>
+              {catalogTags.map((tag) => (
+                <option key={tag} value={tag}>{tag}</option>
+              ))}
+            </select>
+          </label>
+
+          <div className="catalog-result-count">
+            <span className="eyebrow">FOUND</span>
+            <strong>{filteredCatalog.length}</strong>
+          </div>
+        </div>
+
+        <div className="adventure-catalog-grid dashboard-adventure-grid">
+          {filteredCatalog.map((adventure) => (
+            <article className="adventure-card dashboard-adventure-card panel" key={adventure.adventure_id}>
+              <div className="panel-body">
+                <div className="adventure-card-tags">
+                  {(adventure.tags.length ? adventure.tags : ["ADVENTURE"]).slice(0, 4).map((tag) => (
+                    <span key={tag}>{tag.toUpperCase()}</span>
+                  ))}
+                </div>
+                <h3>{adventure.title}</h3>
+                <p>{generatedSynopsis(adventure)}</p>
+
+                <button
+                  className="button button-primary"
+                  type="button"
+                  disabled={!connected || !selectedHeroId}
+                  onClick={() => inspectAdventure(adventure)}
+                >
+                  VIEW ADVENTURE
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+
+        {directoryReady && filteredCatalog.length === 0 ? (
+          <div className="empty-state">
+            <strong>NOTHING MATCHED THAT SEARCH.</strong>
+            <span>Clear the search or change the filter.</span>
+          </div>
+        ) : null}
+      </section>
+
+      <section className="dashboard-lower-grid">
+        <Panel title="JOIN A FRIEND">
+          <div className="join-room-form dashboard-join-form">
             <label>
               <span>ENTER AS</span>
               <select
@@ -302,75 +498,18 @@ export function GameHomePage() {
             </button>
           </div>
         </Panel>
-      </section>
 
-      <section className="adventure-catalog-section">
-        <div className="section-heading">
-          <div>
-            <span className="eyebrow">AVAILABLE SIMULATIONS</span>
-            <h2>PICK A BAD IDEA.</h2>
-          </div>
-
-          <label className="catalog-hero-select">
-            <span>ENTER AS</span>
-            <select
-              value={selectedHeroId}
-              onChange={(event) => setSelectedHeroId(event.target.value)}
-              disabled={selectableHeroes.length === 0}
-            >
-              {selectableHeroes.map((hero) => (
-                <option value={hero.character_id} key={hero.character_id}>
-                  {hero.name} // LVL {hero.level}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-
-        {heroes.length === 0 && !heroError ? (
-          <div className="system-notice">
-            NO ONE HAS VOLUNTEERED FOR THIS YET.{" "}
-            <Link to="/game/heroes/new">CREATE A HERO →</Link>
-          </div>
-        ) : null}
-
-        {heroes.length > 0 && selectableHeroes.length === 0 ? (
-          <div className="system-notice">
-            EVERY HERO YOU OWN IS ALREADY BUSY MAKING CONSEQUENCES.
-          </div>
-        ) : null}
-
-        <div className="adventure-catalog-grid">
-          {visibleCatalog.map((adventure) => (
-            <article className="adventure-card panel" key={adventure.adventure_id}>
-              <div className="panel-body">
-                <div className="eyebrow">
-                  {adventure.tags.length
-                    ? adventure.tags.join(" // ").toUpperCase()
-                    : "ADVENTURE"}
-                </div>
-                <h3>{adventure.title}</h3>
-                <p>{adventure.description}</p>
-
-                <button
-                  className="button button-primary"
-                  type="button"
-                  disabled={!connected || !selectedHeroId}
-                  onClick={() => inspectAdventure(adventure)}
-                >
-                  OPEN SYNOPSIS
-                </button>
-              </div>
-            </article>
-          ))}
-        </div>
-
-        {directoryReady && visibleCatalog.length === 0 ? (
-          <div className="empty-state">
-            <strong>THE SHELF IS SUSPICIOUSLY EMPTY.</strong>
-            <span>No public adventure definitions are currently available.</span>
-          </div>
-        ) : null}
+        <Panel title="SYSTEM MENU" className="dashboard-system-panel">
+          <nav className="dashboard-system-menu" aria-label="Game tools">
+            <Link to="/game/history"><strong>CHRONICLES</strong><span>Completed journeys and sealed stories.</span></Link>
+            <Link to="/game/arcade"><strong>ARCADE</strong><span>Practice cabinets and intermission games.</span></Link>
+            <Link to="/game/rulebook"><strong>RULEBOOK</strong><span>Checks, XP, Talents and progression.</span></Link>
+            <Link to="/account"><strong>ACCOUNT</strong><span>Profile and account controls.</span></Link>
+            <Link to="/settings"><strong>SETTINGS</strong><span>Preferences and system options.</span></Link>
+            {canAuthor ? <a href="/author-console"><strong>AUTHOR</strong><span>Worlds, lore and adventure seeds.</span></a> : null}
+            {isAdmin ? <Link to="/admin"><strong>CONTROL ROOM</strong><span>Users, live rooms and site analytics.</span></Link> : null}
+          </nav>
+        </Panel>
       </section>
 
       {pendingAdventure ? (

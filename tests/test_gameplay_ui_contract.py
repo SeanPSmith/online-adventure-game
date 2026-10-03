@@ -317,3 +317,24 @@ def test_playtest_pass_21_adds_mobile_arcade_readability_finale_and_qte_resoluti
     assert ".intermission-runtime.is-action-game" in styles
     assert ".qte-resolution-callout" in styles
     assert ".finale-hero-grid" in styles
+
+
+def test_dashboard_pass_22_prioritizes_journey_hero_search_and_system_menu() -> None:
+    home = read("pages/game/GameHomePage.tsx")
+    layout = read("layouts/GameLayout.tsx")
+    styles = read("styles/components.css")
+    layout_styles = read("styles/layout.css")
+
+    assert 'title="WHAT HAPPENS NEXT?"' in home
+    assert 'title="CONTINUE JOURNEY"' in home
+    assert 'title="YOUR HEROES"' in home
+    assert 'ADVENTURE LIBRARY' in home
+    assert 'type="search"' in home
+    assert 'catalogSearch' in home
+    assert 'selectedTag' in home
+    assert 'title="SYSTEM MENU"' in home
+    assert 'CONTROL ROOM' in home
+    assert '<NavLink to="/game" end>HOME</NavLink>' in layout
+    assert 'className="header-system-menu"' in layout
+    assert '.dashboard-command-grid' in layout_styles
+    assert '.dashboard-system-menu' in styles

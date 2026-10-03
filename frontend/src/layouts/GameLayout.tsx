@@ -5,6 +5,7 @@ export function GameLayout() {
   const { user, logout } = useAuth();
   const location = useLocation();
   const canAuthor = user?.permissions.includes("author") ?? false;
+  const isAdmin = user?.permissions.includes("admin") ?? false;
   const isAdventureMode = location.pathname.startsWith("/game/adventure/");
 
   return (
@@ -18,16 +19,24 @@ export function GameLayout() {
           </span>
         </Link>
 
-        <nav className="header-nav game-nav">
-          <NavLink to="/game" end>ADVENTURES</NavLink>
+        <nav className="header-nav game-nav" aria-label="Primary navigation">
+          <NavLink to="/game" end>HOME</NavLink>
           <NavLink to="/game/heroes">HEROES</NavLink>
-          <NavLink to="/game/history">HISTORY</NavLink>
-          <NavLink to="/game/rulebook">RULEBOOK</NavLink>
-          {canAuthor ? <NavLink to="/author">AUTHOR</NavLink> : null}
-          <NavLink to="/account">ACCOUNT</NavLink>
-          <button className="button button-quiet" type="button" onClick={() => void logout()}>
-            LOG OUT
-          </button>
+          <NavLink to="/game/history">CHRONICLES</NavLink>
+          <details className="header-system-menu">
+            <summary>SYSTEM</summary>
+            <div className="header-system-popover">
+              <NavLink to="/game/arcade">ARCADE</NavLink>
+              <NavLink to="/game/rulebook">RULEBOOK</NavLink>
+              {canAuthor ? <a href="/author-console">AUTHOR</a> : null}
+              {isAdmin ? <NavLink to="/admin">CONTROL ROOM</NavLink> : null}
+              <NavLink to="/account">ACCOUNT</NavLink>
+              <NavLink to="/settings">SETTINGS</NavLink>
+              <button className="button button-quiet" type="button" onClick={() => void logout()}>
+                LOG OUT
+              </button>
+            </div>
+          </details>
         </nav>
 
         <div className="header-user">

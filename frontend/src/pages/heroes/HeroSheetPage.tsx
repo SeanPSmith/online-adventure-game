@@ -114,16 +114,13 @@ export function HeroSheetPage() {
     );
   }, [hero, rules]);
 
-  function nudgeSpend(
+  function queueSpend(
     kind: "stat" | "skill",
     key: string,
-    amount: number,
+    amount: number | "max",
   ) {
     if (!hero || !rules) return;
 
-    const spending = kind === "stat" ? statSpend : skillSpend;
-    const setSpending = kind === "stat" ? setStatSpend : setSkillSpend;
-    const cost = kind === "stat" ? statCost : skillCost;
     const available = kind === "stat"
       ? hero.unspent_stat_points
       : hero.unspent_skill_points;
@@ -133,17 +130,33 @@ export function HeroSheetPage() {
     const cap = kind === "stat"
       ? rules.advancement_stat_cap
       : rules.advancement_skill_cap;
+    const setSpending = kind === "stat" ? setStatSpend : setSkillSpend;
 
-    const currentSpend = spending[key] ?? 0;
-    const nextSpend = currentSpend + amount;
+    // Use the latest queued state instead of render-time totals. This makes
+    // repeated/rapid clicks safe and lets a player distribute several points
+    // across several Attributes/Skills before committing once.
+    setSpending((current) => {
+      const queuedTotal = Object.values(current).reduce((total, value) => total + value, 0);
+      const currentSpend = current[key] ?? 0;
+      const remainingPool = Math.max(0, available - queuedTotal);
+      const remainingCap = Math.max(0, cap - currentValue - currentSpend);
 
-    if (nextSpend < 0) return;
-    if (amount > 0 && cost >= available) return;
-    if (currentValue + nextSpend > cap) return;
+      let delta: number;
+      if (amount === "max") {
+        delta = Math.min(remainingPool, remainingCap);
+      } else if (amount > 0) {
+        delta = Math.min(amount, remainingPool, remainingCap);
+      } else {
+        delta = Math.max(amount, -currentSpend);
+      }
 
-    setSpending({
-      ...spending,
-      [key]: nextSpend,
+      if (delta === 0) return current;
+
+      const nextSpend = currentSpend + delta;
+      const next = { ...current };
+      if (nextSpend <= 0) delete next[key];
+      else next[key] = nextSpend;
+      return next;
     });
   }
 
@@ -197,6 +210,9 @@ export function HeroSheetPage() {
     }
   }
 
+  const remainingStatPoints = hero ? Math.max(0, hero.unspent_stat_points - statCost) : 0;
+  const remainingSkillPoints = hero ? Math.max(0, hero.unspent_skill_points - skillCost) : 0;
+  const remainingTalentPoints = hero ? Math.max(0, hero.unspent_talent_points - talentSpend.length) : 0;
   const advancementWaiting = hero
     ? hero.unspent_stat_points + hero.unspent_skill_points + hero.unspent_talent_points
     : 0;
@@ -281,9 +297,21 @@ export function HeroSheetPage() {
                   <small>{hero.xp_needed_for_next_level} XP TO LEVEL {hero.level + 1}</small>
                 </div>
                 <div className="hero-point-ledger">
-                  <div><span>ATTRIBUTE</span><strong>{hero.unspent_stat_points}</strong></div>
-                  <div><span>SKILL</span><strong>{hero.unspent_skill_points}</strong></div>
-                  <div><span>TALENT</span><strong>{hero.unspent_talent_points}</strong></div>
+                  <div>
+                    <span>ATTRIBUTE</span>
+                    <strong>{remainingStatPoints}</strong>
+                    <small>{statCost ? `${statCost} QUEUED` : "AVAILABLE"}</small>
+                  </div>
+                  <div>
+                    <span>SKILL</span>
+                    <strong>{remainingSkillPoints}</strong>
+                    <small>{skillCost ? `${skillCost} QUEUED` : "AVAILABLE"}</small>
+                  </div>
+                  <div>
+                    <span>TALENT</span>
+                    <strong>{remainingTalentPoints}</strong>
+                    <small>{talentSpend.length ? `${talentSpend.length} QUEUED` : "AVAILABLE"}</small>
+                  </div>
                 </div>
               </aside>
             </div>
@@ -303,11 +331,32 @@ export function HeroSheetPage() {
                     </div>
                     <SegmentedMeter value={value + pending} max={rules.advancement_stat_cap} />
                     <small>{definition.description}</small>
-                    {hero.unspent_stat_points > 0 ? (
+                    {(hero.unspent_stat_points > 0 || pending > 0) ? (
                       <div className="sheet-advance hero-advance-controls">
-                        <button type="button" aria-label={`Remove ${definition.label} point`} onClick={() => nudgeSpend("stat", definition.id, -1)}>−</button>
-                        <span>{pending ? `+${pending} QUEUED` : "ALLOCATE"}</span>
-                        <button type="button" aria-label={`Add ${definition.label} point`} onClick={() => nudgeSpend("stat", definition.id, 1)}>+</button>
+                        <button
+                          type="button"
+                          disabled={pending <= 0}
+                          aria-label={`Remove ${definition.label} point`}
+                          onClick={() => queueSpend("stat", definition.id, -1)}
+                        >−</button>
+                        <span>
+                          {pending ? `+${pending} QUEUED` : value >= rules.advancement_stat_cap ? "MAXED" : `${remainingStatPoints} LEFT`}
+                        </span>
+                        <div className="hero-advance-adders">
+                          <button
+                            type="button"
+                            disabled={remainingStatPoints <= 0 || value + pending >= rules.advancement_stat_cap}
+                            aria-label={`Add one ${definition.label} point`}
+                            onClick={() => queueSpend("stat", definition.id, 1)}
+                          >+1</button>
+                          <button
+                            type="button"
+                            className="hero-advance-max"
+                            disabled={remainingStatPoints <= 0 || value + pending >= rules.advancement_stat_cap}
+                            aria-label={`Add as many ${definition.label} points as possible`}
+                            onClick={() => queueSpend("stat", definition.id, "max")}
+                          >MAX</button>
+                        </div>
                       </div>
                     ) : null}
                   </article>
@@ -338,11 +387,32 @@ export function HeroSheetPage() {
                             <b>{value}{pending ? <em>+{pending}</em> : null}</b>
                           </div>
                           <SegmentedMeter value={value + pending} max={rules?.advancement_skill_cap ?? 6} />
-                          {hero.unspent_skill_points > 0 ? (
+                          {(hero.unspent_skill_points > 0 || pending > 0) ? (
                             <div className="sheet-advance hero-skill-advance">
-                              <button type="button" aria-label={`Remove ${definition.label} point`} onClick={() => nudgeSpend("skill", definition.id, -1)}>−</button>
-                              <span>{pending ? `+${pending} QUEUED` : "ALLOCATE"}</span>
-                              <button type="button" aria-label={`Add ${definition.label} point`} onClick={() => nudgeSpend("skill", definition.id, 1)}>+</button>
+                              <button
+                                type="button"
+                                disabled={pending <= 0}
+                                aria-label={`Remove ${definition.label} point`}
+                                onClick={() => queueSpend("skill", definition.id, -1)}
+                              >−</button>
+                              <span>
+                                {pending ? `+${pending} QUEUED` : value >= (rules?.advancement_skill_cap ?? 6) ? "MAXED" : `${remainingSkillPoints} LEFT`}
+                              </span>
+                              <div className="hero-advance-adders">
+                                <button
+                                  type="button"
+                                  disabled={remainingSkillPoints <= 0 || value + pending >= (rules?.advancement_skill_cap ?? 6)}
+                                  aria-label={`Add one ${definition.label} point`}
+                                  onClick={() => queueSpend("skill", definition.id, 1)}
+                                >+1</button>
+                                <button
+                                  type="button"
+                                  className="hero-advance-max"
+                                  disabled={remainingSkillPoints <= 0 || value + pending >= (rules?.advancement_skill_cap ?? 6)}
+                                  aria-label={`Add as many ${definition.label} points as possible`}
+                                  onClick={() => queueSpend("skill", definition.id, "max")}
+                                >MAX</button>
+                              </div>
                             </div>
                           ) : null}
                         </div>
@@ -377,7 +447,7 @@ export function HeroSheetPage() {
               <div className="talent-available">
                 <div className="hero-talent-choice-heading">
                   <span className="eyebrow">AVAILABLE TALENTS</span>
-                  <strong>{hero.unspent_talent_points - talentSpend.length} POINTS REMAIN</strong>
+                  <strong>{remainingTalentPoints} POINTS REMAIN</strong>
                 </div>
                 <div className="talent-grid hero-talent-grid">
                   {availableTalents.map((talent) => {
@@ -409,14 +479,28 @@ export function HeroSheetPage() {
                 <strong>{pendingAdvancement} TOTAL CHANGES</strong>
                 <small>{statCost} ATTRIBUTE // {skillCost} SKILL // {talentSpend.length} TALENT</small>
               </div>
-              <button
-                className="button button-primary"
-                type="button"
-                disabled={working}
-                onClick={() => void commitAdvancement()}
-              >
-                {working ? "UPDATING THE RECORD_" : "COMMIT ADVANCEMENT"}
-              </button>
+              <div className="hero-advancement-actions">
+                <button
+                  className="button"
+                  type="button"
+                  disabled={working}
+                  onClick={() => {
+                    setStatSpend({});
+                    setSkillSpend({});
+                    setTalentSpend([]);
+                  }}
+                >
+                  RESET QUEUE
+                </button>
+                <button
+                  className="button button-primary"
+                  type="button"
+                  disabled={working}
+                  onClick={() => void commitAdvancement()}
+                >
+                  {working ? "UPDATING THE RECORD_" : "COMMIT ADVANCEMENT"}
+                </button>
+              </div>
             </div>
           ) : null}
 

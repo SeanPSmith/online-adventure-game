@@ -5115,3 +5115,84 @@ select:focus-visible {
   color: var(--text);
   font-size: inherit;
 }
+
+/* =========================================================
+   PASS 24 // ADVANCEMENT ALLOCATION QUEUE
+   ========================================================= */
+.hero-point-ledger > div {
+  align-content: start;
+}
+
+.hero-point-ledger small {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-dim);
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.hero-advance-controls,
+.hero-skill-advance {
+  gap: 8px;
+}
+
+.hero-advance-adders {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.hero-advance-adders button {
+  width: auto;
+  min-width: 38px;
+  padding: 0 8px;
+}
+
+.hero-advance-adders .hero-advance-max {
+  min-width: 48px;
+  font-size: 8px;
+  letter-spacing: 0.06em;
+}
+
+.sheet-advance button:disabled {
+  cursor: not-allowed;
+  border-color: var(--green-line-dim);
+  color: var(--text-dim);
+  opacity: 0.38;
+}
+
+.sheet-advance button:not(:disabled):hover,
+.sheet-advance button:not(:disabled):focus-visible {
+  border-color: var(--green);
+  background: rgba(72, 255, 112, 0.12);
+  outline: none;
+}
+
+.hero-advancement-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 680px) {
+  .hero-advance-controls,
+  .hero-skill-advance {
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+
+  .hero-advance-controls > span,
+  .hero-skill-advance > span {
+    flex: 1 1 auto;
+    min-width: 80px;
+    display: flex;
+    align-items: center;
+  }
+
+  .hero-advance-adders {
+    margin-left: auto;
+  }
+}

@@ -31,3 +31,15 @@ def test_director_receives_authored_bio_and_talents():
     assert '"bio"' in source
     assert 'data["talents"]' in source
     assert "player-authored Hero canon" in source
+
+
+def test_character_sheet_advancement_queue_supports_multi_point_allocations():
+    source = read("frontend/src/pages/heroes/HeroSheetPage.tsx")
+    assert "remainingStatPoints" in source
+    assert "remainingSkillPoints" in source
+    assert "setSpending((current) =>" in source
+    assert 'queueSpend("stat", definition.id, "max")' in source
+    assert 'queueSpend("skill", definition.id, "max")' in source
+    assert "RESET QUEUE" in source
+    assert ">+1</button>" in source
+    assert ">MAX</button>" in source

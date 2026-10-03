@@ -1,6 +1,7 @@
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import type { QuickEvent } from "../../services/game";
@@ -14,13 +15,6 @@ interface QuickEventModalProps {
   onChoose: (optionId: string) => void;
 }
 
-function remainingMilliseconds(event: QuickEvent) {
-  return Math.max(
-    0,
-    Number(event.expires_at_ms || 0) - Date.now(),
-  );
-}
-
 export function QuickEventModal({
   event,
   resolution,
@@ -30,36 +24,53 @@ export function QuickEventModal({
   onChoose,
 }: QuickEventModalProps) {
   const activeEvent = event ?? resolution;
-  const [remainingMs, setRemainingMs] = useState(
-    activeEvent ? remainingMilliseconds(activeEvent) : 0,
-  );
+  const [timer, setTimer] = useState({ eventId: "", remainingMs: 0 });
   const [submitting, setSubmitting] = useState(false);
+  const timedOutEventRef = useRef<string | null>(null);
+
+  const durationMs = Math.max(
+    1000,
+    Number(event?.timeout_seconds ?? 9) * 1000,
+  );
+
+  const remainingMs = event
+    ? timer.eventId === event.id
+      ? timer.remainingMs
+      : durationMs
+    : 0;
 
   useEffect(() => {
     setSubmitting(false);
+    timedOutEventRef.current = null;
 
     if (!event) {
-      setRemainingMs(0);
+      setTimer({ eventId: "", remainingMs: 0 });
       return;
     }
 
+    // IMPORTANT: the server schedules this event while the previous turn's
+    // resolution theater may still be on screen. The playable clock therefore
+    // starts HERE, when the QTE is actually rendered, not at server creation.
+    const startedAt = Date.now();
+    const duration = Math.max(
+      1000,
+      Number(event.timeout_seconds ?? 9) * 1000,
+    );
+
     const update = () => {
-      setRemainingMs(
-        remainingMilliseconds(event),
-      );
+      setTimer({
+        eventId: event.id,
+        remainingMs: Math.max(0, duration - (Date.now() - startedAt)),
+      });
     };
 
-    update();
-
-    const intervalId = window.setInterval(
-      update,
-      50,
-    );
+    setTimer({ eventId: event.id, remainingMs: duration });
+    const intervalId = window.setInterval(update, 50);
 
     return () => {
       window.clearInterval(intervalId);
     };
-  }, [event?.id, event?.expires_at_ms]);
+  }, [event?.id, event?.timeout_seconds]);
 
   const responseCount = Object.keys(
     event?.responses ?? {},
@@ -76,11 +87,6 @@ export function QuickEventModal({
 
   const timedOut = Boolean(
     event && remainingMs <= 0,
-  );
-
-  const durationMs = Math.max(
-    1,
-    Number(event?.timeout_seconds ?? 4) * 1000,
   );
 
   const remainingRatio = Math.max(
@@ -101,10 +107,6 @@ export function QuickEventModal({
     return "safe";
   }, [remainingRatio]);
 
-  if (!activeEvent) {
-    return null;
-  }
-
   const showingResolution = Boolean(
     !event && resolution,
   );
@@ -121,6 +123,67 @@ export function QuickEventModal({
 
     setSubmitting(true);
     onChoose(optionId);
+  }
+
+  useEffect(() => {
+    if (
+      !event ||
+      showingResolution ||
+      submitting ||
+      alreadyAnswered ||
+      remainingMs > 0 ||
+      timedOutEventRef.current === event.id
+    ) {
+      return;
+    }
+
+    // Timeout is a real response, not a dead-end UI state. Sending it lets the
+    // server resolve the micro-event and guarantees normal story choices return.
+    timedOutEventRef.current = event.id;
+    setSubmitting(true);
+    onChoose("__timeout__");
+  }, [
+    event,
+    showingResolution,
+    submitting,
+    alreadyAnswered,
+    remainingMs,
+    onChoose,
+  ]);
+
+  useEffect(() => {
+    if (
+      !event ||
+      showingResolution ||
+      submitting ||
+      alreadyAnswered ||
+      timedOut
+    ) {
+      return;
+    }
+
+    const onKeyDown = (keyboardEvent: KeyboardEvent) => {
+      const first = event.options[0];
+      const second = event.options[1];
+      const key = keyboardEvent.key.toLowerCase();
+
+      if ((key === "1" || key === "arrowleft" || key === "a") && first) {
+        keyboardEvent.preventDefault();
+        choose(first.id);
+      }
+
+      if ((key === "2" || key === "arrowright" || key === "d") && second) {
+        keyboardEvent.preventDefault();
+        choose(second.id);
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [event, showingResolution, submitting, alreadyAnswered, timedOut]);
+
+  if (!activeEvent) {
+    return null;
   }
 
   return (
@@ -143,16 +206,21 @@ export function QuickEventModal({
         </div>
 
         {!showingResolution ? (
-          <div
-            className={`qte-timer is-${timerState}`}
-            aria-label={`${secondsText} seconds remaining`}
-          >
-            <span
-              style={{
-                width: `${remainingRatio * 100}%`,
-              }}
-            />
-          </div>
+          <>
+            <div
+              className={`qte-timer is-${timerState}`}
+              aria-label={`${secondsText} seconds remaining`}
+            >
+              <span
+                style={{
+                  width: `${remainingRatio * 100}%`,
+                }}
+              />
+            </div>
+            <div className="qte-reaction-track" aria-hidden="true">
+              <span />
+            </div>
+          </>
         ) : null}
 
         <div className="qte-body">
@@ -166,6 +234,17 @@ export function QuickEventModal({
             {activeEvent.title || "QUICK EVENT"}
           </h2>
 
+          {(activeEvent.scene_title || activeEvent.story_context) ? (
+            <div className="qte-story-context">
+              {activeEvent.scene_title ? (
+                <strong>{activeEvent.scene_title}</strong>
+              ) : null}
+              {activeEvent.story_context ? (
+                <span>{activeEvent.story_context}</span>
+              ) : null}
+            </div>
+          ) : null}
+
           <p>
             {showingResolution
               ? activeEvent.resolution
@@ -175,7 +254,7 @@ export function QuickEventModal({
 
         {!showingResolution ? (
           <div className="qte-options">
-            {activeEvent.options.map((option) => (
+            {activeEvent.options.map((option, index) => (
               <button
                 className="qte-option"
                 type="button"
@@ -187,6 +266,9 @@ export function QuickEventModal({
                 }
                 onClick={() => choose(option.id)}
               >
+                <span className="qte-option-key">
+                  {index + 1}
+                </span>
                 <strong>{option.label}</strong>
                 <span>{option.description}</span>
               </button>
@@ -198,14 +280,14 @@ export function QuickEventModal({
           {showingResolution
             ? "STORY FACT RECORDED_"
             : timedOut
-              ? "TIME // THE MOMENT PASSED_"
+              ? "TIME // REACTION MISSED // RESOLVING_"
               : alreadyAnswered
                 ? playMode === "solo"
                   ? "REACTION LOCKED // RESOLVING_"
                   : `REACTION LOCKED // WAITING FOR PARTNER (${responseCount}/${Math.max(1, requiredResponses)})_`
                 : submitting
                   ? "LOCKING REACTION_"
-                  : "CHOOSE YOUR INSTINCT // THIS DOES NOT USE A FULL TURN_"}
+                  : "1 / A / ←   OR   2 / D / →   // CLICK OR TAP ALSO WORKS_"}
         </footer>
       </section>
     </div>

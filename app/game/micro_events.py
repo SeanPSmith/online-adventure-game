@@ -7,7 +7,9 @@ from typing import Any
 
 
 MICRO_EVENT_CADENCE = 3
-MICRO_EVENT_TIMEOUT_SECONDS = 4.0
+# The quick event clock begins when the modal is actually shown to the player,
+# not when the server schedules it behind the turn-resolution theater.
+MICRO_EVENT_TIMEOUT_SECONDS = 9.0
 MAX_MICRO_EVENT_HISTORY = 8
 
 
@@ -15,6 +17,14 @@ def _clean_text(value: Any) -> str:
     if isinstance(value, str):
         return " ".join(value.split()).strip()
     return ""
+
+
+def _clip(value: Any, limit: int = 180) -> str:
+    text = _clean_text(value)
+    if len(text) <= limit:
+        return text
+    clipped = text[: max(1, limit - 1)].rsplit(" ", 1)[0].strip()
+    return f"{clipped}…" if clipped else text[:limit]
 
 
 def _first_story_hint(story_state: dict[str, Any]) -> str:
@@ -40,6 +50,44 @@ def _first_story_hint(story_state: dict[str, Any]) -> str:
     return "what just changed"
 
 
+def _story_context(
+    *,
+    scene_title: str,
+    scene_body: str,
+    last_resolution: str,
+    story_state: dict[str, Any],
+) -> str:
+    """Return a short, player-facing anchor pulled from the actual story."""
+
+    goal = _clean_text(story_state.get("current_goal"))
+    threat = ""
+    values = story_state.get("active_threats", [])
+    if isinstance(values, list):
+        for item in values:
+            if isinstance(item, dict):
+                threat = next(
+                    (
+                        _clean_text(item.get(field))
+                        for field in ("name", "title", "description", "summary")
+                        if _clean_text(item.get(field))
+                    ),
+                    "",
+                )
+            else:
+                threat = _clean_text(item)
+            if threat:
+                break
+
+    candidates = [
+        goal,
+        threat,
+        last_resolution,
+        scene_body,
+        scene_title,
+    ]
+    return _clip(next((value for value in candidates if _clean_text(value)), "the situation shifts"), 190)
+
+
 def should_schedule_micro_event(*, resolved_turn_number: int, completed: bool, wrap_up_active: bool) -> bool:
     """Return True on a deliberately sparse, predictable cadence.
 
@@ -57,10 +105,27 @@ def should_schedule_micro_event(*, resolved_turn_number: int, completed: bool, w
     )
 
 
-def build_micro_event(*, room_code: str, resolved_turn_number: int, scene_title: str, story_state: dict[str, Any]) -> dict[str, Any]:
-    """Create a deterministic, no-model micro-event from current story facts."""
+def build_micro_event(
+    *,
+    room_code: str,
+    resolved_turn_number: int,
+    scene_title: str,
+    story_state: dict[str, Any],
+    scene_body: str = "",
+    last_resolution: str = "",
+) -> dict[str, Any]:
+    """Create a deterministic, no-model quick event from current story facts."""
 
     hint = _first_story_hint(story_state)
+    context = _story_context(
+        scene_title=scene_title,
+        scene_body=scene_body,
+        last_resolution=last_resolution,
+        story_state=story_state,
+    )
+    scene_label = _clean_text(scene_title) or "THE CURRENT SCENE"
+    short_hint = _clip(hint, 105)
+
     seed = f"{room_code}|{resolved_turn_number}|{scene_title}|{hint}".encode("utf-8")
     variant = int(sha256(seed).hexdigest()[:8], 16) % 4
     event_id = f"micro_{resolved_turn_number}_{sha256(seed).hexdigest()[:8]}"
@@ -69,20 +134,20 @@ def build_micro_event(*, room_code: str, resolved_turn_number: int, scene_title:
         {
             "kind": "quick_reaction",
             "title": "QUICK REACTION",
-            "prompt": "The situation shifts before anyone has time to make a full plan. What does your Hero do first?",
+            "prompt": f"{scene_label}: {context} You have seconds, not a full plan. What does your Hero do first?",
             "options": [
                 {
                     "id": "act_now",
-                    "label": "ACT NOW",
-                    "description": "Move on instinct before the moment closes.",
-                    "result": "You commit before the hesitation can win.",
+                    "label": "MOVE FIRST",
+                    "description": f"Commit immediately and push into the opening around {short_hint}.",
+                    "result": f"You move first, forcing the situation around {short_hint} to react to you.",
                     "tag": "decisive",
                 },
                 {
                     "id": "hold_ground",
-                    "label": "HOLD GROUND",
-                    "description": "Refuse the bait and watch what changes next.",
-                    "result": "You hold position and force the moment to reveal itself.",
+                    "label": "READ THE ROOM",
+                    "description": f"Hold for one heartbeat and watch how {short_hint} changes.",
+                    "result": f"You hold just long enough to read the next change around {short_hint}.",
                     "tag": "watchful",
                 },
             ],
@@ -90,20 +155,20 @@ def build_micro_event(*, room_code: str, resolved_turn_number: int, scene_title:
         {
             "kind": "gut_check",
             "title": "GUT CHECK",
-            "prompt": f"Something about {hint[:110]} feels wrong in a way the room cannot quite explain. Which instinct wins?",
+            "prompt": f"Something about {short_hint} feels wrong before you can explain why. Which instinct wins?",
             "options": [
                 {
                     "id": "trust_instinct",
                     "label": "TRUST THE FEELING",
-                    "description": "Treat the bad feeling as useful information.",
-                    "result": "You mark the unease as a clue instead of dismissing it.",
+                    "description": f"Treat your reaction to {short_hint} as a warning worth following.",
+                    "result": f"You trust the warning in your gut and treat {short_hint} as meaningful.",
                     "tag": "instinct",
                 },
                 {
                     "id": "push_through",
-                    "label": "PUSH THROUGH",
-                    "description": "Do not let uncertainty take control of the tempo.",
-                    "result": "You keep moving and refuse to surrender momentum.",
+                    "label": "KEEP MOVING",
+                    "description": f"Do not let uncertainty about {short_hint} steal the tempo.",
+                    "result": f"You push through the uncertainty around {short_hint} and keep momentum.",
                     "tag": "momentum",
                 },
             ],
@@ -111,20 +176,20 @@ def build_micro_event(*, room_code: str, resolved_turn_number: int, scene_title:
         {
             "kind": "found_something",
             "title": "FOUND SOMETHING",
-            "prompt": "In the fallout from the last beat, one small detail catches your eye. It may matter. It may be bait.",
+            "prompt": f"In {scene_label}, a detail connected to {short_hint} suddenly looks important. It may be a clue. It may be bait.",
             "options": [
                 {
                     "id": "take_it",
-                    "label": "TAKE IT",
-                    "description": "Keep the suspicious detail close for later.",
-                    "result": "You pocket the detail and make it part of the party's story.",
+                    "label": "GRAB THE DETAIL",
+                    "description": "Keep it close before the scene changes again.",
+                    "result": f"You claim the suspicious detail tied to {short_hint} before it can disappear.",
                     "tag": "kept_clue",
                 },
                 {
                     "id": "leave_it",
-                    "label": "LEAVE IT",
-                    "description": "Do not touch what the scene seems too eager to offer.",
-                    "result": "You leave it where it is and remember exactly where you saw it.",
+                    "label": "MARK IT & MOVE",
+                    "description": "Leave it untouched, but memorize exactly where and how it appeared.",
+                    "result": f"You leave the detail tied to {short_hint} untouched and remember it precisely.",
                     "tag": "left_clue",
                 },
             ],
@@ -132,20 +197,20 @@ def build_micro_event(*, room_code: str, resolved_turn_number: int, scene_title:
         {
             "kind": "split_second",
             "title": "SPLIT SECOND",
-            "prompt": "There is a heartbeat of silence between the danger you understood and whatever comes next.",
+            "prompt": f"The beat around {short_hint} opens for only a moment. Where do you put yourself?",
             "options": [
                 {
                     "id": "close_distance",
-                    "label": "CLOSE THE DISTANCE",
-                    "description": "Stay near the problem instead of giving it room.",
-                    "result": "You move closer and make yourself part of the next exchange.",
+                    "label": "CLOSE IN",
+                    "description": f"Get nearer to {short_hint} before the opening disappears.",
+                    "result": f"You close the distance to {short_hint} and make yourself part of what happens next.",
                     "tag": "pressed_forward",
                 },
                 {
                     "id": "make_space",
-                    "label": "MAKE SPACE",
-                    "description": "Create room to react before the next thing happens.",
-                    "result": "You buy yourself a little breathing room and a better angle.",
+                    "label": "CREATE SPACE",
+                    "description": f"Back off just enough to get a better angle on {short_hint}.",
+                    "result": f"You create space around {short_hint} and buy yourself a better angle.",
                     "tag": "made_space",
                 },
             ],
@@ -154,7 +219,12 @@ def build_micro_event(*, room_code: str, resolved_turn_number: int, scene_title:
 
     template = deepcopy(templates[variant])
     created_at_ms = int(time() * 1000)
-    expires_at_ms = created_at_ms + int(MICRO_EVENT_TIMEOUT_SECONDS * 1000)
+
+    # expires_at_ms remains only for backward compatibility with older clients.
+    # The current React client starts its playable countdown when the modal is
+    # actually visible. Give stale clients a generous grace window so a cached
+    # frontend cannot instantly expire an event scheduled behind the theater.
+    expires_at_ms = created_at_ms + (5 * 60 * 1000)
 
     return {
         "id": event_id,
@@ -163,6 +233,7 @@ def build_micro_event(*, room_code: str, resolved_turn_number: int, scene_title:
         "expires_at_ms": expires_at_ms,
         "timeout_seconds": MICRO_EVENT_TIMEOUT_SECONDS,
         "scene_title": _clean_text(scene_title),
+        "story_context": context,
         "kind": template["kind"],
         "title": template["title"],
         "prompt": template["prompt"],
@@ -187,6 +258,7 @@ def public_micro_event(event: dict[str, Any] | None) -> dict[str, Any] | None:
             or MICRO_EVENT_TIMEOUT_SECONDS
         ),
         "scene_title": _clean_text(event.get("scene_title")),
+        "story_context": _clean_text(event.get("story_context")),
         "kind": _clean_text(event.get("kind")),
         "title": _clean_text(event.get("title")) or "QUICK EVENT",
         "prompt": _clean_text(event.get("prompt")),
@@ -257,6 +329,7 @@ def resolve_micro_event(*, event: dict[str, Any], response_names: dict[str, str]
         "kind": _clean_text(event.get("kind")),
         "title": _clean_text(event.get("title")),
         "prompt": _clean_text(event.get("prompt")),
+        "story_context": _clean_text(event.get("story_context")),
         "outcomes": outcomes,
         "resolution": resolution,
     }

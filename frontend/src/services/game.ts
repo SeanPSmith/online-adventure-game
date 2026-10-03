@@ -287,6 +287,7 @@ export interface QuickEvent {
   expires_at_ms: number;
   timeout_seconds: number;
   scene_title: string;
+  story_context: string;
   kind: string;
   title: string;
   prompt: string;
@@ -440,6 +441,7 @@ export interface ServerToClientEvents {
 }
 
 export interface ClientToServerEvents {
+  request_adventure_catalog: (payload?: Record<string, never>) => void;
   create_room: (payload: { character_id: string; adventure_id: string }) => void;
   join_room: (payload: { character_id: string; room_code: string }) => void;
   resume_adventure: (payload: { room_code: string; character_id: string }) => void;

@@ -770,7 +770,7 @@ export function AdventurePage() {
         playerId={live.playerId}
         requiredResponses={
           live.game?.readiness.filter(
-            (player) => player.online || player.ready,
+            (player) => player.online,
           ).length ?? 1
         }
         playMode={live.game?.play_mode}

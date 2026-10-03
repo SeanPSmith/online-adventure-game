@@ -3898,3 +3898,88 @@
   }
 }
 
+
+/* =========================================================
+   QUICK EVENT / QTE — RELIABILITY + STORY CONTEXT PASS
+========================================================= */
+
+.qte-reaction-track {
+  position: relative;
+  height: 14px;
+  border-bottom: 1px solid var(--green-line-dim);
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(55, 255, 110, 0.04) 0,
+      rgba(55, 255, 110, 0.04) 12px,
+      transparent 12px,
+      transparent 24px
+    );
+  overflow: hidden;
+}
+
+.qte-reaction-track > span {
+  position: absolute;
+  top: 2px;
+  left: 0;
+  width: 26px;
+  height: 8px;
+  background: var(--green);
+  box-shadow: 0 0 10px rgba(55, 255, 110, 0.45);
+  animation: qte-sweep 1050ms ease-in-out infinite alternate;
+}
+
+@keyframes qte-sweep {
+  from { left: 0; }
+  to { left: calc(100% - 26px); }
+}
+
+.qte-story-context {
+  margin: 12px 0;
+  border-left: 3px solid var(--green-line);
+  background: rgba(55, 255, 110, 0.045);
+  padding: 10px 12px;
+}
+
+.qte-story-context strong,
+.qte-story-context span {
+  display: block;
+}
+
+.qte-story-context strong {
+  margin-bottom: 5px;
+  color: var(--green);
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.qte-story-context span {
+  color: var(--text);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.qte-option {
+  position: relative;
+}
+
+.qte-option-key {
+  position: absolute;
+  top: 8px;
+  right: 9px;
+  min-width: 24px;
+  border: 1px solid currentColor;
+  padding: 2px 5px;
+  text-align: center;
+  font-size: 9px;
+  font-weight: 900;
+  opacity: 0.7;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qte-reaction-track > span {
+    animation: none !important;
+    left: calc(50% - 13px);
+  }
+}

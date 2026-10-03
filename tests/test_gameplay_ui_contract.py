@@ -260,3 +260,23 @@ def test_gameplay_ui_consolidation_prioritizes_story_hero_dice_and_compact_chat(
     assert "is-adventure-mode" in layout
     assert ".adventure-command-strip" in styles
     assert ".segmented-meter" in styles
+
+
+def test_qte_recovery_pass_starts_visible_timer_and_keeps_story_context() -> None:
+    modal = read("features/adventure/QuickEventModal.tsx")
+    styles = read("styles/components.css")
+    game = read("services/game.ts")
+    home = read("pages/game/GameHomePage.tsx")
+    socket_context = read("state/GameSocketContext.tsx")
+
+    assert 'onChoose("__timeout__")' in modal
+    assert "when the QTE is actually rendered" in modal
+    assert "qte-reaction-track" in modal
+    assert "qte-story-context" in modal
+    assert 'key === "arrowleft"' in modal
+    assert 'key === "arrowright"' in modal
+    assert ".qte-reaction-track" in styles
+    assert "story_context: string" in game
+    assert "request_adventure_catalog" in game
+    assert "refreshCatalog();" in home
+    assert 'socket.emit("request_adventure_catalog"' in socket_context

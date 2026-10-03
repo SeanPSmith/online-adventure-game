@@ -323,19 +323,7 @@ class AdventureGenerationService:
         )
 
 
-        if (
-            adventure_registry.exists(
-                runtime_id
-            )
-        ):
-
-            # Keep the runtime definition alive for any room
-            # already using it. On the next server restart only
-            # approved generated adventures are re-registered.
-            pass
-
-
-        return (
+        updated = (
             await generated_adventure_store
             .set_status(
 
@@ -346,6 +334,22 @@ class AdventureGenerationService:
                     "retired",
             )
         )
+
+
+        if (
+            adventure_registry.exists(
+                runtime_id
+            )
+        ):
+
+            # Existing rooms retain their AdventureDefinition reference, but
+            # player discovery must stop advertising a retired seed now rather
+            # than waiting for the next process restart.
+            runtime_adventure = adventure_registry.get(runtime_id)
+            runtime_adventure.metadata["catalog_visible"] = False
+
+
+        return updated
 
 
     def register_runtime_adventure(
@@ -371,6 +375,7 @@ class AdventureGenerationService:
             )
         ):
 
+            adventure_registry.get(runtime_id).metadata["catalog_visible"] = True
             return runtime_id
 
 

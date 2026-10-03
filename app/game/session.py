@@ -1405,6 +1405,8 @@ class GameSessionManager:
             room_code=room_code,
             resolved_turn_number=resolved_turn_number,
             scene_title=session.scene.title,
+            scene_body=session.scene.body,
+            last_resolution=str(session.last_resolution or ""),
             story_state=dict(session.story_state),
         )
         session.pending_micro_event = event
@@ -1427,6 +1429,8 @@ class GameSessionManager:
         if not isinstance(event, dict) or not event:
             raise ValueError("There is no quick event waiting for a response.")
 
+        timeout_response = str(option_id) == "__timeout__"
+
         option = next(
             (
                 item
@@ -1437,7 +1441,7 @@ class GameSessionManager:
             None,
         )
 
-        if option is None:
+        if option is None and not timeout_response:
             raise ValueError("That quick-event response is not available.")
 
         responses = event.setdefault("responses", {})

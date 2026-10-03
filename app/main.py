@@ -785,6 +785,9 @@ def build_adventure_catalog(
         adventure_registry.all()
     ):
 
+        if adventure.metadata.get("catalog_visible", True) is False:
+            continue
+
         catalog.append(
             {
                 "adventure_id":
@@ -836,6 +839,24 @@ async def send_adventure_catalog(
         to=
             sid,
     )
+
+
+
+
+@sio.event
+async def request_adventure_catalog(
+    sid,
+    data=None,
+):
+
+    user = await require_socket_user(
+        sid,
+        error_event="room_error",
+    )
+    if user is None:
+        return
+
+    await send_adventure_catalog(sid)
 
 
 # =========================================================
@@ -2025,6 +2046,19 @@ async def create_room(
                 sid,
         )
 
+        return
+
+
+    requested_adventure = adventure_registry.get(adventure_id)
+    if requested_adventure.metadata.get("catalog_visible", True) is False:
+        await sio.emit(
+            "room_error",
+            {
+                "message":
+                    "That adventure has been retired and cannot start a new journey."
+            },
+            to=sid,
+        )
         return
 
 
@@ -4300,7 +4334,17 @@ async def submit_micro_event_choice(
         for player_id, character in characters.items()
         if bool(getattr(character, "is_alive", character.health > 0))
         and int(character.health or 0) > 0
+        and (
+            room.players.get(player_id) is None
+            or room.players[player_id].is_online
+        )
     ]
+
+    # A quick event must never wedge the story waiting on an offline partner.
+    # The submitting socket is authoritative proof that this player is here,
+    # so always retain them even if presence bookkeeping is a beat behind.
+    if player.player_id not in required_player_ids:
+        required_player_ids.append(player.player_id)
 
     try:
         event, completed = game_sessions.submit_micro_event_choice(

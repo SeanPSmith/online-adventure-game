@@ -384,6 +384,12 @@ def build_director_runtime_adventure(
 
             "player_synopsis":
                 player_synopsis,
+
+            # Generated adventures remain registered for already-running
+            # rooms, but retirement can remove them from player discovery
+            # immediately without breaking those live session references.
+            "catalog_visible":
+                True,
         },
     )
 

@@ -27,6 +27,7 @@ interface GameSocketContextValue {
   directoryReady: boolean;
   latestError: string;
   clearError: () => void;
+  refreshCatalog: () => void;
   createRoom: (characterId: string, adventureId: string) => void;
   joinRoom: (characterId: string, roomCode: string) => void;
   startSolo: (roomCode: string) => void;
@@ -115,6 +116,12 @@ export function GameSocketProvider({ children }: { children: ReactNode }) {
     };
   }, [authenticated]);
 
+  const refreshCatalog = useCallback(() => {
+    const socket = getGameSocket();
+    if (!socket.connected) return;
+    socket.emit("request_adventure_catalog", {});
+  }, []);
+
   const createRoom = useCallback((characterId: string, adventureId: string) => {
     setLatestError("");
     getGameSocket().emit("create_room", {
@@ -164,6 +171,7 @@ export function GameSocketProvider({ children }: { children: ReactNode }) {
       directoryReady,
       latestError,
       clearError,
+      refreshCatalog,
       createRoom,
       joinRoom,
       startSolo,
@@ -179,6 +187,7 @@ export function GameSocketProvider({ children }: { children: ReactNode }) {
       directoryReady,
       latestError,
       clearError,
+      refreshCatalog,
       createRoom,
       joinRoom,
       startSolo,

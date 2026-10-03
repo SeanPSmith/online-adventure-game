@@ -35,6 +35,7 @@ export function GameHomePage() {
     directoryReady,
     latestError,
     clearError,
+    refreshCatalog,
     createRoom,
     joinRoom,
     leaveAdventure,
@@ -55,7 +56,15 @@ export function GameHomePage() {
 
   useEffect(() => {
     rememberGameRoute("/game");
-  }, []);
+    refreshCatalog();
+
+    const refreshOnFocus = () => refreshCatalog();
+    window.addEventListener("focus", refreshOnFocus);
+
+    return () => {
+      window.removeEventListener("focus", refreshOnFocus);
+    };
+  }, [refreshCatalog]);
 
   useEffect(() => {
     let alive = true;

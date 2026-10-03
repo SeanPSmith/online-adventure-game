@@ -4576,3 +4576,542 @@
     min-height: 0;
   }
 }
+
+/* =========================================================
+   DASHBOARD + HERO SHEET REFINEMENT // PASS 23
+========================================================= */
+.dashboard-join-panel .panel-body {
+  height: 100%;
+}
+
+.dashboard-join-form {
+  height: 100%;
+  align-content: start;
+}
+
+.dashboard-join-form input {
+  letter-spacing: 0.16em;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.dashboard-hero-browser {
+  margin: 18px 0;
+}
+
+.dashboard-hero-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.dashboard-system-section {
+  margin-top: 18px;
+}
+
+.dashboard-system-section .dashboard-system-menu {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.hero-sheet-title-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.hero-level-chip,
+.hero-advance-chip {
+  min-height: 36px;
+  border: 1px solid var(--green-line);
+  padding: 7px 10px;
+  display: inline-flex;
+  align-items: center;
+  color: var(--green-soft);
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.hero-advance-chip {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+.hero-dossier-panel .panel-body {
+  padding: 0;
+}
+
+.hero-dossier-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.55fr);
+  min-height: 240px;
+}
+
+.hero-dossier-bio,
+.hero-dossier-vitals {
+  padding: 16px;
+}
+
+.hero-dossier-bio {
+  border-right: var(--border);
+}
+
+.hero-section-kicker {
+  color: var(--green-dim);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+}
+
+.hero-bio-readout-large p {
+  min-height: 92px;
+  font-size: 13px;
+  line-height: 1.75;
+  color: var(--text);
+}
+
+.hero-bio-editor textarea {
+  width: 100%;
+  min-height: 170px;
+  resize: vertical;
+  border: var(--border);
+  background: #000;
+  color: var(--text);
+  padding: 12px;
+  font-size: 13px;
+  line-height: 1.65;
+  outline: none;
+}
+
+.hero-bio-editor textarea:focus-visible {
+  border-color: var(--green);
+  box-shadow: inset 3px 0 0 rgba(72, 255, 112, 0.55);
+}
+
+.hero-bio-editor-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.hero-bio-editor-footer > div {
+  display: flex;
+  gap: 8px;
+}
+
+.hero-dossier-vitals {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  background: rgba(0, 14, 4, 0.55);
+}
+
+.hero-vital-primary {
+  border-bottom: 1px solid var(--green-line-dim);
+  padding-bottom: 12px;
+  display: grid;
+  gap: 6px;
+}
+
+.hero-vital-primary > span,
+.hero-vital-primary > small {
+  color: var(--green-dim);
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.hero-vital-primary > strong {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.hero-vital-primary > strong i {
+  margin-left: 5px;
+  color: var(--green-dim);
+  font-style: normal;
+  font-size: 11px;
+}
+
+.hero-point-ledger {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.hero-point-ledger > div {
+  border: 1px solid var(--green-line-dim);
+  padding: 9px 7px;
+  display: grid;
+  gap: 4px;
+  text-align: center;
+}
+
+.hero-point-ledger span {
+  color: var(--green-dim);
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.hero-point-ledger strong {
+  color: var(--amber);
+  font-size: 20px;
+}
+
+.hero-attribute-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.hero-attribute-card {
+  position: relative;
+  overflow: hidden;
+  min-height: 150px;
+  padding: 13px;
+  background: rgba(0, 12, 3, 0.58);
+}
+
+.hero-attribute-index {
+  position: absolute;
+  right: 8px;
+  bottom: -8px;
+  color: rgba(72, 255, 112, 0.08);
+  font-size: 52px;
+  font-weight: 900;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.hero-attribute-card .sheet-stat-heading,
+.hero-attribute-card .segmented-meter,
+.hero-attribute-card > small,
+.hero-attribute-card .sheet-advance {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-attribute-card .sheet-stat-heading > span {
+  font-size: 11px;
+  color: var(--green-soft);
+}
+
+.hero-attribute-card .sheet-stat-heading > strong {
+  font-size: 25px;
+}
+
+.hero-attribute-card .sheet-stat-heading em,
+.hero-skill-copy b em {
+  margin-left: 4px;
+  color: var(--amber);
+  font-style: normal;
+  font-size: 11px;
+}
+
+.hero-attribute-card > small {
+  color: var(--text-dim);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.hero-advance-controls,
+.hero-skill-advance {
+  justify-content: space-between;
+}
+
+.hero-advance-controls span,
+.hero-skill-advance span {
+  color: var(--green-dim);
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.hero-skill-families {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.hero-skill-family {
+  border: 1px solid var(--green-line-dim);
+  min-width: 0;
+}
+
+.hero-skill-family > header {
+  min-height: 44px;
+  border-bottom: 1px solid var(--green-line-dim);
+  padding: 9px 11px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: rgba(72, 255, 112, 0.045);
+}
+
+.hero-skill-family > header > span {
+  color: var(--green-soft);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.hero-skill-family > header > small {
+  color: var(--green-dim);
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.hero-skill-list {
+  display: grid;
+}
+
+.hero-skill-row {
+  padding: 10px 11px;
+  display: grid;
+  gap: 7px;
+  border-bottom: 1px solid rgba(72, 255, 112, 0.12);
+}
+
+.hero-skill-row:last-child {
+  border-bottom: 0;
+}
+
+.hero-skill-copy {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.hero-skill-copy > div {
+  min-width: 0;
+}
+
+.hero-skill-copy strong,
+.hero-skill-copy span {
+  display: block;
+}
+
+.hero-skill-copy strong {
+  color: var(--green-soft);
+  font-size: 10px;
+}
+
+.hero-skill-copy span {
+  margin-top: 3px;
+  color: var(--text-dim);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.hero-skill-copy > b {
+  flex: 0 0 auto;
+  color: var(--green);
+  font-size: 18px;
+}
+
+.hero-skill-advance {
+  margin-top: 1px;
+  padding-top: 6px;
+}
+
+.hero-talent-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.hero-talent-card {
+  min-height: 150px;
+  padding: 13px;
+}
+
+.hero-talent-card strong {
+  margin-top: 5px;
+  font-size: 13px;
+}
+
+.hero-talent-card p {
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.hero-talent-card small {
+  color: var(--amber);
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.hero-talent-choice-heading {
+  margin-bottom: 9px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: baseline;
+}
+
+.hero-talent-choice-heading strong {
+  color: var(--amber);
+  font-size: 10px;
+}
+
+.hero-advancement-commit {
+  position: sticky;
+  bottom: 10px;
+  z-index: 20;
+  margin: 0;
+  border: 2px solid var(--amber);
+  background: #001006;
+  padding: 11px 13px;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.88);
+}
+
+.hero-advancement-commit > div {
+  display: grid;
+  gap: 3px;
+}
+
+.hero-advancement-commit > div > strong {
+  color: var(--amber);
+  font-size: 12px;
+}
+
+.hero-advancement-commit > div > small {
+  color: var(--green-dim);
+  font-size: 9px;
+}
+
+.hero-chronicle-list {
+  gap: 7px;
+}
+
+.hero-chronicle-row {
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+  padding: 12px;
+}
+
+.hero-chronicle-index {
+  color: rgba(72, 255, 112, 0.28);
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.hero-chronicle-copy strong,
+.hero-chronicle-copy small {
+  display: block;
+}
+
+.hero-chronicle-copy strong {
+  margin-top: 4px;
+  font-size: 13px;
+}
+
+.hero-chronicle-copy small {
+  margin-top: 3px;
+  color: var(--green-dim);
+  font-size: 10px;
+}
+
+.hero-chronicle-copy p {
+  margin: 8px 0 0;
+  color: var(--text-dim);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.hero-chronicle-meta {
+  display: grid;
+  gap: 4px;
+  text-align: right;
+  color: var(--green-dim);
+  font-size: 9px;
+  font-weight: 900;
+}
+
+@media (max-width: 1100px) {
+  .dashboard-system-section .dashboard-system-menu,
+  .hero-attribute-grid,
+  .hero-talent-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .hero-dossier-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-dossier-bio {
+    border-right: 0;
+    border-bottom: var(--border);
+  }
+}
+
+@media (max-width: 760px) {
+  .dashboard-hero-grid,
+  .hero-skill-families,
+  .dashboard-system-section .dashboard-system-menu,
+  .hero-attribute-grid,
+  .hero-talent-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-sheet-title-actions {
+    justify-content: flex-start;
+  }
+
+  .hero-point-ledger {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .hero-chronicle-row {
+    grid-template-columns: 32px minmax(0, 1fr);
+  }
+
+  .hero-chronicle-meta {
+    grid-column: 2;
+    text-align: left;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+  }
+
+  .hero-advancement-commit {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+/* Keep terminal select treatment authoritative after component-specific background rules. */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  border-radius: 0;
+  background-color: #000;
+  color: var(--text);
+  padding-right: 38px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--green) 50%),
+    linear-gradient(135deg, var(--green) 50%, transparent 50%),
+    linear-gradient(to right, var(--green-line-dim), var(--green-line-dim));
+  background-position:
+    calc(100% - 15px) 50%,
+    calc(100% - 10px) 50%,
+    calc(100% - 30px) 50%;
+  background-size: 5px 5px, 5px 5px, 1px 60%;
+  background-repeat: no-repeat;
+}
+
+select:hover:not(:disabled),
+select:focus-visible {
+  border-color: var(--green);
+  box-shadow: inset 3px 0 0 rgba(72, 255, 112, 0.55);
+}
+
+.hero-bio-editor > .hero-bio-editor-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.hero-chronicle-row > .hero-chronicle-copy {
+  display: block;
+  text-align: left;
+  color: var(--text);
+  font-size: inherit;
+}

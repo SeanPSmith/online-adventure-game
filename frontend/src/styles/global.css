@@ -86,3 +86,45 @@ button:disabled {
   cursor: not-allowed;
   opacity: 0.42;
 }
+
+/* =========================================================
+   TERMINAL SELECT CONTROLS // PASS 23
+   Keep native accessibility while removing browser-default chrome.
+========================================================= */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  border: var(--border);
+  border-radius: 0;
+  background-color: #000;
+  color: var(--text);
+  min-height: 40px;
+  padding: 8px 38px 8px 10px;
+  outline: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--green) 50%),
+    linear-gradient(135deg, var(--green) 50%, transparent 50%),
+    linear-gradient(to right, var(--green-line-dim), var(--green-line-dim));
+  background-position:
+    calc(100% - 15px) 50%,
+    calc(100% - 10px) 50%,
+    calc(100% - 30px) 50%;
+  background-size: 5px 5px, 5px 5px, 1px 60%;
+  background-repeat: no-repeat;
+}
+
+select:hover:not(:disabled),
+select:focus-visible {
+  border-color: var(--green);
+  box-shadow: inset 3px 0 0 rgba(72, 255, 112, 0.55);
+}
+
+select:disabled {
+  color: var(--green-dim);
+  opacity: 0.48;
+}
+
+select option {
+  background: #000;
+  color: var(--text);
+}

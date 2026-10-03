@@ -18,7 +18,8 @@ def test_character_creation_exposes_bio_and_progression_rules():
 
 def test_character_sheet_exposes_bio_attributes_skills_and_talents():
     source = read("frontend/src/pages/heroes/HeroSheetPage.tsx")
-    assert "BIO // DIRECTOR CANON" in source
+    assert "HERO DOSSIER" in source
+    assert "DIRECTOR CANON" in source
     assert "CORE ATTRIBUTES" in source
     assert "TALENTS // PERMANENT EDGES" in source
     assert "COMMIT ADVANCEMENT" in source

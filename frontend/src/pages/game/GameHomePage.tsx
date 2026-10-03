@@ -319,57 +319,100 @@ export function GameHomePage() {
           </div>
         </Panel>
 
-        <Panel title="YOUR HEROES" className="dashboard-hero-panel">
-          {heroes.length === 0 && !heroError ? (
-            <div className="dashboard-empty-callout">
-              <strong>NO HEROES YET.</strong>
-              <Link className="button button-primary" to="/game/heroes/new">CREATE YOUR FIRST HERO</Link>
-            </div>
-          ) : null}
+        <Panel title="JOIN A FRIEND" className="dashboard-join-panel">
+          <div className="join-room-form dashboard-join-form">
+            <label>
+              <span>ENTER AS</span>
+              <select
+                value={selectedHeroId}
+                onChange={(event) => setSelectedHeroId(event.target.value)}
+                disabled={selectableHeroes.length === 0}
+              >
+                {selectableHeroes.map((hero) => (
+                  <option value={hero.character_id} key={hero.character_id}>
+                    {hero.name} // LVL {hero.level}
+                  </option>
+                ))}
+              </select>
+            </label>
 
-          <div className="dashboard-hero-stack">
-            {heroes.slice(0, 4).map((hero) => {
-              const busy = occupiedHeroIds.has(hero.character_id);
-              const points = advancementTotal(hero);
-              const selected = hero.character_id === selectedHeroId;
+            <label>
+              <span>ROOM CODE</span>
+              <input
+                value={roomCode}
+                onChange={(event) => setRoomCode(event.target.value.toUpperCase())}
+                maxLength={6}
+                placeholder="ABC123"
+              />
+            </label>
 
-              return (
-                <article className={`dashboard-hero-card ${selected ? "is-selected" : ""}`} key={hero.character_id}>
-                  <div className="dashboard-hero-copy">
-                    <span className="eyebrow">
-                      LVL {hero.level} // {busy ? "IN JOURNEY" : selected ? "SELECTED" : "AVAILABLE"}
-                    </span>
-                    <strong>{hero.name}</strong>
-                    <p>{hero.bio || "No background written yet."}</p>
-                  </div>
-                  <div className="dashboard-hero-vitals">
-                    <span>HP {hero.health}/{hero.max_health}</span>
-                    <span>XP {Math.round(hero.xp_progress_percent)}%</span>
-                    {points > 0 ? <b>{points} ADVANCEMENT WAITING</b> : null}
-                  </div>
-                  <div className="dashboard-hero-actions">
-                    {!busy ? (
-                      <button
-                        className={`button ${selected ? "button-primary" : ""}`}
-                        type="button"
-                        onClick={() => setSelectedHeroId(hero.character_id)}
-                      >
-                        {selected ? "ACTIVE HERO" : "PLAY AS"}
-                      </button>
-                    ) : null}
-                    <Link className="button" to={`/game/heroes/${encodeURIComponent(hero.character_id)}`}>
-                      OPEN SHEET
-                    </Link>
-                  </div>
-                </article>
-              );
-            })}
+            <button
+              className="button button-primary"
+              type="button"
+              disabled={!connected || !selectedHeroId || !roomCode.trim()}
+              onClick={joinExistingRoom}
+            >
+              ENTER THE THREAD
+            </button>
           </div>
-
-          <Link className="dashboard-section-link" to="/game/heroes">
-            MANAGE ALL HEROES →
-          </Link>
         </Panel>
+      </section>
+
+      <section className="dashboard-hero-browser">
+        <div className="dashboard-section-header">
+          <div>
+            <span className="eyebrow">YOUR HEROES</span>
+            <h2>WHO ARE YOU BRINGING?</h2>
+            <p>Your selected Hero is used for new adventures and room invites.</p>
+          </div>
+          <Link className="button" to="/game/heroes">MANAGE HEROES</Link>
+        </div>
+
+        {heroes.length === 0 && !heroError ? (
+          <div className="dashboard-empty-callout">
+            <strong>NO HEROES YET.</strong>
+            <Link className="button button-primary" to="/game/heroes/new">CREATE YOUR FIRST HERO</Link>
+          </div>
+        ) : null}
+
+        <div className="dashboard-hero-stack dashboard-hero-grid">
+          {heroes.slice(0, 4).map((hero) => {
+            const busy = occupiedHeroIds.has(hero.character_id);
+            const points = advancementTotal(hero);
+            const selected = hero.character_id === selectedHeroId;
+
+            return (
+              <article className={`dashboard-hero-card ${selected ? "is-selected" : ""}`} key={hero.character_id}>
+                <div className="dashboard-hero-copy">
+                  <span className="eyebrow">
+                    LVL {hero.level} // {busy ? "IN JOURNEY" : selected ? "SELECTED" : "AVAILABLE"}
+                  </span>
+                  <strong>{hero.name}</strong>
+                  <p>{hero.bio || "No background written yet."}</p>
+                </div>
+                <div className="dashboard-hero-vitals">
+                  <span>HP {hero.health}/{hero.max_health}</span>
+                  <span>XP {Math.round(hero.xp_progress_percent)}%</span>
+                  {points > 0 ? <b>{points} ADVANCEMENT WAITING</b> : null}
+                </div>
+                <div className="dashboard-hero-actions">
+                  {!busy ? (
+                    <button
+                      className={`button ${selected ? "button-primary" : ""}`}
+                      type="button"
+                      onClick={() => setSelectedHeroId(hero.character_id)}
+                    >
+                      {selected ? "ACTIVE HERO" : "PLAY AS"}
+                    </button>
+                  ) : null}
+                  <Link className="button" to={`/game/heroes/${encodeURIComponent(hero.character_id)}`}>
+                    OPEN SHEET
+                  </Link>
+                </div>
+              </article>
+            );
+          })}
+        </div>
       </section>
 
       <section className="dashboard-adventure-browser">
@@ -460,45 +503,7 @@ export function GameHomePage() {
         ) : null}
       </section>
 
-      <section className="dashboard-lower-grid">
-        <Panel title="JOIN A FRIEND">
-          <div className="join-room-form dashboard-join-form">
-            <label>
-              <span>ENTER AS</span>
-              <select
-                value={selectedHeroId}
-                onChange={(event) => setSelectedHeroId(event.target.value)}
-                disabled={selectableHeroes.length === 0}
-              >
-                {selectableHeroes.map((hero) => (
-                  <option value={hero.character_id} key={hero.character_id}>
-                    {hero.name} // LVL {hero.level}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label>
-              <span>ROOM CODE</span>
-              <input
-                value={roomCode}
-                onChange={(event) => setRoomCode(event.target.value.toUpperCase())}
-                maxLength={6}
-                placeholder="ABC123"
-              />
-            </label>
-
-            <button
-              className="button button-primary"
-              type="button"
-              disabled={!connected || !selectedHeroId || !roomCode.trim()}
-              onClick={joinExistingRoom}
-            >
-              ENTER THE THREAD
-            </button>
-          </div>
-        </Panel>
-
+      <section className="dashboard-system-section">
         <Panel title="SYSTEM MENU" className="dashboard-system-panel">
           <nav className="dashboard-system-menu" aria-label="Game tools">
             <Link to="/game/history"><strong>CHRONICLES</strong><span>Completed journeys and sealed stories.</span></Link>

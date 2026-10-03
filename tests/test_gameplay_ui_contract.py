@@ -327,7 +327,7 @@ def test_dashboard_pass_22_prioritizes_journey_hero_search_and_system_menu() -> 
 
     assert 'title="WHAT HAPPENS NEXT?"' in home
     assert 'title="CONTINUE JOURNEY"' in home
-    assert 'title="YOUR HEROES"' in home
+    assert 'YOUR HEROES' in home
     assert 'ADVENTURE LIBRARY' in home
     assert 'type="search"' in home
     assert 'catalogSearch' in home
@@ -338,3 +338,31 @@ def test_dashboard_pass_22_prioritizes_journey_hero_search_and_system_menu() -> 
     assert 'className="header-system-menu"' in layout
     assert '.dashboard-command-grid' in layout_styles
     assert '.dashboard-system-menu' in styles
+
+
+def test_dashboard_and_hero_sheet_pass_23_promotes_join_styles_selects_and_reframes_progression() -> None:
+    home = read("pages/game/GameHomePage.tsx")
+    sheet = read("pages/heroes/HeroSheetPage.tsx")
+    styles = read("styles/components.css")
+    global_styles = read("styles/global.css")
+
+    continue_at = home.index('title="CONTINUE JOURNEY"')
+    join_at = home.index('title="JOIN A FRIEND"')
+    hero_at = home.index('YOUR HEROES', join_at)
+    adventure_at = home.index('ADVENTURE LIBRARY')
+
+    assert continue_at < join_at < hero_at < adventure_at
+    assert 'className="dashboard-hero-stack dashboard-hero-grid"' in home
+    assert 'className="dashboard-system-section"' in home
+
+    assert "appearance: none" in global_styles
+    assert "background-image:" in global_styles
+    assert "select:hover:not(:disabled)" in styles
+
+    assert 'title="HERO DOSSIER"' in sheet
+    assert "hero-dossier-grid" in sheet
+    assert "CORE ATTRIBUTES // WHO YOU ARE" in sheet
+    assert "SKILLS // WHAT YOU KNOW HOW TO DO" in sheet
+    assert "hero-skill-row" in sheet
+    assert "hero-advancement-commit" in sheet
+    assert "SEALED CHRONICLES // WHERE THEY HAVE BEEN" in sheet

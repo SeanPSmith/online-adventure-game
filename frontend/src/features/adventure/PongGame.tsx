@@ -52,6 +52,9 @@ export function PongGame({
   const frameRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number | null>(null);
   const [message, setMessage] = useState("KEEP IT OFF YOUR WALL_");
+  const coarsePointer = typeof window !== "undefined"
+    && window.matchMedia?.("(pointer: coarse)").matches;
+  const motionScale = coarsePointer ? 0.82 : 1;
 
   useEffect(() => {
     scoreRef.current = score;
@@ -95,11 +98,11 @@ export function PongGame({
       game.playerY = clamp(game.playerY, 0, HEIGHT - PADDLE_H);
 
       const aiTarget = game.ballY - (PADDLE_H / 2);
-      const aiDelta = clamp(aiTarget - game.aiY, -225 * dt, 225 * dt);
+      const aiDelta = clamp(aiTarget - game.aiY, -225 * dt * motionScale, 225 * dt * motionScale);
       game.aiY = clamp(game.aiY + aiDelta, 0, HEIGHT - PADDLE_H);
 
-      game.ballX += game.ballVX * dt;
-      game.ballY += game.ballVY * dt;
+      game.ballX += game.ballVX * dt * motionScale;
+      game.ballY += game.ballVY * dt * motionScale;
 
       if (game.ballY <= 0 && game.ballVY < 0) {
         game.ballY = 0;
@@ -173,7 +176,7 @@ export function PongGame({
     return () => {
       if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
     };
-  }, []);
+  }, [motionScale]);
 
   function keyDown(event: KeyboardEvent<HTMLCanvasElement>) {
     const key = event.key.toLowerCase();

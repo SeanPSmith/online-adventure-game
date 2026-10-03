@@ -1,10 +1,11 @@
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
   type FormEvent,
 } from "react";
-import { Link, useLocation, useParams, useSearchParams } from "react-router";
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router";
 import { Panel } from "../../components/ui/Panel";
 import { ChoiceInspector } from "../../features/adventure/ChoiceInspector";
 import { QuickEventModal } from "../../features/adventure/QuickEventModal";
@@ -62,6 +63,7 @@ function outcomeLabel(outcome: string) {
 export function AdventurePage() {
   const { roomId } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { openModal } = useModal();
 
@@ -69,6 +71,7 @@ export function AdventurePage() {
     adventures,
     connected,
     startSolo,
+    leaveAdventure,
   } = useGameSocket();
 
   const matchingAdventure = useMemo(
@@ -106,6 +109,7 @@ export function AdventurePage() {
   const [heroError, setHeroError] = useState("");
   const [selectedChoiceId, setSelectedChoiceId] = useState("");
   const [lockPending, setLockPending] = useState(false);
+  const storyPaneRef = useRef<HTMLElement | null>(null);
 
   const scene = live.game?.scene;
   const readiness = live.game?.readiness ?? [];
@@ -156,6 +160,18 @@ export function AdventurePage() {
   useEffect(() => {
     rememberGameRoute(`${location.pathname}${location.search}`);
   }, [location.pathname, location.search]);
+
+  useEffect(() => {
+    // A new Director scene should always begin at the top of the story pane.
+    // The turn theater/intermission can leave desktop and mobile users scrolled
+    // near the choices from the previous turn, which makes fresh prose appear
+    // to be missing.
+    const timer = window.setTimeout(() => {
+      storyPaneRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    }, 80);
+
+    return () => window.clearTimeout(timer);
+  }, [turnNumber, scene?.id, live.finale?.ending_label]);
 
   useEffect(() => {
     if (!characterId) return;
@@ -287,7 +303,7 @@ export function AdventurePage() {
   return (
     <>
       <div className="adventure-layout">
-        <section className="story-pane panel">
+        <section className="story-pane panel" ref={storyPaneRef}>
           <div className="scene-art">
             <pre>{scene?.ascii_art?.trim() || "SETTING THE STAGE_"}</pre>
           </div>
@@ -413,13 +429,79 @@ export function AdventurePage() {
           </article>
 
           {live.finale ? (
-            <section className="finale-inline">
-              <span className="eyebrow">JOURNEY COMPLETE</span>
-              <h2>{live.finale.ending_label}</h2>
-              <p>{live.finale.final_resolution}</p>
-              <Link className="button button-primary" to="/game/history">
-                OPEN THE SEALED CHRONICLE
-              </Link>
+            <section className="finale-inline journey-finale-summary">
+              <header className="finale-summary-header">
+                <div>
+                  <span className="eyebrow">*** THE CHRONICLE IS COMPLETE ***</span>
+                  <h2>{live.finale.ending_label}</h2>
+                  <strong>{live.finale.adventure_title}</strong>
+                </div>
+                <div className="finale-party-rank">
+                  <span>PARTY RENOWN</span>
+                  <strong>{live.finale.party_rank}</strong>
+                </div>
+              </header>
+
+              <div className="finale-meta-strip">
+                <span>{live.finale.turn_count} TURNS</span>
+                <span>{live.finale.play_mode.toUpperCase()}</span>
+                <span>{live.finale.heroes.length} HERO{live.finale.heroes.length === 1 ? "" : "ES"}</span>
+              </div>
+
+              <section className="finale-resolution-copy">
+                <span className="eyebrow">HOW IT ENDED</span>
+                <p>{live.finale.final_resolution}</p>
+              </section>
+
+              <div className="finale-hero-grid">
+                {live.finale.heroes.map((finalHero) => (
+                  <article className="finale-hero-card" key={finalHero.character_id}>
+                    <header>
+                      <div>
+                        <span className="eyebrow">{finalHero.is_alive ? "SURVIVED" : "FALLEN"}</span>
+                        <strong>{finalHero.character_name}</strong>
+                      </div>
+                      <span className="finale-hero-rank">RANK {finalHero.rank}</span>
+                    </header>
+
+                    <div className="finale-hero-progression">
+                      <strong>LVL {finalHero.starting_level} → {finalHero.ending_level}</strong>
+                      <span>+{finalHero.xp_earned} XP</span>
+                    </div>
+
+                    <div className="finale-stat-grid">
+                      <div><span>CHECKS</span><strong>{finalHero.checks_total}</strong></div>
+                      <div><span>SUCCESS</span><strong>{Math.round(finalHero.success_rate)}%</strong></div>
+                      <div><span>CRIT+</span><strong>{finalHero.critical_successes}</strong></div>
+                      <div><span>CRIT-</span><strong>{finalHero.critical_failures}</strong></div>
+                      <div><span>HP</span><strong>{finalHero.health}/{finalHero.max_health}</strong></div>
+                      <div><span>LEVELS</span><strong>+{finalHero.levels_gained}</strong></div>
+                    </div>
+
+                    {(finalHero.advancement_stat_points_earned + finalHero.advancement_skill_points_earned + finalHero.advancement_talent_points_earned) > 0 ? (
+                      <div className="finale-advancement-earned">
+                        ADVANCEMENT // +{finalHero.advancement_stat_points_earned} ATTR // +{finalHero.advancement_skill_points_earned} SKILL // +{finalHero.advancement_talent_points_earned} TALENT
+                      </div>
+                    ) : null}
+                  </article>
+                ))}
+              </div>
+
+              <div className="finale-actions">
+                <Link className="button" to="/game/history">
+                  OPEN SEALED CHRONICLE
+                </Link>
+                <button
+                  className="button button-primary"
+                  type="button"
+                  onClick={() => {
+                    leaveAdventure(normalizedRoomCode, characterId);
+                    navigate("/game");
+                  }}
+                >
+                  CLOSE JOURNEY // RETURN TO HALL
+                </button>
+              </div>
             </section>
           ) : (
             <section className="choice-area">
@@ -775,6 +857,7 @@ export function AdventurePage() {
         }
         playMode={live.game?.play_mode}
         onChoose={live.submitMicroEventChoice}
+        onDismissResolution={live.dismissMicroEventResolution}
       />
 
       <TurnTheater

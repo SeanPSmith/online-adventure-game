@@ -5,7 +5,9 @@ import {
   useRef,
   useState,
   type KeyboardEvent,
+  type PointerEvent,
 } from "react";
+import { swipeDirection, type SwipePoint } from "../arcade/engine/swipe";
 
 const WIDTH = 25;
 const HEIGHT = 15;
@@ -66,6 +68,7 @@ export function MazeGame({
   const [steps, setSteps] = useState(0);
   const [message, setMessage] = useState("FIND THE EXIT // TRY NOT TO DEVELOP A METAPHOR_");
   const boardRef = useRef<HTMLDivElement | null>(null);
+  const swipeStartRef = useRef<SwipePoint | null>(null);
 
   useEffect(() => {
     boardRef.current?.focus({ preventScroll: true });
@@ -93,7 +96,7 @@ export function MazeGame({
         const bonus = Math.max(5, 35 - Math.floor(nextSteps / 3));
         onScoreChange(Math.min(999, score + bonus));
         setMessage(`EXIT FOUND // +${bonus}_`);
-        window.setTimeout(reset, 450);
+        window.setTimeout(reset, 1200);
       }
 
       return next;
@@ -110,6 +113,25 @@ export function MazeGame({
     event.preventDefault();
   }
 
+  function pointerDown(event: PointerEvent<HTMLDivElement>) {
+    if (event.pointerType !== "touch" && event.pointerType !== "pen") return;
+    swipeStartRef.current = { x: event.clientX, y: event.clientY };
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  }
+
+  function pointerUp(event: PointerEvent<HTMLDivElement>) {
+    if (event.pointerType !== "touch" && event.pointerType !== "pen") return;
+    const direction = swipeDirection(
+      swipeStartRef.current,
+      { x: event.clientX, y: event.clientY },
+    );
+    swipeStartRef.current = null;
+    if (direction === "left") move(-1, 0);
+    else if (direction === "right") move(1, 0);
+    else if (direction === "up") move(0, -1);
+    else if (direction === "down") move(0, 1);
+  }
+
   const mazeText = useMemo(() => {
     return maze.map((row, y) => row.map((cell, x) => {
       if (x === player.x && y === player.y) return "@";
@@ -122,7 +144,7 @@ export function MazeGame({
     <div className="intermission-game maze-game">
       <header className="intermission-game-instructions">
         <strong>MAZE RUNNER // @ MUST REACH ◇</strong>
-        <span>WASD/ARROWS // TOUCH CONTROLS BELOW</span>
+        <span>WASD/ARROWS // SWIPE THE MAZE // TOUCH CONTROLS BELOW</span>
         <span>FASTER ROUTES SCORE MORE // COMPLETING A MAZE STARTS ANOTHER</span>
       </header>
 
@@ -131,6 +153,9 @@ export function MazeGame({
         ref={boardRef}
         tabIndex={0}
         onKeyDown={keyDown}
+        onPointerDown={pointerDown}
+        onPointerUp={pointerUp}
+        onPointerCancel={() => { swipeStartRef.current = null; }}
       >
         <pre className="maze-board">{mazeText}</pre>
       </div>

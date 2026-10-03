@@ -13,6 +13,7 @@ interface QuickEventModalProps {
   requiredResponses: number;
   playMode: "coop" | "solo" | undefined;
   onChoose: (optionId: string) => void;
+  onDismissResolution: () => void;
 }
 
 export function QuickEventModal({
@@ -22,6 +23,7 @@ export function QuickEventModal({
   requiredResponses,
   playMode,
   onChoose,
+  onDismissResolution,
 }: QuickEventModalProps) {
   const activeEvent = event ?? resolution;
   const [timer, setTimer] = useState({ eventId: "", remainingMs: 0 });
@@ -30,7 +32,7 @@ export function QuickEventModal({
 
   const durationMs = Math.max(
     1000,
-    Number(event?.timeout_seconds ?? 9) * 1000,
+    Number(event?.timeout_seconds ?? 12) * 1000,
   );
 
   const remainingMs = event
@@ -54,7 +56,7 @@ export function QuickEventModal({
     const startedAt = Date.now();
     const duration = Math.max(
       1000,
-      Number(event.timeout_seconds ?? 9) * 1000,
+      Number(event.timeout_seconds ?? 12) * 1000,
     );
 
     const update = () => {
@@ -110,6 +112,11 @@ export function QuickEventModal({
   const showingResolution = Boolean(
     !event && resolution,
   );
+
+  const outcomes = resolution?.outcomes ?? [];
+  const localOutcome = playerId
+    ? outcomes.find((item) => item.player_id === playerId) ?? null
+    : null;
 
   function choose(optionId: string) {
     if (
@@ -250,6 +257,25 @@ export function QuickEventModal({
               ? activeEvent.resolution
               : activeEvent.prompt}
           </p>
+
+          {showingResolution && localOutcome ? (
+            <div className="qte-resolution-callout">
+              <span>YOUR REACTION</span>
+              <strong>{localOutcome.option_label || "NO REACTION"}</strong>
+              <p>{localOutcome.result}</p>
+            </div>
+          ) : null}
+
+          {showingResolution && outcomes.length > 1 ? (
+            <div className="qte-resolution-party">
+              {outcomes.map((outcome) => (
+                <div key={`${outcome.player_id}:${outcome.option_id}`}>
+                  <strong>{outcome.player_name}</strong>
+                  <span>{outcome.option_label}</span>
+                </div>
+              ))}
+            </div>
+          ) : null}
         </div>
 
         {!showingResolution ? (
@@ -278,7 +304,7 @@ export function QuickEventModal({
 
         <footer className="qte-status">
           {showingResolution
-            ? "STORY FACT RECORDED_"
+            ? "REACTION RESOLVED // THIS IS NOW PART OF THE STORY_"
             : timedOut
               ? "TIME // REACTION MISSED // RESOLVING_"
               : alreadyAnswered
@@ -289,6 +315,16 @@ export function QuickEventModal({
                   ? "LOCKING REACTION_"
                   : "1 / A / ←   OR   2 / D / →   // CLICK OR TAP ALSO WORKS_"}
         </footer>
+
+        {showingResolution ? (
+          <button
+            className="button button-primary qte-continue"
+            type="button"
+            onClick={onDismissResolution}
+          >
+            CONTINUE THE STORY
+          </button>
+        ) : null}
       </section>
     </div>
   );

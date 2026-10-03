@@ -4,7 +4,7 @@ import unittest
 
 from app.adventures.models import AdventureDefinition, ChoiceDefinition, SceneDefinition
 from app.adventures.registry import adventure_registry
-from app.game.micro_events import should_schedule_micro_event
+from app.game.micro_events import MICRO_EVENT_TIMEOUT_SECONDS, should_schedule_micro_event
 from app.game.session import GameSessionManager
 
 
@@ -85,6 +85,9 @@ class MicroEventTests(unittest.TestCase):
         )
         self.assertTrue(completed)
         self.assertTrue(resolved["resolved"])
+        self.assertEqual(MICRO_EVENT_TIMEOUT_SECONDS, 12.0)
+        self.assertEqual(len(resolved.get("outcomes", [])), 2)
+        self.assertIn("You", resolved["outcomes"][0]["result"])
         self.assertIsNone(self.session.pending_micro_event)
         self.assertEqual(len(self.session.micro_event_history), 1)
         self.assertIn("Athena", self.session.micro_event_history[0]["resolution"])

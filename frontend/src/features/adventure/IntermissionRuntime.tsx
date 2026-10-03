@@ -142,8 +142,10 @@ export function IntermissionRuntime({
   const ArcadeGame = arcadeGame.component;
   const gameName = arcadeGame.title;
 
+  const compactActionHud = ["action", "racing", "movement"].includes(arcadeGame.category);
+
   return (
-    <div className="intermission-runtime">
+    <div className={`intermission-runtime ${compactActionHud ? "is-action-game" : ""}`}>
       <header className="intermission-runtime-header">
         <div>
           <span className="eyebrow">

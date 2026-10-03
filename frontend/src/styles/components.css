@@ -3983,3 +3983,342 @@
     left: calc(50% - 13px);
   }
 }
+
+/* =========================================================
+   PLAYTEST 2026-10-03 — READABILITY / ARCADE / FINALE PASS
+========================================================= */
+
+/* Action cabinets need the global intermission HUD out of the way. */
+.intermission-runtime.is-action-game .intermission-runtime-header {
+  min-height: 44px;
+  padding: 6px 10px;
+}
+
+.intermission-runtime.is-action-game .intermission-runtime-header h2 {
+  margin-top: 2px;
+  font-size: clamp(14px, 2vw, 18px);
+}
+
+.intermission-runtime.is-action-game .intermission-runtime-header .eyebrow {
+  font-size: 9px;
+}
+
+.intermission-runtime.is-action-game .intermission-runtime-readout {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.intermission-runtime.is-action-game .intermission-runtime-readout strong,
+.intermission-runtime.is-action-game .intermission-runtime-readout span {
+  border: 1px solid var(--green-line-dim);
+  padding: 3px 6px;
+  background: #010601;
+  font-size: 9px;
+  line-height: 1;
+}
+
+/* Swiping should control movement cabinets rather than scroll the page. */
+.grid-arcade-canvas,
+.maze-board-wrap {
+  touch-action: none;
+}
+
+/* QTE outcomes stay on screen until the player acknowledges them. */
+.qte-resolution-callout {
+  margin-top: 14px;
+  border: 2px solid var(--green-line);
+  background: rgba(72, 255, 112, 0.065);
+  padding: 12px 14px;
+  display: grid;
+  gap: 5px;
+}
+
+.qte-resolution-callout > span {
+  color: var(--green-dim);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.qte-resolution-callout > strong {
+  color: var(--green);
+  font-size: 15px;
+}
+
+.qte-resolution-callout > p {
+  margin: 0;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.qte-resolution-party {
+  margin-top: 8px;
+  display: grid;
+  gap: 5px;
+}
+
+.qte-resolution-party > div {
+  border: 1px solid var(--green-line-dim);
+  padding: 7px 9px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.qte-resolution-party strong,
+.qte-resolution-party span {
+  font-size: 10px;
+}
+
+.qte-continue {
+  width: calc(100% - 24px);
+  margin: 0 12px 12px;
+}
+
+/* A completed journey should feel like an actual RPG results screen. */
+.journey-finale-summary {
+  border-top: 2px solid var(--green);
+  border-bottom: 2px solid var(--green);
+  padding: 22px 0 28px;
+}
+
+.finale-summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.finale-summary-header h2 {
+  margin: 5px 0 4px;
+  color: var(--green-soft);
+  font-size: clamp(24px, 3vw, 38px);
+  line-height: 1.05;
+}
+
+.finale-summary-header > div > strong {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.finale-party-rank {
+  min-width: 150px;
+  border: 2px solid var(--green-line);
+  padding: 9px 11px;
+  text-align: right;
+}
+
+.finale-party-rank span,
+.finale-party-rank strong {
+  display: block;
+}
+
+.finale-party-rank span {
+  color: var(--green-dim);
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.finale-party-rank strong {
+  margin-top: 4px;
+  color: var(--green);
+  font-size: 22px;
+}
+
+.finale-meta-strip {
+  margin: 16px 0;
+  border-top: 1px solid var(--green-line-dim);
+  border-bottom: 1px solid var(--green-line-dim);
+  padding: 8px 0;
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  color: var(--green-dim);
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.finale-resolution-copy {
+  margin: 16px 0 18px;
+}
+
+.finale-resolution-copy p {
+  margin: 6px 0 0;
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.finale-hero-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.finale-hero-card {
+  border: 1px solid var(--green-line);
+  background: rgba(3, 18, 6, 0.62);
+  padding: 12px;
+}
+
+.finale-hero-card > header,
+.finale-hero-progression {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.finale-hero-card > header strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--green-soft);
+  font-size: 15px;
+}
+
+.finale-hero-rank {
+  color: var(--amber);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.finale-hero-progression {
+  margin: 10px 0;
+  border-top: 1px solid var(--green-line-dim);
+  border-bottom: 1px solid var(--green-line-dim);
+  padding: 8px 0;
+}
+
+.finale-hero-progression strong,
+.finale-hero-progression span {
+  font-size: 11px;
+}
+
+.finale-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.finale-stat-grid > div {
+  border: 1px solid var(--green-line-dim);
+  padding: 7px;
+}
+
+.finale-stat-grid span,
+.finale-stat-grid strong {
+  display: block;
+}
+
+.finale-stat-grid span {
+  color: var(--green-muted);
+  font-size: 9px;
+}
+
+.finale-stat-grid strong {
+  margin-top: 3px;
+  color: var(--green-soft);
+  font-size: 13px;
+}
+
+.finale-advancement-earned {
+  margin-top: 8px;
+  border: 1px solid var(--amber);
+  padding: 7px 8px;
+  color: var(--amber);
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.finale-actions {
+  margin-top: 18px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Raise the real minimum size of gameplay metadata. */
+.panel-heading,
+.button,
+.icon-button,
+.choice-area-heading,
+.intermission-game-instructions strong,
+.intermission-game-message,
+.hero-sheet-link,
+.chat-message,
+.qte-kicker,
+.qte-status {
+  font-size: max(10px, 0.68rem);
+}
+
+.intermission-game-instructions span,
+.intermission-party-strip span,
+.intermission-party-strip strong,
+.turn-status-chip span,
+.turn-status-chip strong,
+.choice-meta-tags small,
+.choice-commit-copy > span:last-child,
+.story-turn-marker,
+.scene-meta {
+  font-size: max(9px, 0.62rem);
+}
+
+.choice-copy > strong {
+  font-size: 13px;
+}
+
+@media (max-width: 640px) {
+  .intermission-runtime.is-action-game .intermission-runtime-header {
+    min-height: 40px;
+    padding: 5px 7px;
+  }
+
+  .intermission-runtime.is-action-game .intermission-runtime-readout strong,
+  .intermission-runtime.is-action-game .intermission-runtime-readout span {
+    font-size: 9px;
+    padding: 3px 4px;
+  }
+
+  .intermission-game-instructions span,
+  .intermission-game-message,
+  .turn-status-chip span,
+  .turn-status-chip strong,
+  .choice-meta-tags small,
+  .choice-commit-copy > span:last-child,
+  .chat-message,
+  .scene-meta,
+  .story-turn-marker {
+    font-size: 10px;
+  }
+
+  .intermission-game-instructions strong,
+  .panel-heading,
+  .qte-kicker,
+  .qte-status {
+    font-size: 11px;
+  }
+
+  .choice-copy > strong {
+    font-size: 14px;
+  }
+
+  .finale-summary-header {
+    flex-direction: column;
+  }
+
+  .finale-party-rank {
+    width: 100%;
+    text-align: left;
+  }
+
+  .finale-hero-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .finale-actions .button {
+    width: 100%;
+  }
+}

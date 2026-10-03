@@ -9,7 +9,7 @@ from typing import Any
 MICRO_EVENT_CADENCE = 3
 # The quick event clock begins when the modal is actually shown to the player,
 # not when the server schedules it behind the turn-resolution theater.
-MICRO_EVENT_TIMEOUT_SECONDS = 9.0
+MICRO_EVENT_TIMEOUT_SECONDS = 12.0
 MAX_MICRO_EVENT_HISTORY = 8
 
 
@@ -241,6 +241,7 @@ def build_micro_event(
         "responses": {},
         "resolved": False,
         "resolution": "",
+        "outcomes": [],
     }
 
 
@@ -274,6 +275,18 @@ def public_micro_event(event: dict[str, Any] | None) -> dict[str, Any] | None:
         "responses": dict(event.get("responses", {}) or {}),
         "resolved": bool(event.get("resolved", False)),
         "resolution": _clean_text(event.get("resolution")),
+        "outcomes": [
+            {
+                "player_id": str(item.get("player_id", "")),
+                "player_name": _clean_text(item.get("player_name")) or "Hero",
+                "option_id": str(item.get("option_id", "")),
+                "option_label": _clean_text(item.get("option_label")),
+                "result": _clean_text(item.get("result")),
+                "tag": _clean_text(item.get("tag")),
+            }
+            for item in event.get("outcomes", [])
+            if isinstance(item, dict)
+        ],
     }
 
 
@@ -315,13 +328,13 @@ def resolve_micro_event(*, event: dict[str, Any], response_names: dict[str, str]
         })
 
     if outcomes:
-        joined = "; ".join(
-            f"{item['player_name']}: {item['option_label']}"
+        joined = " ".join(
+            f"{item['player_name']} chose {item['option_label']}. {item['result']}"
             for item in outcomes
         )
-        resolution = f"Quick event resolved — {joined}."
+        resolution = joined
     else:
-        resolution = "Quick event resolved."
+        resolution = "The split-second moment passes without changing the course of the scene."
 
     return {
         "id": str(event.get("id", "")),

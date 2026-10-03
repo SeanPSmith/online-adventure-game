@@ -77,6 +77,9 @@ export function RoadRacerGame({ score, onScoreChange, storyReady }: ArcadeGamePr
   const frameRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number | null>(null);
   const [message, setMessage] = useState("KEEP IT BETWEEN THE LINES // PASS EVERYTHING_");
+  const coarsePointer = typeof window !== "undefined"
+    && window.matchMedia?.("(pointer: coarse)").matches;
+  const motionScale = coarsePointer ? 0.82 : 1;
 
   useEffect(() => { scoreRef.current = score; }, [score]);
   useEffect(() => { onScoreChangeRef.current = onScoreChange; }, [onScoreChange]);
@@ -102,6 +105,7 @@ export function RoadRacerGame({ score, onScoreChange, storyReady }: ArcadeGamePr
       const dt = Math.min(0.034, Math.max(0, (time - last) / 1000));
       lastTimeRef.current = time;
       const game = gameRef.current;
+      const worldDt = dt * motionScale;
 
       const steer = 330;
       if (game.keys.has("arrowleft") || game.keys.has("a")) game.targetX -= steer * dt;
@@ -109,9 +113,9 @@ export function RoadRacerGame({ score, onScoreChange, storyReady }: ArcadeGamePr
       game.targetX = clamp(game.targetX, ROAD_LEFT + PLAYER_W / 2 + 8, ROAD_RIGHT - PLAYER_W / 2 - 8);
       game.x += (game.targetX - game.x) * Math.min(1, dt * 12);
 
-      game.speed = clamp(game.speed + dt * 2.8, variant.startSpeed, variant.maxSpeed);
-      game.roadOffset = (game.roadOffset + game.speed * dt) % 52;
-      game.spawnTimer -= dt;
+      game.speed = clamp(game.speed + worldDt * 2.8, variant.startSpeed, variant.maxSpeed);
+      game.roadOffset = (game.roadOffset + game.speed * worldDt) % 52;
+      game.spawnTimer -= worldDt;
 
       if (game.spawnTimer <= 0) {
         const lane = Math.floor(Math.random() * variant.lanes);
@@ -128,7 +132,7 @@ export function RoadRacerGame({ score, onScoreChange, storyReady }: ArcadeGamePr
       const now = performance.now();
       const canCrash = now >= game.crashedUntil;
       for (const car of game.traffic) {
-        car.y += car.speed * dt;
+        car.y += car.speed * worldDt;
         const x = laneX(car.lane, variant.lanes);
         if (!car.passed && car.y > PLAYER_Y + PLAYER_H) {
           car.passed = true;
@@ -232,7 +236,7 @@ export function RoadRacerGame({ score, onScoreChange, storyReady }: ArcadeGamePr
     return () => {
       if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
     };
-  }, [showFeedback, variant]);
+  }, [motionScale, showFeedback, variant]);
 
   function keyDown(event: KeyboardEvent<HTMLCanvasElement>) {
     const key = event.key.toLowerCase();

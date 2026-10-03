@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { ArcadeFeedback, useArcadeFeedback } from "../engine/ArcadeFeedback";
 import type { ArcadeGameProps } from "../arcadeTypes";
+import { swipeDirection, type SwipePoint } from "../engine/swipe";
 
 type Direction = "up" | "down" | "left" | "right";
 interface Cell { x: number; y: number; }
@@ -55,6 +56,12 @@ export function SnakeGame({ score, onScoreChange, storyReady }: ArcadeGameProps)
   const onScoreChangeRef = useRef(onScoreChange);
   const [length, setLength] = useState(snakeRef.current.length);
   const [message, setMessage] = useState("EAT THE BLOCK // DO NOT EAT YOURSELF_");
+  const swipeStartRef = useRef<SwipePoint | null>(null);
+  const resetTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
+  const pausedUntilRef = useRef(0);
+  const coarsePointer = typeof window !== "undefined"
+    && window.matchMedia?.("(pointer: coarse)").matches;
+  const effectiveStepMs = Math.round(variant.stepMs * (coarsePointer ? 1.28 : 1));
 
   const width = variant.cols * variant.cell;
   const height = variant.rows * variant.cell;
@@ -148,11 +155,21 @@ export function SnakeGame({ score, onScoreChange, storyReady }: ArcadeGameProps)
       const hitWall = next.x < 0 || next.x >= variant.cols || next.y < 0 || next.y >= variant.rows;
       const hitSelf = snakeRef.current.some((cell) => cell.x === next.x && cell.y === next.y);
 
+      if (performance.now() < pausedUntilRef.current) {
+        draw();
+        return;
+      }
+
       if (hitWall || hitSelf) {
         award(-4);
-        setMessage("SNAKE ERROR // -4 // REBOOTING REPTILE_");
-        showFeedback({ title: "SNAKE ERROR", detail: hitWall ? "WALL COLLISION" : "SELF COLLISION", delta: -4, tone: "bad" }, 930);
-        resetSnake();
+        setMessage("SNAKE ERROR // -4 // GET READY_");
+        showFeedback({ title: "SNAKE ERROR", detail: hitWall ? "WALL COLLISION" : "SELF COLLISION", delta: -4, tone: "bad" }, 1000);
+        pausedUntilRef.current = performance.now() + 1100;
+        if (resetTimerRef.current !== null) window.clearTimeout(resetTimerRef.current);
+        resetTimerRef.current = window.setTimeout(() => {
+          resetSnake();
+          setMessage("NEW SNAKE // READY_");
+        }, 1050);
         draw();
         return;
       }
@@ -172,10 +189,13 @@ export function SnakeGame({ score, onScoreChange, storyReady }: ArcadeGameProps)
     };
 
     draw();
-    const timer = window.setInterval(step, variant.stepMs);
+    const timer = window.setInterval(step, effectiveStepMs);
     canvas.focus({ preventScroll: true });
-    return () => window.clearInterval(timer);
-  }, [height, showFeedback, variant, width]);
+    return () => {
+      window.clearInterval(timer);
+      if (resetTimerRef.current !== null) window.clearTimeout(resetTimerRef.current);
+    };
+  }, [effectiveStepMs, height, showFeedback, variant, width]);
 
   function keyDown(event: KeyboardEvent<HTMLCanvasElement>) {
     const key = event.key.toLowerCase();
@@ -187,15 +207,42 @@ export function SnakeGame({ score, onScoreChange, storyReady }: ArcadeGameProps)
     event.preventDefault();
   }
 
+  function pointerDown(event: PointerEvent<HTMLCanvasElement>) {
+    if (event.pointerType !== "touch" && event.pointerType !== "pen") return;
+    swipeStartRef.current = { x: event.clientX, y: event.clientY };
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  }
+
+  function pointerUp(event: PointerEvent<HTMLCanvasElement>) {
+    if (event.pointerType !== "touch" && event.pointerType !== "pen") return;
+    const direction = swipeDirection(
+      swipeStartRef.current,
+      { x: event.clientX, y: event.clientY },
+    );
+    swipeStartRef.current = null;
+    if (direction) setDirection(direction);
+  }
+
   return (
     <div className="intermission-game snake-game">
       <header className="intermission-game-instructions">
         <strong>DATA SNAKE // {variant.name}</strong>
-        <span>WASD / ARROWS // TOUCH D-PAD // BOARD {variant.cols}x{variant.rows}</span>
-        <span>BYTE +5 // CRASH -4 // {variant.stepMs <= 90 ? "TURBO" : variant.stepMs >= 115 ? "RELAXED" : "STANDARD"} SPEED</span>
+        <span>WASD / ARROWS // SWIPE OR D-PAD // BOARD {variant.cols}x{variant.rows}</span>
+        <span>BYTE +5 // CRASH -4 // {effectiveStepMs <= 95 ? "TURBO" : effectiveStepMs >= 130 ? "RELAXED" : "STANDARD"} SPEED</span>
       </header>
       <div className="arcade-playfield">
-        <canvas ref={canvasRef} className="arcade-canvas grid-arcade-canvas" width={width} height={height} tabIndex={0} onKeyDown={keyDown} aria-label="Retro snake game" />
+        <canvas
+          ref={canvasRef}
+          className="arcade-canvas grid-arcade-canvas"
+          width={width}
+          height={height}
+          tabIndex={0}
+          onKeyDown={keyDown}
+          onPointerDown={pointerDown}
+          onPointerUp={pointerUp}
+          onPointerCancel={() => { swipeStartRef.current = null; }}
+          aria-label="Retro snake game"
+        />
         <ArcadeFeedback feedback={feedback} />
       </div>
       <div className="arcade-touch-dpad" aria-label="Snake touch controls">

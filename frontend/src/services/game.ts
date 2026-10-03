@@ -280,6 +280,15 @@ export interface QuickEventOption {
   description: string;
 }
 
+export interface QuickEventOutcome {
+  player_id: string;
+  player_name: string;
+  option_id: string;
+  option_label: string;
+  result: string;
+  tag: string;
+}
+
 export interface QuickEvent {
   id: string;
   created_from_turn: number;
@@ -295,6 +304,7 @@ export interface QuickEvent {
   responses: Record<string, string>;
   resolved: boolean;
   resolution: string;
+  outcomes?: QuickEventOutcome[];
 }
 
 export interface MicroEventUpdatedPayload {

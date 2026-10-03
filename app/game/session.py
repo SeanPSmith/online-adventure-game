@@ -1470,6 +1470,7 @@ class GameSessionManager:
             session.micro_event_history = session.micro_event_history[-MAX_MICRO_EVENT_HISTORY:]
             event["resolved"] = True
             event["resolution"] = history_entry.get("resolution", "")
+            event["outcomes"] = deepcopy(history_entry.get("outcomes", []))
             public_event = public_micro_event(event) or {}
             session.pending_micro_event = None
             return public_event, True

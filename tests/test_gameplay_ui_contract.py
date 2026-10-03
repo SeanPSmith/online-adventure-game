@@ -280,3 +280,40 @@ def test_qte_recovery_pass_starts_visible_timer_and_keeps_story_context() -> Non
     assert "request_adventure_catalog" in game
     assert "refreshCatalog();" in home
     assert 'socket.emit("request_adventure_catalog"' in socket_context
+
+
+def test_playtest_pass_21_adds_mobile_arcade_readability_finale_and_qte_resolution() -> None:
+    adventure = read("pages/game/AdventurePage.tsx")
+    runtime = read("features/adventure/IntermissionRuntime.tsx")
+    live = read("state/useLiveAdventure.ts")
+    qte = read("features/adventure/QuickEventModal.tsx")
+    snake = read("features/arcade/games/SnakeGame.tsx")
+    cycles = read("features/arcade/games/LightCyclesGame.tsx")
+    maze = read("features/adventure/MazeGame.tsx")
+    styles = read("styles/components.css")
+
+    assert 'storyPaneRef.current?.scrollTo({ top: 0, behavior: "smooth" })' in adventure
+    assert "journey-finale-summary" in adventure
+    assert "CLOSE JOURNEY // RETURN TO HALL" in adventure
+    assert "finalHero.checks_total" in adventure
+    assert "finalHero.xp_earned" in adventure
+
+    assert 'compactActionHud = ["action", "racing", "movement"]' in runtime
+    assert "is-action-game" in runtime
+
+    assert "dismissMicroEventResolution" in live
+    assert "window.setTimeout" not in live[live.index("if (payload.completed)"):live.index("const onTurnResolved")]
+    assert "qte-resolution-callout" in qte
+    assert "CONTINUE THE STORY" in qte
+    assert "localOutcome.result" in qte
+
+    assert "swipeDirection" in snake
+    assert "effectiveStepMs" in snake
+    assert "swipeDirection" in cycles
+    assert "openAreaFrom" in cycles
+    assert "aiStepsSinceTurnRef" in cycles
+    assert "swipeDirection" in maze
+
+    assert ".intermission-runtime.is-action-game" in styles
+    assert ".qte-resolution-callout" in styles
+    assert ".finale-hero-grid" in styles

@@ -62,6 +62,7 @@ export interface LiveAdventureState {
   sync: () => void;
   clearError: () => void;
   clearRetryableError: () => void;
+  dismissMicroEventResolution: () => void;
 }
 
 export function useLiveAdventure(
@@ -263,12 +264,9 @@ export function useLiveAdventure(
       });
 
       if (payload.completed) {
+        // Resolution is player-facing feedback, not a transient toast.  Keep it
+        // visible until the player explicitly acknowledges what their reaction did.
         setMicroEventResolution(payload.event);
-        window.setTimeout(() => {
-          setMicroEventResolution((current) =>
-            current?.id === payload.event.id ? null : current,
-          );
-        }, 1400);
       }
     };
 
@@ -426,6 +424,7 @@ export function useLiveAdventure(
 
   const clearError = useCallback(() => setError(""), []);
   const clearRetryableError = useCallback(() => setRetryableError(null), []);
+  const dismissMicroEventResolution = useCallback(() => setMicroEventResolution(null), []);
 
   return {
     status,
@@ -451,5 +450,6 @@ export function useLiveAdventure(
     sync,
     clearError,
     clearRetryableError,
+    dismissMicroEventResolution,
   };
 }

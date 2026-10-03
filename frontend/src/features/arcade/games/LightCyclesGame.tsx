@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { ArcadeFeedback, useArcadeFeedback } from "../engine/ArcadeFeedback";
 import type { ArcadeGameProps } from "../arcadeTypes";
+import { swipeDirection, type SwipePoint } from "../engine/swipe";
 
 type Direction = "up" | "down" | "left" | "right";
 interface Rider { x: number; y: number; dir: Direction; alive: boolean; }
@@ -53,6 +54,13 @@ export function LightCyclesGame({ score, onScoreChange, storyReady }: ArcadeGame
   const scoreRef = useRef(score);
   const onScoreChangeRef = useRef(onScoreChange);
   const [message, setMessage] = useState("DO NOT CROSS THE LIGHT // THE MACHINE WILL TRY_");
+  const swipeStartRef = useRef<SwipePoint | null>(null);
+  const roundPausedRef = useRef(false);
+  const roundResetTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
+  const aiStepsSinceTurnRef = useRef(8);
+  const coarsePointer = typeof window !== "undefined"
+    && window.matchMedia?.("(pointer: coarse)").matches;
+  const effectiveStepMs = Math.round(variant.stepMs * (coarsePointer ? 1.32 : 1));
 
   useEffect(() => { scoreRef.current = score; }, [score]);
   useEffect(() => { onScoreChangeRef.current = onScoreChange; }, [onScoreChange]);
@@ -72,10 +80,59 @@ export function LightCyclesGame({ score, onScoreChange, storyReady }: ArcadeGame
     queuedDirRef.current = "right";
     playerTrailRef.current = new Set([keyOf(player.x, player.y)]);
     aiTrailRef.current = new Set([keyOf(ai.x, ai.y)]);
+    aiStepsSinceTurnRef.current = 8;
+    roundPausedRef.current = false;
   }
 
   function isBlocked(x: number, y: number) {
     return x < 0 || x >= variant.cols || y < 0 || y >= variant.rows || playerTrailRef.current.has(keyOf(x, y)) || aiTrailRef.current.has(keyOf(x, y));
+  }
+
+  function openAreaFrom(x: number, y: number, maxNodes = 180) {
+    if (isBlocked(x, y)) return 0;
+    const queue: Array<[number, number]> = [[x, y]];
+    const visited = new Set<string>([keyOf(x, y)]);
+    let index = 0;
+
+    while (index < queue.length && visited.size < maxNodes) {
+      const [cx, cy] = queue[index++];
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+        const nx = cx + dx;
+        const ny = cy + dy;
+        const key = keyOf(nx, ny);
+        if (visited.has(key) || isBlocked(nx, ny)) continue;
+        visited.add(key);
+        queue.push([nx, ny]);
+      }
+    }
+
+    return visited.size;
+  }
+
+  function directionScore(rider: Rider, dir: Direction) {
+    const next = projected(rider, dir);
+    if (isBlocked(next.x, next.y)) return -10_000;
+
+    let straightRun = 0;
+    let probe = next;
+    for (let step = 0; step < 10; step += 1) {
+      if (isBlocked(probe.x, probe.y)) break;
+      straightRun += 1;
+      probe = projected(probe, dir);
+    }
+
+    const edgeRoom = Math.min(
+      next.x,
+      variant.cols - 1 - next.x,
+      next.y,
+      variant.rows - 1 - next.y,
+    );
+
+    return openAreaFrom(next.x, next.y)
+      + straightRun * 8
+      + edgeRoom * 2
+      + (dir === rider.dir ? 24 : 0)
+      + Math.random() * 5;
   }
 
   function setDirection(next: Direction) {
@@ -128,17 +185,27 @@ export function LightCyclesGame({ score, onScoreChange, storyReady }: ArcadeGame
       const ai = aiRef.current;
       player.dir = queuedDirRef.current;
 
+      if (roundPausedRef.current) {
+        draw();
+        return;
+      }
+
+      aiStepsSinceTurnRef.current += 1;
       const forward = projected(ai, ai.dir);
-      if (isBlocked(forward.x, forward.y)) {
-        const options = [leftOf(ai.dir), rightOf(ai.dir)].filter((dir) => {
-          const test = projected(ai, dir);
-          return !isBlocked(test.x, test.y);
-        });
-        if (options.length > 0) ai.dir = options[Math.floor(Math.random() * options.length)];
-      } else if (Math.random() < variant.aiTurnChance) {
-        const turn = Math.random() < 0.5 ? leftOf(ai.dir) : rightOf(ai.dir);
-        const test = projected(ai, turn);
-        if (!isBlocked(test.x, test.y)) ai.dir = turn;
+      const mustTurn = isBlocked(forward.x, forward.y);
+      const mayTurn = aiStepsSinceTurnRef.current >= 7 && Math.random() < variant.aiTurnChance;
+
+      if (mustTurn || mayTurn) {
+        const candidates = [ai.dir, leftOf(ai.dir), rightOf(ai.dir)]
+          .map((dir) => ({ dir, score: directionScore(ai, dir) }))
+          .filter((candidate) => candidate.score > -1000)
+          .sort((a, b) => b.score - a.score);
+
+        const selected = candidates[0];
+        if (selected && selected.dir !== ai.dir) {
+          ai.dir = selected.dir;
+          aiStepsSinceTurnRef.current = 0;
+        }
       }
 
       const nextPlayer = projected(player, player.dir);
@@ -160,7 +227,13 @@ export function LightCyclesGame({ score, onScoreChange, storyReady }: ArcadeGame
           setMessage("YOU HIT THE GRID // -5_");
           showFeedback({ title: "GRID CRASH", detail: "MACHINE TAKES THE ROUND", delta: -5, tone: "bad" }, 1050);
         }
-        resetRound();
+        roundPausedRef.current = true;
+        if (roundResetTimerRef.current !== null) window.clearTimeout(roundResetTimerRef.current);
+        roundResetTimerRef.current = window.setTimeout(() => {
+          resetRound();
+          setMessage("NEW GRID // GET READY_");
+          draw();
+        }, 1250);
         draw();
         return;
       }
@@ -173,10 +246,13 @@ export function LightCyclesGame({ score, onScoreChange, storyReady }: ArcadeGame
     };
 
     draw();
-    const timer = window.setInterval(step, variant.stepMs);
+    const timer = window.setInterval(step, effectiveStepMs);
     canvas.focus({ preventScroll: true });
-    return () => window.clearInterval(timer);
-  }, [height, showFeedback, variant, width]);
+    return () => {
+      window.clearInterval(timer);
+      if (roundResetTimerRef.current !== null) window.clearTimeout(roundResetTimerRef.current);
+    };
+  }, [effectiveStepMs, height, showFeedback, variant, width]);
 
   function keyDown(event: KeyboardEvent<HTMLCanvasElement>) {
     const key = event.key.toLowerCase();
@@ -188,15 +264,42 @@ export function LightCyclesGame({ score, onScoreChange, storyReady }: ArcadeGame
     event.preventDefault();
   }
 
+  function pointerDown(event: PointerEvent<HTMLCanvasElement>) {
+    if (event.pointerType !== "touch" && event.pointerType !== "pen") return;
+    swipeStartRef.current = { x: event.clientX, y: event.clientY };
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  }
+
+  function pointerUp(event: PointerEvent<HTMLCanvasElement>) {
+    if (event.pointerType !== "touch" && event.pointerType !== "pen") return;
+    const direction = swipeDirection(
+      swipeStartRef.current,
+      { x: event.clientX, y: event.clientY },
+    );
+    swipeStartRef.current = null;
+    if (direction) setDirection(direction);
+  }
+
   return (
     <div className="intermission-game light-cycles-game">
       <header className="intermission-game-instructions">
         <strong>LIGHT//CYCLES // {variant.name}</strong>
-        <span>WASD / ARROWS // TOUCH D-PAD // BOARD {variant.cols}x{variant.rows}</span>
-        <span>MACHINE CRASH +15 // YOUR CRASH -5 // {variant.stepMs <= 65 ? "TURBO" : variant.stepMs >= 90 ? "RELAXED" : "STANDARD"}</span>
+        <span>WASD / ARROWS // SWIPE OR D-PAD // BOARD {variant.cols}x{variant.rows}</span>
+        <span>MACHINE CRASH +15 // YOUR CRASH -5 // {effectiveStepMs <= 82 ? "TURBO" : effectiveStepMs >= 110 ? "RELAXED" : "STANDARD"}</span>
       </header>
       <div className="arcade-playfield">
-        <canvas ref={canvasRef} className="arcade-canvas grid-arcade-canvas" width={width} height={height} tabIndex={0} onKeyDown={keyDown} aria-label="Retro light cycles game" />
+        <canvas
+          ref={canvasRef}
+          className="arcade-canvas grid-arcade-canvas"
+          width={width}
+          height={height}
+          tabIndex={0}
+          onKeyDown={keyDown}
+          onPointerDown={pointerDown}
+          onPointerUp={pointerUp}
+          onPointerCancel={() => { swipeStartRef.current = null; }}
+          aria-label="Retro light cycles game"
+        />
         <ArcadeFeedback feedback={feedback} />
       </div>
       <div className="arcade-touch-dpad" aria-label="Light cycle touch controls">

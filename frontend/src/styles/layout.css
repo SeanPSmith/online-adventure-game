@@ -633,3 +633,51 @@
   }
 }
 
+
+/* =========================================================
+   PLAYTEST 2026-10-03 — TYPE HIERARCHY / MOBILE READABILITY
+========================================================= */
+
+.eyebrow {
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+.story-copy {
+  font-size: 16px;
+  line-height: 1.78;
+}
+
+.story-copy p {
+  margin: 0 0 1.05em;
+}
+
+.story-copy h1 {
+  margin-bottom: 20px;
+  letter-spacing: -0.015em;
+}
+
+.previous-resolution p,
+.muted-copy {
+  font-size: 12px;
+}
+
+@media (max-width: 640px) {
+  .eyebrow {
+    font-size: 11px;
+  }
+
+  .story-copy {
+    font-size: 16px;
+    line-height: 1.72;
+  }
+
+  .story-copy h1 {
+    font-size: clamp(23px, 7vw, 30px);
+  }
+
+  .previous-resolution p,
+  .muted-copy {
+    font-size: 13px;
+  }
+}

@@ -1,14 +1,23 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { ArcadeFeedback, useArcadeFeedback } from "../engine/ArcadeFeedback";
 import type { ArcadeGameProps } from "../arcadeTypes";
-
-const COLS = 48;
-const ROWS = 24;
-const CELL = 15;
-const WIDTH = COLS * CELL;
-const HEIGHT = ROWS * CELL;
 
 type Direction = "up" | "down" | "left" | "right";
 interface Rider { x: number; y: number; dir: Direction; alive: boolean; }
+interface CycleVariant {
+  name: string;
+  cols: number;
+  rows: number;
+  cell: number;
+  stepMs: number;
+  aiTurnChance: number;
+}
+
+const VARIANTS: CycleVariant[] = [
+  { name: "ARENA S", cols: 40, rows: 20, cell: 18, stepMs: 92, aiTurnChance: 0.055 },
+  { name: "ARENA M", cols: 48, rows: 24, cell: 15, stepMs: 74, aiTurnChance: 0.07 },
+  { name: "ARENA XL", cols: 60, rows: 30, cell: 12, stepMs: 62, aiTurnChance: 0.085 },
+];
 
 function clampScore(value: number) { return Math.max(0, Math.min(999, Math.round(value))); }
 function keyOf(x: number, y: number) { return `${x},${y}`; }
@@ -31,9 +40,13 @@ function projected(rider: Rider, dir: Direction) {
 }
 
 export function LightCyclesGame({ score, onScoreChange, storyReady }: ArcadeGameProps) {
+  const [variant] = useState<CycleVariant>(() => VARIANTS[Math.floor(Math.random() * VARIANTS.length)]);
+  const { feedback, showFeedback } = useArcadeFeedback(950);
+  const width = variant.cols * variant.cell;
+  const height = variant.rows * variant.cell;
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const playerRef = useRef<Rider>({ x: 10, y: 12, dir: "right", alive: true });
-  const aiRef = useRef<Rider>({ x: 37, y: 12, dir: "left", alive: true });
+  const playerRef = useRef<Rider>({ x: Math.floor(variant.cols * 0.22), y: Math.floor(variant.rows / 2), dir: "right", alive: true });
+  const aiRef = useRef<Rider>({ x: Math.floor(variant.cols * 0.78), y: Math.floor(variant.rows / 2), dir: "left", alive: true });
   const playerTrailRef = useRef<Set<string>>(new Set());
   const aiTrailRef = useRef<Set<string>>(new Set());
   const queuedDirRef = useRef<Direction>("right");
@@ -52,15 +65,17 @@ export function LightCyclesGame({ score, onScoreChange, storyReady }: ArcadeGame
   }
 
   function resetRound() {
-    playerRef.current = { x: 10, y: 12, dir: "right", alive: true };
-    aiRef.current = { x: 37, y: 12, dir: "left", alive: true };
+    const player = { x: Math.floor(variant.cols * 0.22), y: Math.floor(variant.rows / 2), dir: "right" as Direction, alive: true };
+    const ai = { x: Math.floor(variant.cols * 0.78), y: Math.floor(variant.rows / 2), dir: "left" as Direction, alive: true };
+    playerRef.current = player;
+    aiRef.current = ai;
     queuedDirRef.current = "right";
-    playerTrailRef.current = new Set([keyOf(10, 12)]);
-    aiTrailRef.current = new Set([keyOf(37, 12)]);
+    playerTrailRef.current = new Set([keyOf(player.x, player.y)]);
+    aiTrailRef.current = new Set([keyOf(ai.x, ai.y)]);
   }
 
   function isBlocked(x: number, y: number) {
-    return x < 0 || x >= COLS || y < 0 || y >= ROWS || playerTrailRef.current.has(keyOf(x, y)) || aiTrailRef.current.has(keyOf(x, y));
+    return x < 0 || x >= variant.cols || y < 0 || y >= variant.rows || playerTrailRef.current.has(keyOf(x, y)) || aiTrailRef.current.has(keyOf(x, y));
   }
 
   function setDirection(next: Direction) {
@@ -77,29 +92,35 @@ export function LightCyclesGame({ score, onScoreChange, storyReady }: ArcadeGame
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+    ctx.imageSmoothingEnabled = false;
     resetRound();
 
     const draw = () => {
       ctx.fillStyle = "#020702";
-      ctx.fillRect(0, 0, WIDTH, HEIGHT);
+      ctx.fillRect(0, 0, width, height);
       ctx.strokeStyle = "#0d2f15";
-      for (let x = 0; x <= WIDTH; x += CELL * 4) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, HEIGHT); ctx.stroke(); }
-      for (let y = 0; y <= HEIGHT; y += CELL * 4) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(WIDTH, y); ctx.stroke(); }
+      for (let x = 0; x <= width; x += variant.cell * 4) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke(); }
+      for (let y = 0; y <= height; y += variant.cell * 4) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke(); }
 
       ctx.fillStyle = "#7dff9b";
       playerTrailRef.current.forEach((key) => {
         const [x, y] = key.split(",").map(Number);
-        ctx.fillRect(x * CELL + 2, y * CELL + 2, CELL - 4, CELL - 4);
+        ctx.fillRect(x * variant.cell + 2, y * variant.cell + 2, variant.cell - 4, variant.cell - 4);
       });
       ctx.fillStyle = "#2b7f3e";
       aiTrailRef.current.forEach((key) => {
         const [x, y] = key.split(",").map(Number);
-        ctx.fillRect(x * CELL + 3, y * CELL + 3, CELL - 6, CELL - 6);
+        ctx.fillRect(x * variant.cell + 3, y * variant.cell + 3, variant.cell - 6, variant.cell - 6);
       });
       ctx.strokeStyle = "#7dff9b";
-      ctx.strokeRect(playerRef.current.x * CELL, playerRef.current.y * CELL, CELL, CELL);
+      ctx.strokeRect(playerRef.current.x * variant.cell, playerRef.current.y * variant.cell, variant.cell, variant.cell);
       ctx.strokeStyle = "#3aa653";
-      ctx.strokeRect(aiRef.current.x * CELL, aiRef.current.y * CELL, CELL, CELL);
+      ctx.strokeRect(aiRef.current.x * variant.cell, aiRef.current.y * variant.cell, variant.cell, variant.cell);
+
+      ctx.fillStyle = "#3aa653";
+      ctx.font = `700 ${Math.max(8, Math.round(variant.cell * 0.72))}px monospace`;
+      ctx.textAlign = "right";
+      ctx.fillText(`${variant.name} // ${variant.stepMs}MS`, width - 6, 13);
     };
 
     const step = () => {
@@ -107,7 +128,6 @@ export function LightCyclesGame({ score, onScoreChange, storyReady }: ArcadeGame
       const ai = aiRef.current;
       player.dir = queuedDirRef.current;
 
-      // AI keeps going if possible, otherwise chooses the safer turn.
       const forward = projected(ai, ai.dir);
       if (isBlocked(forward.x, forward.y)) {
         const options = [leftOf(ai.dir), rightOf(ai.dir)].filter((dir) => {
@@ -115,7 +135,7 @@ export function LightCyclesGame({ score, onScoreChange, storyReady }: ArcadeGame
           return !isBlocked(test.x, test.y);
         });
         if (options.length > 0) ai.dir = options[Math.floor(Math.random() * options.length)];
-      } else if (Math.random() < 0.07) {
+      } else if (Math.random() < variant.aiTurnChance) {
         const turn = Math.random() < 0.5 ? leftOf(ai.dir) : rightOf(ai.dir);
         const test = projected(ai, turn);
         if (!isBlocked(test.x, test.y)) ai.dir = turn;
@@ -123,18 +143,22 @@ export function LightCyclesGame({ score, onScoreChange, storyReady }: ArcadeGame
 
       const nextPlayer = projected(player, player.dir);
       const nextAi = projected(ai, ai.dir);
-      const playerCrash = isBlocked(nextPlayer.x, nextPlayer.y) || (nextPlayer.x === nextAi.x && nextPlayer.y === nextAi.y);
-      const aiCrash = isBlocked(nextAi.x, nextAi.y) || (nextPlayer.x === nextAi.x && nextPlayer.y === nextAi.y);
+      const headOn = nextPlayer.x === nextAi.x && nextPlayer.y === nextAi.y;
+      const playerCrash = isBlocked(nextPlayer.x, nextPlayer.y) || headOn;
+      const aiCrash = isBlocked(nextAi.x, nextAi.y) || headOn;
 
       if (playerCrash || aiCrash) {
         if (playerCrash && aiCrash) {
           setMessage("DOUBLE CRASH // NOBODY LEARNS ANYTHING_");
+          showFeedback({ title: "DOUBLE CRASH", detail: "DRAW // RESETTING GRID", tone: "neutral" }, 1000);
         } else if (aiCrash) {
           award(15);
           setMessage("MACHINE WALLS ITSELF // +15_");
+          showFeedback({ title: "YOU WIN", detail: "MACHINE HIT THE GRID", delta: 15, tone: "great" }, 1150);
         } else {
           award(-5);
           setMessage("YOU HIT THE GRID // -5_");
+          showFeedback({ title: "GRID CRASH", detail: "MACHINE TAKES THE ROUND", delta: -5, tone: "bad" }, 1050);
         }
         resetRound();
         draw();
@@ -149,10 +173,10 @@ export function LightCyclesGame({ score, onScoreChange, storyReady }: ArcadeGame
     };
 
     draw();
-    const timer = window.setInterval(step, 72);
+    const timer = window.setInterval(step, variant.stepMs);
     canvas.focus({ preventScroll: true });
     return () => window.clearInterval(timer);
-  }, []);
+  }, [height, showFeedback, variant, width]);
 
   function keyDown(event: KeyboardEvent<HTMLCanvasElement>) {
     const key = event.key.toLowerCase();
@@ -167,16 +191,19 @@ export function LightCyclesGame({ score, onScoreChange, storyReady }: ArcadeGame
   return (
     <div className="intermission-game light-cycles-game">
       <header className="intermission-game-instructions">
-        <strong>LIGHT//CYCLES // DO NOT TOUCH ANY TRAIL</strong>
-        <span>WASD / ARROWS // TOUCH D-PAD // SOLO MACHINE OPPONENT</span>
-        <span>MACHINE CRASH +15 // YOUR CRASH -5</span>
+        <strong>LIGHT//CYCLES // {variant.name}</strong>
+        <span>WASD / ARROWS // TOUCH D-PAD // BOARD {variant.cols}x{variant.rows}</span>
+        <span>MACHINE CRASH +15 // YOUR CRASH -5 // {variant.stepMs <= 65 ? "TURBO" : variant.stepMs >= 90 ? "RELAXED" : "STANDARD"}</span>
       </header>
-      <canvas ref={canvasRef} className="arcade-canvas grid-arcade-canvas" width={WIDTH} height={HEIGHT} tabIndex={0} onKeyDown={keyDown} aria-label="Retro light cycles game" />
+      <div className="arcade-playfield">
+        <canvas ref={canvasRef} className="arcade-canvas grid-arcade-canvas" width={width} height={height} tabIndex={0} onKeyDown={keyDown} aria-label="Retro light cycles game" />
+        <ArcadeFeedback feedback={feedback} />
+      </div>
       <div className="arcade-touch-dpad" aria-label="Light cycle touch controls">
         <button type="button" onClick={() => setDirection("up")}>▲</button>
         <div><button type="button" onClick={() => setDirection("left")}>◀</button><button type="button" onClick={() => setDirection("down")}>▼</button><button type="button" onClick={() => setDirection("right")}>▶</button></div>
       </div>
-      <footer className="intermission-game-message"><span>{message}</span><strong>YOU // MACHINE</strong></footer>
+      <footer className="intermission-game-message"><span>{message}</span><strong>{variant.name} // YOU vs MACHINE</strong></footer>
     </div>
   );
 }

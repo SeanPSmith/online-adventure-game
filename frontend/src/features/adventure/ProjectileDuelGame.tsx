@@ -7,6 +7,8 @@ import {
   type KeyboardEvent,
 } from "react";
 
+import { ArcadeFeedback, useArcadeFeedback } from "../arcade/engine/ArcadeFeedback";
+
 const WIDTH = 66;
 const HEIGHT = 17;
 const GROUND_Y = HEIGHT - 2;
@@ -132,6 +134,7 @@ export function ProjectileDuelGame({
   onScoreChange: (score: number) => void;
   storyReady: boolean;
 }) {
+  const { feedback, showFeedback } = useArcadeFeedback(1200);
   const [angle, setAngle] = useState(45);
   const [power, setPower] = useState(68);
   const [wind, setWind] = useState(() => randomWind());
@@ -197,12 +200,14 @@ export function ProjectileDuelGame({
 
       if (nextEnemyHp <= 0) {
         setMessage("DIRECT HIT // TARGET DOWN // +25_");
+        showFeedback({ title: "TARGET DOWN", detail: "DIRECT HIT // MACHINE FLATTENED", delta: 25, tone: "great" }, 1450);
         settleTimerRef.current = setTimeout(
           () => resetExchange(true, false),
           520,
         );
       } else {
         setMessage(`DIRECT HIT // ENEMY ARMOR ${nextEnemyHp}/3 // +10_`);
+        showFeedback({ title: "DIRECT HIT", detail: `ENEMY ARMOR ${nextEnemyHp}/3`, delta: 10, tone: "good" });
         settleTimerRef.current = setTimeout(
           () => resetExchange(false, false),
           420,
@@ -219,18 +224,20 @@ export function ProjectileDuelGame({
       scoreRef.current = nextScore;
       onScoreChange(nextScore);
       setMessage("RETURN FIRE // YOU GOT FLATTENED // -5_");
+      showFeedback({ title: "YOU GOT FLATTENED", detail: "RETURN FIRE CONNECTED", delta: -5, tone: "bad" }, 1350);
       settleTimerRef.current = setTimeout(
         () => resetExchange(false, true),
         620,
       );
     } else {
       setMessage(`MISS // RETURN FIRE CONNECTS // ARMOR ${nextPlayerHp}/3_`);
+      showFeedback({ title: "MISS", detail: `RETURN FIRE // ARMOR ${nextPlayerHp}/3`, tone: "bad" });
       settleTimerRef.current = setTimeout(
         () => resetExchange(false, false),
         480,
       );
     }
-  }, [enemyHp, playerHp, onScoreChange, resetExchange]);
+  }, [enemyHp, playerHp, onScoreChange, resetExchange, showFeedback]);
 
   const fire = useCallback(() => {
     if (busy) return;
@@ -306,18 +313,21 @@ export function ProjectileDuelGame({
         <span>TOUCH/MOUSE // USE THE SLIDERS + FIRE BUTTON</span>
       </header>
 
-      <div
-        className="projectile-field-wrap"
-        ref={fieldRef}
-        tabIndex={0}
-        onKeyDown={handleKeyDown}
-      >
+      <div className="arcade-playfield">
+        <div
+          className="projectile-field-wrap"
+          ref={fieldRef}
+          tabIndex={0}
+          onKeyDown={handleKeyDown}
+        >
         <div className="projectile-hud-line">
           <span>YOU [{"#".repeat(playerHp)}{".".repeat(3 - playerHp)}]</span>
           <span>WIND {wind >= 0 ? "+" : ""}{wind}</span>
           <span>THEM [{"#".repeat(enemyHp)}{".".repeat(3 - enemyHp)}]</span>
         </div>
         <pre className="projectile-ascii-field">{field}</pre>
+        </div>
+        <ArcadeFeedback feedback={feedback} />
       </div>
 
       <div className="projectile-controls">

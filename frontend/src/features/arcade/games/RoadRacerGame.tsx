@@ -1,13 +1,29 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
+import { ArcadeFeedback, useArcadeFeedback } from "../engine/ArcadeFeedback";
 import type { ArcadeGameProps } from "../arcadeTypes";
 
 const WIDTH = 720;
 const HEIGHT = 380;
 const PLAYER_Y = HEIGHT - 72;
-const ROAD_LEFT = 126;
-const ROAD_RIGHT = WIDTH - 126;
+const ROAD_LEFT = 112;
+const ROAD_RIGHT = WIDTH - 112;
 const PLAYER_W = 38;
 const PLAYER_H = 58;
+
+interface RoadVariant {
+  name: string;
+  lanes: number;
+  startSpeed: number;
+  maxSpeed: number;
+  spawnBase: number;
+  trafficMin: number;
+}
+
+const ROAD_VARIANTS: RoadVariant[] = [
+  { name: "CRUISE", lanes: 3, startSpeed: 220, maxSpeed: 300, spawnBase: 1.12, trafficMin: 0.62 },
+  { name: "RUSH HOUR", lanes: 4, startSpeed: 238, maxSpeed: 332, spawnBase: 0.92, trafficMin: 0.5 },
+  { name: "NIGHT RUN", lanes: 3, startSpeed: 270, maxSpeed: 365, spawnBase: 0.78, trafficMin: 0.42 },
+];
 
 interface TrafficCar {
   lane: number;
@@ -25,33 +41,37 @@ interface RacerState {
   traffic: TrafficCar[];
   keys: Set<string>;
   crashedUntil: number;
+  passStreak: number;
 }
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
 }
 
-function laneX(lane: number) {
+function laneX(lane: number, laneCount: number) {
   const usable = ROAD_RIGHT - ROAD_LEFT;
-  return ROAD_LEFT + usable * ((lane + 0.5) / 3);
+  return ROAD_LEFT + usable * ((lane + 0.5) / laneCount);
 }
 
-function freshState(): RacerState {
+function freshState(variant: RoadVariant): RacerState {
   return {
     x: WIDTH / 2,
     targetX: WIDTH / 2,
-    speed: 245,
+    speed: variant.startSpeed,
     roadOffset: 0,
-    spawnTimer: 0.35,
+    spawnTimer: 0.45,
     traffic: [],
     keys: new Set(),
     crashedUntil: 0,
+    passStreak: 0,
   };
 }
 
 export function RoadRacerGame({ score, onScoreChange, storyReady }: ArcadeGameProps) {
+  const [variant] = useState<RoadVariant>(() => ROAD_VARIANTS[Math.floor(Math.random() * ROAD_VARIANTS.length)]);
+  const { feedback, showFeedback } = useArcadeFeedback(680);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const gameRef = useRef<RacerState>(freshState());
+  const gameRef = useRef<RacerState>(freshState(variant));
   const scoreRef = useRef(score);
   const onScoreChangeRef = useRef(onScoreChange);
   const frameRef = useRef<number | null>(null);
@@ -75,6 +95,7 @@ export function RoadRacerGame({ score, onScoreChange, storyReady }: ArcadeGamePr
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+    ctx.imageSmoothingEnabled = false;
 
     const tick = (time: number) => {
       const last = lastTimeRef.current ?? time;
@@ -88,40 +109,51 @@ export function RoadRacerGame({ score, onScoreChange, storyReady }: ArcadeGamePr
       game.targetX = clamp(game.targetX, ROAD_LEFT + PLAYER_W / 2 + 8, ROAD_RIGHT - PLAYER_W / 2 - 8);
       game.x += (game.targetX - game.x) * Math.min(1, dt * 12);
 
-      game.speed = clamp(game.speed + dt * 2.8, 245, 340);
+      game.speed = clamp(game.speed + dt * 2.8, variant.startSpeed, variant.maxSpeed);
       game.roadOffset = (game.roadOffset + game.speed * dt) % 52;
       game.spawnTimer -= dt;
 
       if (game.spawnTimer <= 0) {
-        const lane = Math.floor(Math.random() * 3);
+        const lane = Math.floor(Math.random() * variant.lanes);
         game.traffic.push({
           lane,
           y: -72,
-          speed: game.speed * (0.74 + Math.random() * 0.18),
+          speed: game.speed * (0.72 + Math.random() * 0.2),
           passed: false,
         });
-        game.spawnTimer = Math.max(0.48, 1.02 - (game.speed - 245) / 270) + Math.random() * 0.28;
+        const speedPressure = (game.speed - variant.startSpeed) / Math.max(1, variant.maxSpeed - variant.startSpeed);
+        game.spawnTimer = Math.max(variant.trafficMin, variant.spawnBase - speedPressure * 0.34) + Math.random() * 0.24;
       }
 
       const now = performance.now();
       const canCrash = now >= game.crashedUntil;
       for (const car of game.traffic) {
         car.y += car.speed * dt;
-        const x = laneX(car.lane);
+        const x = laneX(car.lane, variant.lanes);
         if (!car.passed && car.y > PLAYER_Y + PLAYER_H) {
           car.passed = true;
-          award(3);
-          setMessage("CLEAN PASS // +3_");
+          game.passStreak += 1;
+          const delta = game.passStreak > 0 && game.passStreak % 5 === 0 ? 6 : 3;
+          award(delta);
+          setMessage(game.passStreak % 5 === 0 ? `FIVE CLEAN // STREAK BONUS +${delta}_` : `CLEAN PASS // +${delta}_`);
+          showFeedback({
+            title: game.passStreak % 5 === 0 ? "PASS STREAK x5" : "CLEAN PASS",
+            detail: `SPEED ${Math.round(game.speed)} KPH`,
+            delta,
+            tone: game.passStreak % 5 === 0 ? "great" : "good",
+          }, game.passStreak % 5 === 0 ? 950 : 560);
         }
 
         const overlapX = Math.abs(game.x - x) < (PLAYER_W + 34) / 2;
         const overlapY = car.y + 50 > PLAYER_Y && car.y < PLAYER_Y + PLAYER_H;
         if (canCrash && overlapX && overlapY) {
           game.crashedUntil = now + 850;
-          game.speed = Math.max(245, game.speed - 38);
+          game.speed = Math.max(variant.startSpeed, game.speed - 38);
           game.targetX = WIDTH / 2;
+          game.passStreak = 0;
           award(-7);
           setMessage("CONTACT // -7 // CAR RECOVERING_");
+          showFeedback({ title: "CONTACT!", detail: "STREAK LOST // CAR RECOVERING", delta: -7, tone: "bad" }, 1050);
         }
       }
       game.traffic = game.traffic.filter((car) => car.y < HEIGHT + 90);
@@ -129,7 +161,6 @@ export function RoadRacerGame({ score, onScoreChange, storyReady }: ArcadeGamePr
       ctx.fillStyle = "#020702";
       ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-      // Road shoulder and surface.
       ctx.fillStyle = "#061106";
       ctx.fillRect(ROAD_LEFT, 0, ROAD_RIGHT - ROAD_LEFT, HEIGHT);
       ctx.strokeStyle = "#3aa653";
@@ -141,11 +172,10 @@ export function RoadRacerGame({ score, onScoreChange, storyReady }: ArcadeGamePr
       ctx.lineTo(ROAD_RIGHT, HEIGHT);
       ctx.stroke();
 
-      // Moving lane stripes create most of the speed illusion.
       ctx.strokeStyle = "#1d5b2b";
       ctx.lineWidth = 4;
-      for (let lane = 1; lane <= 2; lane += 1) {
-        const x = ROAD_LEFT + ((ROAD_RIGHT - ROAD_LEFT) * lane) / 3;
+      for (let lane = 1; lane < variant.lanes; lane += 1) {
+        const x = ROAD_LEFT + ((ROAD_RIGHT - ROAD_LEFT) * lane) / variant.lanes;
         for (let y = -52 + game.roadOffset; y < HEIGHT; y += 52) {
           ctx.beginPath();
           ctx.moveTo(x, y);
@@ -154,7 +184,6 @@ export function RoadRacerGame({ score, onScoreChange, storyReady }: ArcadeGamePr
         }
       }
 
-      // Roadside posts.
       ctx.strokeStyle = "#164d23";
       for (let y = -34 + (game.roadOffset * 1.35) % 68; y < HEIGHT; y += 68) {
         ctx.beginPath();
@@ -165,9 +194,8 @@ export function RoadRacerGame({ score, onScoreChange, storyReady }: ArcadeGamePr
         ctx.stroke();
       }
 
-      // Traffic.
       for (const car of game.traffic) {
-        const x = laneX(car.lane);
+        const x = laneX(car.lane, variant.lanes);
         ctx.fillStyle = "#2b7f3e";
         ctx.fillRect(x - 17, car.y, 34, 50);
         ctx.fillStyle = "#020702";
@@ -177,7 +205,6 @@ export function RoadRacerGame({ score, onScoreChange, storyReady }: ArcadeGamePr
         ctx.fillRect(x + 8, car.y + 42, 7, 4);
       }
 
-      // Player car flashes during crash recovery.
       if (now >= game.crashedUntil || Math.floor(now / 90) % 2 === 0) {
         ctx.fillStyle = "#7dff9b";
         ctx.fillRect(game.x - PLAYER_W / 2, PLAYER_Y, PLAYER_W, PLAYER_H);
@@ -192,8 +219,10 @@ export function RoadRacerGame({ score, onScoreChange, storyReady }: ArcadeGamePr
       ctx.textAlign = "left";
       ctx.fillText(`SPEED ${Math.round(game.speed)} KPH`, 16, 22);
       ctx.fillText(`SCORE ${String(scoreRef.current).padStart(3, "0")}`, 16, 39);
+      ctx.fillText(`STREAK ${game.passStreak}`, 16, 56);
       ctx.textAlign = "right";
-      ctx.fillText("HIGHWAY 84", WIDTH - 16, 22);
+      ctx.fillText(`HIGHWAY 84 // ${variant.name}`, WIDTH - 16, 22);
+      ctx.fillText(`${variant.lanes} LANES`, WIDTH - 16, 39);
 
       frameRef.current = requestAnimationFrame(tick);
     };
@@ -203,7 +232,7 @@ export function RoadRacerGame({ score, onScoreChange, storyReady }: ArcadeGamePr
     return () => {
       if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
     };
-  }, []);
+  }, [showFeedback, variant]);
 
   function keyDown(event: KeyboardEvent<HTMLCanvasElement>) {
     const key = event.key.toLowerCase();
@@ -226,23 +255,26 @@ export function RoadRacerGame({ score, onScoreChange, storyReady }: ArcadeGamePr
   return (
     <div className="intermission-game road-racer-game">
       <header className="intermission-game-instructions">
-        <strong>HIGHWAY 84 // PASS TRAFFIC WITHOUT BECOMING TRAFFIC</strong>
-        <span>A/D OR ←/→ // POINTER / TOUCH STEERING</span>
-        <span>CLEAN PASS +3 // CONTACT -7 // SPEED CREEPS UP</span>
+        <strong>HIGHWAY 84 // {variant.name}</strong>
+        <span>A/D OR ←/→ // POINTER / TOUCH STEERING // {variant.lanes}-LANE BOARD</span>
+        <span>CLEAN PASS +3 // FIVE-PASS STREAK BONUS // CONTACT -7</span>
       </header>
-      <canvas
-        ref={canvasRef}
-        className="arcade-canvas road-racer-canvas"
-        width={WIDTH}
-        height={HEIGHT}
-        tabIndex={0}
-        onKeyDown={keyDown}
-        onKeyUp={keyUp}
-        onPointerMove={pointerMove}
-        onPointerDown={pointerMove}
-        aria-label="Retro highway racing game"
-      />
-      <footer className="intermission-game-message"><span>{message}</span><strong>NO BRAKES // GREAT PLAN</strong></footer>
+      <div className="arcade-playfield">
+        <canvas
+          ref={canvasRef}
+          className="arcade-canvas road-racer-canvas"
+          width={WIDTH}
+          height={HEIGHT}
+          tabIndex={0}
+          onKeyDown={keyDown}
+          onKeyUp={keyUp}
+          onPointerMove={pointerMove}
+          onPointerDown={pointerMove}
+          aria-label="Retro highway racing game"
+        />
+        <ArcadeFeedback feedback={feedback} />
+      </div>
+      <footer className="intermission-game-message"><span>{message}</span><strong>{variant.name} // NO BRAKES</strong></footer>
     </div>
   );
 }

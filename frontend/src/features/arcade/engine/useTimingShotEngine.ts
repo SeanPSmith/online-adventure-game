@@ -31,9 +31,9 @@ function pingPong(elapsedMs: number, periodMs: number) {
 }
 
 export function useTimingShotEngine({
-  aimPeriodMs = 1850,
-  powerPeriodMs = 1450,
-  modifierPeriodMs = 1325,
+  aimPeriodMs = 2600,
+  powerPeriodMs = 2200,
+  modifierPeriodMs = 2400,
 }: TimingShotEngineOptions = {}) {
   const [phase, setPhase] = useState<TimingShotPhase>("aim");
   const [aim, setAim] = useState(0);

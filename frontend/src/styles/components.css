@@ -3330,3 +3330,106 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+/* =========================================================
+   ARCADE GAME-FEEL PASS 17 // FEEDBACK + FRIENDLIER TIMING
+========================================================= */
+
+.arcade-playfield {
+  position: relative;
+  width: min(900px, 100%);
+  margin: 0 auto;
+}
+
+.arcade-playfield > .arcade-canvas {
+  width: 100%;
+}
+
+.arcade-feedback {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  top: 45%;
+  transform: translate(-50%, -50%);
+  min-width: min(380px, 82%);
+  padding: 14px 18px;
+  border: 2px solid var(--green);
+  background: rgba(0, 7, 1, 0.94);
+  color: var(--green-soft);
+  text-align: center;
+  display: grid;
+  gap: 5px;
+  pointer-events: none;
+  animation: arcade-feedback-pop 1050ms steps(6, end) both;
+}
+
+.arcade-feedback strong {
+  font-size: clamp(17px, 3vw, 30px);
+  letter-spacing: 0.08em;
+  line-height: 1;
+}
+
+.arcade-feedback span {
+  color: var(--green-dim);
+  font-size: 9px;
+}
+
+.arcade-feedback b {
+  color: var(--green);
+  font-size: clamp(14px, 2.4vw, 22px);
+}
+
+.arcade-feedback.is-bad {
+  border-color: #ff5f56;
+  color: #ff8d87;
+}
+
+.arcade-feedback.is-bad b {
+  color: #ff5f56;
+}
+
+.arcade-feedback.is-great {
+  border-width: 3px;
+  box-shadow: inset 0 0 0 2px rgba(125, 255, 155, 0.16);
+}
+
+@keyframes arcade-feedback-pop {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.72); }
+  12% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+  20%, 78% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -55%) scale(0.98); }
+}
+
+.timing-shot-target {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: rgba(125, 255, 155, 0.12);
+  border-left: 1px solid rgba(125, 255, 155, 0.42);
+  border-right: 1px solid rgba(125, 255, 155, 0.42);
+  pointer-events: none;
+}
+
+.timing-shot-target::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(125, 255, 155, 0.68);
+}
+
+.golf-game .retro-sport-canvas {
+  aspect-ratio: 16 / 9;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arcade-feedback {
+    animation: none;
+  }
+}
+
+.timing-shot-target { z-index: 2; }
+.timing-shot-marker, .timing-shot-center { z-index: 3; }
+.timing-shot-fill { position: relative; z-index: 1; }

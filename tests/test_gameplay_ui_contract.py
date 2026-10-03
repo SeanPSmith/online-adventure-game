@@ -197,3 +197,44 @@ def test_arcade_content_pass_retires_archery_and_adds_motion_cabinets() -> None:
     assert "BALL IN FLIGHT" in golf
     assert "const startY = GROUND_Y - 2" in artillery
     assert "for (let t = 0.04" in artillery
+
+
+def test_arcade_game_feel_pass_adds_forgiving_timing_feedback_and_variants() -> None:
+    engine = read("features/arcade/engine/useTimingShotEngine.ts")
+    meters = read("features/arcade/engine/TimingShotMeters.tsx")
+    feedback = read("features/arcade/engine/ArcadeFeedback.tsx")
+    golf = read("features/arcade/games/GolfGame.tsx")
+    bowling = read("features/arcade/games/BowlingGame.tsx")
+    road = read("features/arcade/games/RoadRacerGame.tsx")
+    breaker = read("features/arcade/games/BrickBreakerGame.tsx")
+    snake = read("features/arcade/games/SnakeGame.tsx")
+    cycles = read("features/arcade/games/LightCyclesGame.tsx")
+    artillery = read("features/adventure/ProjectileDuelGame.tsx")
+
+    assert "aimPeriodMs = 2600" in engine
+    assert "powerPeriodMs = 2200" in engine
+    assert "modifierPeriodMs = 2400" in engine
+    assert "timing-shot-target" in meters
+    assert "useArcadeFeedback" in feedback
+
+    assert "PAR-3 PIN HUNT" in golf
+    assert "drawPixelGolfer" in golf
+    assert "TARGET POWER" in golf
+    assert "recommendedPower" in golf
+    assert "FLAG HUNTING!" in golf
+    assert "aimPeriodMs: 3100" in golf
+
+    assert "LaneOil" in bowling
+    assert "STRIKE!" in bowling
+    assert "powerTarget={0.78}" in bowling
+    assert "aimPeriodMs: 2850" in bowling
+
+    assert "ROAD_VARIANTS" in road
+    assert "PASS STREAK x5" in road
+    assert "BreakerVariant" in breaker
+    assert "BOARD CLEARED" in breaker
+    assert "SnakeVariant" in snake
+    assert "TURBO GRID" in snake
+    assert "CycleVariant" in cycles
+    assert "YOU WIN" in cycles
+    assert "TARGET DOWN" in artillery

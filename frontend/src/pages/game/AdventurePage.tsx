@@ -17,6 +17,16 @@ import { useGameSocket } from "../../state/GameSocketContext";
 import { useLiveAdventure } from "../../state/useLiveAdventure";
 import { useModal } from "../../state/ModalContext";
 
+const CORE_STATS = [
+  ["strength", "STR"],
+  ["agility", "AGI"],
+  ["intellect", "INT"],
+  ["perception", "PER"],
+  ["presence", "PRE"],
+  ["willpower", "WIL"],
+  ["luck", "LCK"],
+] as const;
+
 function choiceStorageKey(roomCode: string, characterId: string, turnNumber: number) {
   return `tot:choice:${roomCode}:${characterId}:${turnNumber}`;
 }
@@ -38,6 +48,15 @@ function storeChoice(roomCode: string, characterId: string, turnNumber: number, 
   } catch {
     // Local presentation persistence is optional. Python remains authoritative.
   }
+}
+
+function signed(value: number) {
+  if (value > 0) return `+${value}`;
+  return String(value);
+}
+
+function outcomeLabel(outcome: string) {
+  return outcome.replaceAll("_", " ").toUpperCase();
 }
 
 export function AdventurePage() {
@@ -104,6 +123,26 @@ export function AdventurePage() {
   const selectedChoice = scene?.choices.find(
     (choice) => choice.id === selectedChoiceId,
   ) ?? null;
+
+  const lastLocalResult = useMemo(
+    () =>
+      live.lastTurn?.results?.find(
+        (result) => result.character_id === characterId,
+      ) ?? null,
+    [characterId, live.lastTurn],
+  );
+
+  const lastLocalProgression = characterId
+    ? live.lastTurn?.hero_progression?.[characterId] ?? null
+    : null;
+
+  const directorState = live.game?.director_request_active
+    ? "WRITING"
+    : live.game?.director_retry_required
+      ? "RECOVERY"
+      : live.game?.turn_pending
+        ? "PENDING"
+        : "READY";
 
   const choicesBlocked =
     choiceLocked ||
@@ -267,14 +306,84 @@ export function AdventurePage() {
             </span>
           </div>
 
+          <section className="adventure-command-strip" aria-label="Current turn state">
+            <div className="turn-status-cluster">
+              {readiness.map((player) => (
+                <div className={`turn-status-chip ${player.ready ? "is-ready" : ""}`} key={player.player_id}>
+                  <span>{player.player_id === live.playerId ? "YOU" : player.name}</span>
+                  <strong>
+                    {player.ready
+                      ? "LOCKED"
+                      : player.online
+                        ? "CHOOSING"
+                        : "OFFLINE"}
+                  </strong>
+                </div>
+              ))}
+
+              <div className={`turn-status-chip director-status is-${directorState.toLowerCase()}`}>
+                <span>DIRECTOR</span>
+                <strong>{directorState}</strong>
+              </div>
+
+              <div className="turn-status-chip">
+                <span>MODE</span>
+                <strong>{live.room?.play_mode?.toUpperCase() ?? "—"}</strong>
+              </div>
+            </div>
+
+            <div className="adventure-session-actions">
+              {live.game?.can_start_solo && localRoomPlayer?.is_host ? (
+                <button
+                  className="button button-quiet"
+                  type="button"
+                  onClick={() => {
+                    const confirmed = window.confirm(
+                      "Switch this co-op room to SOLO? A second Hero will no longer be able to join this journey.",
+                    );
+
+                    if (confirmed) {
+                      startSolo(normalizedRoomCode);
+                    }
+                  }}
+                >
+                  START SOLO
+                </button>
+              ) : null}
+
+              {live.game?.wrap_up_available && !live.game.wrap_up_active ? (
+                <button
+                  className="button button-quiet"
+                  type="button"
+                  disabled={Boolean(live.playerId && live.game.wrap_up_votes.includes(live.playerId))}
+                  onClick={live.requestWrapUp}
+                >
+                  {live.playerId && live.game.wrap_up_votes.includes(live.playerId)
+                    ? "FINAL CHAPTER REQUESTED"
+                    : "CALL FINAL CHAPTER"}
+                </button>
+              ) : null}
+
+              {live.game?.wrap_up_active ? (
+                <span className="wrap-up-status compact-wrap-up-status">
+                  FINAL CHAPTER // {live.game.wrap_up_turns_remaining} TURNS
+                </span>
+              ) : null}
+            </div>
+          </section>
+
           {live.game?.last_resolution ? (
             <section className="previous-resolution">
-              <span className="eyebrow">PREVIOUS TURN // ACTIONS + ROLLS</span>
+              <span className="eyebrow">PREVIOUS TURN // WHAT JUST HAPPENED</span>
               <p>{live.game.last_resolution}</p>
             </section>
           ) : null}
 
           <article className="story-copy">
+            <div className="story-heading-row">
+              <span className="eyebrow">CURRENT SCENE</span>
+              <span className="story-turn-marker">TURN {String(turnNumber).padStart(2, "0")}</span>
+            </div>
             <h1>{scene?.title ?? "PICKING UP THE THREAD_"}</h1>
 
             {scene?.body ? (
@@ -292,7 +401,7 @@ export function AdventurePage() {
                   <div className="system-notice adventure-restore-failure">
                     <strong>{live.error || "THE RESTORE DID NOT COMPLETE."}</strong>
                     <span>
-                      The Adventure Hall now has a recovery/abandon control for this saved room.
+                      The Adventure Hall has a recovery/abandon control for this saved room.
                     </span>
                     <Link className="button button-primary" to="/game">
                       RETURN TO ADVENTURE HALL
@@ -315,12 +424,15 @@ export function AdventurePage() {
           ) : (
             <section className="choice-area">
               <header className="choice-area-heading">
-                <strong>CHOOSE YOUR MOVE</strong>
+                <div>
+                  <span className="eyebrow">YOUR NEXT MOVE</span>
+                  <strong>CHOOSE AN INTENT</strong>
+                </div>
                 <span>
                   {choiceLocked
-                    ? "YOUR PART IS DONE // FOR NOW"
+                    ? "LOCKED // WAITING FOR THE THREAD"
                     : selectedChoice
-                      ? "SELECTED // REVIEW OR LOCK IT"
+                      ? "SELECTED // REVIEW OR LOCK"
                       : "NOTHING IS CANON YET"}
                 </span>
               </header>
@@ -329,6 +441,10 @@ export function AdventurePage() {
                 {(scene?.choices ?? []).map((choice, index) => {
                   const selected = choice.id === selectedChoiceId;
                   const locked = selected && choiceLocked;
+                  const challenge = choice.check?.challenge_tier?.toUpperCase() ?? null;
+                  const checkName = choice.check
+                    ? (choice.check.skill ?? choice.check.stat ?? "CHECK").toUpperCase()
+                    : "NO CHECK";
 
                   return (
                     <article
@@ -347,19 +463,19 @@ export function AdventurePage() {
 
                         <span className="choice-copy">
                           <strong>{choice.label}</strong>
-                          <small>
-                            {[
-                              choice.check
-                                ? `${(choice.check.skill ?? choice.check.stat ?? "CHECK").toUpperCase()} ${choice.check.challenge_tier ? `${choice.check.challenge_tier.toUpperCase()} ` : ""}DC ${choice.check.difficulty}`
-                                : "NO CHECK",
-                              choice.risk_level
-                                ? `${choice.risk_level.toUpperCase()} RISK`
-                                : "",
-                              `+${choice.xp_reward} XP`,
-                            ]
-                              .filter(Boolean)
-                              .join(" // ")}
-                          </small>
+                          <span className="choice-meta-tags">
+                            <small>
+                              {choice.check
+                                ? `${checkName}${challenge ? ` // ${challenge}` : ""} // DC ${choice.check.difficulty}`
+                                : "NO CHECK"}
+                            </small>
+                            {choice.risk_level ? (
+                              <small className={`choice-risk-tag risk-${choice.risk_level.toLowerCase()}`}>
+                                {choice.risk_level.toUpperCase()} RISK
+                              </small>
+                            ) : null}
+                            <small>+{choice.xp_reward} XP</small>
+                          </span>
                         </span>
                       </button>
 
@@ -377,7 +493,7 @@ export function AdventurePage() {
               </div>
 
               <div className="choice-commit-bar">
-                <div>
+                <div className="choice-commit-copy">
                   <span className="eyebrow">TURN INTENT</span>
                   <strong>
                     {choiceLocked
@@ -385,9 +501,12 @@ export function AdventurePage() {
                       : lockPending
                         ? "LOCKING CHOICE_"
                         : selectedChoice
-                          ? `SELECTED // ${selectedChoice.label}`
+                          ? selectedChoice.label
                           : "SELECT AN ACTION_"}
                   </strong>
+                  {selectedChoice && !choiceLocked ? (
+                    <span>{selectedChoice.description}</span>
+                  ) : null}
                 </div>
 
                 <button
@@ -404,79 +523,7 @@ export function AdventurePage() {
         </section>
 
         <aside className="adventure-sidebar">
-          <Panel title="TURN STATE" className="turn-state-panel">
-            <div className="turn-grid">
-              {readiness.map((player) => (
-                <div key={player.player_id}>
-                  <b>{player.name}</b>
-                  <span>
-                    {player.ready
-                      ? "LOCKED"
-                      : player.online
-                        ? "CHOOSING"
-                        : "OFFLINE"}
-                  </span>
-                </div>
-              ))}
-
-              <div>
-                <b>DIRECTOR</b>
-                <span>
-                  {live.game?.director_request_active
-                    ? "WRITING"
-                    : live.game?.director_retry_required
-                      ? "NEEDS RETRY"
-                      : live.game?.turn_pending
-                        ? "PENDING"
-                        : "READY"}
-                </span>
-              </div>
-
-              <div>
-                <b>ROOM</b>
-                <span>{live.room?.play_mode?.toUpperCase() ?? "—"}</span>
-              </div>
-            </div>
-
-            {live.game?.can_start_solo && localRoomPlayer?.is_host ? (
-              <button
-                className="button button-primary full-width-button"
-                type="button"
-                onClick={() => {
-                  const confirmed = window.confirm(
-                    "Switch this co-op room to SOLO? A second Hero will no longer be able to join this journey.",
-                  );
-
-                  if (confirmed) {
-                    startSolo(normalizedRoomCode);
-                  }
-                }}
-              >
-                START SOLO
-              </button>
-            ) : null}
-
-            {live.game?.wrap_up_available && !live.game.wrap_up_active ? (
-              <button
-                className="button full-width-button"
-                type="button"
-                disabled={Boolean(live.playerId && live.game.wrap_up_votes.includes(live.playerId))}
-                onClick={live.requestWrapUp}
-              >
-                {live.playerId && live.game.wrap_up_votes.includes(live.playerId)
-                  ? "YOUR VOW IS MARKED // WAITING FOR THE PARTY"
-                  : "CALL FOR THE FINAL CHAPTER"}
-              </button>
-            ) : null}
-
-            {live.game?.wrap_up_active ? (
-              <div className="wrap-up-status">
-                FINAL CHAPTER CALLED // {live.game.wrap_up_turns_remaining} TURNS REMAIN
-              </div>
-            ) : null}
-          </Panel>
-
-          <Panel title="HERO" className="hero-panel">
+          <Panel title="HERO // LIVE SHEET" className="hero-panel">
             {hero ? (
               <div className="live-hero">
                 <div className="live-hero-heading">
@@ -489,12 +536,18 @@ export function AdventurePage() {
                   </span>
                 </div>
 
-                <div className="meter" aria-label={`HP ${hero.health} of ${hero.max_health}`}>
-                  <span
-                    style={{
-                      width: `${Math.max(0, Math.min(100, (hero.health / hero.max_health) * 100))}%`,
-                    }}
-                  />
+                {hero.bio ? <p className="hero-bio-snippet">{hero.bio}</p> : null}
+
+                <div className="hero-vital-row">
+                  <span>HP</span>
+                  <div className="meter" aria-label={`HP ${hero.health} of ${hero.max_health}`}>
+                    <span
+                      style={{
+                        width: `${Math.max(0, Math.min(100, (hero.health / hero.max_health) * 100))}%`,
+                      }}
+                    />
+                  </div>
+                  <strong>{hero.health}/{hero.max_health}</strong>
                 </div>
 
                 <div className="xp-readout">
@@ -507,14 +560,88 @@ export function AdventurePage() {
                   </div>
                 </div>
 
-                <div className="hero-mini-stats">
-                  {Object.entries(hero.stats).map(([key, value]) => (
-                    <div key={key}>
-                      <b>{key.slice(0, 3).toUpperCase()}</b>
-                      <span>{value}</span>
-                    </div>
-                  ))}
+                <div className="hero-stat-segments" aria-label="Core Hero attributes">
+                  {CORE_STATS.map(([key, label]) => {
+                    const value = Math.max(0, Math.min(7, hero.stats[key] ?? 0));
+                    return (
+                      <div className="hero-segment-stat" key={key}>
+                        <div>
+                          <b>{label}</b>
+                          <strong>{value}</strong>
+                        </div>
+                        <span className="segmented-meter" aria-label={`${key} ${value} of 7`}>
+                          {Array.from({ length: 7 }, (_, index) => (
+                            <i className={index < value ? "is-filled" : ""} key={index} />
+                          ))}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
+
+                {(hero.unspent_stat_points + hero.unspent_skill_points + hero.unspent_talent_points) > 0 ? (
+                  <div className="hero-advancement-alert">
+                    <strong>ADVANCEMENT READY</strong>
+                    <span>
+                      {hero.unspent_stat_points} ATTR // {hero.unspent_skill_points} SKILL // {hero.unspent_talent_points} TALENT
+                    </span>
+                  </div>
+                ) : null}
+
+                {lastLocalResult ? (
+                  <section className={`hero-last-check ${lastLocalResult.check?.outcome ? `is-${lastLocalResult.check.outcome}` : ""}`}>
+                    <div className="hero-last-check-heading">
+                      <span className="eyebrow">LAST CHECK</span>
+                      <strong>+{lastLocalResult.xp_reward} XP</strong>
+                    </div>
+
+                    {lastLocalResult.check ? (
+                      <>
+                        <div className="hero-dice-readout">
+                          <div>
+                            <span>D20</span>
+                            <strong>{lastLocalResult.check.roll}</strong>
+                          </div>
+                          <span>+</span>
+                          <div>
+                            <span>MOD</span>
+                            <strong>{signed(lastLocalResult.check.total_modifier)}</strong>
+                          </div>
+                          <span>=</span>
+                          <div>
+                            <span>TOTAL</span>
+                            <strong>{lastLocalResult.check.total}</strong>
+                          </div>
+                          <span>/</span>
+                          <div>
+                            <span>DC</span>
+                            <strong>{lastLocalResult.check.difficulty}</strong>
+                          </div>
+                        </div>
+                        <div className="hero-check-outcome">
+                          <strong>{outcomeLabel(lastLocalResult.check.outcome)}</strong>
+                          <span>
+                            {(lastLocalResult.check.skill ?? lastLocalResult.check.stat ?? "CHECK").toUpperCase()}
+                            {lastLocalResult.check.challenge_tier
+                              ? ` // ${lastLocalResult.check.challenge_tier.toUpperCase()}`
+                              : ""}
+                          </span>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="hero-check-outcome">
+                        <strong>ACTION RESOLVED</strong>
+                        <span>NO CHECK REQUIRED</span>
+                      </div>
+                    )}
+
+                    {lastLocalProgression?.leveled_up ? (
+                      <div className="hero-level-flash">
+                        LEVEL UP // {lastLocalProgression.level_before} → {lastLocalProgression.level_after}
+                      </div>
+                    ) : null}
+                  </section>
+                ) : null}
 
                 {hero.effects.length > 0 ? (
                   <div className="hero-effect-list">
@@ -533,7 +660,7 @@ export function AdventurePage() {
                   </div>
                 ) : null}
 
-                <Link to={`/game/heroes/${encodeURIComponent(characterId)}`}>
+                <Link className="hero-sheet-link" to={`/game/heroes/${encodeURIComponent(characterId)}`}>
                   OPEN CHARACTER SHEET →
                 </Link>
               </div>
@@ -544,7 +671,22 @@ export function AdventurePage() {
             )}
           </Panel>
 
-          <Panel title="PARTY CHAT" className="chat-panel">
+          {live.error && !live.retryableError && !live.game?.director_retry_required ? (
+            <div className="adventure-error">
+              <strong>SOMETHING SLIPPED OUT OF THE THREAD.</strong>
+              <span>{live.error}</span>
+              <div className="adventure-error-actions">
+                <button className="button" type="button" onClick={live.sync}>
+                  ASK THE SERVER WHAT HAPPENED
+                </button>
+                <button className="button" type="button" onClick={live.clearError}>
+                  DISMISS
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          <Panel title={`PARTY CHAT // ${live.messages.length}`} className="chat-panel">
             <div className="chat-log">
               {live.messages.length === 0 ? (
                 <span className="system-line">
@@ -611,21 +753,6 @@ export function AdventurePage() {
               </div>
             ) : null}
           </Panel>
-
-          {live.error && !live.retryableError && !live.game?.director_retry_required ? (
-            <div className="adventure-error">
-              <strong>SOMETHING SLIPPED OUT OF THE THREAD.</strong>
-              <span>{live.error}</span>
-              <div className="adventure-error-actions">
-                <button className="button" type="button" onClick={live.sync}>
-                  ASK THE SERVER WHAT HAPPENED
-                </button>
-                <button className="button" type="button" onClick={live.clearError}>
-                  DISMISS
-                </button>
-              </div>
-            </div>
-          ) : null}
         </aside>
       </div>
 

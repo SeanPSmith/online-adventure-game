@@ -1,18 +1,20 @@
-import { Link, NavLink, Outlet } from "react-router";
+import { Link, NavLink, Outlet, useLocation } from "react-router";
 import { useAuth } from "../state/AuthContext";
 
 export function GameLayout() {
   const { user, logout } = useAuth();
+  const location = useLocation();
   const canAuthor = user?.permissions.includes("author") ?? false;
+  const isAdventureMode = location.pathname.startsWith("/game/adventure/");
 
   return (
-    <div className="site-shell game-site-shell">
-      <header className="site-header game-header">
+    <div className={`site-shell game-site-shell ${isAdventureMode ? "is-adventure-mode" : ""}`}>
+      <header className={`site-header game-header ${isAdventureMode ? "is-adventure-header" : ""}`}>
         <Link className="brand" to="/game">
           <span className="brand-mark">T2</span>
           <span>
             <strong>TALES OF TWO</strong>
-            <small>SHARED STORY SYSTEM_</small>
+            <small>{isAdventureMode ? "LIVE ADVENTURE_" : "SHARED STORY SYSTEM_"}</small>
           </span>
         </Link>
 

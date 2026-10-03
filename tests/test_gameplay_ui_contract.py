@@ -227,7 +227,11 @@ def test_arcade_game_feel_pass_adds_forgiving_timing_feedback_and_variants() -> 
     assert "LaneOil" in bowling
     assert "STRIKE!" in bowling
     assert "powerTarget={0.78}" in bowling
-    assert "aimPeriodMs: 2850" in bowling
+    assert "aimPeriodMs: 3250" in bowling
+    assert "drawPixelBowler" in bowling
+    assert "Behind-the-bowler animated VGA bowling lane" in bowling
+    assert "HOOKING LEFT" in bowling
+    assert "knockedPins" in bowling
 
     assert "ROAD_VARIANTS" in road
     assert "PASS STREAK x5" in road
@@ -238,3 +242,21 @@ def test_arcade_game_feel_pass_adds_forgiving_timing_feedback_and_variants() -> 
     assert "CycleVariant" in cycles
     assert "YOU WIN" in cycles
     assert "TARGET DOWN" in artillery
+
+
+def test_gameplay_ui_consolidation_prioritizes_story_hero_dice_and_compact_chat() -> None:
+    page = read("pages/game/AdventurePage.tsx")
+    layout = read("layouts/GameLayout.tsx")
+    styles = read("styles/components.css")
+
+    assert "adventure-command-strip" in page
+    assert 'title="HERO // LIVE SHEET"' in page
+    assert "hero-stat-segments" in page
+    assert "hero-last-check" in page
+    assert "hero-dice-readout" in page
+    assert "PARTY CHAT // ${live.messages.length}" in page
+    assert "choice-meta-tags" in page
+    assert "choice-commit-copy" in page
+    assert "is-adventure-mode" in layout
+    assert ".adventure-command-strip" in styles
+    assert ".segmented-meter" in styles

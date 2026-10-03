@@ -979,3 +979,34 @@ Bring Bowl-O-Matic up to the same presentation standard as the rebuilt golf cabi
 ### Compatibility / safety
 - No server intermission IDs, room state, Director behavior, Hero state, scoring transport, or persistence contracts changed.
 - This is a client-side presentation/game-feel rebuild of the existing `bowling` cabinet ID.
+
+---
+
+## 2026-10-03 — Gameplay UI Consolidation Pass 19
+
+### Goal
+Turn the live adventure screen into one coherent terminal-RPG interface now that the game systems are mature enough to deserve a real presentation pass. Keep story and choices dominant, keep the Hero readable at a glance, keep chat compact, and surface dice/progression feedback where the player naturally looks for it.
+
+### Changes
+- Added a compact adventure-mode header so active play spends less vertical space on global navigation while preserving all existing routes.
+- Replaced the bulky sidebar Turn State panel with a sticky in-story command strip showing each player's lock/online state, Director state, room mode, and compact session actions.
+- Rebalanced the desktop adventure layout toward the story while keeping a dedicated Hero/sidebar column.
+- Reduced the scene-art footprint and standardized scene metadata, current-scene hierarchy, turn labels, story width, and spacing.
+- Refined choice cards with stronger numeric hierarchy plus discrete check/challenge/DC, risk, and XP tags.
+- Made the choice commit bar sticky on desktop and added the selected choice description so intent remains visible while scrolling.
+- Rebuilt the live Hero panel around the RPG system:
+  - authored Hero bio preview;
+  - compact HP/XP treatment;
+  - seven core Attributes shown as old-school segmented bars;
+  - advancement-points alert;
+  - active effects;
+  - direct Character Sheet link.
+- Added the previous authoritative check directly beneath Hero stats with d20, modifier, total, DC, challenge tier, outcome, earned XP, and level-up feedback.
+- Shrunk Party Chat into a true bottom-of-sidebar utility instead of letting it consume the remaining column height.
+- Preserved the existing ASCII face picker and chat behavior.
+- Reworked mobile ordering so story/choices remain first, with Hero and chat following naturally instead of jumping above the story.
+- No Director, room, progression, persistence, dice, XP, choice, or intermission mechanics were changed.
+
+### Validation
+- Full Python/source-contract regression suite: **165 passed**.
+- Added a UI-contract regression protecting the consolidated command strip, Hero segmented stats, inline last-check receipt, compact chat, choice metadata, and adventure-mode shell.

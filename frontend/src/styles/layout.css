@@ -374,3 +374,262 @@
     flex-direction: column;
   }
 }
+/* =========================================================
+   GAMEPLAY UI CONSOLIDATION // PASS 19
+========================================================= */
+
+.game-site-shell.is-adventure-mode .game-header {
+  min-height: 48px;
+  margin: 8px 12px;
+  padding: 6px 9px;
+  gap: 12px;
+}
+
+.game-site-shell.is-adventure-mode .brand {
+  gap: 8px;
+}
+
+.game-site-shell.is-adventure-mode .brand-mark {
+  width: 34px;
+  height: 34px;
+  font-size: 15px;
+}
+
+.game-site-shell.is-adventure-mode .brand strong {
+  font-size: 11px;
+}
+
+.game-site-shell.is-adventure-mode .brand small {
+  font-size: 8px;
+}
+
+.game-site-shell.is-adventure-mode .header-nav {
+  gap: 3px;
+}
+
+.game-site-shell.is-adventure-mode .header-nav > a:not(.button),
+.game-site-shell.is-adventure-mode .header-nav .button {
+  padding: 6px 7px;
+  font-size: 8px;
+}
+
+.game-site-shell.is-adventure-mode .header-user {
+  min-width: 96px;
+  padding-left: 9px;
+}
+
+.game-site-shell.is-adventure-mode .header-user .eyebrow {
+  font-size: 7px;
+}
+
+.game-site-shell.is-adventure-mode .header-user strong {
+  font-size: 9px;
+}
+
+.game-site-shell.is-adventure-mode .game-main {
+  padding: 0 12px 12px;
+  min-height: 0;
+}
+
+.game-site-shell.is-adventure-mode .adventure-layout {
+  height: calc(100vh - 76px);
+}
+
+.adventure-layout {
+  grid-template-columns: minmax(0, 1fr) minmax(330px, 380px);
+  gap: 10px;
+}
+
+.story-pane {
+  border: var(--border-strong);
+  background: rgba(0, 5, 1, 0.98);
+}
+
+.adventure-sidebar {
+  gap: 8px;
+}
+
+.adventure-sidebar .hero-panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.adventure-sidebar .hero-panel .panel-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.adventure-sidebar .chat-panel {
+  flex: 0 0 210px;
+  min-height: 0;
+}
+
+.scene-art {
+  min-height: 165px;
+  max-height: 215px;
+  overflow: hidden;
+}
+
+.scene-art pre {
+  max-width: 100%;
+  margin: 0;
+  padding: 14px;
+  overflow: hidden;
+  font-size: clamp(8px, 1vw, 12px);
+}
+
+.scene-meta {
+  padding: 7px 10px;
+  font-size: 8px;
+  letter-spacing: 0.04em;
+}
+
+.story-copy,
+.choice-area,
+.previous-resolution,
+.finale-inline {
+  width: min(940px, calc(100% - 36px));
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.story-copy {
+  padding: 24px 0 18px;
+  max-width: none;
+  font-size: 15px;
+  line-height: 1.76;
+}
+
+.story-copy h1 {
+  margin: 5px 0 18px;
+  font-size: clamp(21px, 2.4vw, 32px);
+  line-height: 1.08;
+}
+
+.story-heading-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.story-turn-marker {
+  color: var(--green-muted);
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.previous-resolution {
+  margin-top: 14px;
+  margin-bottom: 0;
+}
+
+.choice-area {
+  padding: 0 0 22px;
+}
+
+.choice-area-heading {
+  padding: 12px 0 9px;
+  align-items: end;
+}
+
+.choice-area-heading > div {
+  display: grid;
+  gap: 3px;
+}
+
+.choice-area-heading > div > strong {
+  font-size: 12px;
+}
+
+.choice-grid {
+  gap: 7px;
+}
+
+@media (max-width: 1180px) {
+  .adventure-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 330px);
+  }
+
+  .game-site-shell.is-adventure-mode .header-user {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .game-site-shell.is-adventure-mode .game-header {
+    margin: 6px;
+  }
+
+  .game-site-shell.is-adventure-mode .game-main {
+    padding: 0 6px 10px;
+  }
+
+  .game-site-shell.is-adventure-mode .adventure-layout,
+  .adventure-layout {
+    height: auto;
+    grid-template-columns: 1fr;
+  }
+
+  .adventure-sidebar {
+    order: initial;
+  }
+
+  .adventure-sidebar .hero-panel {
+    max-height: none;
+  }
+
+  .adventure-sidebar .chat-panel {
+    flex-basis: 250px;
+  }
+
+  .scene-art {
+    min-height: 135px;
+  }
+
+  .story-copy,
+  .choice-area,
+  .previous-resolution,
+  .finale-inline {
+    width: min(100% - 20px, 940px);
+  }
+}
+
+@media (max-width: 640px) {
+  .game-site-shell.is-adventure-mode .game-header {
+    align-items: center;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .game-site-shell.is-adventure-mode .brand {
+    width: 100%;
+  }
+
+  .game-site-shell.is-adventure-mode .header-nav {
+    width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 2px;
+  }
+
+  .game-site-shell.is-adventure-mode .header-nav > * {
+    flex: 0 0 auto;
+  }
+
+  .scene-meta {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .story-copy {
+    font-size: 14px;
+  }
+}
+

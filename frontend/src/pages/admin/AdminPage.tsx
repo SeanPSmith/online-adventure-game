@@ -1,14 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import "./AdminPage.css";
 import { Link, Navigate } from "react-router";
 import { PageTitle } from "../../components/ui/PageTitle";
 import { Panel } from "../../components/ui/Panel";
 import {
   contentImportErrorMessage,
   getAdminAnalytics,
+  getAdminProjectDocumentation,
   importAuthorContent,
   listUsers,
   setAuthorAccess,
   type AdminAnalyticsSnapshot,
+  type AdminProjectDocumentation,
   type ContentImportReport,
 } from "../../services/admin";
 import type { User } from "../../services/auth";
@@ -46,6 +49,11 @@ export function AdminPage() {
   const [importReport, setImportReport] = useState<ContentImportReport | null>(null);
   const [analytics, setAnalytics] = useState<AdminAnalyticsSnapshot | null>(null);
   const [analyticsError, setAnalyticsError] = useState("");
+  const [projectDocs, setProjectDocs] = useState<AdminProjectDocumentation | null>(null);
+  const [projectDocsOpen, setProjectDocsOpen] = useState(false);
+  const [projectDocsLoading, setProjectDocsLoading] = useState(false);
+  const [projectDocsError, setProjectDocsError] = useState("");
+  const [projectDocsSearch, setProjectDocsSearch] = useState("");
 
   const loadUsers = useCallback(async (query = "") => {
     setLoading(true);
@@ -73,6 +81,22 @@ export function AdminPage() {
     }
   }, []);
 
+  const loadProjectDocs = useCallback(async () => {
+    setProjectDocsLoading(true);
+    setProjectDocsError("");
+
+    try {
+      const documentation = await getAdminProjectDocumentation();
+      setProjectDocs(documentation);
+    } catch (reason) {
+      setProjectDocsError(
+        reason instanceof Error ? reason.message : "Project documentation unavailable.",
+      );
+    } finally {
+      setProjectDocsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (!isAdmin) {
       setLoading(false);
@@ -94,6 +118,15 @@ export function AdminPage() {
     () => Math.max(1, ...(analytics?.daily_activity.map((day) => day.turns) ?? [1])),
     [analytics],
   );
+  const visibleProjectDocSections = useMemo(() => {
+    if (!projectDocs) return [];
+    const query = projectDocsSearch.trim().toLowerCase();
+    if (!query) return projectDocs.sections;
+
+    return projectDocs.sections.filter((section) =>
+      `${section.title}\n${section.content}`.toLowerCase().includes(query),
+    );
+  }, [projectDocs, projectDocsSearch]);
 
   if (!isAdmin) {
     return <Navigate to="/game" replace />;
@@ -163,11 +196,82 @@ export function AdminPage() {
 
       <div className="admin-control-actions">
         <Link className="button primary" to="/game/arcade">ARCADE LAB</Link>
+        <button
+          className={`button ${projectDocsOpen ? "primary" : "subtle"}`}
+          type="button"
+          onClick={() => {
+            const nextOpen = !projectDocsOpen;
+            setProjectDocsOpen(nextOpen);
+            if (nextOpen && !projectDocs) void loadProjectDocs();
+          }}
+        >
+          {projectDocsOpen ? "CLOSE PROJECT DOCS" : "PROJECT DOCS"}
+        </button>
         <button className="button subtle" type="button" onClick={() => void loadAnalytics()}>
           REFRESH TELEMETRY
         </button>
         <span className="admin-live-pulse">LIVE // 10 SEC REFRESH</span>
       </div>
+
+      {projectDocsOpen ? (
+        <Panel title="PROJECT DOCUMENTATION // CANONICAL MASTER">
+          <div className="admin-doc-shell">
+            <div className="admin-doc-toolbar">
+              <input
+                value={projectDocsSearch}
+                onChange={(event) => setProjectDocsSearch(event.target.value)}
+                placeholder="Search project documentation"
+                aria-label="Search project documentation"
+              />
+              <button className="button subtle" type="button" onClick={() => void loadProjectDocs()}>
+                RELOAD
+              </button>
+              <button
+                className="button subtle"
+                type="button"
+                disabled={!projectDocs}
+                onClick={() => {
+                  if (projectDocs) void navigator.clipboard?.writeText(projectDocs.content);
+                }}
+              >
+                COPY MARKDOWN
+              </button>
+            </div>
+
+            {projectDocsLoading ? <p className="muted-copy">READING THE MASTER FILE_</p> : null}
+            {projectDocsError ? <div className="form-error">{projectDocsError}</div> : null}
+
+            {projectDocs ? (
+              <>
+                <div className="admin-doc-meta">
+                  <span>{projectDocs.filename}</span>
+                  <span>{projectDocs.sections.length} SECTIONS</span>
+                  <span>PACKAGED {new Date(projectDocs.updated_at).toLocaleString()}</span>
+                </div>
+
+                {projectDocs.intro ? <pre className="admin-doc-intro">{projectDocs.intro}</pre> : null}
+
+                <div className="admin-doc-sections">
+                  {visibleProjectDocSections.map((section, index) => (
+                    <details
+                      className="admin-doc-section"
+                      key={section.id}
+                      open={!projectDocsSearch && index === 0}
+                    >
+                      <summary>{section.title}</summary>
+                      <pre>{section.content}</pre>
+                    </details>
+                  ))}
+                </div>
+
+                {visibleProjectDocSections.length === 0 ? (
+                  <div className="admin-doc-empty">NO DOCUMENTATION SECTION MATCHES THAT SEARCH.</div>
+                ) : null}
+              </>
+            ) : null}
+          </div>
+        </Panel>
+      ) : null}
 
       <Panel title="LIVE OPERATIONS">
         {analyticsError ? <div className="form-error">{analyticsError}</div> : null}

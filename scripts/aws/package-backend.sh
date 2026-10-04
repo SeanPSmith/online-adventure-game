@@ -10,7 +10,7 @@ rm -f "$ARCHIVE"
 
 cd "$ROOT"
 
-for required in app requirements.txt requirements-aws.txt Dockerfile buildspec.yml; do
+for required in app docs/PROJECT_MASTER.md requirements.txt requirements-aws.txt Dockerfile buildspec.yml; do
   if [[ ! -e "$required" ]]; then
     echo "Missing required backend build input: $required" >&2
     exit 2
@@ -19,6 +19,7 @@ done
 
 zip -qr "$ARCHIVE" \
   app \
+  docs/PROJECT_MASTER.md \
   requirements.txt \
   requirements-aws.txt \
   Dockerfile \

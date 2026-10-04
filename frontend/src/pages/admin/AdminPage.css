@@ -1,0 +1,105 @@
+.admin-doc-shell {
+  display: grid;
+  gap: 14px;
+}
+
+.admin-doc-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.admin-doc-toolbar input {
+  flex: 1 1 320px;
+  min-width: 0;
+}
+
+.admin-doc-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  color: var(--green-dim);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.admin-doc-intro,
+.admin-doc-section pre {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: inherit;
+  line-height: 1.65;
+}
+
+.admin-doc-intro {
+  border: 1px solid var(--green-line-dim);
+  background: #010601;
+  padding: 12px;
+  color: var(--green-soft);
+  font-size: 11px;
+}
+
+.admin-doc-sections {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-doc-section {
+  border: 1px solid var(--green-line-dim);
+  background: #010601;
+}
+
+.admin-doc-section[open] {
+  border-color: var(--green-line);
+}
+
+.admin-doc-section summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 46px;
+  padding: 10px 12px;
+  color: var(--green-soft);
+  font-weight: 900;
+}
+
+.admin-doc-section summary::-webkit-details-marker {
+  display: none;
+}
+
+.admin-doc-section summary::after {
+  content: "+";
+  color: var(--green);
+  font-size: 18px;
+}
+
+.admin-doc-section[open] summary::after {
+  content: "−";
+}
+
+.admin-doc-section pre {
+  border-top: 1px solid var(--green-line-dim);
+  padding: 14px 16px 18px;
+  color: var(--text);
+  font-size: 11px;
+}
+
+.admin-doc-empty {
+  border: 1px solid var(--amber);
+  padding: 12px;
+  color: var(--amber);
+  font-weight: 900;
+}
+
+@media (max-width: 640px) {
+  .admin-doc-meta,
+  .admin-doc-intro,
+  .admin-doc-section pre {
+    font-size: 12px;
+  }
+}

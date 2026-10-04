@@ -163,3 +163,22 @@ export interface AdminAnalyticsSnapshot {
 export function getAdminAnalytics() {
   return apiFetch<AdminAnalyticsSnapshot>("/api/auth/admin/analytics");
 }
+
+export interface AdminProjectDocumentationSection {
+  id: string;
+  title: string;
+  content: string;
+}
+
+export interface AdminProjectDocumentation {
+  title: string;
+  filename: string;
+  updated_at: string;
+  intro: string;
+  content: string;
+  sections: AdminProjectDocumentationSection[];
+}
+
+export function getAdminProjectDocumentation() {
+  return apiFetch<AdminProjectDocumentation>("/api/auth/admin/project-docs");
+}

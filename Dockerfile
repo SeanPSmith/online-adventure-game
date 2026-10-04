@@ -18,6 +18,7 @@ RUN python -m pip install --upgrade pip \
     && python -m pip install -r requirements-aws.txt
 
 COPY app ./app
+COPY docs/PROJECT_MASTER.md ./docs/PROJECT_MASTER.md
 
 RUN chown -R appuser:appuser /app
 

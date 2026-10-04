@@ -48,6 +48,10 @@ from app.admin.analytics import (
     admin_analytics_service,
 )
 
+from app.admin.project_docs import (
+    load_project_documentation,
+)
+
 from app.auth.sessions import (
     SESSION_COOKIE_NAME,
     SESSION_LIFETIME,
@@ -446,6 +450,19 @@ async def admin_analytics(
     user=Depends(require_admin_user),
 ):
     return await admin_analytics_service.snapshot()
+
+
+@router.get("/admin/project-docs")
+async def admin_project_docs(
+    user=Depends(require_admin_user),
+):
+    try:
+        return load_project_documentation()
+    except FileNotFoundError as error:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Project documentation is not packaged with this backend build.",
+        ) from error
 
 
 @router.get("/admin/users")

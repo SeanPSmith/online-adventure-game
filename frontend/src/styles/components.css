@@ -5337,3 +5337,170 @@ select:focus-visible {
     display: grid;
   }
 }
+
+/* =========================================================
+   PLAYER NOTIFICATIONS // PASS 26
+   ========================================================= */
+
+.player-notification-stack {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 1800;
+  width: min(430px, calc(100vw - 28px));
+  display: grid;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.player-notification {
+  border: 2px solid var(--green);
+  background: rgba(0, 11, 2, 0.98);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 42px;
+  pointer-events: auto;
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.6);
+}
+
+.player-notification-results_ready {
+  border-color: var(--amber);
+}
+
+.player-notification-main,
+.player-notification-dismiss {
+  border: 0;
+  background: transparent;
+  color: var(--green);
+}
+
+.player-notification-main {
+  text-align: left;
+  padding: 12px 14px;
+  display: grid;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.player-notification-main strong {
+  color: var(--green);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+.player-notification-results_ready .player-notification-main strong {
+  color: var(--amber);
+}
+
+.player-notification-main span {
+  color: var(--text);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.player-notification-dismiss {
+  border-left: 1px solid var(--green-line);
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.player-notification-dismiss:hover,
+.player-notification-main:hover {
+  background: rgba(43, 255, 93, 0.09);
+}
+
+.notification-settings-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.notification-setting-row {
+  border: 1px solid var(--green-line);
+  padding: 14px;
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.notification-setting-row strong,
+.notification-event-option strong {
+  color: var(--green);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+}
+
+.notification-setting-row p {
+  color: var(--text-dim);
+  margin: 5px 0;
+  line-height: 1.5;
+}
+
+.notification-setting-row small {
+  color: var(--green-dim);
+  font-size: 10px;
+}
+
+.terminal-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: var(--border);
+  padding: 9px 12px;
+  color: var(--green);
+  font-weight: 900;
+  font-size: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.terminal-toggle input,
+.notification-event-option input {
+  accent-color: var(--green);
+}
+
+.notification-event-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.notification-event-option {
+  border: 1px solid var(--green-line);
+  padding: 12px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  cursor: pointer;
+}
+
+.notification-event-option span {
+  display: grid;
+  gap: 5px;
+}
+
+.notification-event-option small {
+  color: var(--text-dim);
+  line-height: 1.45;
+}
+
+.notification-settings-status {
+  margin: 0;
+}
+
+@media (max-width: 720px) {
+  .player-notification-stack {
+    right: 10px;
+    bottom: 10px;
+    width: calc(100vw - 20px);
+  }
+
+  .notification-setting-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .notification-event-grid {
+    grid-template-columns: 1fr;
+  }
+}

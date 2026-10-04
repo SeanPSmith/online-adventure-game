@@ -18,7 +18,13 @@ import type {
   AdventureListItem,
   RoomJoinedPayload,
   ServerErrorPayload,
+  PlayerNotificationPayload,
 } from "../services/game";
+import {
+  deliverBrowserNotification,
+  notificationKindEnabled,
+  readNotificationPreferences,
+} from "../services/notifications";
 
 interface GameSocketContextValue {
   connected: boolean;
@@ -48,6 +54,7 @@ export function GameSocketProvider({ children }: { children: ReactNode }) {
   const [directoryReady, setDirectoryReady] = useState(false);
   const [latestError, setLatestError] = useState("");
   const [lastRoomEntry, setLastRoomEntry] = useState<RoomJoinedPayload | null>(null);
+  const [notifications, setNotifications] = useState<PlayerNotificationPayload[]>([]);
 
   useEffect(() => {
     if (!authenticated) {
@@ -87,12 +94,35 @@ export function GameSocketProvider({ children }: { children: ReactNode }) {
       setLatestError(String(payload?.message ?? "The story machine objected."));
     };
 
+    const onPlayerNotification = (payload: PlayerNotificationPayload) => {
+      if (!payload?.id || !payload?.kind) return;
+
+      const preferences = readNotificationPreferences();
+      if (!notificationKindEnabled(payload.kind, preferences)) return;
+
+      if (preferences.inApp) {
+        setNotifications((current) => {
+          if (current.some((item) => item.id === payload.id)) return current;
+          return [...current, payload].slice(-4);
+        });
+
+        window.setTimeout(() => {
+          setNotifications((current) =>
+            current.filter((item) => item.id !== payload.id),
+          );
+        }, 9000);
+      }
+
+      deliverBrowserNotification(payload, preferences);
+    };
+
     socket.on("connect", onConnect);
     socket.on("disconnect", onDisconnect);
     socket.on("adventure_catalog", onCatalog);
     socket.on("adventure_list", onAdventureList);
     socket.on("room_joined", onRoomJoined);
     socket.on("room_error", onRoomError);
+    socket.on("player_notification", onPlayerNotification);
 
     connectGameSocket();
 
@@ -107,6 +137,7 @@ export function GameSocketProvider({ children }: { children: ReactNode }) {
       socket.off("adventure_list", onAdventureList);
       socket.off("room_joined", onRoomJoined);
       socket.off("room_error", onRoomError);
+      socket.off("player_notification", onPlayerNotification);
 
       // Keeping the connection lifecycle tied to this provider makes React
       // StrictMode deterministic: the development remount cleanly reconnects
@@ -201,6 +232,39 @@ export function GameSocketProvider({ children }: { children: ReactNode }) {
   return (
     <GameSocketContext.Provider value={value}>
       {children}
+      {notifications.length ? (
+        <div className="player-notification-stack" aria-live="polite" aria-label="Adventure notifications">
+          {notifications.map((notification) => (
+            <article className={`player-notification player-notification-${notification.kind}`} key={notification.id}>
+              <button
+                className="player-notification-main"
+                type="button"
+                onClick={() => {
+                  setNotifications((current) =>
+                    current.filter((item) => item.id !== notification.id),
+                  );
+                  if (notification.route) window.location.assign(notification.route);
+                }}
+              >
+                <strong>{notification.title}</strong>
+                <span>{notification.message}</span>
+              </button>
+              <button
+                className="player-notification-dismiss"
+                type="button"
+                aria-label={`Dismiss ${notification.title}`}
+                onClick={() =>
+                  setNotifications((current) =>
+                    current.filter((item) => item.id !== notification.id),
+                  )
+                }
+              >
+                ×
+              </button>
+            </article>
+          ))}
+        </div>
+      ) : null}
     </GameSocketContext.Provider>
   );
 }

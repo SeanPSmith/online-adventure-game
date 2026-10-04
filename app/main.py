@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+import time
 
 from contextlib import (
     asynccontextmanager,
@@ -1026,6 +1027,52 @@ async def refresh_adventure_lists(
 
         await send_adventure_list_to_user(
             user_id
+        )
+
+
+async def send_player_notification(
+    *,
+    user_id: str,
+    kind: str,
+    room_code: str,
+    character_id: str,
+    title: str,
+    message: str,
+    adventure_title: str = "",
+    actor_name: str = "",
+) -> None:
+    """Send lightweight player-facing activity to every connected tab.
+
+    This is deliberately separate from the active adventure socket room. A
+    player may be sitting in the Adventure Hall, Character Sheet, or another
+    tab while their partner advances the shared room. The event contains no
+    authoritative gameplay state; it is only a prompt to return to the room.
+    """
+
+    payload = {
+        "id": f"{kind}:{room_code}:{character_id}:{time.time_ns()}",
+        "kind": kind,
+        "room_code": room_code,
+        "character_id": character_id,
+        "title": title,
+        "message": message,
+        "adventure_title": adventure_title,
+        "actor_name": actor_name,
+        "route": (
+            f"/game/adventure/{room_code}?hero={character_id}"
+        ),
+    }
+
+    for target_sid in list(
+        _user_sids.get(
+            user_id,
+            set(),
+        )
+    ):
+        await sio.emit(
+            "player_notification",
+            payload,
+            to=target_sid,
         )
 
 
@@ -2370,7 +2417,7 @@ async def join_room(
     )
 
 
-    game_sessions.get_or_create(
+    session = game_sessions.get_or_create(
         room.code
     )
 
@@ -2430,6 +2477,21 @@ async def join_room(
     await broadcast_game_state(
         room.code
     )
+
+
+    for member in room.players.values():
+        if member.player_id == player.player_id:
+            continue
+        await send_player_notification(
+            user_id=member.user_id,
+            kind="partner_joined",
+            room_code=room.code,
+            character_id=member.character_id,
+            title="PARTNER JOINED",
+            message=f"{player.name} entered {session.adventure.title}. You can begin when everyone is ready.",
+            adventure_title=session.adventure.title,
+            actor_name=player.name,
+        )
 
 
     await refresh_adventure_lists(
@@ -3810,6 +3872,22 @@ async def finalize_resolved_turn(
                 room.code,
         )
 
+        if room.play_mode == "coop":
+            for member in room.players.values():
+                await send_player_notification(
+                    user_id=member.user_id,
+                    kind="results_ready",
+                    room_code=room.code,
+                    character_id=member.character_id,
+                    title=("JOURNEY FINALE READY" if session.completed else "RESULTS READY"),
+                    message=(
+                        f"{session.adventure.title} has reached its ending. Come see how the journey resolved."
+                        if session.completed
+                        else f"The dice are down in {session.adventure.title}. Turn {resolved_turn_number} results and the next story beat are ready."
+                    ),
+                    adventure_title=session.adventure.title,
+                )
+
         await broadcast_game_state(
             room.code
         )
@@ -4151,6 +4229,28 @@ async def submit_choice(
     await broadcast_game_state(
         room.code
     )
+
+
+    if room.play_mode == "coop":
+        for member in room.players.values():
+            if member.player_id == player.player_id:
+                continue
+
+            waiting_on_recipient = member.player_id not in session.submissions
+            await send_player_notification(
+                user_id=member.user_id,
+                kind=("your_turn" if waiting_on_recipient else "partner_locked"),
+                room_code=room.code,
+                character_id=member.character_id,
+                title=("YOUR TURN" if waiting_on_recipient else "PARTNER LOCKED IN"),
+                message=(
+                    f"{player.name} locked a choice in {session.adventure.title}. The story is waiting on you."
+                    if waiting_on_recipient
+                    else f"{player.name} locked a choice in {session.adventure.title}. Both choices are in; the dice are moving."
+                ),
+                adventure_title=session.adventure.title,
+                actor_name=player.name,
+            )
 
 
     # Only one coroutine may resolve a room turn at a time.

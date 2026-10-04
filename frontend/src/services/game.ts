@@ -448,6 +448,26 @@ export interface ServerToClientEvents {
   micro_event_updated: (payload: MicroEventUpdatedPayload) => void;
   choice_accepted: (payload: ChoiceAcceptedPayload) => void;
   turn_resolved: (payload: TurnResolvedPayload) => void;
+  player_notification: (payload: PlayerNotificationPayload) => void;
+}
+
+
+export type PlayerNotificationKind =
+  | "partner_joined"
+  | "partner_locked"
+  | "your_turn"
+  | "results_ready";
+
+export interface PlayerNotificationPayload {
+  id: string;
+  kind: PlayerNotificationKind;
+  room_code: string;
+  character_id: string;
+  title: string;
+  message: string;
+  adventure_title?: string;
+  actor_name?: string;
+  route: string;
 }
 
 export interface ClientToServerEvents {

@@ -7,6 +7,7 @@ import {
 } from "react";
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router";
 import { Panel } from "../../components/ui/Panel";
+import { RoomInviteButton } from "../../components/game/RoomInviteButton";
 import { ChoiceInspector } from "../../features/adventure/ChoiceInspector";
 import { QuickEventModal } from "../../features/adventure/QuickEventModal";
 import { TurnTheater } from "../../features/adventure/TurnTheater";
@@ -349,6 +350,15 @@ export function AdventurePage() {
             </div>
 
             <div className="adventure-session-actions">
+              {live.room?.play_mode === "coop" && localRoomPlayer?.is_host && live.room.player_count < live.room.max_players ? (
+                <RoomInviteButton
+                  roomCode={normalizedRoomCode}
+                  adventureTitle={live.game?.adventure_title ?? matchingAdventure?.adventure_title}
+                  className="button button-quiet"
+                  label="INVITE PARTNER"
+                />
+              ) : null}
+
               {live.game?.can_start_solo && localRoomPlayer?.is_host ? (
                 <button
                   className="button button-quiet"

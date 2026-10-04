@@ -213,10 +213,14 @@ export function HeroSheetPage() {
   const remainingStatPoints = hero ? Math.max(0, hero.unspent_stat_points - statCost) : 0;
   const remainingSkillPoints = hero ? Math.max(0, hero.unspent_skill_points - skillCost) : 0;
   const remainingTalentPoints = hero ? Math.max(0, hero.unspent_talent_points - talentSpend.length) : 0;
-  const advancementWaiting = hero
-    ? hero.unspent_stat_points + hero.unspent_skill_points + hero.unspent_talent_points
-    : 0;
   const pendingAdvancement = statCost + skillCost + talentSpend.length;
+
+  function jumpToAdvancement(sectionId: string) {
+    document.getElementById(sectionId)?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }
 
   return (
     <>
@@ -226,8 +230,32 @@ export function HeroSheetPage() {
         actions={hero ? (
           <div className="hero-sheet-title-actions">
             <span className="hero-level-chip">LVL {hero.level}</span>
-            {advancementWaiting > 0 ? (
-              <span className="hero-advance-chip">{advancementWaiting} POINTS WAITING</span>
+            {hero.unspent_stat_points > 0 ? (
+              <button
+                type="button"
+                className="hero-advance-chip"
+                onClick={() => jumpToAdvancement("hero-attributes")}
+              >
+                {hero.unspent_stat_points} ATTRIBUTE {hero.unspent_stat_points === 1 ? "POINT" : "POINTS"}
+              </button>
+            ) : null}
+            {hero.unspent_skill_points > 0 ? (
+              <button
+                type="button"
+                className="hero-advance-chip"
+                onClick={() => jumpToAdvancement("hero-skills")}
+              >
+                {hero.unspent_skill_points} SKILL {hero.unspent_skill_points === 1 ? "POINT" : "POINTS"}
+              </button>
+            ) : null}
+            {hero.unspent_talent_points > 0 ? (
+              <button
+                type="button"
+                className="hero-advance-chip"
+                onClick={() => jumpToAdvancement("hero-talents")}
+              >
+                {hero.unspent_talent_points} TALENT {hero.unspent_talent_points === 1 ? "POINT" : "POINTS"}
+              </button>
             ) : null}
             <Link className="button" to="/game/heroes">HERO HALL</Link>
           </div>
@@ -300,24 +328,24 @@ export function HeroSheetPage() {
                   <div>
                     <span>ATTRIBUTE</span>
                     <strong>{remainingStatPoints}</strong>
-                    <small>{statCost ? `${statCost} QUEUED` : "AVAILABLE"}</small>
+                    <small>{statCost ? `${statCost} QUEUED` : remainingStatPoints > 0 ? "READY TO SPEND" : "NONE"}</small>
                   </div>
                   <div>
                     <span>SKILL</span>
                     <strong>{remainingSkillPoints}</strong>
-                    <small>{skillCost ? `${skillCost} QUEUED` : "AVAILABLE"}</small>
+                    <small>{skillCost ? `${skillCost} QUEUED` : remainingSkillPoints > 0 ? "READY TO SPEND" : "NONE"}</small>
                   </div>
                   <div>
                     <span>TALENT</span>
                     <strong>{remainingTalentPoints}</strong>
-                    <small>{talentSpend.length ? `${talentSpend.length} QUEUED` : "AVAILABLE"}</small>
+                    <small>{talentSpend.length ? `${talentSpend.length} QUEUED` : remainingTalentPoints > 0 ? "READY TO SPEND" : "NONE"}</small>
                   </div>
                 </div>
               </aside>
             </div>
           </Panel>
 
-          <Panel title="CORE ATTRIBUTES // WHO YOU ARE" className="hero-sheet-wide">
+          <Panel title={<span id="hero-attributes">CORE ATTRIBUTES // WHO YOU ARE</span>} className="hero-sheet-wide">
             <div className="sheet-stat-grid sheet-attribute-grid hero-attribute-grid">
               {rules?.stats.map((definition, index) => {
                 const value = hero.stats[definition.id] ?? 0;
@@ -365,7 +393,7 @@ export function HeroSheetPage() {
             </div>
           </Panel>
 
-          <Panel title="SKILLS // WHAT YOU KNOW HOW TO DO" className="hero-sheet-wide">
+          <Panel title={<span id="hero-skills">SKILLS // WHAT YOU KNOW HOW TO DO</span>} className="hero-sheet-wide">
             <div className="sheet-skill-families hero-skill-families">
               {groupedSkills.map(({ stat, skills }) => (
                 <section className="sheet-skill-family hero-skill-family" key={stat.id}>
@@ -424,7 +452,7 @@ export function HeroSheetPage() {
             </div>
           </Panel>
 
-          <Panel title="TALENTS // PERMANENT EDGES" className="hero-sheet-wide">
+          <Panel title={<span id="hero-talents">TALENTS // PERMANENT EDGES</span>} className="hero-sheet-wide">
             {ownedTalents.length ? (
               <div className="talent-grid hero-talent-grid">
                 {ownedTalents.map((talent) => (

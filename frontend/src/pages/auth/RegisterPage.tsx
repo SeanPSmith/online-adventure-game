@@ -1,10 +1,12 @@
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import { useAuth } from "../../state/AuthContext";
 
 export function RegisterPage() {
   const { register } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const state = location.state as { returnTo?: string } | null;
 
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
@@ -19,7 +21,7 @@ export function RegisterPage() {
 
     try {
       await register(email, username, password);
-      navigate("/login", { replace: true });
+      navigate("/login", { replace: true, state: { returnTo: state?.returnTo } });
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Registration failed.");
     } finally {
@@ -39,7 +41,7 @@ export function RegisterPage() {
         <button className="button button-primary" disabled={working}>
           {working ? "CREATING_" : "CREATE ACCOUNT"}
         </button>
-        <div className="form-links"><Link to="/login">ALREADY HAVE AN ACCOUNT?</Link></div>
+        <div className="form-links"><Link to="/login" state={{ returnTo: state?.returnTo }}>ALREADY HAVE AN ACCOUNT?</Link></div>
       </form>
     </section>
   );

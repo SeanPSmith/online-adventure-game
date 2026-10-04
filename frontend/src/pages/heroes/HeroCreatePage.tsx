@@ -4,7 +4,7 @@ import {
   useState,
   type FormEvent,
 } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { PageTitle } from "../../components/ui/PageTitle";
 import { Panel } from "../../components/ui/Panel";
 import {
@@ -24,6 +24,8 @@ function initialValues(
 
 export function HeroCreatePage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const returnTo = searchParams.get("returnTo")?.trim() || "";
 
   const [rules, setRules] = useState<CreationRules | null>(null);
   const [name, setName] = useState("");
@@ -116,7 +118,7 @@ export function HeroCreatePage() {
 
     try {
       const hero = await createCharacter(name.trim(), bio.trim(), stats, skills);
-      navigate(`/game/heroes/${encodeURIComponent(hero.character_id)}`, {
+      navigate(returnTo || `/game/heroes/${encodeURIComponent(hero.character_id)}`, {
         replace: true,
       });
     } catch (reason) {

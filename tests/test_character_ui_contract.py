@@ -43,3 +43,15 @@ def test_character_sheet_advancement_queue_supports_multi_point_allocations():
     assert "RESET QUEUE" in source
     assert ">+1</button>" in source
     assert ">MAX</button>" in source
+
+
+def test_character_sheet_labels_advancement_currency_and_links_to_spend_sections():
+    source = read("frontend/src/pages/heroes/HeroSheetPage.tsx")
+    assert 'ATTRIBUTE {hero.unspent_stat_points === 1 ? "POINT" : "POINTS"}' in source
+    assert 'SKILL {hero.unspent_skill_points === 1 ? "POINT" : "POINTS"}' in source
+    assert 'TALENT {hero.unspent_talent_points === 1 ? "POINT" : "POINTS"}' in source
+    assert 'jumpToAdvancement("hero-attributes")' in source
+    assert 'jumpToAdvancement("hero-skills")' in source
+    assert 'jumpToAdvancement("hero-talents")' in source
+    assert 'READY TO SPEND' in source
+    assert '>NONE<' not in source  # labels are computed, not misleading static availability text

@@ -11,6 +11,7 @@ import { RegisterPage } from "./pages/auth/RegisterPage";
 import { ForgotPasswordPage } from "./pages/auth/ForgotPasswordPage";
 import { PrivacyPage } from "./pages/legal/PrivacyPage";
 import { TermsPage } from "./pages/legal/TermsPage";
+import { JoinInvitePage } from "./pages/public/JoinInvitePage";
 
 import { GameHomePage } from "./pages/game/GameHomePage";
 import { AdventurePage } from "./pages/game/AdventurePage";
@@ -42,6 +43,7 @@ export const router = createBrowserRouter([
           { path: "forgot-password", element: <ForgotPasswordPage /> },
           { path: "privacy", element: <PrivacyPage /> },
           { path: "terms", element: <TermsPage /> },
+          { path: "join/:roomCode", element: <JoinInvitePage /> },
         ],
       },
       {

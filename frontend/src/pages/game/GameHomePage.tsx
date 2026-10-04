@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { PageTitle } from "../../components/ui/PageTitle";
 import { Panel } from "../../components/ui/Panel";
+import { RoomInviteButton } from "../../components/game/RoomInviteButton";
 import { listCharacters, type Character } from "../../services/characters";
 import type {
   AdventureCatalogItem,
@@ -301,6 +302,14 @@ export function GameHomePage() {
                     >
                       {adventure.director_retry_required ? "RECOVER" : "RESUME"}
                     </Link>
+                    {adventure.is_host && adventure.play_mode === "coop" && adventure.player_count < adventure.max_players ? (
+                      <RoomInviteButton
+                        roomCode={adventure.room_code}
+                        adventureTitle={adventure.adventure_title}
+                        className="button"
+                        label="INVITE"
+                      />
+                    ) : null}
                     <button
                       className="button journey-danger-button"
                       type="button"

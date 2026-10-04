@@ -219,6 +219,12 @@ Director latency is masked rather than allowed to freeze the UX:
 
 The current system includes structured validation, repair/fallback behavior, hard timeout/retry state, and persistent pending-turn recovery. Further optimization should focus on context size, output budgets, model selection, and generation telemetry without reducing story quality.
 
+### Scene ASCII art pipeline
+
+AI-directed opening and turn scenes use a deterministic server-side ASCII compositor rather than the old generic `STORY` placeholder. The compositor derives a scene family from committed scene title/body plus current goal, threat, and tone hints, then renders a bounded terminal composition. Current scene families include store/market, road/vehicle, forest/outdoors, chapel/cemetery, water/shoreline, house/interior, facility/warehouse, and a generic fallback.
+
+ASCII art is decorative and **must never own or block story truth**. It requires no additional model/API call and is stored in the dynamic scene payload so recovery/reload sees the same art. The implementation seam is `app/generation/ascii_art.py`, allowing a future image-to-ASCII or async renderer without changing game-state authority.
+
 ---
 
 ## 7. Hero RPG System
@@ -747,6 +753,8 @@ This is intentionally short. The historical numbered changelog files remain an a
 - **Pass 24 / 24A — Advancement:** robust queued multi-point allocation and explicit Attribute/Skill/Talent currency labels.
 - **Pass 25 — Shareable Invites:** `/join/:roomCode`, native share sheet, copy/text/email, auth/Hero creation return flow.
 - **Pass 26 — Partner Notifications:** joined/locked/your-turn/results/finale in-app + background browser notifications.
+- **Pass 27 — Master Documentation:** canonical `PROJECT_MASTER.md` exposed through the protected Admin documentation console.
+- **Pass 28 / 28A — Scene ASCII Pipeline:** deterministic story-aware scene art replaced runtime placeholders; 28A reapplies the art integration on the current session/QTE/scaling codebase.
 
 ---
 

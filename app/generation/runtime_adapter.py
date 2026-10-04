@@ -4,6 +4,7 @@ from typing import (
     Any,
 )
 
+from app.generation.ascii_art import generate_scene_ascii_art
 from app.adventures.models import (
     AdventureDefinition,
     CheckSpec,
@@ -222,12 +223,12 @@ def build_director_runtime_adventure(
                         start_body,
 
                     ascii_art=
-                        (
-                            "       .  *  .\n"
-                            "    *    /\\    *\n"
-                            "        /  \\\n"
-                            "   ____/____\\____\n"
-                            "      ADVENTURE"
+                        generate_scene_ascii_art(
+                            title=title.upper(),
+                            body=start_body,
+                            goal=core_goal,
+                            threat=str(seed.get("core_threat", "")),
+                            mood=str(seed.get("tone", "")),
                         ),
 
                     choices=(

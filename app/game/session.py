@@ -17,6 +17,7 @@ from app.adventures.bootstrap import (
     register_builtin_adventures,
 )
 
+from app.generation.ascii_art import generate_scene_ascii_art
 from app.adventures.models import (
     AdventureDefinition,
     CheckSpec,
@@ -2635,12 +2636,37 @@ class GameSessionManager:
                 ).strip(),
 
             "ascii_art":
-                (
-                    "       .  *  .\n"
-                    "    *         *\n"
-                    "       STORY\n"
-                    "    *         *\n"
-                    "       .  *  ."
+                generate_scene_ascii_art(
+                    title=str(
+                        director_output.get(
+                            "title",
+                            "THE STORY CONTINUES",
+                        )
+                    ).strip() or "THE STORY CONTINUES",
+                    body=str(
+                        director_output.get(
+                            "scene_body",
+                            "",
+                        )
+                    ).strip(),
+                    goal=str(
+                        (director_output.get("story_state") or {}).get(
+                            "current_goal",
+                            "",
+                        )
+                    ).strip(),
+                    threat=str(
+                        (director_output.get("story_state") or {}).get(
+                            "current_threat",
+                            "",
+                        )
+                    ).strip(),
+                    mood=str(
+                        director_output.get(
+                            "tone_guidance",
+                            "",
+                        )
+                    ).strip(),
                 ),
 
             "choices":

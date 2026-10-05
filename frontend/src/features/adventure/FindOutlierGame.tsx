@@ -83,7 +83,7 @@ export function FindOutlierGame({
 
     nextRoundTimerRef.current = setTimeout(
       beginNextRound,
-      1200,
+      1850,
     );
 
     return () => {

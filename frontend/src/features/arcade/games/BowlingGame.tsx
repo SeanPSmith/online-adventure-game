@@ -150,7 +150,7 @@ export function BowlingGame({ score, onScoreChange, storyReady }: ArcadeGameProp
       setOil(randomOil());
       setMessage(storyReadyRef.current ? "STORY READY // ONE MORE FRAME IF YOU HAVE IT_" : "NEXT FRAME // LOCK AIM_");
       engine.reset();
-    }, 2150);
+    }, 2950);
   }
 
   function startShot(sample: TimingShotSample) {

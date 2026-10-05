@@ -119,7 +119,7 @@ export const ARCADE_GAMES: readonly ArcadeGameDefinition[] = [
     id: "road_racer",
     title: "HIGHWAY 84",
     category: "racing",
-    description: "Three-lane traffic dodging with pointer steering and steadily rising speed.",
+    description: "Traffic dodging that gets faster and denser over time, with bonus points for risky near misses.",
     supportsSolo: true,
     supportsCoop: true,
     supportsTouch: true,

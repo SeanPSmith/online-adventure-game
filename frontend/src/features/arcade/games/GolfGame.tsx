@@ -143,7 +143,7 @@ export function GolfGame({ score, onScoreChange, storyReady }: ArcadeGameProps) 
       setHole(nextHole);
       setMessage(storyReadyRef.current ? "STORY READY // ONE LAST HOLE_" : "NEW PAR 3 // LOCK AIM_");
       engine.reset();
-    }, 2050);
+    }, 2850);
   }
 
   function startShot(sample: TimingShotSample) {

@@ -203,14 +203,14 @@ export function ProjectileDuelGame({
         showFeedback({ title: "TARGET DOWN", detail: "DIRECT HIT // MACHINE FLATTENED", delta: 25, tone: "great" }, 1450);
         settleTimerRef.current = setTimeout(
           () => resetExchange(true, false),
-          520,
+          1750,
         );
       } else {
         setMessage(`DIRECT HIT // ENEMY ARMOR ${nextEnemyHp}/3 // +10_`);
         showFeedback({ title: "DIRECT HIT", detail: `ENEMY ARMOR ${nextEnemyHp}/3`, delta: 10, tone: "good" });
         settleTimerRef.current = setTimeout(
           () => resetExchange(false, false),
-          420,
+          1350,
         );
       }
       return;
@@ -227,14 +227,14 @@ export function ProjectileDuelGame({
       showFeedback({ title: "YOU GOT FLATTENED", detail: "RETURN FIRE CONNECTED", delta: -5, tone: "bad" }, 1350);
       settleTimerRef.current = setTimeout(
         () => resetExchange(false, true),
-        620,
+        1800,
       );
     } else {
       setMessage(`MISS // RETURN FIRE CONNECTS // ARMOR ${nextPlayerHp}/3_`);
       showFeedback({ title: "MISS", detail: `RETURN FIRE // ARMOR ${nextPlayerHp}/3`, tone: "bad" });
       settleTimerRef.current = setTimeout(
         () => resetExchange(false, false),
-        480,
+        1400,
       );
     }
   }, [enemyHp, playerHp, onScoreChange, resetExchange, showFeedback]);

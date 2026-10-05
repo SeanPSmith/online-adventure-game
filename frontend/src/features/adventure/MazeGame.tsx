@@ -66,6 +66,7 @@ export function MazeGame({
   const [maze, setMaze] = useState<Cell[][]>(() => buildMaze());
   const [player, setPlayer] = useState<Point>({ x: 1, y: 1 });
   const [steps, setSteps] = useState(0);
+  const [roundComplete, setRoundComplete] = useState(false);
   const [message, setMessage] = useState("FIND THE EXIT // TRY NOT TO DEVELOP A METAPHOR_");
   const boardRef = useRef<HTMLDivElement | null>(null);
   const swipeStartRef = useRef<SwipePoint | null>(null);
@@ -78,10 +79,13 @@ export function MazeGame({
     setMaze(buildMaze());
     setPlayer({ x: 1, y: 1 });
     setSteps(0);
+    setRoundComplete(false);
     setMessage("NEW MAZE // SAME QUESTIONABLE LIFE CHOICES_");
   }, []);
 
   const move = useCallback((dx: number, dy: number) => {
+    if (roundComplete) return;
+
     setPlayer((current) => {
       const next = { x: current.x + dx, y: current.y + dy };
       if (maze[next.y]?.[next.x] !== " ") {
@@ -95,13 +99,14 @@ export function MazeGame({
       if (next.x === WIDTH - 2 && next.y === HEIGHT - 2) {
         const bonus = Math.max(5, 35 - Math.floor(nextSteps / 3));
         onScoreChange(Math.min(999, score + bonus));
-        setMessage(`EXIT FOUND // +${bonus}_`);
-        window.setTimeout(reset, 1200);
+        setRoundComplete(true);
+        setMessage(`EXIT FOUND // +${bonus} // NEXT MAZE IN A MOMENT_`);
+        window.setTimeout(reset, 1900);
       }
 
       return next;
     });
-  }, [maze, steps, score, onScoreChange, reset]);
+  }, [maze, steps, score, onScoreChange, reset, roundComplete]);
 
   function keyDown(event: KeyboardEvent<HTMLDivElement>) {
     const key = event.key.toLowerCase();

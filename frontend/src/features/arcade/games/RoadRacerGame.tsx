@@ -15,14 +15,15 @@ interface RoadVariant {
   lanes: number;
   startSpeed: number;
   maxSpeed: number;
+  acceleration: number;
   spawnBase: number;
   trafficMin: number;
 }
 
 const ROAD_VARIANTS: RoadVariant[] = [
-  { name: "CRUISE", lanes: 3, startSpeed: 220, maxSpeed: 300, spawnBase: 1.12, trafficMin: 0.62 },
-  { name: "RUSH HOUR", lanes: 4, startSpeed: 238, maxSpeed: 332, spawnBase: 0.92, trafficMin: 0.5 },
-  { name: "NIGHT RUN", lanes: 3, startSpeed: 270, maxSpeed: 365, spawnBase: 0.78, trafficMin: 0.42 },
+  { name: "CRUISE", lanes: 3, startSpeed: 205, maxSpeed: 390, acceleration: 7.2, spawnBase: 1.1, trafficMin: 0.46 },
+  { name: "RUSH HOUR", lanes: 4, startSpeed: 225, maxSpeed: 420, acceleration: 7.8, spawnBase: 0.9, trafficMin: 0.39 },
+  { name: "NIGHT RUN", lanes: 3, startSpeed: 250, maxSpeed: 455, acceleration: 8.5, spawnBase: 0.76, trafficMin: 0.34 },
 ];
 
 interface TrafficCar {
@@ -30,6 +31,8 @@ interface TrafficCar {
   y: number;
   speed: number;
   passed: boolean;
+  contacted: boolean;
+  closestClearance: number;
 }
 
 interface RacerState {
@@ -42,6 +45,7 @@ interface RacerState {
   keys: Set<string>;
   crashedUntil: number;
   passStreak: number;
+  runSeconds: number;
 }
 
 function clamp(value: number, min: number, max: number) {
@@ -64,12 +68,13 @@ function freshState(variant: RoadVariant): RacerState {
     keys: new Set(),
     crashedUntil: 0,
     passStreak: 0,
+    runSeconds: 0,
   };
 }
 
 export function RoadRacerGame({ score, onScoreChange, storyReady }: ArcadeGameProps) {
   const [variant] = useState<RoadVariant>(() => ROAD_VARIANTS[Math.floor(Math.random() * ROAD_VARIANTS.length)]);
-  const { feedback, showFeedback } = useArcadeFeedback(680);
+  const { feedback, showFeedback } = useArcadeFeedback(520);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const gameRef = useRef<RacerState>(freshState(variant));
   const scoreRef = useRef(score);
@@ -113,7 +118,10 @@ export function RoadRacerGame({ score, onScoreChange, storyReady }: ArcadeGamePr
       game.targetX = clamp(game.targetX, ROAD_LEFT + PLAYER_W / 2 + 8, ROAD_RIGHT - PLAYER_W / 2 - 8);
       game.x += (game.targetX - game.x) * Math.min(1, dt * 12);
 
-      game.speed = clamp(game.speed + worldDt * 2.8, variant.startSpeed, variant.maxSpeed);
+      game.runSeconds += worldDt;
+      const difficulty = clamp(game.runSeconds / 42, 0, 1);
+      const acceleration = variant.acceleration * (1 + difficulty * 0.5);
+      game.speed = clamp(game.speed + worldDt * acceleration, variant.startSpeed, variant.maxSpeed);
       game.roadOffset = (game.roadOffset + game.speed * worldDt) % 52;
       game.spawnTimer -= worldDt;
 
@@ -122,11 +130,16 @@ export function RoadRacerGame({ score, onScoreChange, storyReady }: ArcadeGamePr
         game.traffic.push({
           lane,
           y: -72,
-          speed: game.speed * (0.72 + Math.random() * 0.2),
+          speed: game.speed * (0.76 + Math.random() * 0.22 + difficulty * 0.05),
           passed: false,
+          contacted: false,
+          closestClearance: Number.POSITIVE_INFINITY,
         });
         const speedPressure = (game.speed - variant.startSpeed) / Math.max(1, variant.maxSpeed - variant.startSpeed);
-        game.spawnTimer = Math.max(variant.trafficMin, variant.spawnBase - speedPressure * 0.34) + Math.random() * 0.24;
+        game.spawnTimer = Math.max(
+          variant.trafficMin * 0.72,
+          variant.spawnBase - speedPressure * 0.3 - difficulty * 0.28,
+        ) + Math.random() * 0.2;
       }
 
       const now = performance.now();
@@ -134,30 +147,54 @@ export function RoadRacerGame({ score, onScoreChange, storyReady }: ArcadeGamePr
       for (const car of game.traffic) {
         car.y += car.speed * worldDt;
         const x = laneX(car.lane, variant.lanes);
-        if (!car.passed && car.y > PLAYER_Y + PLAYER_H) {
-          car.passed = true;
-          game.passStreak += 1;
-          const delta = game.passStreak > 0 && game.passStreak % 5 === 0 ? 6 : 3;
-          award(delta);
-          setMessage(game.passStreak % 5 === 0 ? `FIVE CLEAN // STREAK BONUS +${delta}_` : `CLEAN PASS // +${delta}_`);
-          showFeedback({
-            title: game.passStreak % 5 === 0 ? "PASS STREAK x5" : "CLEAN PASS",
-            detail: `SPEED ${Math.round(game.speed)} KPH`,
-            delta,
-            tone: game.passStreak % 5 === 0 ? "great" : "good",
-          }, game.passStreak % 5 === 0 ? 950 : 560);
+        const centerDistance = Math.abs(game.x - x);
+        const collisionDistance = (PLAYER_W + 34) / 2;
+        const overlapX = centerDistance < collisionDistance;
+        const overlapY = car.y + 50 > PLAYER_Y && car.y < PLAYER_Y + PLAYER_H;
+        const dangerBandY = car.y + 50 > PLAYER_Y - 18 && car.y < PLAYER_Y + PLAYER_H + 18;
+
+        if (dangerBandY && !car.contacted) {
+          car.closestClearance = Math.min(
+            car.closestClearance,
+            Math.max(0, centerDistance - collisionDistance),
+          );
         }
 
-        const overlapX = Math.abs(game.x - x) < (PLAYER_W + 34) / 2;
-        const overlapY = car.y + 50 > PLAYER_Y && car.y < PLAYER_Y + PLAYER_H;
-        if (canCrash && overlapX && overlapY) {
+        if (canCrash && !car.contacted && overlapX && overlapY) {
+          car.contacted = true;
           game.crashedUntil = now + 850;
-          game.speed = Math.max(variant.startSpeed, game.speed - 38);
+          game.speed = Math.max(variant.startSpeed, game.speed - 42);
           game.targetX = WIDTH / 2;
           game.passStreak = 0;
           award(-7);
           setMessage("CONTACT // -7 // CAR RECOVERING_");
-          showFeedback({ title: "CONTACT!", detail: "STREAK LOST // CAR RECOVERING", delta: -7, tone: "bad" }, 1050);
+          showFeedback({ title: "CONTACT!", detail: "STREAK LOST", delta: -7, tone: "bad" }, 720);
+        }
+
+        if (!car.passed && car.y > PLAYER_Y + PLAYER_H) {
+          car.passed = true;
+          if (car.contacted) continue;
+
+          game.passStreak += 1;
+          const clearance = Number.isFinite(car.closestClearance) ? car.closestClearance : 99;
+          const streakBonus = game.passStreak > 0 && game.passStreak % 5 === 0 ? 3 : 0;
+          const pass = clearance <= 5
+            ? { title: "THREAD THE NEEDLE", base: 10, tone: "great" as const, label: "NEAR MISS" }
+            : clearance <= 14
+              ? { title: "CLOSE CALL", base: 7, tone: "great" as const, label: "RISKY PASS" }
+              : clearance <= 28
+                ? { title: "RISKY PASS", base: 5, tone: "good" as const, label: "TIGHT CLEARANCE" }
+                : { title: "CLEAN PASS", base: 3, tone: "good" as const, label: "CLEAR" };
+          const delta = pass.base + streakBonus;
+          award(delta);
+          const clearanceLabel = clearance < 90 ? `${Math.max(1, Math.round(clearance))}PX CLEAR` : `SPEED ${Math.round(game.speed)} KPH`;
+          setMessage(`${pass.label} // +${delta}${streakBonus ? " // x5 STREAK" : ""}_`);
+          showFeedback({
+            title: streakBonus ? `PASS STREAK x5 // ${pass.title}` : pass.title,
+            detail: clearanceLabel,
+            delta,
+            tone: pass.tone,
+          }, pass.base >= 7 || streakBonus ? 760 : 420);
         }
       }
       game.traffic = game.traffic.filter((car) => car.y < HEIGHT + 90);
@@ -227,6 +264,7 @@ export function RoadRacerGame({ score, onScoreChange, storyReady }: ArcadeGamePr
       ctx.textAlign = "right";
       ctx.fillText(`HIGHWAY 84 // ${variant.name}`, WIDTH - 16, 22);
       ctx.fillText(`${variant.lanes} LANES`, WIDTH - 16, 39);
+      ctx.fillText(`HEAT ${Math.min(5, 1 + Math.floor(difficulty * 5))}/5`, WIDTH - 16, 56);
 
       frameRef.current = requestAnimationFrame(tick);
     };
@@ -261,7 +299,7 @@ export function RoadRacerGame({ score, onScoreChange, storyReady }: ArcadeGamePr
       <header className="intermission-game-instructions">
         <strong>HIGHWAY 84 // {variant.name}</strong>
         <span>A/D OR ←/→ // POINTER / TOUCH STEERING // {variant.lanes}-LANE BOARD</span>
-        <span>CLEAN PASS +3 // FIVE-PASS STREAK BONUS // CONTACT -7</span>
+        <span>CLEAN +3 // RISKY +5 // CLOSE +7 // NEEDLE +10 // x5 STREAK BONUS // CONTACT -7</span>
       </header>
       <div className="arcade-playfield">
         <canvas
@@ -276,7 +314,7 @@ export function RoadRacerGame({ score, onScoreChange, storyReady }: ArcadeGamePr
           onPointerDown={pointerMove}
           aria-label="Retro highway racing game"
         />
-        <ArcadeFeedback feedback={feedback} />
+        <ArcadeFeedback feedback={feedback} mode="compact" />
       </div>
       <footer className="intermission-game-message"><span>{message}</span><strong>{variant.name} // NO BRAKES</strong></footer>
     </div>

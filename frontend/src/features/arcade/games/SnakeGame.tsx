@@ -243,7 +243,7 @@ export function SnakeGame({ score, onScoreChange, storyReady }: ArcadeGameProps)
           onPointerCancel={() => { swipeStartRef.current = null; }}
           aria-label="Retro snake game"
         />
-        <ArcadeFeedback feedback={feedback} />
+        <ArcadeFeedback feedback={feedback} mode="compact" />
       </div>
       <div className="arcade-touch-dpad" aria-label="Snake touch controls">
         <button type="button" onClick={() => setDirection("up")}>▲</button>

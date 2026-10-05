@@ -278,7 +278,7 @@ export function BrickBreakerGame({ score, onScoreChange, storyReady }: ArcadeGam
           onPointerDown={pointerMove}
           aria-label="Retro brick breaker game"
         />
-        <ArcadeFeedback feedback={feedback} />
+        <ArcadeFeedback feedback={feedback} mode="compact" />
       </div>
       <footer className="intermission-game-message"><span>{message}</span><strong>{variant.name}</strong></footer>
     </div>

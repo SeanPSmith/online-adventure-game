@@ -188,7 +188,7 @@ function WordSearch({
         setPuzzle(createWordSearch());
         setFound(new Set());
         setStart(null);
-      }, 1400);
+      }, 2200);
     }
   }
 
@@ -261,7 +261,7 @@ function Hangman({
       );
 
       if (nowSolved) {
-        window.setTimeout(reset, 1400);
+        window.setTimeout(reset, 2200);
       }
       return;
     }
@@ -272,7 +272,7 @@ function Hangman({
 
     if (nextMisses >= 6) {
       setMessage(`OUT OF GUESSES // IT WAS ${word} // MOVING ON_`);
-      window.setTimeout(reset, 1600);
+      window.setTimeout(reset, 2500);
     }
   }
 

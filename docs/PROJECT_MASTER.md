@@ -410,10 +410,13 @@ Arcade Lab additionally contains cabinets such as:
 - controls should be immediately understandable;
 - timing bars should be forgiving enough for a short intermission;
 - hits/misses/wins/crashes must be visually unmistakable;
-- turn-based cabinets should pause between rounds;
+- continuous action cabinets use compact corner feedback so scoring never blocks the playfield;
+- slower / round-based cabinets deliberately pause after a result before resetting;
+- Golf, Bowling, and other discrete-shot games may use large result overlays because gameplay is paused while the result is being read;
 - mobile action games should account for smaller reaction space;
 - movement cabinets should support swipe where appropriate;
 - repeated plays should vary board size, speed, traffic, wind, lane condition, layout, etc.;
+- Highway 84 increases speed and traffic pressure during a run and awards extra points for risky clearances / near misses;
 - physical actions should visibly animate their consequence;
 - retro graphics may be crude; feedback must not be.
 
@@ -755,6 +758,7 @@ This is intentionally short. The historical numbered changelog files remain an a
 - **Pass 26 — Partner Notifications:** joined/locked/your-turn/results/finale in-app + background browser notifications.
 - **Pass 27 — Master Documentation:** canonical `PROJECT_MASTER.md` exposed through the protected Admin documentation console.
 - **Pass 28 / 28A — Scene ASCII Pipeline:** deterministic story-aware scene art replaced runtime placeholders; 28A reapplies the art integration on the current session/QTE/scaling codebase.
+- **Pass 29 — Arcade Pacing Polish:** compact non-obstructive feedback for continuous action games, longer between-round breathing room, and escalating/risk-reward Highway 84 driving.
 
 ---
 

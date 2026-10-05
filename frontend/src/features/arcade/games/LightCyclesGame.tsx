@@ -300,7 +300,7 @@ export function LightCyclesGame({ score, onScoreChange, storyReady }: ArcadeGame
           onPointerCancel={() => { swipeStartRef.current = null; }}
           aria-label="Retro light cycles game"
         />
-        <ArcadeFeedback feedback={feedback} />
+        <ArcadeFeedback feedback={feedback} mode="compact" />
       </div>
       <div className="arcade-touch-dpad" aria-label="Light cycle touch controls">
         <button type="button" onClick={() => setDirection("up")}>▲</button>

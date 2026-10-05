@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export type ArcadeFeedbackTone = "good" | "bad" | "neutral" | "great";
+export type ArcadeFeedbackMode = "overlay" | "compact";
 
 export interface ArcadeFeedbackState {
   id: number;
@@ -38,11 +39,22 @@ export function useArcadeFeedback(durationMs = 1050) {
   return { feedback, showFeedback, clearFeedback };
 }
 
-export function ArcadeFeedback({ feedback }: { feedback: ArcadeFeedbackState | null }) {
+export function ArcadeFeedback({
+  feedback,
+  mode = "overlay",
+}: {
+  feedback: ArcadeFeedbackState | null;
+  mode?: ArcadeFeedbackMode;
+}) {
   if (!feedback) return null;
 
   return (
-    <div key={feedback.id} className={`arcade-feedback is-${feedback.tone}`} role="status" aria-live="polite">
+    <div
+      key={feedback.id}
+      className={`arcade-feedback is-${feedback.tone} ${mode === "compact" ? "is-compact" : ""}`}
+      role="status"
+      aria-live="polite"
+    >
       <strong>{feedback.title}</strong>
       {feedback.detail ? <span>{feedback.detail}</span> : null}
       {typeof feedback.delta === "number" && feedback.delta !== 0 ? (

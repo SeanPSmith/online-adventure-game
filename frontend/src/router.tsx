@@ -43,6 +43,7 @@ export const router = createBrowserRouter([
           { path: "forgot-password", element: <ForgotPasswordPage /> },
           { path: "privacy", element: <PrivacyPage /> },
           { path: "terms", element: <TermsPage /> },
+          { path: "rulebook", element: <RulebookPage /> },
           { path: "join/:roomCode", element: <JoinInvitePage /> },
         ],
       },

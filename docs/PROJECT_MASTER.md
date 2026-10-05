@@ -3,8 +3,8 @@
 > **Canonical project document.** This file replaces the old append-only changelog workflow.
 > Update or rewrite the relevant sections in this file as the product changes; do not create another numbered changelog copy.
 
-**Last consolidated:** 2026-10-03  
-**Current local baseline:** through Pass 26 (shareable invites + partner activity notifications)  
+**Last consolidated:** 2026-10-04  
+**Current local baseline:** through Pass 29B (public site / home / footer cleanup)  
 **Public site:** `https://onlinetextadventure.com`  
 **Primary release command:** `./scripts/release-staging.sh "Describe the release"`
 
@@ -33,9 +33,16 @@ The visual language is intentionally terminal/IRC/VGA-inspired: strong borders, 
 
 ### Public / authentication
 
-- `/` — public landing/login entry.
+- `/` — product-first public homepage explaining solo/co-op play and the core game loop.
+- `/login` — sign-in with protected-route return-path preservation.
+- `/register` — account creation with return-path preservation through the follow-up sign-in.
+- `/forgot-password` — honest recovery-status page; the backend reset endpoint is not connected yet and the page does not collect fake reset requests.
+- `/rulebook` — public player-facing RPG reference; authenticated players can still use `/game/rulebook`.
+- `/privacy` and `/terms` — public product/legal notices.
 - `/join/:roomCode` — shareable co-op invitation deep link.
-- registration/login preserve the requested invite target and return the player to the join flow.
+- registration/login preserve the requested invite or protected-route target and return the player to that intended destination.
+
+The public shell uses one terminal/IRC visual language across home, auth, legal, invitation, and rulebook surfaces. Desktop navigation prioritizes How It Works, Rulebook, player access, and Play/Create Hero rather than legal links. On phones it collapses into an explicit menu. The global public footer owns About/How It Works, Rulebook, Privacy, Terms, feedback status, product identity, and the deployed frontend build fingerprint.
 
 ### Player game area
 
@@ -570,6 +577,19 @@ Optional browser notifications are supported while the browser/tab can receive t
 
 ## 14. Dashboard and Gameplay UI Direction
 
+### Public shell hierarchy
+
+The public product shell is intentionally sparse and game-like rather than a generic marketing site:
+
+1. immediately explain that Tales of Two is an AI-directed text-adventure RPG for solo or two-player co-op;
+2. make `PLAY`, `CREATE HERO`, and `SIGN IN` obvious without turning the header into a duplicate CTA wall;
+3. explain the loop as Hero → choice → authoritative resolution / Director continuation;
+4. show solo and co-op as first-class modes;
+5. keep legal/about/reference links in the footer unless they are needed for the current task;
+6. remove fake or non-functional controls rather than presenting disabled product scaffolding as a feature.
+
+The public pages share constrained widths, terminal borders, chunky mono typography, consistent buttons/forms/errors, and phone-first responsive behavior. No public page should require horizontal scrolling at the 320px minimum viewport.
+
 ### Dashboard hierarchy
 
 The authenticated home is organized around:
@@ -664,6 +684,8 @@ GitHub is source history + automated CI. A normal `git push` does **not** itself
 
 ### AWS deployment implementation
 
+The frontend deploy stamps `VITE_BUILD_ID` from the current short Git SHA before Vite builds. The public footer renders that value as `BUILD // <sha>` so testers can distinguish a stale browser bundle from the source tree that was actually released. Local development falls back to `BUILD // DEV`.
+
 The low-level AWS deployer remains:
 
 ```bash
@@ -709,6 +731,7 @@ Every meaningful implementation pass should preserve these principles:
 - Admin analytics derive largely from existing persisted state and completions; a dedicated product-event ledger is future work.
 - Director latency/reliability remains an important ongoing focus; retries are recoverable but generation should continue to be profiled and optimized.
 - Real two-player playtesting remains essential for validating asynchronous co-op timing, notification usefulness, and long-session UX.
+- Public feedback mail is intentionally configuration-driven; set `VITE_FEEDBACK_EMAIL` to activate the footer feedback link. Without it, the footer reports the channel as offline rather than inventing a destination.
 
 ---
 
@@ -758,7 +781,8 @@ This is intentionally short. The historical numbered changelog files remain an a
 - **Pass 26 — Partner Notifications:** joined/locked/your-turn/results/finale in-app + background browser notifications.
 - **Pass 27 — Master Documentation:** canonical `PROJECT_MASTER.md` exposed through the protected Admin documentation console.
 - **Pass 28 / 28A — Scene ASCII Pipeline:** deterministic story-aware scene art replaced runtime placeholders; 28A reapplies the art integration on the current session/QTE/scaling codebase.
-- **Pass 29 — Arcade Pacing Polish:** compact non-obstructive feedback for continuous action games, longer between-round breathing room, and escalating/risk-reward Highway 84 driving.
+- **Pass 29A — Arcade Pacing Polish:** compact non-obstructive feedback for continuous action games, longer between-round breathing room, and escalating/risk-reward Highway 84 driving.
+- **Pass 29B — Public Site / Home / Footer Cleanup:** rebuilt product-first homepage, public Rulebook, responsive anonymous/authenticated navigation, unified auth presentation, real public footer, legal/product notices, and deploy-visible frontend build fingerprint.
 
 ---
 

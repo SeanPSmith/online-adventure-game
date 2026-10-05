@@ -33,7 +33,18 @@ fi
 
 echo "Building React production bundle..."
 cd "$FRONTEND_DIR"
-npm run build
+
+# Stamp the deployed UI with the exact Git revision when available. This is
+# intentionally a Vite public build identifier, not a secret. It lets support
+# and testers confirm which frontend bundle a browser is actually running.
+if command -v git >/dev/null 2>&1 && git -C "$ROOT_DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  BUILD_ID="$(git -C "$ROOT_DIR" rev-parse --short HEAD)"
+else
+  BUILD_ID="deploy-$(date +%Y%m%d-%H%M%S)"
+fi
+
+echo "Frontend build id: $BUILD_ID"
+VITE_BUILD_ID="$BUILD_ID" npm run build
 
 if [[ ! -f "$FRONTEND_DIR/dist/index.html" ]]; then
   echo "frontend/dist/index.html was not produced." >&2

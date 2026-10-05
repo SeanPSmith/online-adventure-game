@@ -5585,3 +5585,60 @@ select:focus-visible {
     font-size: 8px;
   }
 }
+
+/* =========================================================
+   PUBLIC FORMS // PASS 29B
+========================================================= */
+
+.auth-shell .form-stack {
+  gap: 15px;
+}
+
+.auth-shell .form-stack label {
+  gap: 7px;
+  font-size: 9px;
+  letter-spacing: 0.05em;
+}
+
+.auth-shell .form-stack input {
+  min-height: 45px;
+  border-color: var(--green-line-dim);
+}
+
+.auth-shell .form-stack input:hover {
+  border-color: var(--green-line);
+}
+
+.auth-shell .form-stack input:focus {
+  border-color: var(--green);
+  box-shadow: inset 3px 0 0 rgba(72, 255, 112, 0.45);
+}
+
+.auth-shell .form-stack label small {
+  color: var(--green-muted);
+  font-size: 8px;
+}
+
+.auth-shell .form-links {
+  padding-top: 3px;
+  font-size: 9px;
+}
+
+.auth-shell .form-error {
+  background: rgba(255, 99, 99, 0.04);
+  line-height: 1.45;
+}
+
+.auth-recovery-notice {
+  display: grid;
+  gap: 5px;
+}
+
+.auth-recovery-notice strong {
+  color: var(--amber);
+}
+
+.auth-recovery-notice span {
+  color: var(--text-dim);
+  line-height: 1.5;
+}

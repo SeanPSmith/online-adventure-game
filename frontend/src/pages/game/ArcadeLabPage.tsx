@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { PageTitle } from "../../components/ui/PageTitle";
 import { Panel } from "../../components/ui/Panel";
-import { arcadeGameById, arcadeGamesForLab } from "../../features/arcade/ArcadeGameRegistry";
+import { arcadeGameById, arcadeGamesForLab, scoreFeedbackModeForGame } from "../../features/arcade/ArcadeGameRegistry";
+import { ArcadeFeedback, useArcadeFeedback } from "../../features/arcade/engine/ArcadeFeedback";
 import { getArcadeCatalog, setArcadeGameLive, type ArcadePublicationEntry } from "../../services/arcade";
 import { useAuth } from "../../state/AuthContext";
 
@@ -16,6 +17,7 @@ export function ArcadeLabPage() {
   const [runId, setRunId] = useState(1);
   const [publishingId, setPublishingId] = useState<string | null>(null);
   const [catalogError, setCatalogError] = useState("");
+  const { feedback: scoreFeedback, showFeedback: showScoreFeedback, clearFeedback: clearScoreFeedback } = useArcadeFeedback(1100);
 
   useEffect(() => {
     let cancelled = false;
@@ -59,14 +61,30 @@ export function ArcadeLabPage() {
   const Game = selected?.component ?? null;
 
   function selectGame(gameId: string) {
+    clearScoreFeedback();
     setSelectedId(gameId);
     setScore(0);
     setRunId((value) => value + 1);
   }
 
   function restart() {
+    clearScoreFeedback();
     setScore(0);
     setRunId((value) => value + 1);
+  }
+
+  function updateCabinetScore(nextScore: number) {
+    const normalized = Math.max(0, Math.min(999, Math.round(nextScore)));
+    const delta = normalized - score;
+    setScore(normalized);
+    if (!selected || selected.managesFeedback || delta === 0) return;
+    const mode = scoreFeedbackModeForGame(selected);
+    showScoreFeedback({
+      title: delta > 0 ? "SCORE" : "PENALTY",
+      detail: selected.title,
+      delta,
+      tone: delta > 0 ? "good" : "bad",
+    }, mode === "compact" ? 650 : 1350);
   }
 
   async function toggleLive(gameId: string) {
@@ -143,11 +161,12 @@ export function ArcadeLabPage() {
               <Game
                 key={`${selected.id}:${runId}`}
                 score={score}
-                onScoreChange={setScore}
+                onScoreChange={updateCabinetScore}
                 storyReady={false}
                 turnNumber={runId}
                 playMode="solo"
               />
+              {!selected.managesFeedback ? <ArcadeFeedback feedback={scoreFeedback} mode={scoreFeedbackModeForGame(selected)} /> : null}
             </div>
 
             <div className="arcade-lab-actions">

@@ -13,6 +13,7 @@ import { BlackjackGame } from "./games/BlackjackGame";
 import { BowlingGame } from "./games/BowlingGame";
 import { BrickBreakerGame } from "./games/BrickBreakerGame";
 import { GolfGame } from "./games/GolfGame";
+import { HangmanGame } from "./games/HangmanGame";
 import { LightCyclesGame } from "./games/LightCyclesGame";
 import { MahjongMatchGame } from "./games/MahjongMatchGame";
 import { RoadRacerGame } from "./games/RoadRacerGame";
@@ -122,6 +123,20 @@ export const ARCADE_GAMES: readonly ArcadeGameDefinition[] = [
   },
 
   {
+    id: "hangman",
+    title: "HANGMAN // VGA",
+    category: "puzzle",
+    description: "Dedicated Hangman cabinet with keyboard play, hints, animated round results, and six-miss pressure.",
+    supportsSolo: true,
+    supportsCoop: true,
+    supportsTouch: true,
+    controls: "KEYBOARD / TAP",
+    live: false,
+    component: HangmanGame,
+    managesFeedback: true,
+  },
+
+  {
     id: "road_racer",
     title: "HIGHWAY 84",
     category: "racing",
@@ -132,6 +147,7 @@ export const ARCADE_GAMES: readonly ArcadeGameDefinition[] = [
     controls: "A/D / ARROWS / POINTER",
     live: true,
     component: RoadRacerGame,
+    managesFeedback: true,
   },
   {
     id: "brick_breaker",
@@ -144,6 +160,7 @@ export const ARCADE_GAMES: readonly ArcadeGameDefinition[] = [
     controls: "A/D / ARROWS / POINTER",
     live: false,
     component: BrickBreakerGame,
+    managesFeedback: true,
   },
   {
     id: "data_snake",
@@ -156,6 +173,7 @@ export const ARCADE_GAMES: readonly ArcadeGameDefinition[] = [
     controls: "WASD / ARROWS / D-PAD",
     live: false,
     component: SnakeGame,
+    managesFeedback: true,
   },
   {
     id: "light_cycles",
@@ -168,6 +186,7 @@ export const ARCADE_GAMES: readonly ArcadeGameDefinition[] = [
     controls: "WASD / ARROWS / D-PAD",
     live: false,
     component: LightCyclesGame,
+    managesFeedback: true,
   },
   {
     id: "projectile_duel",
@@ -180,6 +199,7 @@ export const ARCADE_GAMES: readonly ArcadeGameDefinition[] = [
     controls: "SLIDERS / FIRE",
     live: false,
     component: ProjectileAdapter,
+    managesFeedback: true,
   },
   {
     id: "bowling",
@@ -192,30 +212,33 @@ export const ARCADE_GAMES: readonly ArcadeGameDefinition[] = [
     controls: "SPACE / ENTER / TAP",
     live: false,
     component: BowlingGame,
+    managesFeedback: true,
   },
   {
     id: "beer_pong",
     title: "BEER PONG",
     category: "timing",
-    description: "Sweep the aim line, sink the rack, and chase clean center-cup throws.",
+    description: "Gorillas-style angle-and-power throws with visible ballistics, cup collisions, and reracks.",
     supportsSolo: true,
     supportsCoop: true,
     supportsTouch: true,
-    controls: "TAP / CLICK",
+    controls: "ANGLE / POWER / THROW",
     live: false,
     component: BeerPongGame,
+    managesFeedback: true,
   },
   {
     id: "basketball",
     title: "PIXEL HOOPS",
     category: "sport",
-    description: "Timing-window basketball with two-pointers, threes, and streak bonuses.",
+    description: "Three-stage aim, power, and release shooting with visible arcs, streaks, and two/three-point attempts.",
     supportsSolo: true,
     supportsCoop: true,
     supportsTouch: true,
     controls: "TAP / CLICK",
     live: false,
     component: BasketballGame,
+    managesFeedback: true,
   },
   {
     id: "blackjack",
@@ -228,6 +251,7 @@ export const ARCADE_GAMES: readonly ArcadeGameDefinition[] = [
     controls: "HIT / STAND",
     live: false,
     component: BlackjackGame,
+    managesFeedback: true,
   },
   {
     id: "war_cards",
@@ -237,9 +261,10 @@ export const ARCADE_GAMES: readonly ArcadeGameDefinition[] = [
     supportsSolo: true,
     supportsCoop: true,
     supportsTouch: true,
-    controls: "FLIP",
+    controls: "DRAW",
     live: false,
     component: WarCardGame,
+    managesFeedback: true,
   },
   {
     id: "battleship",
@@ -276,6 +301,7 @@ export const ARCADE_GAMES: readonly ArcadeGameDefinition[] = [
     controls: "SPACE / ENTER / TAP",
     live: false,
     component: GolfGame,
+    managesFeedback: true,
   },
 ] as const;
 
@@ -287,6 +313,11 @@ const LIVE_SLOT_TO_CABINET: Record<string, string> = {
   ward_breaker: "maze",
   shadow_step: "word_puzzle",
 };
+
+export function scoreFeedbackModeForGame(game: ArcadeGameDefinition) {
+  if (game.feedbackMode) return game.feedbackMode;
+  return ["action", "racing", "movement", "reflex"].includes(game.category) ? "compact" : "overlay";
+}
 
 const BY_ID = new Map(ARCADE_GAMES.map((game) => [game.id, game]));
 

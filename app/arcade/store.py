@@ -20,6 +20,7 @@ DEFAULT_ARCADE_PUBLICATION: dict[str, bool] = {
     "archery": False,
     "maze": True,
     "word_puzzle": True,
+    "hangman": False,
     "road_racer": True,
     "brick_breaker": False,
     "data_snake": False,

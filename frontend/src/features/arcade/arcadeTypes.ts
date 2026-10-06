@@ -10,6 +10,8 @@ export type ArcadeCategory =
   | "strategy"
   | "racing";
 
+export type ArcadeScoreFeedbackMode = "overlay" | "compact";
+
 export interface ArcadeGameProps {
   score: number;
   onScoreChange: (score: number) => void;
@@ -29,4 +31,10 @@ export interface ArcadeGameDefinition {
   controls: string;
   live: boolean;
   component: ComponentType<ArcadeGameProps>;
+  /**
+   * Shared score feedback is injected by Arcade Lab / intermission hosts unless
+   * the cabinet already owns richer contextual feedback (MISS, WAR, BUST, etc.).
+   */
+  managesFeedback?: boolean;
+  feedbackMode?: ArcadeScoreFeedbackMode;
 }

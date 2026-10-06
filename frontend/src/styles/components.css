@@ -6657,3 +6657,605 @@ textarea:focus {
 .mahjong-grid button.is-matched {
   border-color: var(--green);
 }
+
+/* =========================================================
+   PASS 36 // ARCADE JUICE + CABINET PERSONALITY
+   The site shell stays blue/green; cabinets can borrow VGA color.
+========================================================= */
+
+.arcade-lab-game-shell,
+.intermission-game-feedback-host {
+  position: relative;
+  min-width: 0;
+}
+
+.intermission-game-feedback-host {
+  display: grid;
+  min-height: 0;
+}
+
+/* Shared turn-based result popups stay theatrical; action popups stay compact. */
+.arcade-lab-game-shell > .arcade-feedback:not(.is-compact),
+.intermission-game-feedback-host > .arcade-feedback:not(.is-compact) {
+  z-index: 12;
+}
+
+/* ---------- Hangman // dedicated VGA cabinet ---------- */
+.hangman-cabinet {
+  position: relative;
+  min-height: 390px;
+}
+
+.hangman-cabinet-stage {
+  min-height: 245px;
+  border: 2px solid var(--structure-line);
+  background:
+    linear-gradient(rgba(35, 72, 115, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(35, 72, 115, 0.1) 1px, transparent 1px),
+    #02070d;
+  background-size: 16px 16px;
+  display: grid;
+  grid-template-columns: minmax(130px, 0.7fr) minmax(0, 1.7fr);
+  gap: 18px;
+  padding: 18px;
+  align-items: center;
+}
+
+.hangman-cabinet-drawing {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  color: #6fd8ff;
+}
+
+.hangman-cabinet-drawing pre {
+  margin: 0;
+  color: #f4cf66;
+  font-size: clamp(15px, 3vw, 24px);
+  line-height: 1.05;
+  text-shadow: 2px 2px 0 rgba(141, 66, 180, 0.35);
+}
+
+.hangman-cabinet-drawing span {
+  color: #ff8f8f;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.hangman-cabinet-word {
+  min-width: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.hangman-cabinet-word > strong {
+  color: #f7f1d2;
+  font-size: clamp(18px, 4vw, 34px);
+  letter-spacing: 0.08em;
+  overflow-wrap: anywhere;
+}
+
+.hangman-cabinet .hangman-letters button {
+  border-color: #386a8f;
+  color: #8de0ff;
+  background: #06101a;
+}
+
+.hangman-cabinet .hangman-letters button:hover:not(:disabled),
+.hangman-cabinet .hangman-letters button:focus-visible {
+  border-color: #f4cf66;
+  color: #fff4b8;
+}
+
+/* ---------- Pixel Hoops // staged sport cadence ---------- */
+.basketball-court {
+  position: relative;
+  overflow: hidden;
+  min-height: 310px;
+  border-color: #3c74a6;
+  background:
+    linear-gradient(180deg, rgba(24, 71, 112, 0.32), rgba(7, 16, 30, 0.96) 62%),
+    repeating-linear-gradient(90deg, transparent 0 42px, rgba(90, 155, 205, 0.08) 43px 44px),
+    #07101d;
+}
+
+.basketball-scoreboard {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 3px 9px;
+  padding: 7px 9px;
+  border: 1px solid #496f8e;
+  background: #020609;
+  font-size: 8px;
+  color: #7eb9df;
+}
+
+.basketball-scoreboard strong {
+  color: #ffd260;
+  font-size: 11px;
+  text-align: right;
+}
+
+.pixel-hoop {
+  position: absolute;
+  right: 10%;
+  top: 19%;
+  color: #f4f0df;
+  text-shadow: 2px 2px 0 #355e86;
+}
+
+.pixel-hoop b {
+  color: #ff8268;
+}
+
+.pixel-shooter {
+  position: absolute;
+  left: 11%;
+  bottom: 31%;
+  color: #76d5ff;
+  font-size: 34px;
+  transform: scaleX(-1);
+}
+
+.basketball-ball {
+  position: absolute;
+  z-index: 4;
+  left: 16%;
+  bottom: 35%;
+  color: #ff9a42;
+  font-size: 20px;
+  text-shadow: 1px 1px 0 #552100;
+  animation: basketball-shot-made 900ms cubic-bezier(.22,.61,.36,1) both;
+}
+
+.basketball-court.is-miss .basketball-ball {
+  animation-name: basketball-shot-miss;
+}
+
+@keyframes basketball-shot-made {
+  0% { left: 16%; bottom: 35%; transform: rotate(0deg) scale(1); }
+  48% { left: 54%; bottom: 76%; transform: rotate(360deg) scale(1.08); }
+  82% { left: 84%; bottom: 62%; transform: rotate(620deg) scale(0.95); }
+  100% { left: 87%; bottom: 43%; transform: rotate(720deg) scale(0.82); }
+}
+
+@keyframes basketball-shot-miss {
+  0% { left: 16%; bottom: 35%; transform: rotate(0deg); }
+  48% { left: 54%; bottom: 76%; transform: rotate(360deg); }
+  82% { left: 82%; bottom: 65%; transform: rotate(620deg); }
+  100% { left: 76%; bottom: 25%; transform: rotate(760deg); }
+}
+
+.basketball-meter-stack {
+  width: min(520px, 88%);
+  position: absolute;
+  left: 50%;
+  bottom: 64px;
+  transform: translateX(-50%);
+  display: grid;
+  gap: 6px;
+}
+
+.basketball-meter-stack .arcade-aim-track {
+  position: relative;
+}
+
+.basketball-target-window {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  width: 12%;
+  transform: translateX(-50%);
+  border-inline: 1px solid #ffd260;
+  background: rgba(255, 210, 96, 0.12);
+  pointer-events: none;
+}
+
+.basketball-locks {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  color: #78a8cf;
+  font-size: 8px;
+}
+
+.basketball-shoot-button {
+  position: absolute;
+  bottom: 15px;
+}
+
+/* ---------- Beer Pong // side-view ballistic cabinet ---------- */
+.beer-pong-ballistics {
+  min-height: 320px;
+  border: 2px solid #2f6c83;
+  background: #03090c;
+  display: grid;
+  grid-template-rows: minmax(210px, 1fr) auto;
+  overflow: hidden;
+}
+
+.beer-pong-side-stage {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(31, 103, 132, 0.24), rgba(5, 13, 17, 0.96)),
+    repeating-linear-gradient(0deg, transparent 0 23px, rgba(70, 177, 205, 0.06) 24px),
+    #041017;
+}
+
+.beer-pong-side-stage::before {
+  content: "BASEMENT LEAGUE // BALLISTICS TABLE";
+  position: absolute;
+  left: 12px;
+  top: 10px;
+  color: #61b9d5;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+}
+
+.beer-pong-thrower {
+  position: absolute;
+  left: 5%;
+  bottom: 18%;
+  color: #f7ca66;
+  font-size: 31px;
+}
+
+.beer-pong-table-line {
+  position: absolute;
+  left: 5%;
+  right: 5%;
+  bottom: 19%;
+  height: 4px;
+  background: #2f7b89;
+  box-shadow: 0 10px 0 #16363f;
+}
+
+.beer-pong-side-rack {
+  position: absolute;
+  inset: 0;
+}
+
+.beer-pong-side-rack span {
+  position: absolute;
+  bottom: 20%;
+  width: 24px;
+  height: 31px;
+  transform: translateX(-50%);
+  display: grid;
+  place-items: center;
+  border: 2px solid #ff6f68;
+  border-top-width: 4px;
+  background: rgba(179, 28, 35, 0.26);
+  color: #ffd0c7;
+  font-size: 18px;
+  font-weight: 900;
+  clip-path: polygon(8% 0, 92% 0, 78% 100%, 22% 100%);
+}
+
+.beer-pong-side-rack span.is-down {
+  opacity: 0.12;
+  transform: translateX(-50%) rotate(75deg);
+}
+
+.beer-pong-ball {
+  position: absolute;
+  z-index: 30;
+  transform: translate(-50%, -50%);
+  color: #f7f1d2;
+  font-size: 13px;
+  text-shadow: 0 0 5px rgba(255,255,255,0.45);
+}
+
+.beer-pong-controls {
+  border-top: 1px solid #24566c;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 12px;
+  align-items: end;
+  background: #061017;
+}
+
+.beer-pong-controls label {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+  color: #6fc3db;
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.beer-pong-controls input[type="range"] {
+  width: 100%;
+  accent-color: #ff776e;
+}
+
+/* ---------- Cards // cream faces + actual dealing ---------- */
+.card-cabinet {
+  --card-cream: #f3eccf;
+  --card-ink: #121318;
+  --card-red: #b61e35;
+  --card-blue: #274d7a;
+}
+
+.card-table,
+.war-table-v2 {
+  background:
+    radial-gradient(circle at 50% 35%, rgba(17, 93, 69, 0.4), transparent 58%),
+    #052117;
+  border: 2px solid #375f73;
+  box-shadow: inset 0 0 0 3px rgba(3, 13, 10, 0.75);
+}
+
+.blackjack-table {
+  position: relative;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding-left: 78px;
+}
+
+.blackjack-shoe {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  color: #8fb1c8;
+  font-size: 8px;
+}
+
+.blackjack-shoe b {
+  width: 44px;
+  height: 60px;
+  border: 3px double #7592a5;
+  background: repeating-linear-gradient(45deg, #17304b 0 4px, #0a1829 4px 8px);
+  color: #85b9d9;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+}
+
+.playing-card {
+  position: relative;
+  overflow: hidden;
+  border: 2px solid #d7cda8;
+  border-radius: 5px;
+  background: var(--card-cream);
+  color: var(--card-ink);
+  box-shadow: 2px 3px 0 rgba(0,0,0,0.38);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.playing-card.is-red-suit {
+  color: var(--card-red);
+}
+
+.playing-card.is-card-back {
+  border-color: #7898b6;
+  background:
+    repeating-linear-gradient(45deg, #1b4770 0 5px, #0c2744 5px 10px),
+    #163a5b;
+  color: #a9d9f2;
+  text-shadow: 1px 1px 0 #08131d;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+.playing-card.is-dealt {
+  opacity: 0;
+  transform: translate(-54px, -24px) rotate(-10deg) scale(0.72);
+  animation: arcade-card-deal 330ms cubic-bezier(.2,.8,.3,1.15) forwards;
+  animation-delay: calc(var(--deal-order, 0) * 90ms);
+}
+
+@keyframes arcade-card-deal {
+  0% { opacity: 0; transform: translate(-54px, -24px) rotate(-10deg) scale(0.72); }
+  75% { opacity: 1; transform: translate(3px, 1px) rotate(2deg) scale(1.04); }
+  100% { opacity: 1; transform: none; }
+}
+
+/* ---------- War // visible decks, central draw, war pot ---------- */
+.war-table-v2 {
+  min-height: 280px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(100px, 0.6fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+}
+
+.war-table-v2.is-war {
+  box-shadow: inset 0 0 0 3px rgba(238, 183, 70, 0.28), inset 0 0 42px rgba(151, 40, 25, 0.2);
+}
+
+.war-player-zone {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-areas:
+    "label label"
+    "deck card";
+  justify-content: center;
+  align-items: center;
+  gap: 10px 14px;
+}
+
+.war-player-zone > .eyebrow { grid-area: label; text-align: center; }
+.war-player-zone > .war-deck-stack { grid-area: deck; }
+.war-player-zone > .war-battle-card { grid-area: card; }
+
+.war-deck-stack {
+  width: 64px;
+  height: 88px;
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.war-deck-stack i,
+.war-deck-stack b {
+  position: absolute;
+  inset: 0;
+  border: 2px solid #7898b6;
+  border-radius: 5px;
+  background: repeating-linear-gradient(45deg, #1b4770 0 5px, #0c2744 5px 10px);
+}
+
+.war-deck-stack i:nth-child(1) { transform: translate(5px, -5px); opacity: 0.55; }
+.war-deck-stack i:nth-child(2) { transform: translate(2px, -2px); opacity: 0.75; }
+.war-deck-stack b {
+  display: grid;
+  place-items: center;
+  color: #a9d9f2;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+.war-deck-stack small {
+  position: absolute;
+  left: 50%;
+  bottom: -20px;
+  transform: translateX(-50%);
+  color: #f4cf66;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.war-battle-card {
+  opacity: 0;
+  animation: war-player-deal 420ms cubic-bezier(.25,.75,.25,1.2) forwards;
+}
+
+.war-battle-card.is-enemy {
+  animation-name: war-enemy-deal;
+}
+
+@keyframes war-player-deal {
+  from { opacity: 0; transform: translateX(-78px) rotate(-18deg) scale(0.75); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes war-enemy-deal {
+  from { opacity: 0; transform: translateX(78px) rotate(18deg) scale(0.75); }
+  to { opacity: 1; transform: none; }
+}
+
+.war-center-pile {
+  display: grid;
+  justify-items: center;
+  gap: 9px;
+  text-align: center;
+  color: #8aa9bc;
+  font-size: 8px;
+}
+
+.war-center-pile > strong {
+  color: #f4cf66;
+  font-size: clamp(18px, 4vw, 32px);
+  letter-spacing: 0.08em;
+}
+
+.war-face-down-row {
+  display: grid;
+  grid-template-columns: repeat(3, 24px);
+  gap: 3px;
+  justify-content: center;
+}
+
+.war-face-down-row span {
+  height: 34px;
+  border: 1px solid #7898b6;
+  background: repeating-linear-gradient(45deg, #1b4770 0 4px, #0c2744 4px 8px);
+  color: transparent;
+  transform: rotate(-7deg);
+}
+
+.war-face-down-row span:nth-child(2) { transform: rotate(2deg); }
+.war-face-down-row span:nth-child(3) { transform: rotate(8deg); }
+.war-face-down-row b {
+  grid-column: 1 / -1;
+  color: #ff9175;
+  font-size: 8px;
+}
+
+@media (max-width: 680px) {
+  .hangman-cabinet-stage {
+    grid-template-columns: 1fr;
+  }
+
+  .basketball-court {
+    min-height: 330px;
+  }
+
+  .pixel-hoop {
+    right: 6%;
+    top: 22%;
+  }
+
+  .beer-pong-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .beer-pong-controls .button {
+    width: 100%;
+  }
+
+  .blackjack-table {
+    grid-template-columns: 1fr;
+    padding-left: 62px;
+  }
+
+  .war-table-v2 {
+    grid-template-columns: 1fr auto 1fr;
+    gap: 5px;
+    padding: 14px 6px 24px;
+  }
+
+  .war-player-zone {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "label"
+      "deck"
+      "card";
+    justify-items: center;
+  }
+
+  .war-deck-stack {
+    width: 46px;
+    height: 64px;
+  }
+
+  .war-battle-card.playing-card.is-large {
+    width: 54px;
+    height: 76px;
+  }
+
+  .war-center-pile {
+    align-self: center;
+  }
+
+  .war-face-down-row {
+    grid-template-columns: repeat(3, 16px);
+  }
+
+  .war-face-down-row span {
+    height: 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .basketball-ball,
+  .playing-card.is-dealt,
+  .war-battle-card {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+  }
+}

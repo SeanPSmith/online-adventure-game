@@ -11,7 +11,9 @@ import type {
 } from "../../services/game";
 import {
   liveArcadeGameForServerSlot,
+  scoreFeedbackModeForGame,
 } from "../arcade/ArcadeGameRegistry";
+import { ArcadeFeedback, useArcadeFeedback } from "../arcade/engine/ArcadeFeedback";
 import { IntermissionGameBoundary } from "./IntermissionGameBoundary";
 
 function matchingResult(
@@ -59,6 +61,11 @@ export function IntermissionRuntime({
   const scoreRef = useRef(0);
   const startedAtRef = useRef(performance.now());
 
+  const arcadeGame = liveArcadeGameForServerSlot(payload.game_id);
+  const ArcadeGame = arcadeGame.component;
+  const gameName = arcadeGame.title;
+  const { feedback: scoreFeedback, showFeedback: showScoreFeedback, clearFeedback: clearScoreFeedback } = useArcadeFeedback(1100);
+
   useEffect(() => {
     setScore(0);
     scoreRef.current = 0;
@@ -66,8 +73,9 @@ export function IntermissionRuntime({
     setSubmitted(serverSubmitted);
     setElapsedSeconds(0);
     setFinalized(false);
+    clearScoreFeedback();
     startedAtRef.current = performance.now();
-  }, [identity]);
+  }, [identity, clearScoreFeedback]);
 
   useEffect(() => {
     if (!serverSubmitted) return;
@@ -89,9 +97,20 @@ export function IntermissionRuntime({
 
   const updateScore = useCallback((nextScore: number) => {
     const normalized = Math.max(0, Math.min(999, Math.round(nextScore)));
+    const previous = scoreRef.current;
+    const delta = normalized - previous;
     scoreRef.current = normalized;
     setScore(normalized);
-  }, []);
+    if (!arcadeGame.managesFeedback && delta !== 0) {
+      const feedbackMode = scoreFeedbackModeForGame(arcadeGame);
+      showScoreFeedback({
+        title: delta > 0 ? "SCORE" : "PENALTY",
+        detail: arcadeGame.title,
+        delta,
+        tone: delta > 0 ? "good" : "bad",
+      }, feedbackMode === "compact" ? 650 : 1350);
+    }
+  }, [arcadeGame, showScoreFeedback]);
 
   const submitFinalScore = useCallback(() => {
     if (submitted) return;
@@ -137,10 +156,6 @@ export function IntermissionRuntime({
   const localResult = resultIsOurs
     ? result?.scores.find((entry) => entry.player_id === playerId)
     : null;
-
-  const arcadeGame = liveArcadeGameForServerSlot(payload.game_id);
-  const ArcadeGame = arcadeGame.component;
-  const gameName = arcadeGame.title;
 
   const compactActionHud = ["action", "racing", "movement"].includes(arcadeGame.category);
 
@@ -189,19 +204,22 @@ export function IntermissionRuntime({
 
       {mode === "play" ? (
         <>
-          <IntermissionGameBoundary
-            key={identity}
-            score={score}
-            onScoreChange={updateScore}
-          >
-            <ArcadeGame
+          <div className="intermission-game-feedback-host">
+            <IntermissionGameBoundary
+              key={identity}
               score={score}
               onScoreChange={updateScore}
-              storyReady={storyReady}
-              turnNumber={payload.turn_number}
-              playMode={payload.play_mode}
-            />
-          </IntermissionGameBoundary>
+            >
+              <ArcadeGame
+                score={score}
+                onScoreChange={updateScore}
+                storyReady={storyReady}
+                turnNumber={payload.turn_number}
+                playMode={payload.play_mode}
+              />
+            </IntermissionGameBoundary>
+            {!arcadeGame.managesFeedback ? <ArcadeFeedback feedback={scoreFeedback} mode={scoreFeedbackModeForGame(arcadeGame)} /> : null}
+          </div>
 
           {!storyReady ? (
             <button

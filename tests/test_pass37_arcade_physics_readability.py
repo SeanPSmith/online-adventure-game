@@ -45,6 +45,9 @@ def test_beer_pong_is_top_down_and_scores_from_physical_cup_collision() -> None:
     assert "ball.rimHits" in game
     assert "Top-down beer pong physics table" in game
     assert "finishRef.current(ball)" in game
+    assert "Six-cup rack" in game
+    assert "one front cup nearest the player, then rows of two and three behind it" in game
+    assert game.count("{ x:", game.index("const CUP_POSITIONS"), game.index("] as const;", game.index("const CUP_POSITIONS"))) == 6
 
 
 def test_bowling_is_top_down_three_control_and_pin_collision_driven() -> None:
@@ -94,3 +97,18 @@ def test_golf_and_bowling_three_control_meters_render_power_vertically() -> None
     assert 'grid-template-areas:' in styles
     assert '"aim power"' in styles
     assert '"modifier power"' in styles
+
+
+def test_reconciliation_marker_and_beer_pong_front_rack_orientation() -> None:
+    beer = read("frontend/src/features/arcade/games/BeerPongGame.tsx")
+    hoops = read("frontend/src/features/arcade/games/BasketballGame.tsx")
+
+    assert "REV 38R" in beer
+    assert "REV 38R" in hoops
+    # Canvas origin is top-left and the shooter is near y=330, so the head/front
+    # cup must have the largest y of the rack rows: 1 nearest, then 2, then 3.
+    assert '{ x: 320, y: 124 }' in beer
+    assert '{ x: 304, y: 94 }, { x: 336, y: 94 }' in beer
+    assert '{ x: 288, y: 64 }, { x: 320, y: 64 }, { x: 352, y: 64 }' in beer
+    assert "AimPowerShotControls" in hoops
+    assert "HORIZONTAL AIM // VERTICAL POWER" in hoops

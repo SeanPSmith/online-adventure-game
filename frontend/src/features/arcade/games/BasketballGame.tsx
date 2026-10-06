@@ -324,7 +324,7 @@ export function BasketballGame({ score, onScoreChange, storyReady }: ArcadeGameP
   return (
     <div className="intermission-game basketball-game basketball-game-v2">
       <header className="intermission-game-instructions">
-        <strong>PIXEL HOOPS // PHYSICS COURT // {distance}-POINTER</strong>
+        <strong>PIXEL HOOPS // PHYSICS COURT // REV 38R // {distance}-POINTER</strong>
         <span>HORIZONTAL AIM // VERTICAL POWER // RIM + GLASS COLLISIONS DECIDE THE SHOT</span>
       </header>
 

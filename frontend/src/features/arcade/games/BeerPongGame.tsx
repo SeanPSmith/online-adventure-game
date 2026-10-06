@@ -9,11 +9,12 @@ const GRAVITY = 220;
 const CUP_R = 14;
 const CUP_RIM_Z = 18;
 
+// Six-cup rack, oriented exactly like the bowling pins from the shooter's view:
+// one front cup nearest the player, then rows of two and three behind it.
 const CUP_POSITIONS = [
-  { x: 320, y: 72 },
-  { x: 294, y: 96 }, { x: 346, y: 96 },
-  { x: 268, y: 120 }, { x: 320, y: 120 }, { x: 372, y: 120 },
-  { x: 242, y: 144 }, { x: 294, y: 144 }, { x: 346, y: 144 }, { x: 398, y: 144 },
+  { x: 320, y: 124 },
+  { x: 304, y: 94 }, { x: 336, y: 94 },
+  { x: 288, y: 64 }, { x: 320, y: 64 }, { x: 352, y: 64 },
 ] as const;
 
 type Phase = AimPowerPhase | "result";
@@ -322,7 +323,7 @@ export function BeerPongGame({ score, onScoreChange, storyReady }: ArcadeGamePro
   return (
     <div className="intermission-game beer-pong-game beer-pong-game-v2">
       <header className="intermission-game-instructions">
-        <strong>BEER PONG // TOP-DOWN PHYSICS TABLE // {cups.length} CUPS REMAIN</strong>
+        <strong>BEER PONG // TOP-DOWN PHYSICS TABLE // REV 38R // {cups.length} CUPS REMAIN</strong>
         <span>HORIZONTAL AIM // VERTICAL POWER // BALL CAN BANK, RIM, BOUNCE, OR DROP</span>
       </header>
 

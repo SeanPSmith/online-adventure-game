@@ -23,27 +23,28 @@ def test_hangman_is_a_dedicated_lab_publishable_cabinet() -> None:
     assert "WORD SOLVED" in hangman
 
 
-def test_hoops_uses_discrete_aim_power_release_shot_cadence() -> None:
+def test_hoops_uses_aim_power_physics_shot_cadence() -> None:
     game = read("frontend/src/features/arcade/games/BasketballGame.tsx")
 
-    assert 'type ShotPhase = "aim" | "power" | "release" | "flight" | "result"' in game
+    assert "AimPowerShotControls" in game
     assert "LOCK AIM" in game
-    assert "LOCK POWER" in game
-    assert "BALL AWAY // TRACKING ARC" in game
-    assert "setTimeout(nextShot, 2150)" in game
-    assert "basketball-ball" in game
+    assert "VERTICAL POWER" in game
+    assert "RIM + GLASS COLLISIONS DECIDE THE SHOT" in game
+    assert "Backboard: physical rebound" in game
+    assert "Basket capture" in game
     assert "SWISH!" in game
 
 
-def test_beer_pong_is_angle_power_projectile_play() -> None:
+def test_beer_pong_is_top_down_aim_power_physics_play() -> None:
     game = read("frontend/src/features/arcade/games/BeerPongGame.tsx")
 
-    assert "ANGLE // {angle}°" in game
-    assert "POWER // {power}%" in game
-    assert "Math.sin(2 * radians)" in game
+    assert "AimPowerShotControls" in game
+    assert "TOP-DOWN PHYSICS TABLE" in game
+    assert "HORIZONTAL AIM" in game
+    assert "VERTICAL POWER" in game
+    assert "ball.tableBounces" in game
+    assert "ball.rimHits" in game
     assert "requestAnimationFrame" in game
-    assert "beer-pong-ball" in game
-    assert "GORILLAS-STYLE THROWING" in game
 
 
 def test_score_feedback_is_host_level_for_cabinets_without_custom_feedback() -> None:

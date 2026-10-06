@@ -429,12 +429,12 @@ Arcade Lab additionally contains cabinets such as:
 - Light//Cycles
 - retired/experimental Archery
 - Hangman // VGA — dedicated keyboard/touch Hangman split out from the combined Word Cabinet;
-- Beer Pong — Gorillas-style angle/power projectile throws with visible arcs and cup collision;
-- Pixel Hoops — deliberate three-stage aim/power/release shots with animated ball flight, two/three-point attempts, and streaks;
+- Beer Pong — top-down physics table with horizontal aim, vertical power, real projectile arc, table/rim bounces, cup collision, and reracks;
+- Pixel Hoops — two-control horizontal aim + vertical power shooting where simulated ball motion, rim contact, backboard rebounds, and basket capture determine the result;
 - Blackjack — dealer blackjack with visible shoe/deal animation and explicit Blackjack/Win/Push/Bust/Loss presentation;
 - War // Cards — persistent face-down player/house decks, animated top-card draws, real deck counts, war pots, and explicit battle/game outcomes;
-- Radar Fleet — compact Battleship-style hidden-fleet hunting;
-- Mahjong Match — Mahjong-themed memory/pair matching rather than full traditional Mahjong rules.
+- Radar Fleet — Battleship-style hidden-fleet hunting with a visible fleet manifest, ship lengths, hull-hit progress, shots fired, and sunk/afloat state;
+- Mahjong Match — Mahjong-themed memory/pair matching with explicit pair manifest, moves, misses, accuracy, streak, and tiles-remaining state rather than full traditional Mahjong rules.
 
 The expanded cabinets intentionally use the existing score-comparison co-op contract: both room players can play simultaneously during Director latency and the authoritative server compares submitted scores. Truly shared turn-by-turn cabinet state (for example direct player-vs-player Battleship boards) is a future arcade networking layer, not something simulated client-side.
 
@@ -442,7 +442,7 @@ The expanded cabinets intentionally use the existing score-comparison co-op cont
 
 - controls should be immediately understandable;
 - each cabinet may use its own DOS/VGA/Atari/Nintendo-era color and motion vocabulary inside the shared Tales of Two shell; retro cohesion matters more than pure ASCII;
-- timing bars should be forgiving enough for a short intermission;
+- shot controls use a consistent physical vocabulary: horizontal AIM + vertical POWER for ordinary ball games; Golf/Bowling retain a third SHAPE/SPIN control; timing bars should be forgiving enough for a short intermission;
 - hits/misses/wins/crashes must be visually unmistakable;
 - score feedback is a shared runtime contract: cabinets without custom contextual feedback automatically receive score popups from the Arcade/Intermission host;
 - continuous action/reflex/racing/movement cabinets use compact corner feedback so scoring never blocks the playfield;
@@ -455,7 +455,8 @@ The expanded cabinets intentionally use the existing score-comparison co-op cont
 - repeated plays should vary board size, speed, traffic, wind, lane condition, layout, word, rack state, etc.;
 - Find the Outlier specifically randomizes both board size (5×5 through 8×8) and a curated near-lookalike symbol pair every round, without immediately repeating either;
 - Highway 84 increases speed and traffic pressure during a run and awards extra points for risky clearances / near misses;
-- physical actions should visibly animate their consequence;
+- physical actions should visibly animate their consequence; where a cabinet is fundamentally about a ball/object collision, simulated motion/collision should determine the result before scoring instead of merely illustrating a preselected outcome;
+- Bowling uses a top-down lane and simulated ball/pin bodies so hook, gutters, pin-to-pin contact, and knockdown count come from the shot;
 - retro graphics may be crude; feedback, rhythm, and readability must not be.
 
 Canvas is preferred for current 2D/pseudo-3D VGA cabinets. Three.js is reserved for cabinets that actually benefit from a 3D camera/scene graph.
@@ -839,7 +840,7 @@ Explore episodic/persistent-world systems such as:
 ### Arcade
 
 - playtest the Pass 36 cabinet revisions in Admin Arcade Lab before publishing them broadly;
-- tune Hoops shot windows, Beer Pong ballistic forgiveness, War pacing, and Blackjack presentation from real sessions rather than static assumptions;
+- playtest the Pass 37 physics/readability revisions: Hoops rim/glass forgiveness, Beer Pong cup/rim/table collision tuning, Bowling pin-body tuning, Radar Fleet clarity, and Mahjong memory readability;
 - continue using persistent PUSH/PULL controls instead of redeploying merely to change the player-facing Arcade catalog;
 - keep new cabinets lab-first and prefer reusable feedback/card/projectile/grid engines;
 - continue adding round-to-round variety so cabinets remain fun after the first few plays;
@@ -865,7 +866,8 @@ This is intentionally short. The historical numbered changelog files remain an a
 - **Pass 33 — Real Notifications:** persisted account notification preferences, real service-worker Web Push, direct account room invites, optional SES email, verified opt-in AWS SMS, and non-blocking external delivery isolated from authoritative gameplay.
 - **Pass 34 — Arcade Expansion + Publication Control:** Beer Pong, Pixel Hoops, Blackjack, War, Radar Fleet, and Mahjong Match join the admin lab; persistent admin PUSH/PULL controls now determine which cabinets appear in the player-facing Arcade without requiring a redeploy.
 - **Pass 35 — Visual Hierarchy / Semantic Color System:** introduces a muted structural-blue chassis for headers, panel bands, section framing, modal chrome, and grouped information while preserving phosphor green for live gameplay state, interaction, meters, scores, and success; the existing layouts remain intact while visual hierarchy becomes deliberately layered instead of monochrome.
-- **Pass 36 — Arcade Juice / Variety / Cabinet Polish:** dedicated Hangman catalog parity, three-stage animated Pixel Hoops, Gorillas-style Beer Pong ballistics, host-level compact-vs-overlay score feedback, and richer Blackjack/War card dealing, deck-state, war-pot, win/loss presentation with cabinet-specific VGA color.
+- **Pass 36 — Arcade Juice / Variety / Cabinet Polish:** dedicated Hangman catalog parity, first-pass animated Hoops/Beer Pong revisions, host-level compact-vs-overlay score feedback, and richer Blackjack/War card dealing, deck-state, war-pot, win/loss presentation with cabinet-specific VGA color.
+- **Pass 37 — Arcade Physics / Gameplay Readability:** replaces rejected Hoops/Beer Pong timing concepts with horizontal-aim + vertical-power physics play, rebuilds Bowling as a top-down collision-driven lane while retaining spin, and adds explicit fleet/pair state communication to Radar Fleet and Mahjong Match.
 
 ---
 

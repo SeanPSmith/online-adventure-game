@@ -228,10 +228,10 @@ def test_arcade_game_feel_pass_adds_forgiving_timing_feedback_and_variants() -> 
     assert "STRIKE!" in bowling
     assert "powerTarget={0.78}" in bowling
     assert "aimPeriodMs: 3250" in bowling
-    assert "drawPixelBowler" in bowling
-    assert "Behind-the-bowler animated VGA bowling lane" in bowling
-    assert "HOOKING LEFT" in bowling
-    assert "knockedPins" in bowling
+    assert "freshPins" in bowling
+    assert "Top-down physics bowling lane" in bowling
+    assert "resolvePinCollision" in bowling
+    assert "BALL + PIN COLLISIONS DETERMINE THE SCORE" in bowling
 
     assert "ROAD_VARIANTS" in road
     assert "PASS STREAK x5" in road

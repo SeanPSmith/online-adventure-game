@@ -26,6 +26,19 @@ function TargetBand({ center, width, centered = false }: { center: number; width
   );
 }
 
+function VerticalTargetBand({ center, width }: { center: number; width: number }) {
+  const half = width / 2;
+  const bottom = Math.max(0, center - half);
+  const top = Math.min(1, center + half);
+  return (
+    <span
+      className="timing-shot-vertical-target"
+      style={{ bottom: percent(bottom), height: percent(Math.max(0.02, top - bottom)) }}
+      aria-hidden="true"
+    />
+  );
+}
+
 export function TimingShotMeters({
   phase,
   aim,
@@ -53,7 +66,7 @@ export function TimingShotMeters({
 }) {
   return (
     <div className="timing-shot-meters" aria-label="Shot timing meters">
-      <div className={`timing-shot-meter ${phase === "aim" ? "is-active" : ""}`}>
+      <div className={`timing-shot-meter is-aim ${phase === "aim" ? "is-active" : ""}`}>
         <div className="timing-shot-meter-label">
           <span>AIM</span>
           <strong>{signedPercent(aim)}</strong>
@@ -65,18 +78,19 @@ export function TimingShotMeters({
         </div>
       </div>
 
-      <div className={`timing-shot-meter ${phase === "power" ? "is-active" : ""}`}>
+      <div className={`timing-shot-meter is-power ${phase === "power" ? "is-active" : ""}`}>
         <div className="timing-shot-meter-label">
           <span>POWER</span>
           <strong>{Math.round(power * 100)}%</strong>
         </div>
-        <div className="timing-shot-track">
-          {typeof powerTarget === "number" ? <TargetBand center={powerTarget} width={powerTolerance} /> : null}
-          <span className="timing-shot-fill" style={{ width: percent(power) }} />
+        <div className="timing-shot-vertical-track">
+          {typeof powerTarget === "number" ? <VerticalTargetBand center={powerTarget} width={powerTolerance} /> : null}
+          <span className="timing-shot-vertical-fill" style={{ height: percent(power) }} />
+          <span className="timing-shot-vertical-marker" style={{ bottom: percent(power) }} />
         </div>
       </div>
 
-      <div className={`timing-shot-meter ${phase === "modifier" ? "is-active" : ""}`}>
+      <div className={`timing-shot-meter is-modifier ${phase === "modifier" ? "is-active" : ""}`}>
         <div className="timing-shot-meter-label">
           <span>{modifierLabel}</span>
           <strong>{signedPercent(modifier)}</strong>

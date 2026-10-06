@@ -7259,3 +7259,503 @@ textarea:focus {
     transform: none;
   }
 }
+
+/* ============================================================
+   PASS 37 // ARCADE GAMEPLAY PHYSICS + READABILITY
+   Retro is the presentation layer; gameplay can use real motion,
+   collisions, persistent state cues, and modern interaction rhythm.
+   ============================================================ */
+
+/* Shared shot language: horizontal AIM + vertical POWER. */
+.aim-power-shot-controls {
+  width: min(760px, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 88px;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.aim-power-aim,
+.aim-power-power {
+  min-width: 0;
+  border: 1px solid var(--structure-line);
+  background: #02070c;
+  padding: 9px;
+  opacity: 0.62;
+}
+
+.aim-power-aim.is-active,
+.aim-power-power.is-active {
+  opacity: 1;
+  border-color: var(--green);
+  box-shadow: inset 0 0 0 1px rgba(72, 255, 112, 0.12);
+}
+
+.aim-power-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--structure-soft);
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+}
+
+.aim-power-label strong {
+  color: var(--green-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.aim-power-horizontal-track {
+  height: 24px;
+  position: relative;
+  overflow: hidden;
+  margin-top: 8px;
+  border: 1px solid rgba(111, 216, 255, 0.34);
+  background: #000;
+}
+
+.aim-power-horizontal-target {
+  position: absolute;
+  inset-block: 2px;
+  background: rgba(244, 207, 102, 0.16);
+  border-inline: 1px solid #f4cf66;
+}
+
+.aim-power-center {
+  position: absolute;
+  inset-block: 0;
+  left: 50%;
+  width: 1px;
+  background: rgba(111, 216, 255, 0.5);
+}
+
+.aim-power-horizontal-marker {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  width: 8px;
+  transform: translateX(-50%);
+  background: var(--green-soft);
+  box-shadow: 0 0 8px rgba(72, 255, 112, 0.45);
+}
+
+.aim-power-power {
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.aim-power-vertical-track,
+.timing-shot-vertical-track {
+  min-height: 118px;
+  width: 28px;
+  justify-self: center;
+  position: relative;
+  overflow: hidden;
+  margin-top: 8px;
+  border: 1px solid rgba(72, 255, 112, 0.34);
+  background: #000;
+}
+
+.aim-power-vertical-target,
+.timing-shot-vertical-target {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  background: rgba(244, 207, 102, 0.15);
+  border-block: 1px solid #f4cf66;
+  z-index: 2;
+}
+
+.aim-power-vertical-fill,
+.timing-shot-vertical-fill {
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  bottom: 0;
+  background: linear-gradient(0deg, #245e35, #6fff8f);
+  opacity: 0.72;
+}
+
+.aim-power-vertical-marker,
+.timing-shot-vertical-marker {
+  position: absolute;
+  left: 1px;
+  right: 1px;
+  height: 5px;
+  transform: translateY(50%);
+  background: #d9ffe2;
+  box-shadow: 0 0 7px rgba(72, 255, 112, 0.55);
+  z-index: 3;
+}
+
+/* Golf + Bowling retain three controls, but POWER now reads vertically. */
+.timing-shot-meters {
+  grid-template-columns: minmax(0, 1fr) 88px;
+  grid-template-areas:
+    "aim power"
+    "modifier power";
+  align-items: stretch;
+}
+
+.timing-shot-meter.is-aim { grid-area: aim; }
+.timing-shot-meter.is-power {
+  grid-area: power;
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+.timing-shot-meter.is-modifier { grid-area: modifier; }
+
+.timing-shot-meter.is-power .timing-shot-meter-label {
+  margin-bottom: 0;
+}
+
+.timing-shot-meter.is-power .timing-shot-vertical-track {
+  min-height: 92px;
+}
+
+/* Physics-canvas cabinets. */
+.arcade-physics-layout {
+  width: min(820px, 100%);
+  margin: 0 auto;
+  display: grid;
+  gap: 10px;
+}
+
+.arcade-physics-canvas,
+.bowling-physics-canvas {
+  width: 100%;
+  height: auto;
+  display: block;
+  border: 2px solid var(--structure-line);
+  background: #02070c;
+  image-rendering: pixelated;
+  outline: none;
+}
+
+.arcade-shot-lock-button {
+  width: min(820px, 100%);
+  min-height: 48px;
+  margin: 0 auto;
+}
+
+.basketball-game-v2,
+.beer-pong-game-v2,
+.bowling-game-v2 {
+  gap: 10px;
+}
+
+.basketball-physics-canvas { border-color: #3f79a7; }
+.beer-pong-physics-canvas { border-color: #3b7d91; }
+.bowling-physics-canvas { border-color: #6c5538; }
+
+/* Radar Fleet: hidden placement, visible rules/state. */
+.battleship-command-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(205px, 0.52fr);
+  gap: 12px;
+  align-items: stretch;
+}
+
+.battleship-radar-panel,
+.battleship-fleet-manifest {
+  border: 1px solid var(--structure-line);
+  background: #02080d;
+  padding: 10px;
+}
+
+.battleship-radar-status {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.battleship-radar-status span {
+  border: 1px solid rgba(72, 132, 176, 0.36);
+  background: #05111a;
+  padding: 6px;
+  color: #7fa9c8;
+  font-size: 8px;
+  text-align: center;
+}
+
+.battleship-radar-status strong {
+  display: block;
+  margin-top: 2px;
+  color: #d5f2ff;
+  font-size: 12px;
+}
+
+.battleship-game-v2 .battleship-grid {
+  width: min(460px, 100%);
+  margin: 0 auto;
+}
+
+.battleship-legend {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+  color: #789bb5;
+  font-size: 8px;
+}
+
+.battleship-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.battleship-legend b {
+  width: 10px;
+  height: 10px;
+  border: 1px solid #4d718e;
+  background: #06121b;
+}
+
+.battleship-legend b.is-hit { background: #ff795f; border-color: #ffb39f; }
+.battleship-legend b.is-miss { background: #2a5875; border-color: #79aaca; }
+
+.battleship-fleet-manifest {
+  display: grid;
+  align-content: start;
+  gap: 9px;
+}
+
+.battleship-ship-card {
+  border: 1px solid #345d7a;
+  background: #06131d;
+  padding: 8px;
+  display: grid;
+  gap: 7px;
+}
+
+.battleship-ship-card > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: #9ed9f5;
+  font-size: 8px;
+}
+
+.battleship-ship-card > div:first-child span { color: #f4cf66; }
+.battleship-ship-card.is-sunk {
+  border-color: #8b3d38;
+  background: #180b0c;
+  opacity: 0.78;
+}
+.battleship-ship-card.is-sunk > div:first-child span { color: #ff8f80; }
+
+.battleship-ship-segments {
+  display: flex;
+  gap: 4px;
+}
+
+.battleship-ship-segments i {
+  flex: 1;
+  height: 10px;
+  border: 1px solid #47708c;
+  background: #0a2433;
+}
+
+.battleship-ship-segments i.is-hit {
+  border-color: #ff9c86;
+  background: #bc4739;
+}
+
+.battleship-fleet-manifest p {
+  margin: 4px 0 0;
+  color: #6f8da5;
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+/* Mahjong: make the memory objective and board state explicit. */
+.mahjong-command-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(190px, 0.48fr);
+  gap: 12px;
+}
+
+.mahjong-board-panel,
+.mahjong-pair-manifest {
+  border: 1px solid var(--structure-line);
+  background: #06100d;
+  padding: 10px;
+}
+
+.mahjong-status-strip {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 5px;
+  margin-bottom: 8px;
+}
+
+.mahjong-status-strip span {
+  border: 1px solid #365f5a;
+  background: #071814;
+  padding: 5px 4px;
+  color: #7fa89f;
+  font-size: 7px;
+  text-align: center;
+}
+
+.mahjong-status-strip strong {
+  display: block;
+  color: #dcf5d9;
+  font-size: 10px;
+}
+
+.mahjong-match-game-v2 .mahjong-grid {
+  width: 100%;
+  margin: 0;
+}
+
+.mahjong-match-game-v2 .mahjong-grid button {
+  min-height: 68px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 130ms ease, border-color 130ms ease, background 130ms ease;
+}
+
+.mahjong-match-game-v2 .mahjong-grid button:not(.is-open):not(.is-matched) {
+  background:
+    repeating-linear-gradient(45deg, #15423b 0 5px, #0b2d28 5px 10px);
+  color: #78b7aa;
+}
+
+.mahjong-match-game-v2 .mahjong-grid button.is-open {
+  transform: translateY(-2px);
+  border-color: #f4cf66;
+  background: #efe3bd;
+  color: #18231e;
+}
+
+.mahjong-match-game-v2 .mahjong-grid button.is-matched {
+  border-color: #78e7a1;
+  background: #173a29;
+  color: #c8ffd6;
+  opacity: 0.7;
+}
+
+.mahjong-match-game-v2 .mahjong-grid button span {
+  font-size: clamp(20px, 4vw, 34px);
+}
+
+.mahjong-match-game-v2 .mahjong-grid button small {
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  bottom: 3px;
+  color: #8effad;
+  font-size: 6px;
+  letter-spacing: 0.08em;
+}
+
+.mahjong-pair-manifest {
+  display: grid;
+  align-content: start;
+  gap: 5px;
+}
+
+.mahjong-pair-manifest > div {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  gap: 7px;
+  align-items: center;
+  border: 1px solid #31534d;
+  background: #081713;
+  padding: 5px 6px;
+}
+
+.mahjong-pair-manifest b {
+  color: #f0dfb4;
+  font-size: 19px;
+  text-align: center;
+}
+
+.mahjong-pair-manifest span {
+  min-width: 0;
+  color: #88aca2;
+  font-size: 7px;
+}
+
+.mahjong-pair-manifest i {
+  color: #6b8c84;
+  font-size: 7px;
+  font-style: normal;
+}
+
+.mahjong-pair-manifest > div.is-cleared {
+  border-color: #397f55;
+  background: #0c2418;
+}
+.mahjong-pair-manifest > div.is-cleared i { color: #7dff9b; }
+
+.mahjong-pair-manifest p {
+  margin: 5px 0 0;
+  color: #78968f;
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+@media (max-width: 760px) {
+  .battleship-command-layout,
+  .mahjong-command-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .battleship-fleet-manifest,
+  .mahjong-pair-manifest {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .battleship-fleet-manifest > .eyebrow,
+  .battleship-fleet-manifest > p,
+  .mahjong-pair-manifest > .eyebrow,
+  .mahjong-pair-manifest > p {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 520px) {
+  .aim-power-shot-controls,
+  .timing-shot-meters {
+    grid-template-columns: minmax(0, 1fr) 68px;
+  }
+
+  .aim-power-vertical-track,
+  .timing-shot-vertical-track {
+    width: 23px;
+    min-height: 96px;
+  }
+
+  .battleship-radar-status {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .battleship-fleet-manifest,
+  .mahjong-pair-manifest {
+    grid-template-columns: 1fr;
+  }
+
+  .battleship-fleet-manifest > .eyebrow,
+  .battleship-fleet-manifest > p,
+  .mahjong-pair-manifest > .eyebrow,
+  .mahjong-pair-manifest > p {
+    grid-column: auto;
+  }
+
+  .mahjong-status-strip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mahjong-match-game-v2 .mahjong-grid button {
+    transition: none;
+  }
+}

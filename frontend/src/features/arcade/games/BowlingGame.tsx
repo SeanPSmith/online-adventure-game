@@ -5,42 +5,51 @@ import { useTimingShotEngine, type TimingShotSample } from "../engine/useTimingS
 import type { ArcadeGameProps } from "../arcadeTypes";
 
 const WIDTH = 640;
-const HEIGHT = 360;
-const HORIZON_Y = 108;
-const PIN_DECK_Y = 136;
-const FOUL_Y = 318;
+const HEIGHT = 390;
+const LANE_LEFT = 116;
+const LANE_RIGHT = 524;
+const BALL_START_Y = 344;
+const PIN_RADIUS = 9;
+const BALL_RADIUS = 11;
 
 type LaneOil = "DRY" | "HOUSE" | "OILY";
+
+type PinBody = {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  angle: number;
+  angular: number;
+  knocked: boolean;
+};
+
+type BallBody = {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  spin: number;
+  startedAt: number;
+  gutter: boolean;
+  resolved: boolean;
+};
+
+type BowlingShot = {
+  sample: TimingShotSample;
+  ball: BallBody;
+};
+
+const PIN_LAYOUT = [
+  { x: 320, y: 112 },
+  { x: 304, y: 91 }, { x: 336, y: 91 },
+  { x: 288, y: 70 }, { x: 320, y: 70 }, { x: 352, y: 70 },
+  { x: 272, y: 49 }, { x: 304, y: 49 }, { x: 336, y: 49 }, { x: 368, y: 49 },
+] as const;
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
 }
-
-function lerp(a: number, b: number, t: number) {
-  return a + (b - a) * t;
-}
-
-interface PinDefinition {
-  laneX: number;
-  row: number;
-}
-
-interface BowlingShot {
-  sample: TimingShotSample;
-  knocked: number;
-  award: number;
-  impactLine: number;
-  knockedPins: number[];
-  startedAt: number;
-  scored: boolean;
-}
-
-const PIN_LAYOUT: PinDefinition[] = [
-  { laneX: 0, row: 0 },
-  { laneX: -0.26, row: 1 }, { laneX: 0.26, row: 1 },
-  { laneX: -0.5, row: 2 }, { laneX: 0, row: 2 }, { laneX: 0.5, row: 2 },
-  { laneX: -0.72, row: 3 }, { laneX: -0.24, row: 3 }, { laneX: 0.24, row: 3 }, { laneX: 0.72, row: 3 },
-];
 
 function randomOil(): LaneOil {
   const roll = Math.random();
@@ -48,61 +57,30 @@ function randomOil(): LaneOil {
 }
 
 function spinFactor(oil: LaneOil) {
-  return oil === "DRY" ? 0.42 : oil === "OILY" ? 0.22 : 0.32;
+  return oil === "DRY" ? 1.25 : oil === "OILY" ? 0.62 : 0.92;
 }
 
-function chooseKnockedPins(knocked: number, impactLine: number) {
-  if (knocked <= 0) return [];
-  return PIN_LAYOUT
-    .map((pin, index) => ({
-      index,
-      score: Math.abs(pin.laneX - impactLine * 0.76) + pin.row * 0.055 + ((index * 17) % 7) * 0.006,
-    }))
-    .sort((a, b) => a.score - b.score)
-    .slice(0, knocked)
-    .map((entry) => entry.index);
-}
-
-function lanePoint(depth: number, lateral: number) {
-  const t = clamp(depth, 0, 1);
-  const y = lerp(FOUL_Y, PIN_DECK_Y, t);
-  const halfWidth = lerp(214, 55, Math.pow(t, 0.82));
-  return {
-    x: WIDTH / 2 + clamp(lateral, -1.25, 1.25) * halfWidth,
-    y,
-    halfWidth,
-  };
-}
-
-function pinPoint(pin: PinDefinition) {
-  const rowDepth = pin.row / 3;
-  const y = PIN_DECK_Y - pin.row * 7.5;
-  const halfWidth = lerp(48, 37, rowDepth);
-  return {
-    x: WIDTH / 2 + pin.laneX * halfWidth,
-    y,
-    scale: lerp(1, 0.82, rowDepth),
-  };
+function freshPins(): PinBody[] {
+  return PIN_LAYOUT.map((pin) => ({ x: pin.x, y: pin.y, vx: 0, vy: 0, angle: 0, angular: 0, knocked: false }));
 }
 
 export function BowlingGame({ score, onScoreChange, storyReady }: ArcadeGameProps) {
-  const engine = useTimingShotEngine({
-    aimPeriodMs: 3250,
-    powerPeriodMs: 2700,
-    modifierPeriodMs: 3050,
-  });
-  const { feedback, showFeedback } = useArcadeFeedback(1400);
+  const engine = useTimingShotEngine({ aimPeriodMs: 3250, powerPeriodMs: 2700, modifierPeriodMs: 3050 });
+  const { feedback, showFeedback } = useArcadeFeedback(1700);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const frameRef = useRef<number | null>(null);
+  const resetTimerRef = useRef<number | null>(null);
+  const shotRef = useRef<BowlingShot | null>(null);
+  const pinsRef = useRef<PinBody[]>(freshPins());
   const scoreRef = useRef(score);
   const onScoreChangeRef = useRef(onScoreChange);
   const storyReadyRef = useRef(storyReady);
-  const shotRef = useRef<BowlingShot | null>(null);
+  const oilRef = useRef<LaneOil>("HOUSE");
+  const finishRef = useRef<(shot: BowlingShot) => void>(() => {});
   const aimRef = useRef(engine.aim);
-  const resetTimerRef = useRef<number | null>(null);
-  const frameRef = useRef<number | null>(null);
+
   const [pinsDown, setPinsDown] = useState(0);
   const [oil, setOil] = useState<LaneOil>(() => randomOil());
-  const oilRef = useRef(oil);
   const [message, setMessage] = useState("LOCK AIM // THEN POWER // THEN SPIN_");
 
   const spinHelp = useMemo(
@@ -113,39 +91,37 @@ export function BowlingGame({ score, onScoreChange, storyReady }: ArcadeGameProp
   useEffect(() => { scoreRef.current = score; }, [score]);
   useEffect(() => { onScoreChangeRef.current = onScoreChange; }, [onScoreChange]);
   useEffect(() => { storyReadyRef.current = storyReady; }, [storyReady]);
-  useEffect(() => { aimRef.current = engine.aim; }, [engine.aim]);
   useEffect(() => { oilRef.current = oil; }, [oil]);
+  useEffect(() => { aimRef.current = engine.aim; }, [engine.aim]);
 
   function finishShot(shot: BowlingShot) {
-    if (shot.scored) return;
-    shot.scored = true;
-
-    const next = clamp(scoreRef.current + shot.award, 0, 999);
+    if (shot.ball.resolved) return;
+    shot.ball.resolved = true;
+    const knocked = pinsRef.current.filter((pin) => pin.knocked).length;
+    const award = knocked === 10 ? 25 : knocked * 2;
+    const next = clamp(scoreRef.current + award, 0, 999);
     scoreRef.current = next;
     onScoreChangeRef.current(next);
-    setPinsDown(shot.knocked);
+    setPinsDown(knocked);
 
-    if (shot.knocked === 10) {
-      setMessage("STRIKE // PERFECT POCKET // +25_");
-      showFeedback({ title: "STRIKE!", detail: "ALL TEN // CLEAN POCKET", delta: 25, tone: "great" }, 1650);
-    } else if (shot.knocked >= 8) {
-      setMessage(`${shot.knocked} PINS // SOLID HIT // +${shot.award}_`);
-      showFeedback({ title: `${shot.knocked} PINS`, detail: "SOLID POCKET HIT", delta: shot.award, tone: "good" }, 1450);
-    } else if (shot.knocked >= 4) {
-      setMessage(`${shot.knocked} PINS // WORKABLE // +${shot.award}_`);
-      showFeedback({ title: `${shot.knocked} PINS`, detail: "CONTACT // KEEP THE LINE", delta: shot.award, tone: "neutral" }, 1400);
+    if (knocked === 10) {
+      setMessage("STRIKE // THE RACK EXPLODED // +25_");
+      showFeedback({ title: "STRIKE!", detail: "ALL TEN // PHYSICS DID THE WORK", delta: 25, tone: "great" }, 1900);
+    } else if (knocked >= 8) {
+      setMessage(`${knocked} PINS // HEAVY POCKET // +${award}_`);
+      showFeedback({ title: `${knocked} PINS`, detail: "SOLID POCKET HIT", delta: award, tone: "good" }, 1750);
+    } else if (knocked >= 4) {
+      setMessage(`${knocked} PINS // WORKABLE // +${award}_`);
+      showFeedback({ title: `${knocked} PINS`, detail: "WATCH THE LEAVE", delta: award, tone: "neutral" }, 1650);
     } else {
-      setMessage(`${shot.knocked} PINS // FIND THE POCKET // +${shot.award}_`);
-      showFeedback({
-        title: shot.knocked === 0 ? "GUTTER BALL" : `${shot.knocked} PINS`,
-        detail: shot.knocked === 0 ? "THE PINS NEVER FELT A THING" : "THE LANE REMAINS UNIMPRESSED",
-        delta: shot.award,
-        tone: "bad",
-      }, 1450);
+      const title = shot.ball.gutter ? "GUTTER BALL" : `${knocked} PINS`;
+      setMessage(`${title} // CHANGE LINE / POWER / SPIN_`);
+      showFeedback({ title, detail: knocked ? "LIGHT CONTACT" : "THE RACK SURVIVES", delta: award, tone: "bad" }, 1650);
     }
 
     resetTimerRef.current = window.setTimeout(() => {
       shotRef.current = null;
+      pinsRef.current = freshPins();
       setPinsDown(0);
       setOil(randomOil());
       setMessage(storyReadyRef.current ? "STORY READY // ONE MORE FRAME IF YOU HAVE IT_" : "NEXT FRAME // LOCK AIM_");
@@ -153,28 +129,28 @@ export function BowlingGame({ score, onScoreChange, storyReady }: ArcadeGameProp
     }, 2950);
   }
 
+  finishRef.current = finishShot;
+
   function startShot(sample: TimingShotSample) {
-    const oilFactor = spinFactor(oilRef.current);
-    const impactLine = clamp(sample.aim * 0.62 + sample.modifier * oilFactor, -1.05, 1.05);
-    const centerQuality = clamp(1 - Math.abs(impactLine), 0, 1);
-    const powerQuality = clamp(1 - Math.abs(sample.power - 0.78) / 0.72, 0, 1);
-    const impact = clamp(centerQuality * 0.72 + powerQuality * 0.28, 0, 1);
-
-    let knocked = Math.round(impact * 10 + (Math.random() * 1.15 - 0.18));
-    if (centerQuality > 0.84 && sample.power > 0.58) knocked = 10;
-    knocked = clamp(knocked, 0, 10);
-    const award = knocked === 10 ? 25 : knocked * 2;
-
+    pinsRef.current = freshPins();
+    const targetX = WIDTH / 2 + sample.aim * 118;
+    const speed = 190 + sample.power * 145;
+    const travelSeconds = 1.05;
+    const vx = (targetX - WIDTH / 2) / travelSeconds;
     shotRef.current = {
       sample,
-      knocked,
-      award,
-      impactLine,
-      knockedPins: chooseKnockedPins(knocked, impactLine),
-      startedAt: performance.now(),
-      scored: false,
+      ball: {
+        x: WIDTH / 2,
+        y: BALL_START_Y,
+        vx,
+        vy: -speed,
+        spin: sample.modifier * spinFactor(oilRef.current),
+        startedAt: performance.now(),
+        gutter: false,
+        resolved: false,
+      },
     };
-    setMessage("BALL AWAY // WATCH THE BREAK_");
+    setMessage("BALL AWAY // WATCH THE HOOK + PIN ACTION_");
   }
 
   useEffect(() => {
@@ -184,276 +160,175 @@ export function BowlingGame({ score, onScoreChange, storyReady }: ArcadeGameProp
     if (!ctx) return;
     ctx.imageSmoothingEnabled = false;
 
-    const drawPixelBowler = (swing: number, released: boolean) => {
-      const x = 126;
-      const y = 308;
-      const lean = swing * 5;
+    let previous = performance.now();
 
-      ctx.fillStyle = "#164d23";
-      ctx.fillRect(x - 13, y - 61 + lean, 17, 15); // head
-      ctx.fillStyle = "#3aa653";
-      ctx.fillRect(x - 18, y - 44 + lean, 30, 37); // shirt
-      ctx.fillStyle = "#123b1b";
-      ctx.fillRect(x - 17, y - 7, 10, 28); // leg
-      ctx.fillRect(x + 2, y - 7, 10, 28);
-      ctx.fillStyle = "#235f31";
-      ctx.fillRect(x - 21, y + 18, 17, 5);
-      ctx.fillRect(x + 2, y + 18, 17, 5);
-
-      const armX = x + 8 + swing * 20;
-      const armY = y - 35 + swing * 25;
-      ctx.strokeStyle = "#7dff9b";
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.moveTo(x + 5, y - 36 + lean);
-      ctx.lineTo(armX, armY);
-      ctx.stroke();
-      ctx.lineWidth = 1;
-
-      if (!released) {
-        ctx.fillStyle = "#7dff9b";
-        ctx.beginPath();
-        ctx.arc(armX + 5, armY + 5, 7, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = "#020702";
-        ctx.fillRect(armX + 2, armY + 1, 2, 2);
-      }
-    };
-
-    const drawPin = (index: number, impactProgress: number, knockedPins: Set<number>, impactLine: number) => {
-      const pin = PIN_LAYOUT[index];
-      const base = pinPoint(pin);
-      const knocked = knockedPins.has(index);
-
-      let x = base.x;
-      let y = base.y;
-      let fall = 0;
-      if (knocked && impactProgress > 0) {
-        const side = Math.sign(pin.laneX - impactLine * 0.5) || (index % 2 === 0 ? 1 : -1);
-        const energy = 1 + ((index * 13) % 5) * 0.14;
-        x += side * impactProgress * 23 * energy;
-        y += impactProgress * (7 + pin.row * 2);
-        fall = impactProgress;
-      }
-
-      const pinHeight = 18 * base.scale;
-      const pinWidth = 7 * base.scale;
-      ctx.save();
-      ctx.translate(x, y);
-      ctx.rotate(knocked ? fall * (index % 2 === 0 ? 1.15 : -1.15) : 0);
-      ctx.strokeStyle = knocked ? "#3aa653" : "#d9ffe2";
-      ctx.fillStyle = knocked ? "#164d23" : "#a8ffba";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(0, -pinHeight * 0.52);
-      ctx.lineTo(-pinWidth * 0.45, -pinHeight * 0.15);
-      ctx.lineTo(-pinWidth, pinHeight * 0.48);
-      ctx.lineTo(pinWidth, pinHeight * 0.48);
-      ctx.lineTo(pinWidth * 0.45, -pinHeight * 0.15);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-      ctx.strokeStyle = "#235f31";
-      ctx.beginPath();
-      ctx.moveTo(-pinWidth * 0.45, -pinHeight * 0.05);
-      ctx.lineTo(pinWidth * 0.45, -pinHeight * 0.05);
-      ctx.stroke();
-      ctx.restore();
-    };
+    function resolvePinCollision(a: PinBody, b: PinBody) {
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const dist = Math.hypot(dx, dy);
+      const minDist = PIN_RADIUS * 2;
+      if (dist <= 0 || dist >= minDist) return;
+      const nx = dx / dist;
+      const ny = dy / dist;
+      const overlap = minDist - dist;
+      a.x -= nx * overlap * 0.5;
+      a.y -= ny * overlap * 0.5;
+      b.x += nx * overlap * 0.5;
+      b.y += ny * overlap * 0.5;
+      const relative = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
+      if (relative > 0) return;
+      const impulse = Math.abs(relative) * 0.38 + 8;
+      a.vx += nx * impulse * 0.35;
+      a.vy += ny * impulse * 0.35;
+      b.vx -= nx * impulse * 0.35;
+      b.vy -= ny * impulse * 0.35;
+      if (Math.hypot(a.vx, a.vy) > 38) a.knocked = true;
+      if (Math.hypot(b.vx, b.vy) > 38) b.knocked = true;
+    }
 
     const draw = (now: number) => {
+      const dt = clamp((now - previous) / 1000, 0, 0.028);
+      previous = now;
       const shot = shotRef.current;
-      const rawProgress = shot ? clamp((now - shot.startedAt) / 1700, 0, 1) : 0;
-      const rollProgress = clamp(rawProgress / 0.72, 0, 1);
-      const impactProgress = clamp((rawProgress - 0.72) / 0.28, 0, 1);
-      const swingProgress = shot ? clamp((now - shot.startedAt) / 360, 0, 1) : 0;
-      const impactFlash = shot ? clamp(1 - Math.abs(rawProgress - 0.74) / 0.06, 0, 1) : 0;
-      const shake = impactFlash > 0 ? Math.sin(now * 0.14) * 3.5 * impactFlash : 0;
 
-      ctx.save();
-      ctx.translate(shake, 0);
+      if (shot && !shot.ball.resolved) {
+        const ball = shot.ball;
+        const hookBuild = clamp((BALL_START_Y - ball.y) / 230, 0, 1);
+        ball.vx += ball.spin * hookBuild * 58 * dt;
+        ball.x += ball.vx * dt;
+        ball.y += ball.vy * dt;
+        ball.vy *= Math.pow(0.997, dt * 60);
 
-      // Back wall / scoreboard.
-      ctx.fillStyle = "#020702";
-      ctx.fillRect(-8, 0, WIDTH + 16, HEIGHT);
-      ctx.fillStyle = "#07170c";
-      ctx.fillRect(0, 0, WIDTH, HORIZON_Y);
-      ctx.fillStyle = "#0b2413";
-      ctx.fillRect(24, 18, WIDTH - 48, 58);
-      ctx.strokeStyle = "#235f31";
-      ctx.strokeRect(24, 18, WIDTH - 48, 58);
-      ctx.fillStyle = "#7dff9b";
-      ctx.font = "700 18px monospace";
-      ctx.textAlign = "left";
-      ctx.fillText("BOWL-O-MATIC // KINGPIN LANES", 42, 43);
-      ctx.font = "700 11px monospace";
-      ctx.fillStyle = "#3aa653";
-      ctx.fillText(`OIL ${oilRef.current} // ${oilRef.current === "DRY" ? "EARLY HOOK" : oilRef.current === "OILY" ? "LATE BREAK" : "HOUSE SHOT"}`, 42, 62);
-      ctx.textAlign = "right";
-      ctx.fillText(`PINS ${shot ? shot.knocked : pinsDown}/10`, WIDTH - 42, 62);
+        if (!ball.gutter && (ball.x < LANE_LEFT + 18 || ball.x > LANE_RIGHT - 18)) {
+          ball.gutter = true;
+          ball.x = ball.x < WIDTH / 2 ? LANE_LEFT + 8 : LANE_RIGHT - 8;
+          ball.vx = 0;
+          ball.vy *= 0.88;
+        }
 
-      // Back masking / pinsetter.
-      ctx.fillStyle = "#041004";
-      ctx.fillRect(220, 84, 200, 47);
-      ctx.strokeStyle = "#164d23";
-      ctx.strokeRect(220, 84, 200, 47);
-      ctx.fillStyle = "#235f31";
-      ctx.fillRect(235, 95, 170, 6);
+        if (!ball.gutter) {
+          for (const pin of pinsRef.current) {
+            const dx = pin.x - ball.x;
+            const dy = pin.y - ball.y;
+            const dist = Math.hypot(dx, dy);
+            if (dist > 0 && dist < BALL_RADIUS + PIN_RADIUS) {
+              const nx = dx / dist;
+              const ny = dy / dist;
+              const speed = Math.hypot(ball.vx, ball.vy);
+              pin.knocked = true;
+              pin.vx += nx * speed * 0.48 + ball.vx * 0.12;
+              pin.vy += ny * speed * 0.48 + ball.vy * 0.12;
+              pin.angular += (Math.random() - 0.5) * 9;
+              ball.vx -= nx * speed * 0.07;
+              ball.vy *= 0.92;
+              const overlap = BALL_RADIUS + PIN_RADIUS - dist;
+              ball.x -= nx * overlap * 0.45;
+              ball.y -= ny * overlap * 0.45;
+            }
+          }
+        }
 
-      // Approach floor.
-      ctx.fillStyle = "#061306";
-      ctx.fillRect(0, HORIZON_Y, WIDTH, HEIGHT - HORIZON_Y);
+        for (const pin of pinsRef.current) {
+          if (!pin.knocked) continue;
+          pin.x += pin.vx * dt;
+          pin.y += pin.vy * dt;
+          pin.angle += pin.angular * dt;
+          pin.vx *= Math.pow(0.94, dt * 60);
+          pin.vy *= Math.pow(0.94, dt * 60);
+          pin.angular *= Math.pow(0.94, dt * 60);
+          if (pin.x < LANE_LEFT + PIN_RADIUS) { pin.x = LANE_LEFT + PIN_RADIUS; pin.vx = Math.abs(pin.vx) * 0.55; }
+          if (pin.x > LANE_RIGHT - PIN_RADIUS) { pin.x = LANE_RIGHT - PIN_RADIUS; pin.vx = -Math.abs(pin.vx) * 0.55; }
+          if (pin.y < 24) { pin.y = 24; pin.vy = Math.abs(pin.vy) * 0.45; }
+          if (pin.y > 145) { pin.y = 145; pin.vy = -Math.abs(pin.vy) * 0.45; }
+        }
 
-      // Gutters and perspective lane.
-      const farLeft = WIDTH / 2 - 63;
-      const farRight = WIDTH / 2 + 63;
-      const nearLeft = WIDTH / 2 - 228;
-      const nearRight = WIDTH / 2 + 228;
+        for (let i = 0; i < pinsRef.current.length; i += 1) {
+          for (let j = i + 1; j < pinsRef.current.length; j += 1) {
+            const a = pinsRef.current[i];
+            const b = pinsRef.current[j];
+            if (a.knocked || b.knocked) resolvePinCollision(a, b);
+          }
+        }
 
-      ctx.fillStyle = "#041004";
-      ctx.beginPath();
-      ctx.moveTo(farLeft - 15, PIN_DECK_Y - 8);
-      ctx.lineTo(farLeft, PIN_DECK_Y - 8);
-      ctx.lineTo(nearLeft, FOUL_Y + 15);
-      ctx.lineTo(nearLeft - 24, FOUL_Y + 15);
-      ctx.closePath();
-      ctx.fill();
-      ctx.beginPath();
-      ctx.moveTo(farRight, PIN_DECK_Y - 8);
-      ctx.lineTo(farRight + 15, PIN_DECK_Y - 8);
-      ctx.lineTo(nearRight + 24, FOUL_Y + 15);
-      ctx.lineTo(nearRight, FOUL_Y + 15);
-      ctx.closePath();
-      ctx.fill();
-
-      ctx.fillStyle = "#0b2b14";
-      ctx.beginPath();
-      ctx.moveTo(farLeft, PIN_DECK_Y - 8);
-      ctx.lineTo(farRight, PIN_DECK_Y - 8);
-      ctx.lineTo(nearRight, FOUL_Y + 15);
-      ctx.lineTo(nearLeft, FOUL_Y + 15);
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = "#3aa653";
-      ctx.stroke();
-
-      // Lane boards and distance strips.
-      for (let i = -8; i <= 8; i += 1) {
-        const nearX = WIDTH / 2 + (i / 8) * 212;
-        const farX = WIDTH / 2 + (i / 8) * 57;
-        ctx.strokeStyle = i === 0 ? "#235f31" : "#123b1b";
-        ctx.beginPath();
-        ctx.moveTo(nearX, FOUL_Y + 12);
-        ctx.lineTo(farX, PIN_DECK_Y - 5);
-        ctx.stroke();
-      }
-      for (let i = 1; i <= 7; i += 1) {
-        const t = i / 8;
-        const point = lanePoint(t, 0);
-        ctx.strokeStyle = i === 7 ? "#235f31" : "#0f3618";
-        ctx.beginPath();
-        ctx.moveTo(point.x - point.halfWidth, point.y);
-        ctx.lineTo(point.x + point.halfWidth, point.y);
-        ctx.stroke();
+        const elapsed = now - ball.startedAt;
+        const movingPins = pinsRef.current.some((pin) => pin.knocked && Math.hypot(pin.vx, pin.vy) > 7);
+        if (elapsed > 2800 || (ball.y < 8 && elapsed > 1500 && !movingPins)) finishRef.current(shot);
       }
 
-      // Bowling arrows / target marks.
-      for (const arrow of [-0.58, -0.28, 0, 0.28, 0.58]) {
-        const p = lanePoint(0.36, arrow);
-        ctx.fillStyle = arrow === 0 ? "#3aa653" : "#164d23";
-        ctx.beginPath();
-        ctx.moveTo(p.x, p.y - 6);
-        ctx.lineTo(p.x - 4, p.y + 3);
-        ctx.lineTo(p.x + 4, p.y + 3);
-        ctx.closePath();
-        ctx.fill();
+      // Top-down lane / gutters.
+      ctx.fillStyle = "#07101a";
+      ctx.fillRect(0, 0, WIDTH, HEIGHT);
+      ctx.fillStyle = "#152735";
+      ctx.fillRect(72, 18, WIDTH - 144, HEIGHT - 36);
+      ctx.fillStyle = "#08131c";
+      ctx.fillRect(82, 18, 34, HEIGHT - 36);
+      ctx.fillRect(524, 18, 34, HEIGHT - 36);
+      ctx.fillStyle = "#c99b58";
+      ctx.fillRect(LANE_LEFT, 18, LANE_RIGHT - LANE_LEFT, HEIGHT - 36);
+      for (let x = LANE_LEFT; x < LANE_RIGHT; x += 18) {
+        ctx.fillStyle = x % 36 === 0 ? "#b7874d" : "#d2a866";
+        ctx.fillRect(x, 18, 1, HEIGHT - 36);
       }
+      ctx.strokeStyle = "#f2d7a3";
+      ctx.strokeRect(LANE_LEFT, 18, LANE_RIGHT - LANE_LEFT, HEIGHT - 36);
+      ctx.strokeStyle = "#7d4d24";
+      ctx.beginPath(); ctx.moveTo(LANE_LEFT, 294); ctx.lineTo(LANE_RIGHT, 294); ctx.stroke();
 
-      // Learnable aim guide before release.
+      // Arrows and aim guide.
+      ctx.fillStyle = "#5d3722";
+      for (const x of [248, 284, 320, 356, 392]) {
+        ctx.beginPath(); ctx.moveTo(x, 232); ctx.lineTo(x - 6, 244); ctx.lineTo(x + 6, 244); ctx.closePath(); ctx.fill();
+      }
       if (!shot) {
-        const guideStart = lanePoint(0.02, aimRef.current * 0.72);
-        const guideEnd = lanePoint(0.94, aimRef.current * 0.42);
-        ctx.setLineDash([4, 6]);
-        ctx.strokeStyle = "#3aa653";
-        ctx.beginPath();
-        ctx.moveTo(guideStart.x, guideStart.y);
-        ctx.lineTo(guideEnd.x, guideEnd.y);
-        ctx.stroke();
+        const targetX = WIDTH / 2 + aimRef.current * 118;
+        ctx.setLineDash([6, 7]);
+        ctx.strokeStyle = "#2d6d86";
+        ctx.beginPath(); ctx.moveTo(WIDTH / 2, BALL_START_Y); ctx.lineTo(targetX, 102); ctx.stroke();
         ctx.setLineDash([]);
       }
 
-      // Pins live in the lane perspective, then scatter after impact.
-      const knockedSet = new Set(shot?.knockedPins ?? []);
-      for (let index = PIN_LAYOUT.length - 1; index >= 0; index -= 1) {
-        drawPin(index, impactProgress, knockedSet, shot?.impactLine ?? 0);
-      }
-
-      // Bowler has a tiny VGA delivery animation rather than being a static diagram.
-      const released = Boolean(shot && swingProgress > 0.62);
-      const swing = shot
-        ? swingProgress < 0.55
-          ? swingProgress / 0.55
-          : Math.max(0, 1 - (swingProgress - 0.55) / 0.45)
-        : 0;
-      drawPixelBowler(swing, released);
-
-      // Ball uses the same impact line as scoring so what you see matches what happened.
-      if (shot && rollProgress > 0.04) {
-        const t = clamp((rollProgress - 0.04) / 0.96, 0, 1);
-        const eased = 1 - Math.pow(1 - t, 1.55);
-        const oilFactor = spinFactor(oilRef.current);
-        const startLateral = shot.sample.aim * 0.64;
-        const endLateral = shot.impactLine * 0.82;
-        const hook = Math.sin(Math.pow(eased, 1.35) * Math.PI) * shot.sample.modifier * oilFactor * 0.36;
-        const lateral = lerp(startLateral, endLateral, eased) + hook;
-        const ball = lanePoint(eased, lateral);
-        const radius = lerp(10.5, 3.1, eased);
-
-        // Motion trail makes speed / hook visible.
-        ctx.strokeStyle = "#164d23";
+      // Pins are dynamic bodies.
+      for (const pin of pinsRef.current) {
+        ctx.save();
+        ctx.translate(pin.x, pin.y);
+        ctx.rotate(pin.angle);
+        ctx.fillStyle = pin.knocked ? "#efe5cf" : "#fff7df";
+        ctx.strokeStyle = "#85342c";
         ctx.lineWidth = 2;
         ctx.beginPath();
-        for (let sampleIndex = 0; sampleIndex <= 16; sampleIndex += 1) {
-          const q = eased * (sampleIndex / 16);
-          const qHook = Math.sin(Math.pow(q, 1.35) * Math.PI) * shot.sample.modifier * oilFactor * 0.36;
-          const qLat = lerp(startLateral, endLateral, q) + qHook;
-          const qPoint = lanePoint(q, qLat);
-          if (sampleIndex === 0) ctx.moveTo(qPoint.x, qPoint.y);
-          else ctx.lineTo(qPoint.x, qPoint.y);
-        }
-        ctx.stroke();
+        ctx.ellipse(0, 0, pin.knocked ? 11 : 8, pin.knocked ? 6 : 12, 0, 0, Math.PI * 2);
+        ctx.fill(); ctx.stroke();
+        ctx.strokeStyle = "#d9443f";
+        ctx.beginPath(); ctx.moveTo(-6, -2); ctx.lineTo(6, -2); ctx.stroke();
+        ctx.restore();
+      }
+
+      if (shot) {
+        const ball = shot.ball;
+        ctx.fillStyle = "rgba(0,0,0,0.32)";
+        ctx.beginPath(); ctx.ellipse(ball.x + 3, ball.y + 5, 12, 7, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#26213f";
+        ctx.strokeStyle = "#6fd8ff";
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(ball.x, ball.y, BALL_RADIUS, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = "#02050a";
+        ctx.beginPath(); ctx.arc(ball.x - 3, ball.y - 3, 1.5, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(ball.x + 2, ball.y - 4, 1.5, 0, Math.PI * 2); ctx.fill();
         ctx.lineWidth = 1;
-
-        ctx.fillStyle = "#7dff9b";
-        ctx.beginPath();
-        ctx.arc(ball.x, ball.y, radius, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = "#020702";
-        ctx.beginPath();
-        ctx.arc(ball.x - radius * 0.22, ball.y - radius * 0.18, Math.max(1, radius * 0.13), 0, Math.PI * 2);
-        ctx.fill();
+      } else {
+        ctx.fillStyle = "#26213f";
+        ctx.beginPath(); ctx.arc(WIDTH / 2, BALL_START_Y, BALL_RADIUS, 0, Math.PI * 2); ctx.fill();
       }
 
-      if (impactFlash > 0) {
-        ctx.strokeStyle = `rgba(125,255,155,${impactFlash})`;
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(WIDTH / 2 + (shot?.impactLine ?? 0) * 42, PIN_DECK_Y - 3, 18 + (1 - impactFlash) * 38, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.lineWidth = 1;
-      }
+      ctx.fillStyle = "#9ed9f5";
+      ctx.font = "700 11px monospace";
+      ctx.textAlign = "left";
+      ctx.fillText(`KINGPIN // ${oilRef.current} OIL`, 26, 34);
+      ctx.textAlign = "right";
+      ctx.fillStyle = "#f4cf66";
+      const liveDown = pinsRef.current.filter((pin) => pin.knocked).length;
+      ctx.fillText(`${liveDown}/10 DOWN`, WIDTH - 26, 34);
 
-      // Lane status cue during the roll.
-      if (shot && rawProgress < 0.72) {
-        ctx.fillStyle = "#7dff9b";
-        ctx.font = "700 11px monospace";
-        ctx.textAlign = "center";
-        ctx.fillText(Math.abs(shot.sample.modifier) < 0.18 ? "STRAIGHT BALL" : shot.sample.modifier < 0 ? "HOOKING LEFT" : "HOOKING RIGHT", WIDTH / 2, 95);
-      }
-
-      ctx.restore();
-
-      if (shot && rawProgress >= 1 && !shot.scored) finishShot(shot);
       frameRef.current = requestAnimationFrame(draw);
     };
 
@@ -461,9 +336,9 @@ export function BowlingGame({ score, onScoreChange, storyReady }: ArcadeGameProp
     canvas.focus({ preventScroll: true });
     return () => {
       if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
-      if (resetTimerRef.current !== null) window.clearTimeout(resetTimerRef.current);
+      if (resetTimerRef.current !== null) clearTimeout(resetTimerRef.current);
     };
-  }, [engine.reset]);
+  }, []);
 
   function action() {
     const sample = engine.lock();
@@ -483,23 +358,15 @@ export function BowlingGame({ score, onScoreChange, storyReady }: ArcadeGameProp
         : "BALL IN MOTION";
 
   return (
-    <div className="intermission-game timing-sport-game bowling-game">
+    <div className="intermission-game timing-sport-game bowling-game bowling-game-v2">
       <header className="intermission-game-instructions">
-        <strong>BOWL-O-MATIC // VGA KINGPIN LANES</strong>
-        <span>SPACE / ENTER / TAP // AIM → POWER → SPIN // GREEN BANDS = GOOD WINDOWS</span>
+        <strong>BOWL-O-MATIC // TOP-DOWN PHYSICS LANES</strong>
+        <span>HORIZONTAL AIM → VERTICAL POWER → SPIN // BALL + PIN COLLISIONS DETERMINE THE SCORE</span>
         <span>{oil} OIL // {spinHelp} // STRIKE +25</span>
       </header>
 
       <div className="arcade-playfield">
-        <canvas
-          ref={canvasRef}
-          className="arcade-canvas retro-sport-canvas"
-          width={WIDTH}
-          height={HEIGHT}
-          tabIndex={0}
-          onKeyDown={keyDown}
-          aria-label="Behind-the-bowler animated VGA bowling lane"
-        />
+        <canvas ref={canvasRef} className="arcade-canvas retro-sport-canvas bowling-physics-canvas" width={WIDTH} height={HEIGHT} tabIndex={0} onKeyDown={keyDown} aria-label="Top-down physics bowling lane" />
         <ArcadeFeedback feedback={feedback} />
       </div>
 
@@ -517,14 +384,11 @@ export function BowlingGame({ score, onScoreChange, storyReady }: ArcadeGameProp
         modifierTolerance={0.55}
       />
 
-      <button className="button button-primary timing-shot-action" type="button" disabled={engine.phase === "resolving"} onClick={action}>
+      <button className="button button-primary timing-shot-action" type="button" disabled={engine.phase === "resolving" || storyReady} onClick={action}>
         {buttonLabel}
       </button>
 
-      <footer className="intermission-game-message">
-        <span>{message}</span>
-        <strong>{pinsDown > 0 ? `${pinsDown}/10 DOWN` : `${oil} OIL`}</strong>
-      </footer>
+      <footer className="intermission-game-message"><span>{message}</span><strong>{pinsDown > 0 ? `${pinsDown}/10 DOWN` : `${oil} OIL`}</strong></footer>
     </div>
   );
 }

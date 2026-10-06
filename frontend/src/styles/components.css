@@ -7759,3 +7759,139 @@ textarea:focus {
     transition: none;
   }
 }
+
+/* =========================================================
+   PASS 38 — ARCADE MODES + HOTSEAT + BALLISTIC TERRAIN
+========================================================= */
+
+.arcade-mode-switch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 9px;
+  padding: 7px;
+  border: 1px solid var(--structure-line);
+  background: rgba(38, 78, 108, 0.12);
+}
+
+.arcade-mode-switch > span {
+  margin-left: auto;
+  color: var(--structure-bright);
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.arcade-lab-meta {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  background: var(--structure-line);
+  border-color: var(--structure-line);
+}
+
+.arcade-hotseat-strip {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: 8px;
+  border: 1px solid var(--structure-line);
+  background: var(--structure-line);
+}
+
+.arcade-hotseat-strip > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  padding: 7px 10px;
+  background: #030807;
+  color: var(--text-muted);
+}
+
+.arcade-hotseat-strip > div.is-active {
+  background: rgba(72, 255, 112, 0.08);
+  color: var(--green-soft);
+}
+
+.arcade-hotseat-strip > div.is-winner {
+  background: rgba(72, 255, 112, 0.14);
+  color: var(--green);
+}
+
+.arcade-hotseat-strip span {
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.arcade-hotseat-strip strong {
+  color: inherit;
+  font-size: 13px;
+}
+
+.arcade-hotseat-result {
+  min-height: 280px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 10px;
+  padding: 24px;
+  text-align: center;
+  background:
+    linear-gradient(rgba(34, 72, 102, 0.14), rgba(0, 0, 0, 0.72)),
+    #010504;
+}
+
+.arcade-hotseat-result > span {
+  color: var(--structure-bright);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.arcade-hotseat-result > strong {
+  color: var(--green);
+  font-size: clamp(26px, 6vw, 52px);
+  line-height: 1;
+}
+
+.arcade-hotseat-result > p {
+  margin: 0;
+  color: var(--green-soft);
+  font-weight: 900;
+}
+
+.projectile-field-wrap {
+  border-color: #356d92;
+  background:
+    linear-gradient(#061421 0%, #02090f 68%, #000 100%);
+}
+
+.projectile-ascii-field {
+  color: #8fd6ff;
+  text-shadow: 0 0 7px rgba(94, 194, 255, 0.16);
+}
+
+.projectile-hud-line {
+  color: #81aeca;
+}
+
+.projectile-game .intermission-game-message strong {
+  color: #e4c36a;
+}
+
+@media (max-width: 760px) {
+  .arcade-lab-meta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .arcade-mode-switch > span {
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 460px) {
+  .arcade-hotseat-strip {
+    grid-template-columns: 1fr;
+  }
+}

@@ -64,6 +64,7 @@ export function IntermissionRuntime({
   const arcadeGame = liveArcadeGameForServerSlot(payload.game_id);
   const ArcadeGame = arcadeGame.component;
   const gameName = arcadeGame.title;
+  const multiplayerModeLabel = arcadeGame.multiplayerStyle.replace("_", " ").toUpperCase();
   const { feedback: scoreFeedback, showFeedback: showScoreFeedback, clearFeedback: clearScoreFeedback } = useArcadeFeedback(1100);
 
   useEffect(() => {
@@ -168,7 +169,7 @@ export function IntermissionRuntime({
               ? "STORY READY // FINAL SECONDS"
               : payload.play_mode === "solo"
                 ? "DIRECTOR WORKING // SOLO INTERMISSION"
-                : "DIRECTOR WORKING // INTERMISSION"}
+                : `DIRECTOR WORKING // 2 PLAYER ${multiplayerModeLabel}`}
           </span>
           <h2>{gameName}</h2>
         </div>
@@ -253,7 +254,9 @@ export function IntermissionRuntime({
         <span>
           {storyReady
             ? "FINISH WHAT YOU'RE DOING // CONSEQUENCES INCOMING_"
-            : "PLAY AS LONG AS THE DIRECTOR NEEDS // THE GAME DOES NOT DELAY GENERATION_"}
+            : payload.play_mode === "coop"
+              ? "2 PLAYER // BOTH RUNS ARE LIVE // HIGHEST SCORE TAKES THE INTERMISSION_"
+              : "PLAY AS LONG AS THE DIRECTOR NEEDS // THE GAME DOES NOT DELAY GENERATION_"}
         </span>
 
         {resultIsOurs ? (

@@ -195,7 +195,7 @@ def test_arcade_content_pass_retires_archery_and_adds_motion_cabinets() -> None:
     assert "BALL AWAY" in bowling
     assert "requestAnimationFrame" in golf
     assert "BALL IN FLIGHT" in golf
-    assert "const startY = GROUND_Y - 2" in artillery
+    assert "const startY = terrain[playerX] - 2" in artillery
     assert "for (let t = 0.04" in artillery
 
 

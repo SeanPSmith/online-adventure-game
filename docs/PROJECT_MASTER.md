@@ -4,7 +4,7 @@
 > Update or rewrite the relevant sections in this file as the product changes; do not create another numbered changelog copy.
 
 **Last consolidated:** 2026-10-06  
-**Current local baseline:** through Pass 35 (semantic visual hierarchy / structural blue layer)  
+**Current local baseline:** through Pass 38 (Arcade play modes / hotseat multiplayer / terrain ballistics)  
 **Public site:** `https://onlinetextadventure.com`  
 **Primary release command:** `./scripts/release-staging.sh "Describe the release"`
 
@@ -436,7 +436,9 @@ Arcade Lab additionally contains cabinets such as:
 - Radar Fleet — Battleship-style hidden-fleet hunting with a visible fleet manifest, ship lengths, hull-hit progress, shots fired, and sunk/afloat state;
 - Mahjong Match — Mahjong-themed memory/pair matching with explicit pair manifest, moves, misses, accuracy, streak, and tiles-remaining state rather than full traditional Mahjong rules.
 
-The expanded cabinets intentionally use the existing score-comparison co-op contract: both room players can play simultaneously during Director latency and the authoritative server compares submitted scores. Truly shared turn-by-turn cabinet state (for example direct player-vs-player Battleship boards) is a future arcade networking layer, not something simulated client-side.
+Every registered cabinet explicitly declares solo support, two-player support, and a multiplayer style (`simultaneous`, `alternating`, or `score_duel`). The standalone Arcade exposes a real **SOLO / 2 PLAYER** selector; 2 PLAYER uses a local hotseat match wrapper with separate P1/P2 score banks, match resolution, and rematch flow so every cabinet has a usable two-player modality without duplicating cabinet logic.
+
+Adventure-room co-op remains two-device simultaneous play during Director latency: each room player gets a live run and the authoritative server compares submitted scores. The runtime now surfaces the cabinet's intended multiplayer style rather than silently presenting every cabinet as generic solo play. Truly shared networked turn-by-turn cabinet state (for example direct Battleship boards or a synchronized card table) remains a later arcade-networking layer rather than being faked client-side.
 
 ### Game-feel rules
 
@@ -452,7 +454,8 @@ The expanded cabinets intentionally use the existing score-comparison co-op cont
 - card games should visually deal/draw cards and expose meaningful table state such as deck counts, hidden cards, pots, and outcomes;
 - mobile action games should account for smaller reaction space;
 - movement cabinets should support swipe where appropriate;
-- repeated plays should vary board size, speed, traffic, wind, lane condition, layout, word, rack state, etc.;
+- repeated plays should vary board size, speed, traffic, wind, lane condition, layout, word, rack state, terrain, and target position rather than replaying identical geometry;
+- Gorilla Artillery generates seeded uneven terrain with collision, places combatants on terrain elevation, relocates the target after each volley, and generates a new battlefield after a knockout; the same adventure turn begins from the same seeded battlefield for both co-op players;
 - Find the Outlier specifically randomizes both board size (5×5 through 8×8) and a curated near-lookalike symbol pair every round, without immediately repeating either;
 - Highway 84 increases speed and traffic pressure during a run and awards extra points for risky clearances / near misses;
 - physical actions should visibly animate their consequence; where a cabinet is fundamentally about a ball/object collision, simulated motion/collision should determine the result before scoring instead of merely illustrating a preselected outcome;
@@ -841,6 +844,7 @@ Explore episodic/persistent-world systems such as:
 
 - playtest the Pass 36 cabinet revisions in Admin Arcade Lab before publishing them broadly;
 - playtest the Pass 37 physics/readability revisions: Hoops rim/glass forgiveness, Beer Pong cup/rim/table collision tuning, Bowling pin-body tuning, Radar Fleet clarity, and Mahjong memory readability;
+- playtest Pass 38 SOLO / 2 PLAYER hotseat flow across every published cabinet and tune Gorilla Artillery terrain/target relocation difficulty;
 - continue using persistent PUSH/PULL controls instead of redeploying merely to change the player-facing Arcade catalog;
 - keep new cabinets lab-first and prefer reusable feedback/card/projectile/grid engines;
 - continue adding round-to-round variety so cabinets remain fun after the first few plays;
@@ -868,6 +872,7 @@ This is intentionally short. The historical numbered changelog files remain an a
 - **Pass 35 — Visual Hierarchy / Semantic Color System:** introduces a muted structural-blue chassis for headers, panel bands, section framing, modal chrome, and grouped information while preserving phosphor green for live gameplay state, interaction, meters, scores, and success; the existing layouts remain intact while visual hierarchy becomes deliberately layered instead of monochrome.
 - **Pass 36 — Arcade Juice / Variety / Cabinet Polish:** dedicated Hangman catalog parity, first-pass animated Hoops/Beer Pong revisions, host-level compact-vs-overlay score feedback, and richer Blackjack/War card dealing, deck-state, war-pot, win/loss presentation with cabinet-specific VGA color.
 - **Pass 37 — Arcade Physics / Gameplay Readability:** replaces rejected Hoops/Beer Pong timing concepts with horizontal-aim + vertical-power physics play, rebuilds Bowling as a top-down collision-driven lane while retaining spin, and adds explicit fleet/pair state communication to Radar Fleet and Mahjong Match.
+- **Pass 38 — Arcade Modes + Projectile Variety:** formalizes solo/two-player/multiplayer-style metadata for every cabinet, adds standalone P1/P2 hotseat matches with score banks and rematches, makes co-op intermissions explicitly present their multiplayer style, and upgrades Gorilla Artillery with seeded variable terrain, terrain collision, moving targets, and new battlefields after knockouts.
 
 ---
 

@@ -12,6 +12,11 @@ export type ArcadeCategory =
 
 export type ArcadeScoreFeedbackMode = "overlay" | "compact";
 
+export type ArcadeMultiplayerStyle =
+  | "simultaneous"
+  | "alternating"
+  | "score_duel";
+
 export interface ArcadeGameProps {
   score: number;
   onScoreChange: (score: number) => void;
@@ -28,6 +33,7 @@ export interface ArcadeGameDefinition {
   supportsSolo: boolean;
   supportsCoop: boolean;
   supportsTouch: boolean;
+  multiplayerStyle: ArcadeMultiplayerStyle;
   controls: string;
   live: boolean;
   component: ComponentType<ArcadeGameProps>;

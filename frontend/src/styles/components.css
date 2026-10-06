@@ -6432,3 +6432,228 @@ select:focus-visible {
     height: 82px;
   }
 }
+
+/* =========================================================
+   PASS 35 // VISUAL HIERARCHY / COLOR ROLE NORMALIZATION
+   Structural chrome is blue. Gameplay signal remains green.
+========================================================= */
+
+.panel {
+  border-color: var(--structure-line);
+  background: rgba(1, 8, 11, 0.96);
+}
+
+.panel-heading {
+  border-bottom-color: var(--structure-line);
+  background:
+    linear-gradient(90deg, var(--structure-panel-strong), var(--structure-panel) 72%, rgba(4, 16, 21, 0.96));
+  color: var(--structure-soft);
+  box-shadow: inset 4px 0 0 rgba(104, 184, 216, 0.52);
+}
+
+.panel-heading .eyebrow,
+.panel-heading small {
+  color: var(--structure-dim);
+}
+
+/* Controls remain green actions inside blue chassis. */
+.button,
+.icon-button {
+  border-color: var(--structure-line);
+}
+
+.button:hover,
+.icon-button:hover,
+.button-primary {
+  border-color: var(--green);
+}
+
+.button-quiet:hover,
+.icon-button:hover {
+  box-shadow: inset 3px 0 0 rgba(72, 255, 112, 0.48);
+}
+
+.form-stack label,
+.data-grid b,
+.turn-grid b {
+  color: var(--structure-dim);
+}
+
+.form-stack input,
+.chat-compose input,
+.input,
+textarea {
+  border-color: var(--structure-line);
+}
+
+.form-stack input:focus,
+.chat-compose input:focus,
+.input:focus,
+textarea:focus {
+  border-color: var(--green);
+}
+
+.data-grid > div,
+.turn-grid > div,
+.empty-state,
+.journey-row {
+  border-color: var(--structure-line-dim);
+}
+
+.data-grid b::after,
+.turn-grid b::after {
+  color: var(--structure-line-dim);
+}
+
+.journey-row-actions,
+.chat-compose,
+.modal-footer {
+  border-color: var(--structure-line-dim);
+}
+
+.modal-panel,
+.turn-resolution-theater,
+.intermission-runtime,
+.adventure-synopsis-modal {
+  border-color: var(--structure-line);
+  background: #01080b;
+  box-shadow: 0 0 0 1px rgba(104, 184, 216, 0.05), 0 0 38px rgba(38, 105, 132, 0.10);
+}
+
+.theater-heading,
+.intermission-runtime-header,
+.adventure-synopsis-header,
+.finale-summary-header {
+  border-color: var(--structure-line);
+  background: linear-gradient(90deg, rgba(10, 32, 42, 0.58), rgba(2, 10, 14, 0.16));
+}
+
+.theater-heading,
+.intermission-runtime-header,
+.adventure-synopsis-header {
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+.intermission-runtime-header .eyebrow,
+.theater-heading .eyebrow,
+.adventure-synopsis-header .eyebrow {
+  color: var(--structure-dim);
+}
+
+.intermission-party-strip {
+  background: var(--structure-line-dim);
+  border-bottom-color: var(--structure-line-dim);
+}
+
+.intermission-party-strip > div {
+  background: #01080b;
+}
+
+/* RPG sub-panels use blue headers, while values/meters stay green. */
+.skill-family,
+.sheet-skill-family,
+.hero-skill-family {
+  border-color: var(--structure-line-dim);
+}
+
+.skill-family > header,
+.sheet-skill-family > header,
+.hero-skill-family > header {
+  border-bottom-color: var(--structure-line);
+  background: linear-gradient(90deg, rgba(10, 32, 42, 0.74), rgba(5, 18, 24, 0.68));
+  color: var(--structure-soft);
+}
+
+.hero-skill-family > header > span {
+  color: var(--structure-soft);
+}
+
+.hero-skill-family > header > small,
+.skill-family > header small,
+.sheet-skill-family > header small {
+  color: var(--structure-dim);
+}
+
+.hero-attribute-card {
+  border-color: var(--structure-line-dim);
+  background: rgba(1, 9, 12, 0.68);
+}
+
+.hero-attribute-card .sheet-stat-heading > span {
+  color: var(--structure-soft);
+}
+
+/* Results/finale framing is structural; scores/ranks remain live green. */
+.theater-result-card,
+.qte-resolution-party > div,
+.finale-hero-card,
+.hero-last-check,
+.hero-dice-readout > div {
+  border-color: var(--structure-line-dim);
+}
+
+.theater-result-card > header,
+.finale-meta-strip,
+.finale-hero-progression {
+  border-color: var(--structure-line-dim);
+}
+
+.journey-finale-summary {
+  border-top-color: var(--structure-line);
+  border-bottom-color: var(--structure-line);
+}
+
+.finale-party-rank,
+.finale-hero-card {
+  border-color: var(--structure-line);
+}
+
+/* Social/admin utilities are structure until they become active. */
+.party-hero-switcher,
+.ascii-reaction-group,
+.history-card-actions,
+.room-direct-invite,
+.arcade-publish-toggle {
+  border-color: var(--structure-line-dim);
+}
+
+.party-hero-switcher button {
+  border-right-color: var(--structure-line-dim);
+}
+
+.ascii-reaction-group > span,
+.party-hero-readonly {
+  color: var(--structure-muted);
+}
+
+.arcade-publish-toggle {
+  color: var(--structure-dim);
+  background: #01080b;
+}
+
+.arcade-publish-toggle.is-live {
+  color: var(--green-soft);
+  border-color: var(--green);
+  background: rgba(72, 255, 112, 0.08);
+}
+
+/* Cabinet frames are blue; targets, scores, hits, and selected tiles remain green. */
+.beer-pong-table,
+.basketball-court,
+.card-table,
+.war-table,
+.arcade-aim-track,
+.battleship-grid button,
+.mahjong-grid button {
+  border-color: var(--structure-line-dim);
+  background-color: #01080b;
+}
+
+.battleship-grid button:hover,
+.battleship-grid button:focus-visible,
+.battleship-grid button.is-hit,
+.mahjong-grid button.is-open,
+.mahjong-grid button.is-matched {
+  border-color: var(--green);
+}

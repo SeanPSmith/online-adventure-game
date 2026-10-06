@@ -14,6 +14,31 @@
   --green-line: #159437;
   --green-line-dim: #0d4720;
 
+  /* PASS 35 // STRUCTURAL COLOR LAYER
+     Blue owns chassis, framing, headers, and information architecture.
+     Green remains the live signal: active, selected, healthy, successful. */
+  --blue: #68b8d8;
+  --blue-soft: #b9e6f5;
+  --blue-dim: #789faf;
+  --blue-muted: #476d7b;
+  --blue-line: #2c7893;
+  --blue-line-dim: #173d4b;
+  --blue-panel: #06131a;
+  --blue-panel-strong: #0a202a;
+
+  --structure: var(--blue);
+  --structure-soft: var(--blue-soft);
+  --structure-dim: var(--blue-dim);
+  --structure-muted: var(--blue-muted);
+  --structure-line: var(--blue-line);
+  --structure-line-dim: var(--blue-line-dim);
+  --structure-panel: var(--blue-panel);
+  --structure-panel-strong: var(--blue-panel-strong);
+
+  --live: var(--green);
+  --live-soft: var(--green-soft);
+  --live-dim: var(--green-dim);
+
   --amber: #ffd65c;
   --red: #ff6363;
   --cyan: #7adfff;
@@ -23,8 +48,8 @@
 
   --font-mono: "Courier New", Courier, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
-  --border: 1px solid var(--green-line);
-  --border-strong: 2px solid var(--green);
+  --border: 1px solid var(--structure-line);
+  --border-strong: 2px solid var(--structure-line);
 
   --header-height: 76px;
   --sidebar-width: 350px;

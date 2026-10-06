@@ -3,8 +3,8 @@
 > **Canonical project document.** This file replaces the old append-only changelog workflow.
 > Update or rewrite the relevant sections in this file as the product changes; do not create another numbered changelog copy.
 
-**Last consolidated:** 2026-10-05  
-**Current local baseline:** through Pass 32 (multiplayer Hero switching / sharing / ASCII social UX)  
+**Last consolidated:** 2026-10-06  
+**Current local baseline:** through Pass 35 (semantic visual hierarchy / structural blue layer)  
 **Public site:** `https://onlinetextadventure.com`  
 **Primary release command:** `./scripts/release-staging.sh "Describe the release"`
 
@@ -25,7 +25,7 @@ The product combines:
 - an Author console for building structured worlds/adventures;
 - an Admin Control Room for users, author permissions, live operations, and analytics.
 
-The visual language is intentionally terminal/IRC/VGA-inspired: strong borders, chunky mono typography, limited colors, segmented RPG meters, and deliberately retro arcade graphics paired with modern input/UX behavior.
+The visual language is intentionally terminal/IRC/VGA-inspired: strong compartment borders, chunky mono typography, segmented RPG meters, deliberately retro arcade graphics, and modern input/UX behavior. Pass 35 formalizes a semantic two-accent hierarchy: muted terminal blue owns structural chassis, panel headers, page bands, section dividers, and informational chrome; phosphor green is reserved for live state, actions, selection, scores, meters, success, and other changing gameplay signals. Amber/red remain exceptional warning/failure colors rather than general decoration.
 
 ---
 
@@ -632,6 +632,18 @@ The public product shell is intentionally sparse and game-like rather than a gen
 
 The public pages share constrained widths, terminal borders, chunky mono typography, consistent buttons/forms/errors, and phone-first responsive behavior. No public page should require horizontal scrolling at the 320px minimum viewport.
 
+### Semantic color hierarchy
+
+The interface must not use one accent color for every information layer. The canonical color roles are:
+
+- **structural blue** — shell/header chassis, panel heading bands, page-title framing, section dividers, modal chrome, grouped RPG sub-panel headers, and other information architecture;
+- **live green** — actionable controls, current/selected state, health/XP/meters, dice/check results, scores, successful outcomes, online/live indicators, and other changing gameplay signals;
+- **dark neutral surfaces** — reading/content bodies so blue structure and green signal remain distinct;
+- **amber** — caution, advancement emphasis, time-sensitive special state;
+- **red** — failure, destructive actions, or errors.
+
+The design rule is: **green should mean alive**. If an element is static framing or organization rather than live state, it should normally use the blue/neutral structural layer instead of bright green. This is inspired by compartmentalized retro terminal/HUD design rather than a literal recreation of any specific game interface.
+
 ### Dashboard hierarchy
 
 The authenticated home is organized around:
@@ -846,6 +858,7 @@ This is intentionally short. The historical numbered changelog files remain an a
 - **Pass 32 — Multiplayer UX + Sharing + ASCII Social Language:** room-authorized read-only partner Hero switching, explicit invite/live-moment/ending/Chronicle sharing, centralized terminal reaction vocabulary for chat/presence/notifications, plus randomized Outlier grids and symbols.
 - **Pass 33 — Real Notifications:** persisted account notification preferences, real service-worker Web Push, direct account room invites, optional SES email, verified opt-in AWS SMS, and non-blocking external delivery isolated from authoritative gameplay.
 - **Pass 34 — Arcade Expansion + Publication Control:** Beer Pong, Pixel Hoops, Blackjack, War, Radar Fleet, and Mahjong Match join the admin lab; persistent admin PUSH/PULL controls now determine which cabinets appear in the player-facing Arcade without requiring a redeploy.
+- **Pass 35 — Visual Hierarchy / Semantic Color System:** introduces a muted structural-blue chassis for headers, panel bands, section framing, modal chrome, and grouped information while preserving phosphor green for live gameplay state, interaction, meters, scores, and success; the existing layouts remain intact while visual hierarchy becomes deliberately layered instead of monochrome.
 
 ---
 

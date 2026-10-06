@@ -128,3 +128,27 @@ select option {
   background: #000;
   color: var(--text);
 }
+
+/* =========================================================
+   PASS 35 // SEMANTIC COLOR HIERARCHY
+   Structural headings read blue; green is reserved for live state.
+========================================================= */
+
+h1,
+h2,
+h3 {
+  color: var(--structure-soft);
+}
+
+strong {
+  color: var(--green-soft);
+}
+
+.eyebrow {
+  color: var(--structure-dim);
+}
+
+::selection {
+  background: var(--structure);
+  color: #001016;
+}

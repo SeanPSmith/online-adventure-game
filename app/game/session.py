@@ -50,6 +50,7 @@ from app.game.challenge_scaling import (
 
 from app.game.micro_events import (
     MAX_MICRO_EVENT_HISTORY,
+    apply_micro_event_outcome_effect,
     build_micro_event,
     public_micro_event,
     resolve_micro_event,
@@ -1387,6 +1388,7 @@ class GameSessionManager:
         room_code: str,
         *,
         resolved_turn_number: int,
+        authored_event: dict | None = None,
     ) -> dict | None:
 
         session = self.get_or_create(room_code)
@@ -1409,6 +1411,7 @@ class GameSessionManager:
             scene_body=session.scene.body,
             last_resolution=str(session.last_resolution or ""),
             story_state=dict(session.story_state),
+            authored_event=authored_event,
         )
         session.pending_micro_event = event
         return public_micro_event(event)
@@ -1422,6 +1425,7 @@ class GameSessionManager:
         option_id: str,
         required_player_ids: list[str],
         response_names: dict[str, str],
+        characters_by_player_id: dict[str, Character] | None = None,
     ) -> tuple[dict, bool]:
 
         session = self.get_or_create(room_code)
@@ -1466,6 +1470,18 @@ class GameSessionManager:
                     session.world_flags[
                         f"micro_event:{event.get('id')}:{player_key}"
                     ] = option_key
+
+            characters = characters_by_player_id or {}
+            for outcome in history_entry.get("outcomes", []):
+                character = characters.get(str(outcome.get("player_id", "")))
+                if character is None:
+                    continue
+                apply_micro_event_outcome_effect(
+                    character=character,
+                    room_code=room_code,
+                    event=event,
+                    outcome=outcome,
+                )
 
             session.micro_event_history.append(history_entry)
             session.micro_event_history = session.micro_event_history[-MAX_MICRO_EVENT_HISTORY:]
@@ -2715,6 +2731,25 @@ class GameSessionManager:
                 deepcopy(
                     raw_story_state
                 )
+            )
+
+
+        # Pass 31: QTE fiction is authored in the same Director response as
+        # this new playable scene. Cadence and the hidden correct answer remain
+        # server-owned; public clients never receive correct_option_id.
+        if should_schedule_micro_event(
+            resolved_turn_number=resolved_turn,
+            completed=completed,
+            wrap_up_active=session.wrap_up_active,
+        ):
+            self.maybe_schedule_micro_event(
+                room_code,
+                resolved_turn_number=resolved_turn,
+                authored_event=(
+                    deepcopy(director_output.get("quick_event"))
+                    if isinstance(director_output.get("quick_event"), dict)
+                    else None
+                ),
             )
 
 

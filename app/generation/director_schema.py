@@ -475,6 +475,78 @@ class DirectorRecapDraft(
         return value.strip()
 
 
+
+
+class DirectorQuickEventOptionDraft(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str = Field(min_length=1, max_length=36, pattern=r"^[a-z0-9_\-]+$")
+    label: str = Field(min_length=2, max_length=70)
+    description: str = Field(min_length=8, max_length=220)
+
+    @field_validator("id", "label", "description", mode="after")
+    @classmethod
+    def strip_qte_option_text(cls, value: str) -> str:
+        return value.strip()
+
+
+class DirectorQuickEventEffectDraft(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str = Field(min_length=2, max_length=48)
+    description: str = Field(min_length=8, max_length=220)
+    modifier_stat: str | None
+    modifier_skill: str | None
+    modifier_value: int = Field(ge=-2, le=2)
+    duration_turns: Literal[1]
+
+    @model_validator(mode="after")
+    def validate_effect_target(self) -> "DirectorQuickEventEffectDraft":
+        has_stat = bool(str(self.modifier_stat or "").strip())
+        has_skill = bool(str(self.modifier_skill or "").strip())
+        if has_stat == has_skill:
+            raise ValueError("A QTE effect requires exactly one stat or skill target.")
+        if self.modifier_value == 0:
+            raise ValueError("A QTE effect must have a non-zero modifier.")
+        return self
+
+
+class DirectorQuickEventDraft(BaseModel):
+    """Director-authored fiction for a server-owned split-second challenge."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    kind: Literal[
+        "quick_reaction",
+        "gut_check",
+        "split_second",
+        "danger_beat",
+        "opportunity",
+    ]
+    title: str = Field(min_length=2, max_length=80)
+    story_context: str = Field(min_length=12, max_length=240)
+    prompt: str = Field(min_length=12, max_length=420)
+    options: list[DirectorQuickEventOptionDraft] = Field(min_length=2, max_length=3)
+    correct_option_id: str = Field(min_length=1, max_length=36)
+    success_text: str = Field(min_length=12, max_length=320)
+    failure_text: str = Field(min_length=12, max_length=320)
+    success_effect: DirectorQuickEventEffectDraft
+    failure_effect: DirectorQuickEventEffectDraft
+
+    @model_validator(mode="after")
+    def validate_qte_contract(self) -> "DirectorQuickEventDraft":
+        ids = [option.id for option in self.options]
+        if len(ids) != len(set(ids)):
+            raise ValueError("QTE option ids must be distinct.")
+        if self.correct_option_id not in ids:
+            raise ValueError("correct_option_id must reference one supplied QTE option.")
+        if self.success_effect.modifier_value <= 0:
+            raise ValueError("QTE success_effect must be a positive temporary buff.")
+        if self.failure_effect.modifier_value >= 0:
+            raise ValueError("QTE failure_effect must be a negative temporary nerf.")
+        return self
+
+
 class DirectorStoryTurnDraft(
     BaseModel
 ):
@@ -496,7 +568,7 @@ class DirectorStoryTurnDraft(
 
     scene_body: str = Field(
         min_length=20,
-        max_length=1800,
+        max_length=2400,
     )
 
     choices: list[
@@ -505,6 +577,10 @@ class DirectorStoryTurnDraft(
         min_length=0,
         max_length=7,
     )
+
+    # Required-but-nullable keeps OpenAI strict structured output happy. Python
+    # decides cadence; the Director returns null when no QTE is requested.
+    quick_event: DirectorQuickEventDraft | None
 
     memory_summary: str = Field(
         min_length=10,
@@ -563,6 +639,10 @@ class DirectorStoryTurnDraft(
             if self.choices:
                 raise ValueError(
                     "A completed adventure cannot offer more choices."
+                )
+            if self.quick_event is not None:
+                raise ValueError(
+                    "A completed adventure cannot schedule a quick event."
                 )
             return self
 

@@ -5642,3 +5642,227 @@ select:focus-visible {
   color: var(--text-dim);
   line-height: 1.5;
 }
+
+/* =========================================================
+   PASS 31 // STORY QTE STAKES + LEVEL-UP CELEBRATION
+========================================================= */
+
+.qte-options.has-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.qte-stakes {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.qte-stakes > div {
+  min-width: 0;
+  border: 1px solid var(--green-line-dim);
+  padding: 9px 10px;
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.qte-stakes span,
+.qte-stakes strong,
+.qte-stakes small {
+  display: block;
+}
+
+.qte-stakes span {
+  margin-bottom: 4px;
+  color: var(--green-dim);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+}
+
+.qte-stakes strong {
+  margin-bottom: 4px;
+  font-size: 12px;
+}
+
+.qte-stakes small {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.qte-stakes .is-buff {
+  border-color: var(--green-line);
+}
+
+.qte-stakes .is-nerf {
+  border-color: color-mix(in srgb, var(--red) 58%, transparent);
+}
+
+.qte-stakes .is-nerf strong,
+.qte-resolution-callout.is-failure > span,
+.qte-resolution-callout.is-failure > strong {
+  color: var(--red);
+}
+
+.qte-resolution-callout.is-success {
+  border-color: var(--green);
+}
+
+.qte-resolution-callout.is-failure {
+  border-color: var(--red);
+}
+
+.qte-effect-result {
+  margin-top: 10px;
+  border-top: 1px solid var(--green-line-dim);
+  padding-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 5px 12px;
+}
+
+.qte-effect-result b {
+  color: var(--amber);
+  font-size: 12px;
+}
+
+.qte-effect-result span,
+.qte-correct-answer {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.qte-correct-answer {
+  margin-top: 8px;
+  border: 1px dashed var(--green-line-dim);
+  padding: 7px 9px;
+}
+
+.qte-correct-answer strong {
+  color: var(--text);
+}
+
+.level-up-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.88);
+}
+
+.level-up-modal {
+  width: min(620px, 100%);
+  max-height: min(820px, 92vh);
+  overflow: auto;
+  border: 2px solid var(--amber);
+  background: var(--panel);
+  padding: clamp(18px, 4vw, 32px);
+  text-align: center;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+}
+
+.level-up-kicker {
+  display: block;
+  color: var(--amber);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+}
+
+.level-up-ascii {
+  margin: 18px auto 12px;
+  color: var(--green);
+  font: inherit;
+  line-height: 1.2;
+  white-space: pre;
+}
+
+.level-up-modal h2 {
+  margin: 8px 0 18px;
+  font-size: clamp(24px, 6vw, 44px);
+  line-height: 1;
+}
+
+.level-up-jump {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px 16px;
+  margin: 0 auto 16px;
+  font-size: clamp(15px, 4vw, 22px);
+}
+
+.level-up-jump span {
+  border: 1px solid var(--green-line);
+  padding: 8px 12px;
+}
+
+.level-up-jump strong {
+  color: var(--amber);
+}
+
+.level-up-modal > p {
+  max-width: 52ch;
+  margin: 0 auto 16px;
+  line-height: 1.55;
+}
+
+.level-up-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 18px 0;
+}
+
+.level-up-stats > div {
+  border: 1px solid var(--green-line-dim);
+  padding: 10px 8px;
+  min-width: 0;
+}
+
+.level-up-stats span,
+.level-up-stats strong {
+  display: block;
+}
+
+.level-up-stats span {
+  margin-bottom: 5px;
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.level-up-stats strong {
+  color: var(--green);
+  font-size: 15px;
+}
+
+.level-up-note {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.level-up-continue {
+  width: 100%;
+  margin-top: 4px;
+}
+
+@media (max-width: 640px) {
+  .qte-options.has-3,
+  .qte-stakes,
+  .level-up-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .level-up-backdrop {
+    align-items: end;
+    padding: 8px;
+  }
+
+  .level-up-modal {
+    max-height: 90vh;
+    padding: 18px 14px;
+  }
+}

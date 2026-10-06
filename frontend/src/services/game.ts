@@ -280,6 +280,15 @@ export interface QuickEventOption {
   description: string;
 }
 
+export interface QuickEventEffect {
+  name: string;
+  description: string;
+  modifier: number;
+  target_kind: "stat" | "skill" | "";
+  target: string;
+  duration_turns: number;
+}
+
 export interface QuickEventOutcome {
   player_id: string;
   player_name: string;
@@ -287,6 +296,9 @@ export interface QuickEventOutcome {
   option_label: string;
   result: string;
   tag: string;
+  success: boolean;
+  effect: QuickEventEffect | null;
+  effect_applied: boolean;
 }
 
 export interface QuickEvent {
@@ -301,9 +313,13 @@ export interface QuickEvent {
   title: string;
   prompt: string;
   options: QuickEventOption[];
+  odds_denominator: number;
+  success_effect: QuickEventEffect | null;
+  failure_effect: QuickEventEffect | null;
   responses: Record<string, string>;
   resolved: boolean;
   resolution: string;
+  correct_option_label: string;
   outcomes?: QuickEventOutcome[];
 }
 

@@ -4456,6 +4456,7 @@ async def submit_micro_event_choice(
                 player_id: member.name
                 for player_id, member in room.players.items()
             },
+            characters_by_player_id=characters,
         )
     except ValueError as error:
         await sio.emit(
@@ -4464,6 +4465,15 @@ async def submit_micro_event_choice(
             to=sid,
         )
         return
+
+    if completed:
+        # QTE boons/banes are real Hero effects. Persist them before broadcasting
+        # the resolved event so the next authoritative turn definitely sees them.
+        for character in characters.values():
+            await character_service.save_owned_character(
+                character.owner_user_id,
+                character,
+            )
 
     await persist_room_state(room.code)
 

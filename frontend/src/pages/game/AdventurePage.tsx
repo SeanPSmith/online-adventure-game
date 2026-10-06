@@ -9,6 +9,7 @@ import { Link, useLocation, useNavigate, useParams, useSearchParams } from "reac
 import { Panel } from "../../components/ui/Panel";
 import { RoomInviteButton } from "../../components/game/RoomInviteButton";
 import { ChoiceInspector } from "../../features/adventure/ChoiceInspector";
+import { LevelUpModal } from "../../features/adventure/LevelUpModal";
 import { QuickEventModal } from "../../features/adventure/QuickEventModal";
 import { TurnTheater } from "../../features/adventure/TurnTheater";
 import { useTurnTheater } from "../../features/adventure/useTurnTheater";
@@ -110,6 +111,7 @@ export function AdventurePage() {
   const [heroError, setHeroError] = useState("");
   const [selectedChoiceId, setSelectedChoiceId] = useState("");
   const [lockPending, setLockPending] = useState(false);
+  const [dismissedLevelUpKey, setDismissedLevelUpKey] = useState("");
   const storyPaneRef = useRef<HTMLElement | null>(null);
 
   const scene = live.game?.scene;
@@ -140,6 +142,21 @@ export function AdventurePage() {
   const lastLocalProgression = characterId
     ? live.lastTurn?.hero_progression?.[characterId] ?? null
     : null;
+
+  const levelUpKey = lastLocalProgression?.leveled_up
+    ? [
+        normalizedRoomCode,
+        live.lastTurn?.turn_number ?? turnNumber,
+        characterId,
+        lastLocalProgression.level_after,
+      ].join(":")
+    : "";
+
+  const showLevelUp = Boolean(
+    levelUpKey &&
+    dismissedLevelUpKey !== levelUpKey &&
+    theater.phase === "none",
+  );
 
   const directorState = live.game?.director_request_active
     ? "WRITING"
@@ -848,14 +865,22 @@ export function AdventurePage() {
         </aside>
       </div>
 
+      {showLevelUp && lastLocalProgression ? (
+        <LevelUpModal
+          heroName={hero?.name ?? localRoomPlayer?.name ?? "Hero"}
+          update={lastLocalProgression}
+          onContinue={() => setDismissedLevelUpKey(levelUpKey)}
+        />
+      ) : null}
+
       <QuickEventModal
         event={
-          theater.phase === "none"
+          theater.phase === "none" && !showLevelUp
             ? live.game?.pending_micro_event ?? null
             : null
         }
         resolution={
-          theater.phase === "none"
+          theater.phase === "none" && !showLevelUp
             ? live.microEventResolution
             : null
         }

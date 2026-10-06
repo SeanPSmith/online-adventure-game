@@ -4,7 +4,7 @@ import {
   useRef,
   useState,
 } from "react";
-import type { QuickEvent } from "../../services/game";
+import type { QuickEvent, QuickEventEffect } from "../../services/game";
 
 interface QuickEventModalProps {
   event: QuickEvent | null;
@@ -14,6 +14,18 @@ interface QuickEventModalProps {
   playMode: "coop" | "solo" | undefined;
   onChoose: (optionId: string) => void;
   onDismissResolution: () => void;
+}
+
+function signed(value: number) {
+  return value > 0 ? `+${value}` : String(value);
+}
+
+function effectLine(effect: QuickEventEffect | null | undefined) {
+  if (!effect) return "NO MECHANICAL EFFECT";
+  const target = effect.target
+    ? effect.target.replaceAll("_", " ").toUpperCase()
+    : "CHECK";
+  return `${signed(effect.modifier)} ${target} // NEXT ROUND`;
 }
 
 export function QuickEventModal({
@@ -172,6 +184,7 @@ export function QuickEventModal({
     const onKeyDown = (keyboardEvent: KeyboardEvent) => {
       const first = event.options[0];
       const second = event.options[1];
+      const third = event.options[2];
       const key = keyboardEvent.key.toLowerCase();
 
       if ((key === "1" || key === "arrowleft" || key === "a") && first) {
@@ -183,6 +196,11 @@ export function QuickEventModal({
         keyboardEvent.preventDefault();
         choose(second.id);
       }
+
+      if ((key === "3" || key === "arrowdown" || key === "s") && third) {
+        keyboardEvent.preventDefault();
+        choose(third.id);
+      }
     };
 
     window.addEventListener("keydown", onKeyDown);
@@ -193,6 +211,11 @@ export function QuickEventModal({
     return null;
   }
 
+  const oddsDenominator = Math.max(
+    2,
+    activeEvent.odds_denominator || activeEvent.options.length || 2,
+  );
+
   return (
     <div
       className="qte-backdrop"
@@ -202,7 +225,11 @@ export function QuickEventModal({
     >
       <section className="qte-modal">
         <div className="qte-kicker">
-          <span>QUICK EVENT // REACT NOW</span>
+          <span>
+            {showingResolution
+              ? "QUICK EVENT // RESULT"
+              : `QUICK EVENT // 1 RIGHT ANSWER IN ${oddsDenominator}`}
+          </span>
           {!showingResolution ? (
             <strong className={`qte-clock is-${timerState}`}>
               {timedOut ? "0.0" : secondsText}s
@@ -258,11 +285,38 @@ export function QuickEventModal({
               : activeEvent.prompt}
           </p>
 
+          {!showingResolution ? (
+            <div className="qte-stakes" aria-label="Quick-event stakes">
+              <div className="is-buff">
+                <span>RIGHT</span>
+                <strong>{activeEvent.success_effect?.name ?? "TEMPORARY EDGE"}</strong>
+                <small>{effectLine(activeEvent.success_effect)}</small>
+              </div>
+              <div className="is-nerf">
+                <span>WRONG / TIMEOUT</span>
+                <strong>{activeEvent.failure_effect?.name ?? "TEMPORARY SETBACK"}</strong>
+                <small>{effectLine(activeEvent.failure_effect)}</small>
+              </div>
+            </div>
+          ) : null}
+
           {showingResolution && localOutcome ? (
-            <div className="qte-resolution-callout">
-              <span>YOUR REACTION</span>
+            <div className={`qte-resolution-callout ${localOutcome.success ? "is-success" : "is-failure"}`}>
+              <span>{localOutcome.success ? "RIGHT REACTION" : "WRONG REACTION"}</span>
               <strong>{localOutcome.option_label || "NO REACTION"}</strong>
               <p>{localOutcome.result}</p>
+              {localOutcome.effect ? (
+                <div className="qte-effect-result">
+                  <b>{localOutcome.effect.name}</b>
+                  <span>{effectLine(localOutcome.effect)}</span>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
+          {showingResolution && activeEvent.correct_option_label ? (
+            <div className="qte-correct-answer">
+              CORRECT RESPONSE // <strong>{activeEvent.correct_option_label}</strong>
             </div>
           ) : null}
 
@@ -271,7 +325,9 @@ export function QuickEventModal({
               {outcomes.map((outcome) => (
                 <div key={`${outcome.player_id}:${outcome.option_id}`}>
                   <strong>{outcome.player_name}</strong>
-                  <span>{outcome.option_label}</span>
+                  <span>
+                    {outcome.success ? "RIGHT" : "WRONG"} // {outcome.option_label}
+                  </span>
                 </div>
               ))}
             </div>
@@ -279,7 +335,7 @@ export function QuickEventModal({
         </div>
 
         {!showingResolution ? (
-          <div className="qte-options">
+          <div className={`qte-options has-${activeEvent.options.length}`}>
             {activeEvent.options.map((option, index) => (
               <button
                 className="qte-option"
@@ -304,7 +360,7 @@ export function QuickEventModal({
 
         <footer className="qte-status">
           {showingResolution
-            ? "REACTION RESOLVED // THIS IS NOW PART OF THE STORY_"
+            ? "REACTION RESOLVED // MODIFIER ACTIVE FOR NEXT ROUND_"
             : timedOut
               ? "TIME // REACTION MISSED // RESOLVING_"
               : alreadyAnswered
@@ -313,7 +369,9 @@ export function QuickEventModal({
                   : `REACTION LOCKED // WAITING FOR PARTNER (${responseCount}/${Math.max(1, requiredResponses)})_`
                 : submitting
                   ? "LOCKING REACTION_"
-                  : "1 / A / ←   OR   2 / D / →   // CLICK OR TAP ALSO WORKS_"}
+                  : activeEvent.options.length > 2
+                    ? "1 / A / ←   2 / D / →   3 / S / ↓   // CLICK OR TAP ALSO WORKS_"
+                    : "1 / A / ←   OR   2 / D / →   // CLICK OR TAP ALSO WORKS_"}
         </footer>
 
         {showingResolution ? (

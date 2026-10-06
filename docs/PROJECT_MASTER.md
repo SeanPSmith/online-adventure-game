@@ -3,8 +3,8 @@
 > **Canonical project document.** This file replaces the old append-only changelog workflow.
 > Update or rewrite the relevant sections in this file as the product changes; do not create another numbered changelog copy.
 
-**Last consolidated:** 2026-10-04  
-**Current local baseline:** through Pass 29B (public site / home / footer cleanup)  
+**Last consolidated:** 2026-10-05  
+**Current local baseline:** through Pass 31 (story clarity / authored QTE / level-up feedback)  
 **Public site:** `https://onlinetextadventure.com`  
 **Primary release command:** `./scripts/release-staging.sh "Describe the release"`
 
@@ -210,8 +210,13 @@ Old one-player rooms that were accidentally created as Co-op are migrated safely
 - incorporate relevant Hero Bio/Talents naturally;
 - avoid repetitive openings/choices;
 - preserve unresolved threads and current context;
+- write like a readable adventure novel: concrete, descriptive, spatially grounded, and clear about where the Heroes are, what is physically happening, and what their immediate role/problem is;
+- keep high-weirdness adventures strange through events, characters, imagery, consequences, and choices rather than through opaque or nonsensical diction;
+- introduce unusual setting terms in ordinary language before relying on them, instead of dropping unexplained pseudo-jargon into the scene;
 - produce structured output that Python can validate;
 - keep narrative interesting without allowing the LLM to own mechanics.
+
+The governing readability rule is: **mystery is allowed; confusing prose is not.** A player may be uncertain about why something bizarre is happening, but should not be uncertain about what just happened, where it happened, or what their Hero can react to.
 
 ### Latency strategy
 
@@ -303,6 +308,8 @@ d20
 - Every even-numbered level: **+1 Attribute Point**.
 - Levels 3, 5, 7, 9, ...: **+1 Talent Point**.
 
+When a local Hero crosses a level threshold during turn progression, that player receives an explicit **Hero Advancement / Congratulations** modal after the resolution theater. In co-op each player receives their own modal when their own Hero levels. If the same turn also opens a QTE, the level-up celebration is shown first so the QTE's visible countdown cannot run behind another modal.
+
 Advancement can be queued across multiple Attributes/Skills/Talents and committed as one player-controlled build decision.
 
 ### Talents
@@ -358,18 +365,24 @@ Risk and challenge remain meaningful without making failure economically identic
 
 ## 9. QTE / Micro-Event System
 
-Quick-time events are part of the story flow, not generic disconnected mini-games.
+Quick-time events are authored as part of the story beat instead of being assembled afterward as generic reactions. Python still owns cadence, timing, resolution, persistence, and mechanical effects.
 
 Current behavior:
 
-- playable countdown begins when the QTE is actually visible;
-- default window is deliberately readable rather than a hidden 4-second server timer;
-- prompts/options derive from current scene, goal, threat, resolution context, or authored story material;
-- keyboard, click/tap, and directional input are supported where appropriate;
+- QTE cadence remains server-owned; the Director is only asked to author one on a turn where Python has already determined that a quick event is due;
+- on an eligible turn, the Director generates the QTE together with the same `scene_body`, so the visible hazard/opportunity, prompt, choices, and consequences share one narrative context;
+- each QTE has **2 or 3 plausible choices and exactly one correct answer committed before the player responds**; two choices therefore have a 50% blind baseline and three choices roughly a 33% blind baseline, while attentive reading can improve the player's odds;
+- the committed correct option remains server-private while the event is live and is only revealed as a label after resolution; the system never chooses success after seeing the player's response;
+- a correct response grants a contextual **one-round buff** and an incorrect response or timeout applies a contextual **one-round nerf**;
+- QTE effects are real Hero effects using validated Attributes/Skills and bounded `+1/+2` or `-1/-2` modifiers; they persist into the next resolved story round and then expire automatically;
+- by default the effect applies only to the Hero who performed that QTE; group-wide events should be explicit rather than accidental;
+- playable countdown begins only when the QTE is actually visible; a level-up celebration or turn-resolution theater cannot consume QTE time behind another overlay;
+- keyboard, click/tap, and directional input are supported; three-choice events also expose a third key path;
 - timeout sends a real resolving response instead of leaving the adventure blocked;
 - offline partners cannot permanently hold a QTE open;
-- after selection, the QTE shows the player's reaction and immediate consequence;
-- result remains until the player explicitly continues the story.
+- after selection, the QTE shows right/wrong reaction feedback, the temporary effect earned/applied, the correct response, and then waits for the player to explicitly continue the story.
+
+The design goal is that a quick event should feel like a sudden playable sentence in the current scene, not a disconnected reflex mini-game.
 
 ---
 
@@ -743,7 +756,7 @@ Every meaningful implementation pass should preserve these principles:
 - improve story-generation latency/telemetry without reducing narrative quality;
 - continue UI hierarchy/readability refinement based on actual sessions;
 - tune progression, Talents, DC scaling, and XP from real Hero builds;
-- continue QTE/story relevance tuning.
+- playtest authored QTE clarity, difficulty, effect magnitude, and one-round buff/nerf feel in real co-op sessions.
 
 ### Social
 
@@ -771,8 +784,6 @@ The framework is mature enough to pause feature growth and return to cabinets op
 
 This is intentionally short. The historical numbered changelog files remain an archive; this section only records the recent product milestones needed to understand the current codebase.
 
-- **Pass 19 — Gameplay UI Consolidation:** story-first adventure layout, compact Hero/chat/turn-state hierarchy.
-- **Pass 20 — Catalog + QTE Recovery:** retired seeds leave discovery; QTE timing/context/resolution repaired.
 - **Pass 21 — Playtest Polish:** mobile arcade pacing/swipes, readability, full journey finale, explicit QTE consequence screen.
 - **Pass 22 — Dashboard IA:** journey/Hero/adventure/system hierarchy and searchable library.
 - **Pass 23 — Character Sheet UI:** RPG dossier, grouped Skills, Talent presentation, consistent controls.
@@ -783,6 +794,7 @@ This is intentionally short. The historical numbered changelog files remain an a
 - **Pass 28 / 28A — Scene ASCII Pipeline:** deterministic story-aware scene art replaced runtime placeholders; 28A reapplies the art integration on the current session/QTE/scaling codebase.
 - **Pass 29A — Arcade Pacing Polish:** compact non-obstructive feedback for continuous action games, longer between-round breathing room, and escalating/risk-reward Highway 84 driving.
 - **Pass 29B — Public Site / Home / Footer Cleanup:** rebuilt product-first homepage, public Rulebook, responsive anonymous/authenticated navigation, unified auth presentation, real public footer, legal/product notices, and deploy-visible frontend build fingerprint.
+- **Pass 31 — Story Clarity + Contextual QTE Progression:** novel-like grounded narration rules, Director-authored scene-coupled QTEs with precommitted answers, real one-round Hero buffs/nerfs, and explicit per-player level-up celebrations.
 
 ---
 

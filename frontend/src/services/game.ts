@@ -93,6 +93,28 @@ export interface ReadinessPlayer {
   ready: boolean;
 }
 
+export interface PartyHeroSnapshot {
+  player_id: string;
+  character_id: string;
+  name: string;
+  bio: string;
+  level: number;
+  experience: number;
+  max_health: number;
+  health: number;
+  is_alive: boolean;
+  xp_current: number;
+  xp_level_floor: number;
+  xp_next_level: number;
+  xp_into_level: number;
+  xp_needed_for_next_level: number;
+  xp_level_span: number;
+  xp_progress_percent: number;
+  xp_level_multiplier: number;
+  stats: Record<string, number>;
+  effects: Array<Record<string, unknown>>;
+}
+
 export interface IntermissionStat {
   player_id: string;
   name: string;
@@ -340,6 +362,7 @@ export interface GameState {
   turn_number: number;
   scene: SceneState;
   readiness: ReadinessPlayer[];
+  party_heroes: PartyHeroSnapshot[];
   last_resolution: string | null;
   last_turn_result: TurnResolvedPayload | null;
   director_complete: boolean;

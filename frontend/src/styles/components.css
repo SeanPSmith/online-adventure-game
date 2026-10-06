@@ -1796,7 +1796,6 @@
   width: min(620px, 100%);
   margin: 0 auto;
   display: grid;
-  grid-template-columns: repeat(7, minmax(34px, 1fr));
   border: 1px solid var(--green-line-dim);
   outline: none;
 }
@@ -1913,10 +1912,6 @@
 
   .intermission-party-strip > div {
     width: 100%;
-  }
-
-  .outlier-grid {
-    grid-template-columns: repeat(7, minmax(28px, 1fr));
   }
 
   .projectile-controls {
@@ -5864,5 +5859,188 @@ select:focus-visible {
   .level-up-modal {
     max-height: 90vh;
     padding: 18px 14px;
+  }
+}
+
+/* =========================================================
+   MULTIPLAYER SOCIAL UX // PASS 32
+========================================================= */
+
+.status-ascii {
+  display: inline-block;
+  margin-right: 5px;
+  color: var(--green);
+  font: inherit;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.party-hero-switcher {
+  display: flex;
+  border-bottom: var(--border);
+  background: #000;
+}
+
+.party-hero-switcher button {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 42px;
+  border: 0;
+  border-right: var(--border);
+  background: #000;
+  color: var(--green-dim);
+  padding: 7px 8px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.party-hero-switcher button:last-child {
+  border-right: 0;
+}
+
+.party-hero-switcher button > span {
+  color: var(--green-muted);
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.party-hero-switcher button strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: inherit;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.party-hero-switcher button:hover,
+.party-hero-switcher button:focus-visible,
+.party-hero-switcher button.is-active {
+  background: rgba(43, 255, 93, 0.09);
+  color: var(--green);
+  outline: 0;
+}
+
+.party-hero-switcher button.is-active {
+  box-shadow: inset 0 -2px 0 var(--green);
+}
+
+.party-hero-readonly {
+  margin-top: 10px;
+  border-top: 1px solid var(--green-line-dim);
+  padding-top: 9px;
+  color: var(--green-muted);
+  font-size: 8px;
+  letter-spacing: 0.06em;
+}
+
+.share-moment-control {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.share-moment-status {
+  color: var(--green);
+  font-size: 8px;
+  white-space: nowrap;
+}
+
+.history-card-actions {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--green-line-dim);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.ascii-picker.ascii-reaction-library {
+  display: block;
+  max-height: 280px;
+  overflow-y: auto;
+  background: #000;
+}
+
+.ascii-reaction-group {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  border-bottom: 1px solid var(--green-line-dim);
+}
+
+.ascii-reaction-group > span {
+  padding: 9px 7px;
+  color: var(--green-muted);
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.ascii-reaction-group > div {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.ascii-reaction-group button {
+  min-width: 0;
+  min-height: 38px;
+  padding: 5px 4px;
+  border-right: 1px solid var(--green-line-dim);
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.15;
+}
+
+.player-notification {
+  grid-template-columns: auto minmax(0, 1fr) 42px;
+}
+
+.player-notification-face {
+  min-width: 58px;
+  padding: 12px 8px;
+  border-right: 1px solid var(--green-line);
+  display: grid;
+  place-items: center;
+  color: var(--green);
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.player-notification-results_ready .player-notification-face {
+  color: var(--amber);
+}
+
+@media (max-width: 640px) {
+  .share-moment-control {
+    width: 100%;
+  }
+
+  .share-moment-control .button {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .share-moment-status {
+    flex: 0 0 auto;
+  }
+
+  .ascii-reaction-group {
+    grid-template-columns: 58px minmax(0, 1fr);
+  }
+
+  .ascii-reaction-group > div {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .player-notification-face {
+    min-width: 48px;
+    font-size: 9px;
   }
 }

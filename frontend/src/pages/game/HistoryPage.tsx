@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { PageTitle } from "../../components/ui/PageTitle";
 import { Panel } from "../../components/ui/Panel";
+import { ShareMomentButton } from "../../components/game/ShareMomentButton";
 import {
   listCharacters,
   listCharacterStories,
@@ -86,6 +87,15 @@ export function HistoryPage() {
                 <span>{story.room_code}</span>
               </div>
               <p>{story.recap || story.final_resolution}</p>
+              <div className="history-card-actions">
+                <ShareMomentButton
+                  title={`${story.adventure_title} — Tales of Two`}
+                  text={`${story.ending_label} // ${story.recap || story.final_resolution}`}
+                  url={`${window.location.origin}/`}
+                  label="[↗] SHARE CHRONICLE"
+                  className="button button-quiet"
+                />
+              </div>
             </article>
           ))}
         </div>

@@ -8,23 +8,68 @@ import {
 } from "react";
 
 const ROUND_MS = 10_000;
-const GRID_COLUMNS = 7;
-const CELL_COUNT = GRID_COLUMNS * GRID_COLUMNS;
+const BOARD_SIZES = [5, 6, 7, 8] as const;
+const SYMBOL_PAIRS = [
+  ["0", "O"],
+  ["1", "I"],
+  ["5", "S"],
+  ["2", "Z"],
+  ["8", "B"],
+  ["C", "G"],
+  ["M", "N"],
+  ["V", "Y"],
+  ["<", "{"],
+  ["[", "("],
+  ["/", "\\"],
+  ["+", "*"],
+] as const;
 
 interface RoundState {
   id: number;
   targetIndex: number;
-  target: "0" | "O";
-  filler: "0" | "O";
+  target: string;
+  filler: string;
+  columns: number;
+  rows: number;
+  symbolPairIndex: number;
 }
 
-function makeRound(id: number): RoundState {
-  const target = Math.random() < 0.5 ? "0" : "O";
+function pickDifferentIndex(length: number, previous?: number): number {
+  if (length <= 1) return 0;
+  if (previous == null || previous < 0 || previous >= length) {
+    return Math.floor(Math.random() * length);
+  }
+
+  const candidate = Math.floor(Math.random() * (length - 1));
+  return candidate >= previous ? candidate + 1 : candidate;
+}
+
+function makeRound(id: number, previous?: RoundState): RoundState {
+  const boardSizeIndex = pickDifferentIndex(
+    BOARD_SIZES.length,
+    previous ? BOARD_SIZES.indexOf(previous.columns as (typeof BOARD_SIZES)[number]) : undefined,
+  );
+  const columns = BOARD_SIZES[boardSizeIndex];
+  const rows = columns;
+  const cellCount = rows * columns;
+
+  const symbolPairIndex = pickDifferentIndex(
+    SYMBOL_PAIRS.length,
+    previous?.symbolPairIndex,
+  );
+  const pair = SYMBOL_PAIRS[symbolPairIndex];
+  const targetFirst = Math.random() < 0.5;
+  const target = targetFirst ? pair[0] : pair[1];
+  const filler = targetFirst ? pair[1] : pair[0];
+
   return {
     id,
-    targetIndex: Math.floor(Math.random() * CELL_COUNT),
+    targetIndex: Math.floor(Math.random() * cellCount),
     target,
-    filler: target === "0" ? "O" : "0",
+    filler,
+    columns,
+    rows,
+    symbolPairIndex,
   };
 }
 
@@ -48,7 +93,7 @@ export function FindOutlierGame({
   const boardRef = useRef<HTMLDivElement | null>(null);
 
   const beginNextRound = useCallback(() => {
-    setRound((current) => makeRound(current.id + 1));
+    setRound((current) => makeRound(current.id + 1, current));
     setRemainingMs(ROUND_MS);
     setCursor(0);
     setRoundComplete(false);
@@ -114,18 +159,18 @@ export function FindOutlierGame({
   function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     if (roundComplete) return;
 
-    const row = Math.floor(cursor / GRID_COLUMNS);
-    const column = cursor % GRID_COLUMNS;
+    const row = Math.floor(cursor / round.columns);
+    const column = cursor % round.columns;
     let next = cursor;
 
     if (event.key === "ArrowLeft" || event.key.toLowerCase() === "a") {
-      next = row * GRID_COLUMNS + Math.max(0, column - 1);
+      next = row * round.columns + Math.max(0, column - 1);
     } else if (event.key === "ArrowRight" || event.key.toLowerCase() === "d") {
-      next = row * GRID_COLUMNS + Math.min(GRID_COLUMNS - 1, column + 1);
+      next = row * round.columns + Math.min(round.columns - 1, column + 1);
     } else if (event.key === "ArrowUp" || event.key.toLowerCase() === "w") {
-      next = Math.max(0, row - 1) * GRID_COLUMNS + column;
+      next = Math.max(0, row - 1) * round.columns + column;
     } else if (event.key === "ArrowDown" || event.key.toLowerCase() === "s") {
-      next = Math.min(GRID_COLUMNS - 1, row + 1) * GRID_COLUMNS + column;
+      next = Math.min(round.rows - 1, row + 1) * round.columns + column;
     } else if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       choose(cursor);
@@ -138,11 +183,12 @@ export function FindOutlierGame({
     setCursor(next);
   }
 
+  const cellCount = round.rows * round.columns;
   const cells = useMemo(
-    () => Array.from({ length: CELL_COUNT }, (_, index) => (
+    () => Array.from({ length: cellCount }, (_, index) => (
       index === round.targetIndex ? round.target : round.filler
     )),
-    [round],
+    [cellCount, round],
   );
 
   const ratio = Math.max(0, Math.min(1, remainingMs / ROUND_MS));
@@ -151,6 +197,7 @@ export function FindOutlierGame({
     <div className="intermission-game outlier-game">
       <header className="intermission-game-instructions">
         <strong>FIND THE OUTLIER // {round.target} HIDES AMONG {round.filler}</strong>
+        <span>GRID // {round.columns}×{round.rows} // NEW SYMBOLS EACH ROUND</span>
         <span>CLICK/TAP // OR MOVE WITH WASD/ARROWS + ENTER</span>
         <span>POINTS = WHOLE SECONDS LEFT // WRONG PICK -1</span>
       </header>
@@ -164,7 +211,11 @@ export function FindOutlierGame({
         ref={boardRef}
         tabIndex={0}
         onKeyDown={handleKeyDown}
-        aria-label={`Find the ${round.target} among ${round.filler} characters`}
+        aria-label={`Find the ${round.target} among ${round.filler} characters on a ${round.columns} by ${round.rows} grid`}
+        style={{
+          gridTemplateColumns: `repeat(${round.columns}, minmax(0, 1fr))`,
+          maxWidth: `${Math.min(620, round.columns * 78)}px`,
+        }}
       >
         {cells.map((value, index) => (
           <button

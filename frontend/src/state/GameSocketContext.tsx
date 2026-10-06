@@ -25,6 +25,7 @@ import {
   notificationKindEnabled,
   readNotificationPreferences,
 } from "../services/notifications";
+import { notificationFace } from "../features/social/asciiSocial";
 
 interface GameSocketContextValue {
   connected: boolean;
@@ -236,6 +237,9 @@ export function GameSocketProvider({ children }: { children: ReactNode }) {
         <div className="player-notification-stack" aria-live="polite" aria-label="Adventure notifications">
           {notifications.map((notification) => (
             <article className={`player-notification player-notification-${notification.kind}`} key={notification.id}>
+              <span className="player-notification-face" aria-hidden="true">
+                {notificationFace(notification.kind)}
+              </span>
               <button
                 className="player-notification-main"
                 type="button"

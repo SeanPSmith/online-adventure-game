@@ -81,6 +81,10 @@ from app.characters.progression import (
     progression_public_data,
 )
 
+from app.characters.store import (
+    character_store,
+)
+
 from app.characters.effects import (
     decay_finite_effect_turns,
 )
@@ -770,6 +774,62 @@ def build_game_state(
     }
 
 
+
+async def build_party_hero_summaries(
+    room_code: str,
+) -> list[dict]:
+    """Return room-authorized read-only Hero snapshots for party inspection.
+
+    The normal character API remains owner-only. These snapshots contain only
+    adventure-facing Hero data and are emitted exclusively to sockets already
+    attached to the room.
+    """
+
+    room = rooms.room_by_code(room_code)
+
+    if room is None:
+        return []
+
+    summaries: list[dict] = []
+
+    for player in room.players.values():
+        character = await character_store.get_by_id(player.character_id)
+
+        if character is None:
+            continue
+
+        progression = progression_public_data(
+            character.level,
+            character.experience,
+        )
+
+        summaries.append(
+            {
+                "player_id": player.player_id,
+                "character_id": character.character_id,
+                "name": character.name,
+                "bio": character.bio,
+                "level": character.level,
+                "experience": character.experience,
+                "max_health": character.max_health,
+                "health": character.health,
+                "is_alive": character.is_alive,
+                "stats": {
+                    stat.value: value
+                    for stat, value in character.stats.items()
+                },
+                "effects": [
+                    dict(effect)
+                    for effect in character.effects
+                    if isinstance(effect, dict)
+                    and effect.get("active", True) is not False
+                ],
+                **progression,
+            }
+        )
+
+    return summaries
+
 # =========================================================
 # ADVENTURE CATALOG
 # =========================================================
@@ -1160,6 +1220,13 @@ async def broadcast_game_state(
     ):
 
         return
+
+
+    state["party_heroes"] = (
+        await build_party_hero_summaries(
+            room_code
+        )
+    )
 
 
     await sio.emit(
@@ -3495,6 +3562,12 @@ async def sync_adventure_state(
     )
 
     if state is not None:
+
+        state["party_heroes"] = (
+            await build_party_hero_summaries(
+                room.code
+            )
+        )
 
         await sio.emit(
             "game_state",

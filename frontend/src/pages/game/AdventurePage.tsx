@@ -8,17 +8,23 @@ import {
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router";
 import { Panel } from "../../components/ui/Panel";
 import { RoomInviteButton } from "../../components/game/RoomInviteButton";
+import { ShareMomentButton } from "../../components/game/ShareMomentButton";
 import { ChoiceInspector } from "../../features/adventure/ChoiceInspector";
 import { LevelUpModal } from "../../features/adventure/LevelUpModal";
 import { QuickEventModal } from "../../features/adventure/QuickEventModal";
 import { TurnTheater } from "../../features/adventure/TurnTheater";
 import { useTurnTheater } from "../../features/adventure/useTurnTheater";
 import { getCharacter, type Character } from "../../services/characters";
-import type { SceneChoice } from "../../services/game";
+import type { PartyHeroSnapshot, SceneChoice } from "../../services/game";
 import { rememberGameRoute } from "../../services/gameRouteMemory";
 import { useGameSocket } from "../../state/GameSocketContext";
 import { useLiveAdventure } from "../../state/useLiveAdventure";
 import { useModal } from "../../state/ModalContext";
+import {
+  ASCII_REACTIONS,
+  ASCII_REACTION_GROUPS,
+  presenceFace,
+} from "../../features/social/asciiSocial";
 
 const CORE_STATS = [
   ["strength", "STR"],
@@ -109,6 +115,7 @@ export function AdventurePage() {
   const [asciiPickerOpen, setAsciiPickerOpen] = useState(false);
   const [hero, setHero] = useState<Character | null>(null);
   const [heroError, setHeroError] = useState("");
+  const [inspectedCharacterId, setInspectedCharacterId] = useState(characterId ?? "");
   const [selectedChoiceId, setSelectedChoiceId] = useState("");
   const [lockPending, setLockPending] = useState(false);
   const [dismissedLevelUpKey, setDismissedLevelUpKey] = useState("");
@@ -124,6 +131,17 @@ export function AdventurePage() {
   const localRoomPlayer = live.room?.players.find(
     (player) => player.character_id === characterId,
   );
+
+  const partyHeroes = live.game?.party_heroes ?? [];
+  const inspectedRoomPlayer = live.room?.players.find(
+    (player) => player.character_id === inspectedCharacterId,
+  );
+  const inspectedPartyHero = partyHeroes.find(
+    (partyHero) => partyHero.character_id === inspectedCharacterId,
+  ) ?? null;
+  const isInspectingSelf = inspectedCharacterId === characterId;
+  const displayHero: Character | PartyHeroSnapshot | null =
+    isInspectingSelf && hero ? hero : inspectedPartyHero;
 
   const choiceLocked = Boolean(localReadiness?.ready || live.choiceAccepted);
 
@@ -141,6 +159,18 @@ export function AdventurePage() {
 
   const lastLocalProgression = characterId
     ? live.lastTurn?.hero_progression?.[characterId] ?? null
+    : null;
+
+  const inspectedResult = useMemo(
+    () =>
+      live.lastTurn?.results?.find(
+        (result) => result.character_id === inspectedCharacterId,
+      ) ?? null,
+    [inspectedCharacterId, live.lastTurn],
+  );
+
+  const inspectedProgression = inspectedCharacterId
+    ? live.lastTurn?.hero_progression?.[inspectedCharacterId] ?? null
     : null;
 
   const levelUpKey = lastLocalProgression?.leveled_up
@@ -213,6 +243,18 @@ export function AdventurePage() {
       alive = false;
     };
   }, [characterId, live.game?.turn_number, live.lastTurn]);
+
+  useEffect(() => {
+    if (!characterId) return;
+
+    const availableIds = new Set(
+      live.room?.players.map((player) => player.character_id) ?? [characterId],
+    );
+
+    if (!inspectedCharacterId || !availableIds.has(inspectedCharacterId)) {
+      setInspectedCharacterId(characterId);
+    }
+  }, [characterId, inspectedCharacterId, live.room?.players]);
 
   useEffect(() => {
     if (!characterId || !normalizedRoomCode) return;
@@ -344,7 +386,10 @@ export function AdventurePage() {
             <div className="turn-status-cluster">
               {readiness.map((player) => (
                 <div className={`turn-status-chip ${player.ready ? "is-ready" : ""}`} key={player.player_id}>
-                  <span>{player.player_id === live.playerId ? "YOU" : player.name}</span>
+                  <span>
+                    <b className="status-ascii" aria-hidden="true">{presenceFace(player.online, player.ready)}</b>
+                    {player.player_id === live.playerId ? "YOU" : player.name}
+                  </span>
                   <strong>
                     {player.ready
                       ? "LOCKED"
@@ -372,7 +417,17 @@ export function AdventurePage() {
                   roomCode={normalizedRoomCode}
                   adventureTitle={live.game?.adventure_title ?? matchingAdventure?.adventure_title}
                   className="button button-quiet"
-                  label="INVITE PARTNER"
+                  label="[+] INVITE / SHARE"
+                />
+              ) : null}
+
+              {scene?.body ? (
+                <ShareMomentButton
+                  title={`${scene.title} — Tales of Two`}
+                  text={`${live.game?.adventure_title ?? "Tales of Two"} // ${scene.title}
+${scene.body.slice(0, 260)}`}
+                  url={`${window.location.origin}/`}
+                  label="[↗] SHARE MOMENT"
                 />
               ) : null}
 
@@ -466,6 +521,13 @@ export function AdventurePage() {
                 <div className="finale-party-rank">
                   <span>PARTY RENOWN</span>
                   <strong>{live.finale.party_rank}</strong>
+                  <ShareMomentButton
+                    title={`${live.finale.adventure_title} — Tales of Two`}
+                    text={`${live.finale.ending_label} // ${live.finale.final_resolution}`}
+                    url={`${window.location.origin}/`}
+                    label="[↗] SHARE ENDING"
+                    className="button button-quiet"
+                  />
                 </div>
               </header>
 
@@ -632,46 +694,67 @@ export function AdventurePage() {
         </section>
 
         <aside className="adventure-sidebar">
-          <Panel title="HERO // LIVE SHEET" className="hero-panel">
-            {hero ? (
+          <Panel title="HERO // PARTY VIEW" className="hero-panel">
+            {(live.room?.players.length ?? 0) > 1 ? (
+              <div className="party-hero-switcher" role="tablist" aria-label="Room Heroes">
+                {live.room?.players.map((player) => {
+                  const selected = player.character_id === inspectedCharacterId;
+                  return (
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={selected}
+                      className={selected ? "is-active" : ""}
+                      key={player.player_id}
+                      onClick={() => setInspectedCharacterId(player.character_id)}
+                    >
+                      <span aria-hidden="true">{presenceFace(player.is_online, false)}</span>
+                      <strong>{player.character_id === characterId ? "YOU" : player.name}</strong>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : null}
+
+            {displayHero ? (
               <div className="live-hero">
                 <div className="live-hero-heading">
                   <div>
-                    <span className="eyebrow">LEVEL {hero.level}</span>
-                    <strong>{hero.name}</strong>
+                    <span className="eyebrow">LEVEL {displayHero.level}</span>
+                    <strong>{displayHero.name}</strong>
                   </div>
-                  <span className={`hero-hp ${hero.is_alive ? "" : "is-fallen"}`}>
-                    {hero.is_alive ? `HP ${hero.health}/${hero.max_health}` : "FALLEN"}
+                  <span className={`hero-hp ${displayHero.is_alive ? "" : "is-fallen"}`}>
+                    {displayHero.is_alive ? `HP ${displayHero.health}/${displayHero.max_health}` : "FALLEN"}
                   </span>
                 </div>
 
-                {hero.bio ? <p className="hero-bio-snippet">{hero.bio}</p> : null}
+                {displayHero.bio ? <p className="hero-bio-snippet">{displayHero.bio}</p> : null}
 
                 <div className="hero-vital-row">
                   <span>HP</span>
-                  <div className="meter" aria-label={`HP ${hero.health} of ${hero.max_health}`}>
+                  <div className="meter" aria-label={`HP ${displayHero.health} of ${displayHero.max_health}`}>
                     <span
                       style={{
-                        width: `${Math.max(0, Math.min(100, (hero.health / hero.max_health) * 100))}%`,
+                        width: `${Math.max(0, Math.min(100, (displayHero.health / displayHero.max_health) * 100))}%`,
                       }}
                     />
                   </div>
-                  <strong>{hero.health}/{hero.max_health}</strong>
+                  <strong>{displayHero.health}/{displayHero.max_health}</strong>
                 </div>
 
                 <div className="xp-readout">
                   <div>
-                    <span>XP {hero.experience}</span>
-                    <span>{hero.xp_needed_for_next_level} TO NEXT</span>
+                    <span>XP {displayHero.experience}</span>
+                    <span>{displayHero.xp_needed_for_next_level} TO NEXT</span>
                   </div>
                   <div className="xp-meter">
-                    <span style={{ width: `${hero.xp_progress_percent}%` }} />
+                    <span style={{ width: `${displayHero.xp_progress_percent}%` }} />
                   </div>
                 </div>
 
                 <div className="hero-stat-segments" aria-label="Core Hero attributes">
                   {CORE_STATS.map(([key, label]) => {
-                    const value = Math.max(0, Math.min(7, hero.stats[key] ?? 0));
+                    const value = Math.max(0, Math.min(7, displayHero.stats[key] ?? 0));
                     return (
                       <div className="hero-segment-stat" key={key}>
                         <div>
@@ -688,7 +771,7 @@ export function AdventurePage() {
                   })}
                 </div>
 
-                {(hero.unspent_stat_points + hero.unspent_skill_points + hero.unspent_talent_points) > 0 ? (
+                {isInspectingSelf && hero && (hero.unspent_stat_points + hero.unspent_skill_points + hero.unspent_talent_points) > 0 ? (
                   <div className="hero-advancement-alert">
                     <strong>ADVANCEMENT READY</strong>
                     <span>
@@ -697,42 +780,42 @@ export function AdventurePage() {
                   </div>
                 ) : null}
 
-                {lastLocalResult ? (
-                  <section className={`hero-last-check ${lastLocalResult.check?.outcome ? `is-${lastLocalResult.check.outcome}` : ""}`}>
+                {inspectedResult ? (
+                  <section className={`hero-last-check ${inspectedResult.check?.outcome ? `is-${inspectedResult.check.outcome}` : ""}`}>
                     <div className="hero-last-check-heading">
                       <span className="eyebrow">LAST CHECK</span>
-                      <strong>+{lastLocalResult.xp_reward} XP</strong>
+                      <strong>+{inspectedResult.xp_reward} XP</strong>
                     </div>
 
-                    {lastLocalResult.check ? (
+                    {inspectedResult.check ? (
                       <>
                         <div className="hero-dice-readout">
                           <div>
                             <span>D20</span>
-                            <strong>{lastLocalResult.check.roll}</strong>
+                            <strong>{inspectedResult.check.roll}</strong>
                           </div>
                           <span>+</span>
                           <div>
                             <span>MOD</span>
-                            <strong>{signed(lastLocalResult.check.total_modifier)}</strong>
+                            <strong>{signed(inspectedResult.check.total_modifier)}</strong>
                           </div>
                           <span>=</span>
                           <div>
                             <span>TOTAL</span>
-                            <strong>{lastLocalResult.check.total}</strong>
+                            <strong>{inspectedResult.check.total}</strong>
                           </div>
                           <span>/</span>
                           <div>
                             <span>DC</span>
-                            <strong>{lastLocalResult.check.difficulty}</strong>
+                            <strong>{inspectedResult.check.difficulty}</strong>
                           </div>
                         </div>
                         <div className="hero-check-outcome">
-                          <strong>{outcomeLabel(lastLocalResult.check.outcome)}</strong>
+                          <strong>{outcomeLabel(inspectedResult.check.outcome)}</strong>
                           <span>
-                            {(lastLocalResult.check.skill ?? lastLocalResult.check.stat ?? "CHECK").toUpperCase()}
-                            {lastLocalResult.check.challenge_tier
-                              ? ` // ${lastLocalResult.check.challenge_tier.toUpperCase()}`
+                            {(inspectedResult.check.skill ?? inspectedResult.check.stat ?? "CHECK").toUpperCase()}
+                            {inspectedResult.check.challenge_tier
+                              ? ` // ${inspectedResult.check.challenge_tier.toUpperCase()}`
                               : ""}
                           </span>
                         </div>
@@ -744,17 +827,17 @@ export function AdventurePage() {
                       </div>
                     )}
 
-                    {lastLocalProgression?.leveled_up ? (
+                    {inspectedProgression?.leveled_up ? (
                       <div className="hero-level-flash">
-                        LEVEL UP // {lastLocalProgression.level_before} → {lastLocalProgression.level_after}
+                        LEVEL UP // {inspectedProgression.level_before} → {inspectedProgression.level_after}
                       </div>
                     ) : null}
                   </section>
                 ) : null}
 
-                {hero.effects.length > 0 ? (
+                {displayHero.effects.length > 0 ? (
                   <div className="hero-effect-list">
-                    {hero.effects
+                    {displayHero.effects
                       .filter((effect) => effect.active !== false)
                       .map((effect, index) => (
                         <div key={String(effect.effect_id ?? effect.source_key ?? index)}>
@@ -769,9 +852,15 @@ export function AdventurePage() {
                   </div>
                 ) : null}
 
-                <Link className="hero-sheet-link" to={`/game/heroes/${encodeURIComponent(characterId)}`}>
-                  OPEN CHARACTER SHEET →
-                </Link>
+                {isInspectingSelf ? (
+                  <Link className="hero-sheet-link" to={`/game/heroes/${encodeURIComponent(characterId)}`}>
+                    OPEN YOUR CHARACTER SHEET →
+                  </Link>
+                ) : (
+                  <div className="party-hero-readonly">
+                    READ-ONLY PARTY VIEW // {inspectedRoomPlayer?.is_online ? "ONLINE" : "OFFLINE"}
+                  </div>
+                )}
               </div>
             ) : (
               <p className="muted-copy">
@@ -837,27 +926,24 @@ export function AdventurePage() {
             </form>
 
             {asciiPickerOpen ? (
-              <div className="ascii-picker" aria-label="ASCII face picker">
-                {[
-                  ":-)",
-                  ":-D",
-                  ";-)",
-                  ":-(",
-                  ":-P",
-                  ":-/",
-                  "B-)",
-                  "<3",
-                  "o_O",
-                  "^_^",
-                  "-_-",
-                ].map((face) => (
-                  <button
-                    type="button"
-                    key={face}
-                    onClick={() => insertAsciiFace(face)}
-                  >
-                    {face}
-                  </button>
+              <div className="ascii-picker ascii-reaction-library" aria-label="ASCII reaction picker">
+                {ASCII_REACTION_GROUPS.map((group) => (
+                  <section className="ascii-reaction-group" key={group}>
+                    <span>{group}</span>
+                    <div>
+                      {ASCII_REACTIONS.filter((reaction) => reaction.group === group).map((reaction) => (
+                        <button
+                          type="button"
+                          key={`${group}:${reaction.value}`}
+                          title={reaction.label}
+                          aria-label={`${reaction.label}: ${reaction.value}`}
+                          onClick={() => insertAsciiFace(reaction.value)}
+                        >
+                          {reaction.value}
+                        </button>
+                      ))}
+                    </div>
+                  </section>
                 ))}
               </div>
             ) : null}

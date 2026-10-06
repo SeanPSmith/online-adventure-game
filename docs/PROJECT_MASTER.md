@@ -4,7 +4,7 @@
 > Update or rewrite the relevant sections in this file as the product changes; do not create another numbered changelog copy.
 
 **Last consolidated:** 2026-10-05  
-**Current local baseline:** through Pass 31 (story clarity / authored QTE / level-up feedback)  
+**Current local baseline:** through Pass 32 (multiplayer Hero switching / sharing / ASCII social UX)  
 **Public site:** `https://onlinetextadventure.com`  
 **Primary release command:** `./scripts/release-staging.sh "Describe the release"`
 
@@ -436,6 +436,7 @@ Arcade Lab additionally contains cabinets such as:
 - mobile action games should account for smaller reaction space;
 - movement cabinets should support swipe where appropriate;
 - repeated plays should vary board size, speed, traffic, wind, lane condition, layout, etc.;
+- Find the Outlier specifically randomizes both board size (5×5 through 8×8) and a curated near-lookalike symbol pair every round, without immediately repeating either;
 - Highway 84 increases speed and traffic pressure during a run and awards extra points for risky clearances / near misses;
 - physical actions should visibly animate their consequence;
 - retro graphics may be crude; feedback must not be.
@@ -568,7 +569,15 @@ The invite flow supports:
 - Hero creation return-to-invite;
 - direct Hero selection and join.
 
-Invite controls are host-only and only appear while a co-op slot is open.
+Invite controls are host-only and only appear while a co-op slot is open. Live scenes/endings and sealed Chronicles also expose explicit share actions using the native Share API when available with copy fallback.
+
+### Room Hero inspection
+
+During a live co-op adventure, the Hero sidebar can switch between room participants. The local Hero remains fully actionable; partner Heroes are read-only. The server emits room-scoped public Hero snapshots containing only adventure-facing fields (name, bio, level/XP, HP, core stats, active effects and progression display values). The normal character API remains owner-only; room inspection must never weaken character ownership checks or expose inventory/owner metadata.
+
+### ASCII social language
+
+The multiplayer shell uses a curated terminal-style reaction vocabulary rather than generic modern emoji. Reactions are grouped by intent (happy/social/suspicious/panic/chaos/sad/idle) and reused across chat reactions, player presence, and lightweight notifications. Keep the library expressive but readable on phones and avoid visual noise.
 
 ### Partner activity notifications
 
@@ -795,6 +804,7 @@ This is intentionally short. The historical numbered changelog files remain an a
 - **Pass 29A — Arcade Pacing Polish:** compact non-obstructive feedback for continuous action games, longer between-round breathing room, and escalating/risk-reward Highway 84 driving.
 - **Pass 29B — Public Site / Home / Footer Cleanup:** rebuilt product-first homepage, public Rulebook, responsive anonymous/authenticated navigation, unified auth presentation, real public footer, legal/product notices, and deploy-visible frontend build fingerprint.
 - **Pass 31 — Story Clarity + Contextual QTE Progression:** novel-like grounded narration rules, Director-authored scene-coupled QTEs with precommitted answers, real one-round Hero buffs/nerfs, and explicit per-player level-up celebrations.
+- **Pass 32 — Multiplayer UX + Sharing + ASCII Social Language:** room-authorized read-only partner Hero switching, explicit invite/live-moment/ending/Chronicle sharing, centralized terminal reaction vocabulary for chat/presence/notifications, plus randomized Outlier grids and symbols.
 
 ---
 

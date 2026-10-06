@@ -33,10 +33,10 @@ function InviteShareBody({ roomCode, adventureTitle }: { roomCode: string; adven
       } else {
         copyFallback(url);
       }
-      setStatus("INVITE LINK COPIED");
+      setStatus("(^_^)/ INVITE LINK COPIED");
     } catch {
       copyFallback(url);
-      setStatus("INVITE LINK COPIED");
+      setStatus("(^_^)/ INVITE LINK COPIED");
     }
   }
 
@@ -48,10 +48,10 @@ function InviteShareBody({ roomCode, adventureTitle }: { roomCode: string; adven
 
     try {
       await navigator.share({ title, text, url });
-      setStatus("SHARE SHEET OPENED");
+      setStatus("(^_^)/ SHARE SHEET OPENED");
     } catch (reason) {
       if (reason instanceof DOMException && reason.name === "AbortError") return;
-      setStatus("SHARE UNAVAILABLE — COPY THE LINK INSTEAD");
+      setStatus(":/ SHARE UNAVAILABLE — COPY THE LINK INSTEAD");
     }
   }
 
@@ -67,10 +67,10 @@ function InviteShareBody({ roomCode, adventureTitle }: { roomCode: string; adven
 
       <div className="room-invite-actions">
         <button className="button button-primary" type="button" onClick={() => void nativeShare()}>
-          SHARE...
+          [↗] SHARE...
         </button>
         <button className="button" type="button" onClick={() => void copyLink()}>
-          COPY LINK
+          [::] COPY LINK
         </button>
         <a className="button" href={`sms:?&body=${encodedBody}`}>
           TEXT

@@ -41,7 +41,7 @@ def test_ascii_picker_is_interactive_and_inserts_chat_text() -> None:
 
     assert "setAsciiPickerOpen((current) => !current)" in page
     assert "function insertAsciiFace(face: string)" in page
-    assert "onClick={() => insertAsciiFace(face)}" in page
+    assert "onClick={() => insertAsciiFace(reaction.value)}" in page
 
 
 def test_director_retry_failure_stays_in_turn_theater_modal() -> None:
@@ -250,7 +250,7 @@ def test_gameplay_ui_consolidation_prioritizes_story_hero_dice_and_compact_chat(
     styles = read("styles/components.css")
 
     assert "adventure-command-strip" in page
-    assert 'title="HERO // LIVE SHEET"' in page
+    assert 'title="HERO // PARTY VIEW"' in page
     assert "hero-stat-segments" in page
     assert "hero-last-check" in page
     assert "hero-dice-readout" in page

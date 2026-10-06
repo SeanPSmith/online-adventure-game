@@ -23,15 +23,17 @@ def test_hangman_is_a_dedicated_lab_publishable_cabinet() -> None:
     assert "WORD SOLVED" in hangman
 
 
-def test_hoops_uses_aim_power_physics_shot_cadence() -> None:
+def test_hoops_uses_side_view_angle_power_physics_shot_cadence() -> None:
     game = read("frontend/src/features/arcade/games/BasketballGame.tsx")
 
-    assert "AimPowerShotControls" in game
-    assert "LOCK AIM" in game
-    assert "VERTICAL POWER" in game
-    assert "RIM + GLASS COLLISIONS DECIDE THE SHOT" in game
-    assert "Backboard: physical rebound" in game
-    assert "Basket capture" in game
+    assert "AimPowerShotControls" not in game
+    assert 'type ShotPhase = "angle" | "power" | "resolving" | "result"' in game
+    assert "basketball-angle-track" in game
+    assert "basketball-power-track" in game
+    assert "LOCK ANGLE" in game
+    assert "SIDE-VIEW PHYSICS" in game
+    assert "Side-view rim" in game
+    assert "GRAVITY" in game
     assert "SWISH!" in game
 
 

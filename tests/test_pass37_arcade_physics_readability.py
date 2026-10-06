@@ -9,7 +9,7 @@ def read(relative: str) -> str:
     return (ROOT / relative).read_text(encoding="utf-8")
 
 
-def test_two_control_ball_games_use_horizontal_aim_vertical_power() -> None:
+def test_ball_games_use_their_correct_two_control_shot_language() -> None:
     controls = read("frontend/src/features/arcade/engine/AimPowerShotControls.tsx")
     hoops = read("frontend/src/features/arcade/games/BasketballGame.tsx")
     pong = read("frontend/src/features/arcade/games/BeerPongGame.tsx")
@@ -17,7 +17,10 @@ def test_two_control_ball_games_use_horizontal_aim_vertical_power() -> None:
 
     assert "aim-power-horizontal-track" in controls
     assert "aim-power-vertical-track" in controls
-    assert "AimPowerShotControls" in hoops
+    assert "AimPowerShotControls" not in hoops
+    assert "basketball-angle-track" in hoops
+    assert "basketball-power-track" in hoops
+    assert "LOCK ANGLE" in hoops
     assert "AimPowerShotControls" in pong
     assert "grid-template-columns: minmax(0, 1fr) 88px" in styles
 
@@ -26,12 +29,12 @@ def test_basketball_uses_simulated_ball_rim_and_backboard_physics() -> None:
     game = read("frontend/src/features/arcade/games/BasketballGame.tsx")
 
     assert "GRAVITY" in game
-    assert "ball.vz -= GRAVITY" in game
-    assert "Backboard: physical rebound" in game
-    assert "Rim ring collision" in game
+    assert "ball.vy += GRAVITY" in game
+    assert "side-view collision against the vertical glass plane" in game
+    assert "Side-view rim" in game
     assert "Basket capture" in game
-    assert "Basketball half-court physics simulation" in game
-    assert 'type ShotPhase = AimPowerPhase | "result"' in game
+    assert "Side-view basketball angle and power physics simulation" in game
+    assert 'type ShotPhase = "angle" | "power" | "resolving" | "result"' in game
     assert '"release"' not in game
 
 
@@ -104,11 +107,12 @@ def test_reconciliation_marker_and_beer_pong_front_rack_orientation() -> None:
     hoops = read("frontend/src/features/arcade/games/BasketballGame.tsx")
 
     assert "REV 38R" in beer
-    assert "REV 38R" in hoops
+    assert "REV 38H" in hoops
     # Canvas origin is top-left and the shooter is near y=330, so the head/front
     # cup must have the largest y of the rack rows: 1 nearest, then 2, then 3.
     assert '{ x: 320, y: 124 }' in beer
     assert '{ x: 304, y: 94 }, { x: 336, y: 94 }' in beer
     assert '{ x: 288, y: 64 }, { x: 320, y: 64 }, { x: 352, y: 64 }' in beer
-    assert "AimPowerShotControls" in hoops
-    assert "HORIZONTAL AIM // VERTICAL POWER" in hoops
+    assert "basketball-game-sideview" in hoops
+    assert "ANGLE // POWER // SHOOT" in hoops
+    assert "LOCK ANGLE" in hoops

@@ -4,6 +4,7 @@ import * as ecr from "aws-cdk-lib/aws-ecr";
 import * as ecs from "aws-cdk-lib/aws-ecs";
 import * as elbv2 from "aws-cdk-lib/aws-elasticloadbalancingv2";
 import * as logs from "aws-cdk-lib/aws-logs";
+import * as iam from "aws-cdk-lib/aws-iam";
 import * as rds from "aws-cdk-lib/aws-rds";
 import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
 import { Construct } from "constructs";
@@ -25,6 +26,10 @@ export interface BackendStackProps extends cdk.StackProps {
   readonly database: rds.IDatabaseInstance;
   readonly databaseSecret: secretsmanager.ISecret;
   readonly openAiApiKeySecret: secretsmanager.ISecret;
+  readonly notificationEmailFrom: string;
+  readonly notificationPublicBaseUrl: string;
+  readonly notificationSmsEnabled: boolean;
+  readonly vapidContact: string;
 }
 
 export class BackendStack extends cdk.Stack {
@@ -74,6 +79,10 @@ export class BackendStack extends cdk.Stack {
         DB_PORT: props.database.dbInstanceEndpointPort,
         DB_NAME: "adventure_platform",
         TOT_ADMIN_USERNAMES: props.adminUsernames.join(","),
+        TOT_SMS_ENABLED: props.notificationSmsEnabled ? "true" : "false",
+        TOT_NOTIFICATION_EMAIL_FROM: props.notificationEmailFrom,
+        TOT_PUBLIC_BASE_URL: props.notificationPublicBaseUrl,
+        TOT_VAPID_CONTACT: props.vapidContact,
       },
       secrets: {
         DB_USER: ecs.Secret.fromSecretsManager(props.databaseSecret, "username"),
@@ -96,6 +105,24 @@ export class BackendStack extends cdk.Stack {
       containerPort: 8000,
       protocol: ecs.Protocol.TCP,
     });
+
+    if (props.notificationSmsEnabled) {
+      taskDefinition.taskRole.addToPrincipalPolicy(
+        new iam.PolicyStatement({
+          actions: ["sns:Publish"],
+          resources: ["*"],
+        }),
+      );
+    }
+
+    if (props.notificationEmailFrom) {
+      taskDefinition.taskRole.addToPrincipalPolicy(
+        new iam.PolicyStatement({
+          actions: ["ses:SendEmail", "ses:SendRawEmail"],
+          resources: ["*"],
+        }),
+      );
+    }
 
     this.service = new ecs.FargateService(this, "Service", {
       serviceName: `${prefix}-backend`,

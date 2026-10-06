@@ -4,3 +4,7 @@
 # DB_BACKEND=postgres is present.
 openai==3.20.0
 psycopg[binary]>=3.2,<4
+
+# Pass 33 real notification delivery.
+pywebpush==2.5.0
+boto3>=1.40,<2

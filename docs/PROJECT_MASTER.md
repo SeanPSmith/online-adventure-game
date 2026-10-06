@@ -51,7 +51,7 @@ The public shell uses one terminal/IRC visual language across home, auth, legal,
 - `/game/heroes/:heroId` — Character Sheet.
 - `/game/adventure/...` — live adventure room.
 - `/game/chronicles` — completed adventure history / sealed chronicles.
-- `/game/arcade` — Arcade Lab.
+- `/game/arcade` — player Arcade; administrators see the same route as Arcade Lab with publication controls.
 - `/game/rulebook` — player-facing RPG rules.
 - account/settings routes — account configuration and notification preferences.
 
@@ -396,11 +396,15 @@ Arcade cabinets are disposable React modules inside a shared runtime. They recei
 
 A cabinet must tolerate being unmounted at any moment.
 
-### Registry / lab
+### Registry / lab / publication
 
 - Cabinet registry: `frontend/src/features/arcade/ArcadeGameRegistry.tsx`
-- Arcade Lab: `/game/arcade`
-- New cabinets should enter the Lab first and be promoted to live rotation only after playtesting.
+- Arcade route: `/game/arcade`
+- Ordinary players see only cabinets currently published by the backend.
+- Administrators see every registered cabinet and receive **PUSH / PULL** controls directly in the Arcade Lab.
+- Publication state is persisted in `arcade_publication`; it survives backend restarts/deploys and cannot be changed by non-admin clients.
+- New cabinets enter as **LAB ONLY** by default and are promoted to the player Arcade only after an administrator deliberately pushes them live.
+- This publication switch controls the standalone player Arcade. The six historical story-intermission slot IDs remain a separate compatibility layer for now.
 
 ### Current live historical slot mapping
 
@@ -424,6 +428,14 @@ Arcade Lab additionally contains cabinets such as:
 - Data Snake
 - Light//Cycles
 - retired/experimental Archery
+- Beer Pong — timing-based cup sinking;
+- Pixel Hoops — two/three-point timing shots with streak scoring;
+- Blackjack — fast dealer blackjack;
+- War // Cards — high-card rounds with escalating tie stakes;
+- Radar Fleet — compact Battleship-style hidden-fleet hunting;
+- Mahjong Match — Mahjong-themed memory/pair matching rather than full traditional Mahjong rules.
+
+The Pass 34 cabinets intentionally use the existing score-comparison co-op contract: both room players can play simultaneously during Director latency and the authoritative server compares submitted scores. Truly shared turn-by-turn cabinet state (for example direct player-vs-player Battleship boards) is a future arcade networking layer, not something simulated client-side.
 
 ### Game-feel rules
 
@@ -565,11 +577,12 @@ The invite flow supports:
 - Copy Link;
 - Text;
 - Email;
+- direct Tales of Two account ping by username/email;
 - sign-in/registration return-to-invite;
 - Hero creation return-to-invite;
 - direct Hero selection and join.
 
-Invite controls are host-only and only appear while a co-op slot is open. Live scenes/endings and sealed Chronicles also expose explicit share actions using the native Share API when available with copy fallback.
+Invite controls are host-only and only appear while a co-op slot is open. Live scenes/endings and sealed Chronicles also expose explicit share actions using the native Share API when available with copy fallback. Direct account ping is distinct from link sharing: the server resolves an existing account without exposing account-existence details and routes the invite through that player's opted-in notification channels. Server-originated account invites are throttled so the feature cannot become a push/SMS spam button.
 
 ### Room Hero inspection
 
@@ -581,19 +594,26 @@ The multiplayer shell uses a curated terminal-style reaction vocabulary rather t
 
 ### Partner activity notifications
 
-Current notifications include:
+Current notification events include:
 
+- direct room invite;
 - partner joined;
-- partner locked a choice;
-- Your Turn;
+- partner locked a choice / Your Turn;
 - results/story beat ready;
 - finale ready.
 
-Notifications are account-wide across connected tabs and can deep-link to the correct room/Hero.
+The same event payload can fan out through four independently controlled surfaces:
 
-Optional browser notifications are supported while the browser/tab can receive the Notification API event. Permission is requested only after explicit player action.
+1. **In-app terminal notice** while the React client is connected.
+2. **Real Web Push** through a root-scope service worker and persisted Push API subscription. This is the primary closed-page/device notification path and does not depend on AWS messaging products.
+3. **Email through Amazon SES**, opt-in and only available when staging is configured with a verified `TOT_NOTIFICATION_EMAIL_FROM` identity.
+4. **SMS through AWS SNS**, opt-in, disabled until the player completes a six-digit phone verification flow, and subject to AWS SMS sandbox/account restrictions.
 
-**True closed-app Web Push is not implemented yet.** That requires a service worker, Push API subscriptions, server subscription persistence, and push delivery infrastructure.
+Push/email/SMS preferences and event filters are durable account data. New profiles default `RESULTS READY` alerts off so enabling a paid/remote channel does not immediately create a per-turn notification stream; players can opt into result alerts explicitly. In-app display preference remains local to the browser. Web Push permission is requested only from an explicit player action. The server-generated VAPID key pair is persisted in the durable application database so subscriptions survive backend deployments. Expired Push endpoints are removed when their push service returns 404/410.
+
+External channel delivery is deliberately **off the authoritative gameplay path**. Socket/game state emits first; push/email/SMS work runs in isolated tasks so third-party latency or failure can never block a turn, reroll, or roll back game state.
+
+The frontend deploy must publish `/notification-sw.js` with revalidation/no-cache headers even though hashed Vite assets remain immutable.
 
 ---
 
@@ -716,6 +736,21 @@ The low-level AWS deployer remains:
 
 Use the release wrapper for normal work; use lower-level scripts for diagnostics or targeted infrastructure work.
 
+Pass 33 adds one targeted infrastructure helper for notification IAM/runtime configuration:
+
+```bash
+./scripts/aws/deploy-notification-infra-staging.sh
+```
+
+Run it once when enabling SMS permissions or changing the public notification URL. To enable SES as well, supply an SES-verified sender identity for that deploy:
+
+```bash
+TOT_NOTIFICATION_EMAIL_FROM=notifications@example.com \
+  ./scripts/aws/deploy-notification-infra-staging.sh
+```
+
+The ordinary release script still owns application code/image/frontend deployment; infrastructure remains an explicit operation.
+
 ### Source review package
 
 Use:
@@ -748,7 +783,7 @@ Every meaningful implementation pass should preserve these principles:
 ## 18. Current Known Constraints
 
 - ECS/Fargate currently stays warm because login/API/game traffic requires a running backend and live rooms still include process-local runtime coordination.
-- True closed-app push notifications are not implemented yet.
+- Web Push now provides true closed-page notifications, but browser/platform behavior still varies (notably mobile installation/permission rules) and requires real-device testing.
 - The arcade server still uses six historical intermission slot IDs for persistence compatibility; new cabinet rotation should eventually become versioned server-side.
 - Admin analytics derive largely from existing persisted state and completions; a dedicated product-event ledger is future work.
 - Director latency/reliability remains an important ongoing focus; retries are recoverable but generation should continue to be profiled and optimized.
@@ -769,9 +804,10 @@ Every meaningful implementation pass should preserve these principles:
 
 ### Social
 
-- evaluate true Web Push after browser-notification behavior is proven useful;
-- improve invite conversion/partner waiting UX;
-- eventually support richer asynchronous partner status.
+- measure Web Push opt-in/delivery behavior on actual desktop and mobile devices;
+- complete SES sender/domain verification before enabling email in staging/production;
+- verify AWS SMS production access/cost controls before broad SMS use;
+- improve invite conversion/partner waiting UX and eventually support richer asynchronous partner status.
 
 ### Story longevity
 
@@ -785,7 +821,10 @@ Explore episodic/persistent-world systems such as:
 
 ### Arcade
 
-The framework is mature enough to pause feature growth and return to cabinets opportunistically. New games should favor reusable engines and enter Arcade Lab before live rotation.
+- playtest the six Pass 34 cabinets in Admin Arcade Lab before publishing them broadly;
+- use the persistent PUSH/PULL controls instead of redeploying merely to change the player-facing Arcade catalog;
+- keep new cabinets lab-first and prefer reusable timing/card/grid engines;
+- a later arcade-networking pass may add true shared cabinet state for direct Battleship/card/etc. player-vs-player sessions.
 
 ---
 
@@ -798,13 +837,15 @@ This is intentionally short. The historical numbered changelog files remain an a
 - **Pass 23 — Character Sheet UI:** RPG dossier, grouped Skills, Talent presentation, consistent controls.
 - **Pass 24 / 24A — Advancement:** robust queued multi-point allocation and explicit Attribute/Skill/Talent currency labels.
 - **Pass 25 — Shareable Invites:** `/join/:roomCode`, native share sheet, copy/text/email, auth/Hero creation return flow.
-- **Pass 26 — Partner Notifications:** joined/locked/your-turn/results/finale in-app + background browser notifications.
+- **Pass 26 — Partner Notifications:** initial joined/locked/your-turn/results/finale in-app notification groundwork before true closed-page delivery arrived in Pass 33.
 - **Pass 27 — Master Documentation:** canonical `PROJECT_MASTER.md` exposed through the protected Admin documentation console.
 - **Pass 28 / 28A — Scene ASCII Pipeline:** deterministic story-aware scene art replaced runtime placeholders; 28A reapplies the art integration on the current session/QTE/scaling codebase.
 - **Pass 29A — Arcade Pacing Polish:** compact non-obstructive feedback for continuous action games, longer between-round breathing room, and escalating/risk-reward Highway 84 driving.
 - **Pass 29B — Public Site / Home / Footer Cleanup:** rebuilt product-first homepage, public Rulebook, responsive anonymous/authenticated navigation, unified auth presentation, real public footer, legal/product notices, and deploy-visible frontend build fingerprint.
 - **Pass 31 — Story Clarity + Contextual QTE Progression:** novel-like grounded narration rules, Director-authored scene-coupled QTEs with precommitted answers, real one-round Hero buffs/nerfs, and explicit per-player level-up celebrations.
 - **Pass 32 — Multiplayer UX + Sharing + ASCII Social Language:** room-authorized read-only partner Hero switching, explicit invite/live-moment/ending/Chronicle sharing, centralized terminal reaction vocabulary for chat/presence/notifications, plus randomized Outlier grids and symbols.
+- **Pass 33 — Real Notifications:** persisted account notification preferences, real service-worker Web Push, direct account room invites, optional SES email, verified opt-in AWS SMS, and non-blocking external delivery isolated from authoritative gameplay.
+- **Pass 34 — Arcade Expansion + Publication Control:** Beer Pong, Pixel Hoops, Blackjack, War, Radar Fleet, and Mahjong Match join the admin lab; persistent admin PUSH/PULL controls now determine which cabinets appear in the player-facing Arcade without requiring a redeploy.
 
 ---
 

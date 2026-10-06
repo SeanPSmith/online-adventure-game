@@ -74,6 +74,10 @@ if (config.enableBackendStack) {
       database: data.database,
       databaseSecret: data.databaseSecret,
       openAiApiKeySecret: data.openAiApiKeySecret,
+      notificationEmailFrom: config.notificationEmailFrom,
+      notificationPublicBaseUrl: config.notificationPublicBaseUrl,
+      notificationSmsEnabled: config.notificationSmsEnabled,
+      vapidContact: config.vapidContact,
     },
   );
   backend.addDependency(network);

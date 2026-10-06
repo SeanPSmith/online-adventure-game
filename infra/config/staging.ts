@@ -11,6 +11,10 @@ export interface StagingConfig {
   readonly backendDesiredCount: number;
   readonly backendCookieSecure: boolean;
   readonly adminUsernames: readonly string[];
+  readonly notificationEmailFrom: string;
+  readonly notificationPublicBaseUrl: string;
+  readonly notificationSmsEnabled: boolean;
+  readonly vapidContact: string;
 }
 
 export const stagingConfig: StagingConfig = {
@@ -37,4 +41,14 @@ export const stagingConfig: StagingConfig = {
   // durable admin/author/publish permission on startup. Admin rights are never
   // delegable from the web control room.
   adminUsernames: ["SeanSteezy"],
+
+  // Real notification channels. Web Push needs no AWS messaging product and
+  // creates its VAPID key in the durable application database. SES remains
+  // disabled until a verified From address is deliberately supplied during
+  // the notification-infrastructure deploy. SMS is opt-in and requires phone
+  // verification before gameplay texts can be sent.
+  notificationEmailFrom: process.env.TOT_NOTIFICATION_EMAIL_FROM?.trim() ?? "",
+  notificationPublicBaseUrl: process.env.TOT_PUBLIC_BASE_URL?.trim() ?? "",
+  notificationSmsEnabled: true,
+  vapidContact: process.env.TOT_VAPID_CONTACT?.trim() ?? "mailto:push@example.com",
 };

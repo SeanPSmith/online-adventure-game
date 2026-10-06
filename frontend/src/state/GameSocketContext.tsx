@@ -21,7 +21,7 @@ import type {
   PlayerNotificationPayload,
 } from "../services/game";
 import {
-  deliverBrowserNotification,
+  getNotificationSettings,
   notificationKindEnabled,
   readNotificationPreferences,
 } from "../services/notifications";
@@ -114,7 +114,6 @@ export function GameSocketProvider({ children }: { children: ReactNode }) {
         }, 9000);
       }
 
-      deliverBrowserNotification(payload, preferences);
     };
 
     socket.on("connect", onConnect);
@@ -126,6 +125,9 @@ export function GameSocketProvider({ children }: { children: ReactNode }) {
     socket.on("player_notification", onPlayerNotification);
 
     connectGameSocket();
+    // Keep the synchronous local cache aligned with the authenticated account
+    // so socket notices use the same event preferences as closed-page delivery.
+    void getNotificationSettings().catch(() => undefined);
 
     if (socket.connected) {
       setConnected(true);

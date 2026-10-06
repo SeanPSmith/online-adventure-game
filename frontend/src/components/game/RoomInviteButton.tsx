@@ -1,5 +1,7 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { useModal } from "../../state/ModalContext";
+import { getGameSocket } from "../../services/socket";
+import type { RoomInviteAck } from "../../services/game";
 
 function roomInviteUrl(roomCode: string) {
   const code = roomCode.trim().toUpperCase();
@@ -18,8 +20,33 @@ function copyFallback(value: string) {
   document.body.removeChild(input);
 }
 
+function sendDirectInvite(roomCode: string, identifier: string) {
+  return new Promise<RoomInviteAck>((resolve, reject) => {
+    const socket = getGameSocket();
+    if (!socket.connected) {
+      reject(new Error("The live game connection is offline."));
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      reject(new Error("The invite request timed out."));
+    }, 8000);
+
+    socket.emit(
+      "send_room_invite",
+      { room_code: roomCode, identifier },
+      (response) => {
+        window.clearTimeout(timer);
+        resolve(response);
+      },
+    );
+  });
+}
+
 function InviteShareBody({ roomCode, adventureTitle }: { roomCode: string; adventureTitle?: string }) {
   const [status, setStatus] = useState("");
+  const [identifier, setIdentifier] = useState("");
+  const [sending, setSending] = useState(false);
   const code = roomCode.trim().toUpperCase();
   const url = useMemo(() => roomInviteUrl(code), [code]);
   const title = adventureTitle ? `Join ${adventureTitle}` : "Join my Tales of Two adventure";
@@ -55,6 +82,27 @@ function InviteShareBody({ roomCode, adventureTitle }: { roomCode: string; adven
     }
   }
 
+  async function directInvite(event: FormEvent) {
+    event.preventDefault();
+    const target = identifier.trim();
+    if (!target) {
+      setStatus(":/ ENTER A TALES OF TWO USERNAME OR EMAIL");
+      return;
+    }
+
+    setSending(true);
+    setStatus("");
+    try {
+      const response = await sendDirectInvite(code, target);
+      setStatus(response.ok ? `(^_^)/ ${response.message}` : `:/ ${response.message}`);
+      if (response.ok) setIdentifier("");
+    } catch (reason) {
+      setStatus(`:/ ${reason instanceof Error ? reason.message : "INVITE FAILED"}`);
+    } finally {
+      setSending(false);
+    }
+  }
+
   return (
     <div className="room-invite-modal-body">
       <div className="room-invite-code-block">
@@ -83,9 +131,34 @@ function InviteShareBody({ roomCode, adventureTitle }: { roomCode: string; adven
         </a>
       </div>
 
+      <form className="room-direct-invite" onSubmit={(event) => void directInvite(event)}>
+        <div>
+          <span className="eyebrow">REAL ACCOUNT PING</span>
+          <p className="muted-copy">
+            Send this room through Tales of Two itself. If your partner has Web Push,
+            email, or SMS enabled, the server can reach them even when this page is closed.
+          </p>
+        </div>
+        <div className="room-direct-invite-controls">
+          <input
+            className="input"
+            type="text"
+            autoComplete="off"
+            value={identifier}
+            onChange={(event) => setIdentifier(event.target.value)}
+            placeholder="USERNAME OR EMAIL"
+            aria-label="Partner username or email"
+            maxLength={254}
+          />
+          <button className="button button-primary" type="submit" disabled={sending}>
+            {sending ? "SENDING..." : "PING ACCOUNT"}
+          </button>
+        </div>
+      </form>
+
       <p className="muted-copy room-invite-help">
-        On phones, SHARE opens the device share sheet so installed apps such as Messages,
-        Mail, Snapchat, and other share targets can appear when the browser supports them.
+        SHARE uses your device share sheet. PING ACCOUNT is different: it targets an existing
+        Tales of Two account and uses that player's notification preferences.
       </p>
 
       {status ? <div className="system-notice room-invite-status">{status}</div> : null}

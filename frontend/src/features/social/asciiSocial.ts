@@ -93,6 +93,7 @@ export function presenceFace(online: boolean, ready: boolean) {
 }
 
 export function notificationFace(kind: string) {
+  if (kind === "room_invite") return "(^_^)/";
   if (kind === "partner_joined") return "o/";
   if (kind === "your_turn") return ">_>";
   if (kind === "partner_locked") return "(•̀ᴗ•́)و";

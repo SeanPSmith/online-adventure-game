@@ -32,8 +32,28 @@ from app.auth.service import (
     auth_service,
 )
 
+from app.auth.store import (
+    auth_store,
+)
+
 from app.auth.socket_auth import (
     socket_auth,
+)
+
+from app.notifications.routes import (
+    router as notification_router,
+)
+
+from app.arcade.routes import (
+    router as arcade_router,
+)
+
+from app.arcade.store import (
+    arcade_publication_store,
+)
+
+from app.notifications.service import (
+    notification_service,
 )
 
 from app.authoring.routes import (
@@ -163,6 +183,12 @@ _user_sids: dict[
     str,
     set[str],
 ] = {}
+
+
+# Direct account invites are intentionally throttled. A share link can be sent
+# as often as a player likes, but server-originated push/email/SMS should not
+# become a spam button or surprise billing source.
+_invite_notification_cooldowns: dict[tuple[str, str, str], float] = {}
 
 
 # Socket.IO choice handlers can overlap. A room lock guarantees that
@@ -315,6 +341,10 @@ async def lifespan(
 
     await auth_service.initialize()
 
+    await notification_service.initialize()
+
+    await arcade_publication_store.initialize()
+
     await authoring_store.initialize()
 
     await generated_adventure_store.initialize()
@@ -335,6 +365,8 @@ async def lifespan(
     socket_auth.clear()
 
     _user_sids.clear()
+
+    _invite_notification_cooldowns.clear()
 
     _turn_resolution_locks.clear()
 
@@ -361,6 +393,7 @@ async def lifespan(
     finally:
         for room_code in list(_director_tasks):
             cancel_director_task(room_code)
+        await notification_service.shutdown()
 
 
 # =========================================================
@@ -382,6 +415,16 @@ fastapi_app = FastAPI(
 
 fastapi_app.include_router(
     auth_router
+)
+
+
+fastapi_app.include_router(
+    notification_router
+)
+
+
+fastapi_app.include_router(
+    arcade_router
 )
 
 
@@ -1095,11 +1138,12 @@ async def send_player_notification(
     user_id: str,
     kind: str,
     room_code: str,
-    character_id: str,
+    character_id: str = "",
     title: str,
     message: str,
     adventure_title: str = "",
     actor_name: str = "",
+    route: str | None = None,
 ) -> None:
     """Send lightweight player-facing activity to every connected tab.
 
@@ -1119,7 +1163,12 @@ async def send_player_notification(
         "adventure_title": adventure_title,
         "actor_name": actor_name,
         "route": (
-            f"/game/adventure/{room_code}?hero={character_id}"
+            route
+            or (
+                f"/game/adventure/{room_code}?hero={character_id}"
+                if character_id
+                else f"/join/{room_code}"
+            )
         ),
     }
 
@@ -1134,6 +1183,15 @@ async def send_player_notification(
             payload,
             to=target_sid,
         )
+
+    # Socket notices only exist while a page is connected. Web Push / SES /
+    # optional SMS use the same payload so closed-page and asynchronous co-op
+    # receive the exact same event semantics. Delivery failures are isolated
+    # from authoritative gameplay and never roll back a turn.
+    notification_service.queue_delivery(
+        user_id=user_id,
+        payload=payload,
+    )
 
 
 # =========================================================
@@ -1955,6 +2013,86 @@ async def connect(
         sid,
         user.user_id,
     )
+
+
+
+
+# =========================================================
+# DIRECT ROOM INVITE
+# =========================================================
+
+@sio.event
+async def send_room_invite(
+    sid,
+    data,
+):
+    user = await require_socket_user(sid)
+    if user is None:
+        return {
+            "ok": False,
+            "message": "Sign in again before sending an invite.",
+        }
+
+    payload = data if isinstance(data, dict) else {}
+    room_code = str(payload.get("room_code", "")).strip().upper()
+    identifier = str(payload.get("identifier", "")).strip()
+
+    room = rooms.room_by_code(room_code)
+    if room is None:
+        return {"ok": False, "message": "That room is no longer available."}
+
+    sender = room.player_for_user(user.user_id)
+    if sender is None:
+        return {"ok": False, "message": "You are not a member of that room."}
+
+    if room.play_mode != "coop":
+        return {"ok": False, "message": "Direct partner invites are only available for co-op rooms."}
+
+    if room.is_full:
+        return {"ok": False, "message": "That room already has its full party."}
+
+    if not identifier or len(identifier) > 254:
+        return {"ok": False, "message": "Enter your partner's Tales of Two username or email."}
+
+    target = await auth_store.get_user_by_identifier(identifier)
+
+    # Keep account lookup non-enumerating. The sender gets the same success
+    # wording whether an identifier exists or not. Existing active accounts
+    # receive the notification through whichever channels they opted into.
+    generic_success = {
+        "ok": True,
+        "message": "If that Tales of Two account exists, the invite has been sent.",
+    }
+
+    if target is None or not bool(target.is_active):
+        return generic_success
+
+    if target.user_id == user.user_id:
+        return {"ok": False, "message": "Invite another Tales of Two account, not yourself."}
+
+    if room.player_for_user(target.user_id) is not None:
+        return {"ok": False, "message": "That player is already in this room."}
+
+    cooldown_key = (user.user_id, target.user_id, room.code)
+    now = time.monotonic()
+    previous = _invite_notification_cooldowns.get(cooldown_key, 0.0)
+    if now - previous < 30.0:
+        return {"ok": False, "message": "That invite was just sent. Give it a few seconds."}
+    _invite_notification_cooldowns[cooldown_key] = now
+
+    session = game_sessions.get_or_create(room.code)
+    adventure_title = str(getattr(session.adventure, "title", "this adventure"))
+    await send_player_notification(
+        user_id=target.user_id,
+        kind="room_invite",
+        room_code=room.code,
+        title="ROOM INVITE",
+        message=f"{sender.name} invited you to join {adventure_title}.",
+        adventure_title=adventure_title,
+        actor_name=sender.name,
+        route=f"/join/{room.code}",
+    )
+    return generic_success
 
 
 # =========================================================

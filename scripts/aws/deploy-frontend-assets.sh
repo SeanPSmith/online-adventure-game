@@ -65,6 +65,16 @@ aws s3 cp "$FRONTEND_DIR/dist/index.html" "s3://$BUCKET/index.html" \
   --content-type "text/html" \
   --cache-control "no-cache,no-store,must-revalidate"
 
+# Service workers must revalidate. Giving this file the same one-year immutable
+# policy as hashed Vite assets can pin an old push handler after a deploy.
+if [[ -f "$FRONTEND_DIR/dist/notification-sw.js" ]]; then
+  aws s3 cp "$FRONTEND_DIR/dist/notification-sw.js" "s3://$BUCKET/notification-sw.js" \
+    --region "$REGION" \
+    --profile "$PROFILE" \
+    --content-type "application/javascript" \
+    --cache-control "no-cache,no-store,must-revalidate"
+fi
+
 echo "Invalidating CloudFront..."
 INVALIDATION_ID="$(aws cloudfront create-invalidation \
   --distribution-id "$DISTRIBUTION_ID" \

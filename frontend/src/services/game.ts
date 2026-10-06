@@ -492,6 +492,7 @@ export interface ServerToClientEvents {
 
 
 export type PlayerNotificationKind =
+  | "room_invite"
   | "partner_joined"
   | "partner_locked"
   | "your_turn"
@@ -509,8 +510,17 @@ export interface PlayerNotificationPayload {
   route: string;
 }
 
+export interface RoomInviteAck {
+  ok: boolean;
+  message: string;
+}
+
 export interface ClientToServerEvents {
   request_adventure_catalog: (payload?: Record<string, never>) => void;
+  send_room_invite: (
+    payload: { room_code: string; identifier: string },
+    ack: (response: RoomInviteAck) => void,
+  ) => void;
   create_room: (payload: { character_id: string; adventure_id: string }) => void;
   join_room: (payload: { character_id: string; room_code: string }) => void;
   resume_adventure: (payload: { room_code: string; character_id: string }) => void;

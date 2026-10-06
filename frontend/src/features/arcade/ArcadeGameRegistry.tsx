@@ -6,12 +6,18 @@ import { PongGame } from "../adventure/PongGame";
 import { ProjectileDuelGame } from "../adventure/ProjectileDuelGame";
 import { WordPuzzleGame } from "../adventure/WordPuzzleGame";
 import type { ArcadeGameDefinition, ArcadeGameProps } from "./arcadeTypes";
+import { BasketballGame } from "./games/BasketballGame";
+import { BattleshipGame } from "./games/BattleshipGame";
+import { BeerPongGame } from "./games/BeerPongGame";
+import { BlackjackGame } from "./games/BlackjackGame";
 import { BowlingGame } from "./games/BowlingGame";
 import { BrickBreakerGame } from "./games/BrickBreakerGame";
 import { GolfGame } from "./games/GolfGame";
 import { LightCyclesGame } from "./games/LightCyclesGame";
+import { MahjongMatchGame } from "./games/MahjongMatchGame";
 import { RoadRacerGame } from "./games/RoadRacerGame";
 import { SnakeGame } from "./games/SnakeGame";
+import { WarCardGame } from "./games/WarCardGame";
 
 function OutlierAdapter(props: ArcadeGameProps) {
   return <FindOutlierGame {...props} />;
@@ -186,6 +192,78 @@ export const ARCADE_GAMES: readonly ArcadeGameDefinition[] = [
     controls: "SPACE / ENTER / TAP",
     live: false,
     component: BowlingGame,
+  },
+  {
+    id: "beer_pong",
+    title: "BEER PONG",
+    category: "timing",
+    description: "Sweep the aim line, sink the rack, and chase clean center-cup throws.",
+    supportsSolo: true,
+    supportsCoop: true,
+    supportsTouch: true,
+    controls: "TAP / CLICK",
+    live: false,
+    component: BeerPongGame,
+  },
+  {
+    id: "basketball",
+    title: "PIXEL HOOPS",
+    category: "sport",
+    description: "Timing-window basketball with two-pointers, threes, and streak bonuses.",
+    supportsSolo: true,
+    supportsCoop: true,
+    supportsTouch: true,
+    controls: "TAP / CLICK",
+    live: false,
+    component: BasketballGame,
+  },
+  {
+    id: "blackjack",
+    title: "BLACKJACK",
+    category: "strategy",
+    description: "Fast dealer blackjack: hit, stand, survive 21, and keep the table moving.",
+    supportsSolo: true,
+    supportsCoop: true,
+    supportsTouch: true,
+    controls: "HIT / STAND",
+    live: false,
+    component: BlackjackGame,
+  },
+  {
+    id: "war_cards",
+    title: "WAR // CARDS",
+    category: "strategy",
+    description: "High-card warfare with escalating tie stakes and zero intellectual dignity.",
+    supportsSolo: true,
+    supportsCoop: true,
+    supportsTouch: true,
+    controls: "FLIP",
+    live: false,
+    component: WarCardGame,
+  },
+  {
+    id: "battleship",
+    title: "RADAR FLEET",
+    category: "strategy",
+    description: "A compact Battleship-style radar hunt against a hidden three-ship fleet.",
+    supportsSolo: true,
+    supportsCoop: true,
+    supportsTouch: true,
+    controls: "GRID / TAP",
+    live: false,
+    component: BattleshipGame,
+  },
+  {
+    id: "mahjong_match",
+    title: "MAHJONG MATCH",
+    category: "puzzle",
+    description: "Mahjong-themed memory matching with streak scoring and fast tile-wall resets.",
+    supportsSolo: true,
+    supportsCoop: true,
+    supportsTouch: true,
+    controls: "TILE / TAP",
+    live: false,
+    component: MahjongMatchGame,
   },
   {
     id: "golf",

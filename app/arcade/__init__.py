@@ -1,0 +1,1 @@
+"""Arcade publication controls."""

@@ -6044,3 +6044,391 @@ select:focus-visible {
     font-size: 9px;
   }
 }
+
+/* =========================================================
+   PASS 33 // REAL NOTIFICATIONS + DIRECT ACCOUNT INVITES
+========================================================= */
+
+.notification-settings-intro {
+  margin: 0;
+  max-width: 78ch;
+}
+
+.notification-event-grid-four {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.notification-phone-setup {
+  width: min(100%, 430px);
+  display: grid;
+  gap: 8px;
+}
+
+.notification-phone-line {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.notification-phone-line .input {
+  min-width: 0;
+}
+
+.terminal-toggle.is-disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.room-direct-invite {
+  border-top: 1px solid var(--green-line);
+  border-bottom: 1px solid var(--green-line);
+  padding: 14px 0;
+  display: grid;
+  gap: 10px;
+}
+
+.room-direct-invite p {
+  margin: 5px 0 0;
+  line-height: 1.5;
+}
+
+.room-direct-invite-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.room-direct-invite-controls .input {
+  min-width: 0;
+}
+
+@media (max-width: 720px) {
+  .notification-event-grid-four {
+    grid-template-columns: 1fr;
+  }
+
+  .notification-phone-line,
+  .room-direct-invite-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .notification-phone-line .button,
+  .room-direct-invite-controls .button {
+    width: 100%;
+  }
+}
+
+/* =========================================================
+   PASS 34 // ARCADE EXPANSION + PUBLICATION CONTROLS
+========================================================= */
+
+.arcade-lab-list-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 5px;
+  align-items: stretch;
+}
+
+.arcade-lab-list-row.is-active .arcade-lab-list-item {
+  border-color: var(--green);
+  background: rgba(72, 255, 112, 0.08);
+}
+
+.arcade-publish-toggle {
+  min-width: 58px;
+  border: 1px solid var(--green-line-dim);
+  background: #010501;
+  color: var(--green-dim);
+  font: inherit;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 2px;
+}
+
+.arcade-publish-toggle span {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.arcade-publish-toggle.is-live {
+  color: var(--green-soft);
+  border-color: var(--green);
+  background: rgba(72, 255, 112, 0.08);
+}
+
+.arcade-publish-toggle:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.arcade-catalog-error {
+  margin-bottom: 12px;
+}
+
+.arcade-aim-track {
+  position: relative;
+  width: min(520px, 100%);
+  height: 30px;
+  border: 1px solid var(--green-line-dim);
+  background: #010501;
+  overflow: hidden;
+}
+
+.arcade-aim-track::before {
+  content: "";
+  position: absolute;
+  inset: 3px 42% 3px 42%;
+  background: rgba(72, 255, 112, 0.13);
+  border-inline: 1px solid var(--green);
+}
+
+.arcade-aim-track i {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  width: 3px;
+  background: var(--green-soft);
+  transform: translateX(-50%);
+  box-shadow: 0 0 8px rgba(72, 255, 112, 0.45);
+}
+
+.arcade-aim-track b {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--green);
+}
+
+.beer-pong-game,
+.basketball-game,
+.card-cabinet,
+.battleship-game,
+.mahjong-match-game {
+  min-height: 390px;
+  padding: 14px;
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  position: relative;
+}
+
+.beer-pong-table,
+.basketball-court {
+  min-height: 235px;
+  border: 1px solid var(--green-line-dim);
+  background: radial-gradient(circle at 50% 38%, rgba(72, 255, 112, 0.08), transparent 42%), #010501;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 20px;
+  padding: 20px;
+}
+
+.beer-pong-rack {
+  width: min(300px, 90%);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  justify-items: center;
+  transform: perspective(420px) rotateX(18deg);
+}
+
+.beer-pong-rack span {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 2px solid var(--green-line-dim);
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+}
+
+.beer-pong-rack .is-cup {
+  color: var(--green-soft);
+  border-color: var(--green);
+  background: rgba(72, 255, 112, 0.08);
+}
+
+.beer-pong-rack .is-down {
+  opacity: 0.25;
+}
+
+.pixel-hoop {
+  display: grid;
+  place-items: center;
+  color: var(--green-soft);
+  font-weight: 900;
+  font-size: clamp(20px, 5vw, 42px);
+  line-height: 0.9;
+}
+
+.pixel-hoop b {
+  font-size: 0.72em;
+  color: var(--green-dim);
+}
+
+.card-table {
+  border: 1px solid var(--green-line-dim);
+  min-height: 220px;
+  padding: 18px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  background: #010501;
+}
+
+.playing-card-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.playing-card {
+  width: 52px;
+  height: 72px;
+  border: 1px solid var(--green);
+  background: rgba(72, 255, 112, 0.06);
+  color: var(--green-soft);
+  display: grid;
+  place-items: center;
+  font-size: 17px;
+  font-weight: 900;
+}
+
+.playing-card.is-large {
+  width: 76px;
+  height: 104px;
+  font-size: 22px;
+}
+
+.arcade-choice-row {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.war-table {
+  min-height: 230px;
+  border: 1px solid var(--green-line-dim);
+  background: #010501;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  justify-items: center;
+  gap: 18px;
+  padding: 22px;
+}
+
+.war-table > div {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  color: var(--green-dim);
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.battleship-grid {
+  width: min(430px, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.battleship-grid button {
+  aspect-ratio: 1;
+  min-width: 0;
+  border: 1px solid var(--green-line-dim);
+  background: #010501;
+  color: var(--green-dim);
+  font: inherit;
+  font-size: clamp(8px, 2vw, 11px);
+  cursor: crosshair;
+}
+
+.battleship-grid button:hover,
+.battleship-grid button:focus-visible {
+  border-color: var(--green);
+  outline: none;
+}
+
+.battleship-grid button.is-hit {
+  color: var(--green-soft);
+  background: rgba(72, 255, 112, 0.17);
+  border-color: var(--green);
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.battleship-grid button.is-miss {
+  opacity: 0.5;
+}
+
+.mahjong-grid {
+  width: min(480px, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.mahjong-grid button {
+  aspect-ratio: 0.82;
+  border: 1px solid var(--green-line-dim);
+  background: #010501;
+  color: var(--green-dim);
+  font: inherit;
+  font-size: clamp(20px, 6vw, 34px);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.mahjong-grid button.is-open,
+.mahjong-grid button.is-matched {
+  color: var(--green-soft);
+  border-color: var(--green);
+  background: rgba(72, 255, 112, 0.08);
+}
+
+.mahjong-grid button.is-matched {
+  opacity: 0.5;
+}
+
+@media (max-width: 620px) {
+  .arcade-lab-list-row {
+    grid-template-columns: minmax(0, 1fr) 54px;
+  }
+
+  .beer-pong-game,
+  .basketball-game,
+  .card-cabinet,
+  .battleship-game,
+  .mahjong-match-game {
+    min-height: 0;
+    padding: 10px;
+  }
+
+  .card-table {
+    grid-template-columns: 1fr;
+  }
+
+  .war-table {
+    gap: 8px;
+    padding: 14px 8px;
+  }
+
+  .playing-card.is-large {
+    width: 58px;
+    height: 82px;
+  }
+}

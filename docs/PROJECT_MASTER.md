@@ -4,7 +4,7 @@
 > Update or rewrite the relevant sections in this file as the product changes; do not create another numbered changelog copy.
 
 **Last consolidated:** 2026-10-06  
-**Current local baseline:** through Pass 38H (Arcade play modes / hotseat multiplayer / terrain ballistics + side-view Hoops hotfix)  
+**Current local baseline:** through Pass 38I (variable Hoops geometry + isometric Beer Pong depth/readability hotfix)  
 **Public site:** `https://onlinetextadventure.com`  
 **Primary release command:** `./scripts/release-staging.sh "Describe the release"`
 
@@ -429,8 +429,8 @@ Arcade Lab additionally contains cabinets such as:
 - Light//Cycles
 - retired/experimental Archery
 - Hangman // VGA — dedicated keyboard/touch Hangman split out from the combined Word Cabinet;
-- Beer Pong — top-down physics table with horizontal aim, vertical power, real projectile arc, table/rim bounces, cup collision, and reracks;
-- Pixel Hoops — two-control horizontal aim + vertical power shooting where simulated ball motion, rim contact, backboard rebounds, and basket capture determine the result;
+- Beer Pong — isometric/three-quarter physics table with horizontal aim, vertical power, a visible projected arc/landing cue, ball shadow, real table/rim bounces, 1-2-3 cup collision, and reracks;
+- Pixel Hoops — side-view ANGLE + vertical POWER shooting with deterministic per-shot two-point geometry variation: shooter position, basket horizontal position, and rim height move between attempts while simulated ball motion, rim contact, backboard rebounds, and basket capture determine the result;
 - Blackjack — dealer blackjack with visible shoe/deal animation and explicit Blackjack/Win/Push/Bust/Loss presentation;
 - War // Cards — persistent face-down player/house decks, animated top-card draws, real deck counts, war pots, and explicit battle/game outcomes;
 - Radar Fleet — Battleship-style hidden-fleet hunting with a visible fleet manifest, ship lengths, hull-hit progress, shots fired, and sunk/afloat state;
@@ -845,7 +845,7 @@ Explore episodic/persistent-world systems such as:
 - playtest the Pass 36 cabinet revisions in Admin Arcade Lab before publishing them broadly;
 - playtest the Pass 37 physics/readability revisions: Hoops rim/glass forgiveness, Beer Pong cup/rim/table collision tuning, Bowling pin-body tuning, Radar Fleet clarity, and Mahjong memory readability;
 - playtest Pass 38 SOLO / 2 PLAYER hotseat flow across every published cabinet and tune Gorilla Artillery terrain/target relocation difficulty;
-- verify Pixel Hoops `REV 38H` side-view angle/power tuning on desktop and mobile, especially 2PT/3PT make windows, backboard response, rim bounce, and shot pacing;
+- verify Pixel Hoops `REV 38I` variable two-point shot geometry on desktop/mobile and confirm P1/P2 receive matching seeded layouts; verify Beer Pong `REV 38I` isometric depth cues make arc height, landing point, short/long misses, and the 1-2-3 rack immediately readable;
 - continue using persistent PUSH/PULL controls instead of redeploying merely to change the player-facing Arcade catalog;
 - keep new cabinets lab-first and prefer reusable feedback/card/projectile/grid engines;
 - continue adding round-to-round variety so cabinets remain fun after the first few plays;
@@ -875,6 +875,7 @@ This is intentionally short. The historical numbered changelog files remain an a
 - **Pass 37 — Arcade Physics / Gameplay Readability:** replaces rejected Hoops/Beer Pong timing concepts with horizontal-aim + vertical-power physics play, rebuilds Bowling as a top-down collision-driven lane while retaining spin, and adds explicit fleet/pair state communication to Radar Fleet and Mahjong Match.
 - **Pass 38 — Arcade Modes + Projectile Variety:** formalizes solo/two-player/multiplayer-style metadata for every cabinet, adds standalone P1/P2 hotseat matches with score banks and rematches, makes co-op intermissions explicitly present their multiplayer style, and upgrades Gorilla Artillery with seeded variable terrain, terrain collision, moving targets, and new battlefields after knockouts.
 - **Pass 38H — Pixel Hoops Side-View Hotfix:** replaces the rejected oblique/lateral-aim Hoops cabinet with a side-view basketball simulation using an ANGLE meter, vertical POWER meter, visible projectile arc, physical backboard/front-rim/back-rim collisions, floor bounce, and physics-driven makes/misses. No release-timing gate is used.
+- **Pass 38I — Hoops Geometry + Isometric Beer Pong:** varies Pixel Hoops shooter/rim geometry every attempt using a deterministic turn/shot seed while keeping two-control ANGLE + POWER physics; reprojects Beer Pong into a three-quarter isometric table without changing world-space collision rules, adding perspective guides, predicted arc/landing marker, ball shadow, and flight trail so depth and shot outcomes are legible.
 
 ---
 

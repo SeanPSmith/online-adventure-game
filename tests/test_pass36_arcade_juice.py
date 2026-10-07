@@ -37,16 +37,19 @@ def test_hoops_uses_side_view_angle_power_physics_shot_cadence() -> None:
     assert "SWISH!" in game
 
 
-def test_beer_pong_is_top_down_aim_power_physics_play() -> None:
+def test_beer_pong_is_isometric_aim_power_physics_play() -> None:
     game = read("frontend/src/features/arcade/games/BeerPongGame.tsx")
 
     assert "AimPowerShotControls" in game
-    assert "TOP-DOWN PHYSICS TABLE" in game
+    assert "ISOMETRIC PHYSICS TABLE" in game
     assert "HORIZONTAL AIM" in game
     assert "VERTICAL POWER" in game
     assert "ball.tableBounces" in game
     assert "ball.rimHits" in game
     assert "requestAnimationFrame" in game
+    assert "projectTablePoint" in game
+    assert "predictedTrajectory" in game
+    assert "ARC + SHADOW SHOW DEPTH" in game
 
 
 def test_score_feedback_is_host_level_for_cabinets_without_custom_feedback() -> None:

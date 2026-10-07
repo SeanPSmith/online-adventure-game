@@ -5,10 +5,6 @@ import { ArcadeFeedback, useArcadeFeedback } from "../engine/ArcadeFeedback";
 const WIDTH = 640;
 const HEIGHT = 360;
 const FLOOR_Y = 318;
-const RIM_Y = 150;
-const FRONT_RIM_X = 502;
-const BACK_RIM_X = 536;
-const BACKBOARD_X = 558;
 const GRAVITY = 420;
 const BALL_RADIUS = 8;
 const RIM_RADIUS = 5;
@@ -18,6 +14,16 @@ const ANGLE_MAX = 68;
 type ShotPhase = "angle" | "power" | "resolving" | "result";
 
 type TrailPoint = { x: number; y: number };
+
+type CourtGeometry = {
+  shooterX: number;
+  frontRimX: number;
+  backRimX: number;
+  backboardX: number;
+  rimY: number;
+  shotLabel: string;
+  hoopLabel: string;
+};
 
 type BallState = {
   x: number;
@@ -44,6 +50,35 @@ function pingPong(elapsed: number, period: number) {
   return n <= 0.5 ? n * 2 : (1 - n) * 2;
 }
 
+function seeded01(seed: number) {
+  let value = seed | 0;
+  value ^= value << 13;
+  value ^= value >>> 17;
+  value ^= value << 5;
+  return (value >>> 0) / 4294967295;
+}
+
+function courtGeometryForShot(turnNumber: number, shotNumber: number): CourtGeometry {
+  const base = ((turnNumber + 17) * 1103515245) ^ (shotNumber * 2654435761);
+  const r1 = seeded01(base ^ 0x45d9f3b);
+  const r2 = seeded01(base ^ 0x27d4eb2d);
+  const r3 = seeded01(base ^ 0x165667b1);
+
+  // Every attempt is a reachable two-point shot, but the shooter and basket move.
+  // The same turnNumber + shotNumber produces the same geometry for both players.
+  const shooterX = 82 + Math.round(r1 * 112);
+  const frontRimX = 468 + Math.round(r2 * 48);
+  const backRimX = frontRimX + 34;
+  const backboardX = backRimX + 22;
+  const rimY = 134 + Math.round(r3 * 28);
+  const span = frontRimX - shooterX;
+
+  const shotLabel = span > 408 ? "DEEP TWO" : span > 348 ? "MIDRANGE" : "SHORT TWO";
+  const hoopLabel = rimY < 143 ? "HIGH GLASS" : rimY > 153 ? "LOW RIM" : "CENTER RIM";
+
+  return { shooterX, frontRimX, backRimX, backboardX, rimY, shotLabel, hoopLabel };
+}
+
 function collideCircle(ball: BallState, cx: number, cy: number, radius: number) {
   const dx = ball.x - cx;
   const dy = ball.y - cy;
@@ -67,7 +102,7 @@ function collideCircle(ball: BallState, cx: number, cy: number, radius: number) 
   return true;
 }
 
-export function BasketballGame({ score, onScoreChange, storyReady }: ArcadeGameProps) {
+export function BasketballGame({ score, onScoreChange, storyReady, turnNumber }: ArcadeGameProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const ballRef = useRef<BallState | null>(null);
   const frameRef = useRef<number | null>(null);
@@ -80,19 +115,19 @@ export function BasketballGame({ score, onScoreChange, storyReady }: ArcadeGameP
   const angleRef = useRef(52);
   const lockedAngleRef = useRef(52);
   const powerRef = useRef(0.66);
-  const distanceRef = useRef<2 | 3>(2);
   const streakRef = useRef(0);
   const shotNoRef = useRef(1);
+  const geometryRef = useRef<CourtGeometry>(courtGeometryForShot(turnNumber, 1));
   const resolveBallRef = useRef<(ball: BallState) => void>(() => {});
 
   const [phase, setPhase] = useState<ShotPhase>("angle");
   const [angle, setAngle] = useState(52);
   const [lockedAngle, setLockedAngle] = useState(52);
   const [power, setPower] = useState(0.66);
-  const [distance, setDistance] = useState<2 | 3>(() => (Math.random() < 0.38 ? 3 : 2));
   const [streak, setStreak] = useState(0);
   const [shotNo, setShotNo] = useState(1);
-  const [message, setMessage] = useState("SET THE ARC // THEN SET POWER_");
+  const [geometry, setGeometry] = useState<CourtGeometry>(() => courtGeometryForShot(turnNumber, 1));
+  const [message, setMessage] = useState("NEW SPOT // SET THE ARC // THEN SET POWER_");
   const { feedback, showFeedback } = useArcadeFeedback(1900);
 
   useEffect(() => { scoreRef.current = score; }, [score]);
@@ -100,9 +135,9 @@ export function BasketballGame({ score, onScoreChange, storyReady }: ArcadeGameP
   useEffect(() => { angleRef.current = angle; }, [angle]);
   useEffect(() => { lockedAngleRef.current = lockedAngle; }, [lockedAngle]);
   useEffect(() => { powerRef.current = power; }, [power]);
-  useEffect(() => { distanceRef.current = distance; }, [distance]);
   useEffect(() => { streakRef.current = streak; }, [streak]);
   useEffect(() => { shotNoRef.current = shotNo; }, [shotNo]);
+  useEffect(() => { geometryRef.current = geometry; }, [geometry]);
   useEffect(() => { onScoreChangeRef.current = onScoreChange; }, [onScoreChange]);
   useEffect(() => { storyReadyRef.current = storyReady; }, [storyReady]);
 
@@ -129,25 +164,30 @@ export function BasketballGame({ score, onScoreChange, storyReady }: ArcadeGameP
 
   function resetShot() {
     ballRef.current = null;
+    const nextShot = shotNoRef.current + 1;
+    const nextGeometry = courtGeometryForShot(turnNumber, nextShot);
+    shotNoRef.current = nextShot;
+    geometryRef.current = nextGeometry;
+    setShotNo(nextShot);
+    setGeometry(nextGeometry);
     setPhase("angle");
     phaseStartedRef.current = performance.now();
     setAngle(52);
     setLockedAngle(52);
     setPower(0.66);
-    setDistance(Math.random() < 0.38 ? 3 : 2);
-    setShotNo((value) => value + 1);
-    setMessage(storyReadyRef.current ? "STORY READY // TAKE ONE LAST SHOT_" : "SET THE ARC // THEN SET POWER_");
+    setMessage(storyReadyRef.current ? "STORY READY // TAKE ONE LAST SHOT_" : `${nextGeometry.shotLabel} // ${nextGeometry.hoopLabel} // SET THE ARC_`);
   }
 
   function resolveBall(ball: BallState) {
     if (ball.scored) return;
     ball.scored = true;
     setPhase("result");
+    const currentGeometry = geometryRef.current;
 
     if (ball.made) {
       const nextStreak = streakRef.current + 1;
       const streakBonus = Math.min(4, Math.floor(nextStreak / 3));
-      const award = distanceRef.current + streakBonus;
+      const award = 2 + streakBonus;
       setStreak(nextStreak);
       const nextScore = Math.min(999, scoreRef.current + award);
       scoreRef.current = nextScore;
@@ -155,8 +195,8 @@ export function BasketballGame({ score, onScoreChange, storyReady }: ArcadeGameP
       const swish = ball.rimHits === 0 && ball.glassHits === 0;
       setMessage(`${swish ? "NOTHING BUT NET" : "BUCKET"} // +${award} // STREAK ${nextStreak}_`);
       showFeedback({
-        title: swish ? "SWISH!" : distanceRef.current === 3 ? "THREE!" : "BUCKET!",
-        detail: ball.glassHits ? "OFF THE GLASS" : ball.rimHits ? "FRIENDLY RIM" : `SHOT ${shotNoRef.current}`,
+        title: swish ? "SWISH!" : "BUCKET!",
+        detail: `${currentGeometry.shotLabel} // ${ball.glassHits ? "OFF THE GLASS" : ball.rimHits ? "FRIENDLY RIM" : `SHOT ${shotNoRef.current}`}`,
         delta: award,
         tone: swish ? "great" : "good",
       }, 2050);
@@ -166,13 +206,13 @@ export function BasketballGame({ score, onScoreChange, storyReady }: ArcadeGameP
         ? "OFF GLASS"
         : ball.rimHits
           ? "RIM OUT"
-          : ball.x < FRONT_RIM_X - 30
+          : ball.x < currentGeometry.frontRimX - 30
             ? "SHORT"
-            : ball.x > BACKBOARD_X + 35
+            : ball.x > currentGeometry.backboardX + 35
               ? "LONG"
               : "BRICK";
-      setMessage(`${miss} // ADJUST ANGLE OR POWER_`);
-      showFeedback({ title: miss, detail: `SHOT ${shotNoRef.current} // NO POINTS`, tone: "bad" }, 1900);
+      setMessage(`${miss} // NEW GEOMETRY NEXT SHOT_`);
+      showFeedback({ title: miss, detail: `${currentGeometry.shotLabel} // SHOT ${shotNoRef.current}`, tone: "bad" }, 1900);
     }
 
     resetTimerRef.current = window.setTimeout(resetShot, 2400);
@@ -180,12 +220,9 @@ export function BasketballGame({ score, onScoreChange, storyReady }: ArcadeGameP
 
   resolveBallRef.current = resolveBall;
 
-  function shooterX() {
-    return distanceRef.current === 3 ? 74 : 118;
-  }
-
   function launchBall(finalPower: number) {
-    const x = shooterX() + 22;
+    const currentGeometry = geometryRef.current;
+    const x = currentGeometry.shooterX + 22;
     const y = FLOOR_Y - 64;
     const radians = lockedAngleRef.current * Math.PI / 180;
     const speed = 350 + finalPower * 205;
@@ -206,7 +243,7 @@ export function BasketballGame({ score, onScoreChange, storyReady }: ArcadeGameP
       trail: [],
     };
     setPhase("resolving");
-    setMessage(`SHOT ${shotNoRef.current} // BALL LIVE_`);
+    setMessage(`SHOT ${shotNoRef.current} // ${currentGeometry.shotLabel} // BALL LIVE_`);
   }
 
   function lockShotControl() {
@@ -233,6 +270,7 @@ export function BasketballGame({ score, onScoreChange, storyReady }: ArcadeGameP
       const dt = clamp((now - previous) / 1000, 0, 0.032);
       previous = now;
       const ball = ballRef.current;
+      const court = geometryRef.current;
 
       if (ball && phaseRef.current === "resolving") {
         ball.previousX = ball.x;
@@ -243,39 +281,38 @@ export function BasketballGame({ score, onScoreChange, storyReady }: ArcadeGameP
         ball.trail.push({ x: ball.x, y: ball.y });
         if (ball.trail.length > 18) ball.trail.shift();
 
-        // Backboard: side-view collision against the vertical glass plane.
+        // side-view collision against the vertical glass plane.
         if (
-          ball.x + BALL_RADIUS >= BACKBOARD_X &&
-          ball.previousX + BALL_RADIUS < BACKBOARD_X &&
-          ball.y > 78 &&
-          ball.y < 194
+          ball.x + BALL_RADIUS >= court.backboardX &&
+          ball.previousX + BALL_RADIUS < court.backboardX &&
+          ball.y > court.rimY - 72 &&
+          ball.y < court.rimY + 44
         ) {
-          ball.x = BACKBOARD_X - BALL_RADIUS - 0.5;
+          ball.x = court.backboardX - BALL_RADIUS - 0.5;
           ball.vx = -Math.abs(ball.vx) * 0.68;
           ball.vy *= 0.9;
           ball.glassHits += 1;
         }
 
         // Side-view rim: front and back iron are two physical collision points.
-        const hitFront = collideCircle(ball, FRONT_RIM_X, RIM_Y, RIM_RADIUS);
-        const hitBack = collideCircle(ball, BACK_RIM_X, RIM_Y, RIM_RADIUS);
+        const hitFront = collideCircle(ball, court.frontRimX, court.rimY, RIM_RADIUS);
+        const hitBack = collideCircle(ball, court.backRimX, court.rimY, RIM_RADIUS);
         if ((hitFront || hitBack) && ball.rimHits < 6) ball.rimHits += 1;
 
-        // Basket capture: the ball must physically descend through the opening.
+        // Basket capture: descending ball must physically pass through the rim opening.
         if (
           !ball.made &&
           ball.vy > 0 &&
-          ball.previousY <= RIM_Y &&
-          ball.y > RIM_Y &&
-          ball.x > FRONT_RIM_X + BALL_RADIUS * 0.4 &&
-          ball.x < BACK_RIM_X - BALL_RADIUS * 0.4
+          ball.previousY <= court.rimY &&
+          ball.y > court.rimY &&
+          ball.x > court.frontRimX + BALL_RADIUS * 0.4 &&
+          ball.x < court.backRimX - BALL_RADIUS * 0.4
         ) {
           ball.made = true;
           ball.vx *= 0.26;
           ball.vy *= 0.58;
         }
 
-        // Floor bounce is visual feedback after a miss/make; it is not pre-scored.
         if (ball.y + BALL_RADIUS >= FLOOR_Y) {
           ball.y = FLOOR_Y - BALL_RADIUS;
           if (Math.abs(ball.vy) > 48 && ball.floorBounces < 3) {
@@ -300,7 +337,6 @@ export function BasketballGame({ score, onScoreChange, storyReady }: ArcadeGameP
         }
       }
 
-      // VGA/DOS-style side-view gym.
       const sky = ctx.createLinearGradient(0, 0, 0, FLOOR_Y);
       sky.addColorStop(0, "#071224");
       sky.addColorStop(1, "#102d47");
@@ -321,33 +357,29 @@ export function BasketballGame({ score, onScoreChange, storyReady }: ArcadeGameP
         ctx.beginPath(); ctx.moveTo(x, FLOOR_Y); ctx.lineTo(x - 7, HEIGHT); ctx.stroke();
       }
 
-      // Distance markers.
+      // Changing two-point geometry is visible before every attempt.
       ctx.strokeStyle = "#74bde7";
       ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(108, FLOOR_Y); ctx.lineTo(108, FLOOR_Y - 15); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(64, FLOOR_Y); ctx.lineTo(64, FLOOR_Y - 22); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(court.shooterX, FLOOR_Y); ctx.lineTo(court.shooterX, FLOOR_Y - 16); ctx.stroke();
       ctx.fillStyle = "#a9d9f5";
-      ctx.font = "700 10px monospace";
+      ctx.font = "700 9px monospace";
       ctx.textAlign = "center";
-      ctx.fillText("2PT", 108, FLOOR_Y + 18);
-      ctx.fillText("3PT", 64, FLOOR_Y + 18);
+      ctx.fillText(court.shotLabel, court.shooterX, FLOOR_Y + 17);
 
-      // Backboard, rim and net from the side.
       ctx.fillStyle = "#e9eef2";
-      ctx.fillRect(BACKBOARD_X, 77, 7, 119);
+      ctx.fillRect(court.backboardX, court.rimY - 73, 7, 119);
       ctx.fillStyle = "#93cae8";
-      ctx.fillRect(BACKBOARD_X + 7, 108, 15, 6);
+      ctx.fillRect(court.backboardX + 7, court.rimY - 42, 15, 6);
       ctx.strokeStyle = "#ff704b";
       ctx.lineWidth = 5;
-      ctx.beginPath(); ctx.moveTo(FRONT_RIM_X, RIM_Y); ctx.lineTo(BACK_RIM_X, RIM_Y); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(court.frontRimX, court.rimY); ctx.lineTo(court.backRimX, court.rimY); ctx.stroke();
       ctx.lineWidth = 1;
       ctx.strokeStyle = "#f4f0d2";
-      for (let x = FRONT_RIM_X + 4; x <= BACK_RIM_X - 4; x += 7) {
-        ctx.beginPath(); ctx.moveTo(x, RIM_Y + 3); ctx.lineTo((FRONT_RIM_X + BACK_RIM_X) / 2, RIM_Y + 34); ctx.stroke();
+      for (let x = court.frontRimX + 4; x <= court.backRimX - 4; x += 7) {
+        ctx.beginPath(); ctx.moveTo(x, court.rimY + 3); ctx.lineTo((court.frontRimX + court.backRimX) / 2, court.rimY + 34); ctx.stroke();
       }
 
-      // Simple side-view shooter sprite.
-      const sx = distanceRef.current === 3 ? 74 : 118;
+      const sx = court.shooterX;
       ctx.fillStyle = "#67d9ff";
       ctx.fillRect(sx - 7, FLOOR_Y - 53, 14, 31);
       ctx.beginPath(); ctx.arc(sx, FLOOR_Y - 64, 10, 0, Math.PI * 2); ctx.fill();
@@ -357,7 +389,6 @@ export function BasketballGame({ score, onScoreChange, storyReady }: ArcadeGameP
       ctx.beginPath(); ctx.moveTo(sx + 3, FLOOR_Y - 40); ctx.lineTo(sx + 14, FLOOR_Y - 16); ctx.stroke();
       ctx.lineWidth = 1;
 
-      // Angle preview projects from the ball release point toward the chosen arc.
       if (!ball && (phaseRef.current === "angle" || phaseRef.current === "power")) {
         const previewAngle = phaseRef.current === "angle" ? angleRef.current : lockedAngleRef.current;
         const radians = previewAngle * Math.PI / 180;
@@ -373,7 +404,6 @@ export function BasketballGame({ score, onScoreChange, storyReady }: ArcadeGameP
       }
 
       if (ball) {
-        // Fading trajectory dots make the arc readable without turning it into a modern effect soup.
         ball.trail.forEach((point, index) => {
           const alpha = ((index + 1) / Math.max(ball.trail.length, 1)) * 0.34;
           ctx.fillStyle = `rgba(255,154,66,${alpha.toFixed(3)})`;
@@ -389,10 +419,10 @@ export function BasketballGame({ score, onScoreChange, storyReady }: ArcadeGameP
       ctx.fillStyle = "#b9dff5";
       ctx.font = "700 11px monospace";
       ctx.textAlign = "left";
-      ctx.fillText(`SHOT ${shotNoRef.current} // ${distanceRef.current}PT`, 22, 25);
+      ctx.fillText(`SHOT ${shotNoRef.current} // ${court.shotLabel}`, 22, 25);
       ctx.textAlign = "center";
       ctx.fillStyle = "#ffd260";
-      ctx.fillText(`${Math.round(phaseRef.current === "angle" ? angleRef.current : lockedAngleRef.current)}°`, WIDTH / 2, 25);
+      ctx.fillText(`${Math.round(phaseRef.current === "angle" ? angleRef.current : lockedAngleRef.current)}° // ${court.hoopLabel}`, WIDTH / 2, 25);
       ctx.textAlign = "right";
       ctx.fillText(`STREAK ${streakRef.current}`, WIDTH - 22, 25);
 
@@ -407,12 +437,16 @@ export function BasketballGame({ score, onScoreChange, storyReady }: ArcadeGameP
 
   const anglePercent = ((angle - ANGLE_MIN) / (ANGLE_MAX - ANGLE_MIN)) * 100;
   const lockedAnglePercent = ((lockedAngle - ANGLE_MIN) / (ANGLE_MAX - ANGLE_MIN)) * 100;
+  const shotDistance = geometry.frontRimX - (geometry.shooterX + 22);
+  const suggestedAngle = clamp(49 + (shotDistance > 380 ? 4 : shotDistance < 320 ? -2 : 0) + (geometry.rimY < 143 ? 2 : geometry.rimY > 153 ? -1 : 0), 40, 62);
+  const suggestedAnglePercent = ((suggestedAngle - ANGLE_MIN) / (ANGLE_MAX - ANGLE_MIN)) * 100;
+  const suggestedPower = clamp(0.53 + (shotDistance - 285) / 520 + (150 - geometry.rimY) * 0.002, 0.48, 0.84);
 
   return (
     <div className="intermission-game basketball-game basketball-game-sideview">
       <header className="intermission-game-instructions">
-        <strong>PIXEL HOOPS // SIDE-VIEW PHYSICS // REV 38H // {distance}-POINTER</strong>
-        <span>ANGLE // POWER // SHOOT // RIM, GLASS + GRAVITY DECIDE THE RESULT</span>
+        <strong>PIXEL HOOPS // VARIABLE SIDE-VIEW PHYSICS // REV 38I // {geometry.shotLabel}</strong>
+        <span>NEW PLAYER + HOOP POSITION EACH SHOT // ANGLE // POWER // PHYSICS DECIDE</span>
       </header>
 
       <div className="arcade-physics-layout basketball-sideview-layout">
@@ -421,7 +455,7 @@ export function BasketballGame({ score, onScoreChange, storyReady }: ArcadeGameP
           className="arcade-physics-canvas basketball-sideview-canvas"
           width={WIDTH}
           height={HEIGHT}
-          aria-label="Side-view basketball angle and power physics simulation"
+          aria-label="Side-view basketball angle and power physics simulation with variable player and hoop geometry"
         />
 
         <div className="basketball-shot-controls" aria-label="Basketball shot controls">
@@ -431,13 +465,13 @@ export function BasketballGame({ score, onScoreChange, storyReady }: ArcadeGameP
               <span>{Math.round(phase === "angle" ? angle : lockedAngle)}°</span>
             </div>
             <div className="basketball-angle-track" aria-label="Shot angle">
-              <span className="basketball-angle-sweetspot" />
+              <span className="basketball-angle-sweetspot" style={{ left: `${clamp(suggestedAnglePercent - 8, 2, 82)}%` }} />
               <span
                 className="basketball-angle-marker"
                 style={{ left: `${phase === "angle" ? anglePercent : lockedAnglePercent}%` }}
               />
             </div>
-            <div className="basketball-angle-scale"><span>{ANGLE_MIN}°</span><span>52°</span><span>{ANGLE_MAX}°</span></div>
+            <div className="basketball-angle-scale"><span>{ANGLE_MIN}°</span><span>{Math.round(suggestedAngle)}°</span><span>{ANGLE_MAX}°</span></div>
           </section>
 
           <section className={`basketball-power-control ${phase === "power" ? "active" : phase === "angle" ? "waiting" : "locked"}`}>
@@ -446,7 +480,7 @@ export function BasketballGame({ score, onScoreChange, storyReady }: ArcadeGameP
               <span>{Math.round(power * 100)}%</span>
             </div>
             <div className="basketball-power-track" aria-label="Shot power">
-              <span className="basketball-power-sweetspot" />
+              <span className="basketball-power-sweetspot" style={{ bottom: `${clamp(suggestedPower * 100 - 9, 4, 78)}%` }} />
               <span className="basketball-power-fill" style={{ height: `${power * 100}%` }} />
               <span className="basketball-power-marker" style={{ bottom: `${power * 100}%` }} />
             </div>

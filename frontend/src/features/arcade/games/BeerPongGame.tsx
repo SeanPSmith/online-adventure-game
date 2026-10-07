@@ -8,6 +8,10 @@ const HEIGHT = 390;
 const GRAVITY = 220;
 const CUP_R = 14;
 const CUP_RIM_Z = 18;
+const TABLE_LEFT = 74;
+const TABLE_RIGHT = WIDTH - 74;
+const TABLE_FAR_Y = 30;
+const TABLE_NEAR_Y = HEIGHT - 24;
 
 // Six-cup rack, oriented exactly like the bowling pins from the shooter's view:
 // one front cup nearest the player, then rows of two and three behind it.
@@ -18,6 +22,7 @@ const CUP_POSITIONS = [
 ] as const;
 
 type Phase = AimPowerPhase | "result";
+type TrailPoint = { x: number; y: number; z: number };
 
 type BallState = {
   x: number;
@@ -32,7 +37,10 @@ type BallState = {
   tableBounces: number;
   sunkCup: number | null;
   resolved: boolean;
+  trail: TrailPoint[];
 };
+
+type ProjectedPoint = { x: number; y: number; scale: number; depth: number };
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
@@ -43,12 +51,47 @@ function pingPong(elapsed: number, period: number) {
   return n <= 0.5 ? n * 2 : (1 - n) * 2;
 }
 
+function projectTablePoint(x: number, y: number, z = 0): ProjectedPoint {
+  const depth = clamp((y - TABLE_FAR_Y) / (TABLE_NEAR_Y - TABLE_FAR_Y), 0, 1);
+  const halfWidth = 150 + depth * 105;
+  const normalizedX = (x - WIDTH / 2) / ((TABLE_RIGHT - TABLE_LEFT) / 2);
+  const perspectiveSkew = (0.5 - depth) * 34;
+  return {
+    x: WIDTH / 2 + normalizedX * halfWidth + perspectiveSkew,
+    y: 58 + depth * 278 - z * 0.52,
+    scale: 0.62 + depth * 0.38,
+    depth,
+  };
+}
+
+function predictedTrajectory(aim: number, power: number): TrailPoint[] {
+  let x = WIDTH / 2;
+  let y = 330;
+  let z = 18;
+  let vx = aim * 72;
+  let vy = -(145 + power * 100);
+  let vz = 100 + power * 36;
+  const points: TrailPoint[] = [];
+  const dt = 0.065;
+
+  for (let step = 0; step < 52; step += 1) {
+    x += vx * dt;
+    y += vy * dt;
+    z += vz * dt;
+    vz -= GRAVITY * dt;
+    vx *= Math.pow(0.994, dt * 60);
+    points.push({ x, y, z: Math.max(0, z) });
+    if (z <= 0 || y < TABLE_FAR_Y - 40) break;
+  }
+  return points;
+}
+
 export function BeerPongGame({ score, onScoreChange, storyReady }: ArcadeGameProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const frameRef = useRef<number | null>(null);
   const ballRef = useRef<BallState | null>(null);
-  const phaseStartedRef = useRef(performance.now());
+  const frameRef = useRef<number | null>(null);
   const resetTimerRef = useRef<number | null>(null);
+  const phaseStartedRef = useRef(performance.now());
   const scoreRef = useRef(score);
   const onScoreChangeRef = useRef(onScoreChange);
   const storyReadyRef = useRef(storyReady);
@@ -66,7 +109,7 @@ export function BeerPongGame({ score, onScoreChange, storyReady }: ArcadeGamePro
   const [lockedAim, setLockedAim] = useState(0);
   const [power, setPower] = useState(0.62);
   const [throwNo, setThrowNo] = useState(1);
-  const [message, setMessage] = useState("SWEEP AIM // THEN LOCK THROW POWER_");
+  const [message, setMessage] = useState("READ THE TABLE DEPTH // SWEEP AIM // THEN SET POWER_");
   const { feedback, showFeedback } = useArcadeFeedback(1900);
 
   useEffect(() => { scoreRef.current = score; }, [score]);
@@ -105,7 +148,7 @@ export function BeerPongGame({ score, onScoreChange, storyReady }: ArcadeGamePro
     setLockedAim(0);
     setPower(0.62);
     setThrowNo((value) => value + 1);
-    setMessage(storyReadyRef.current ? "STORY READY // LAST THROW IF YOU WANT IT_" : "SWEEP AIM // THEN LOCK THROW POWER_");
+    setMessage(storyReadyRef.current ? "STORY READY // LAST THROW IF YOU WANT IT_" : "READ THE ARC + SHADOW // SWEEP AIM // THEN SET POWER_");
   }
 
   function finishThrow(ball: BallState) {
@@ -134,14 +177,14 @@ export function BeerPongGame({ score, onScoreChange, storyReady }: ArcadeGamePro
           const rerack = Array.from({ length: CUP_POSITIONS.length }, (_, index) => index);
           setCups(rerack);
           cupsRef.current = rerack;
-          setMessage("TABLE CLEARED // FRESH RACK_");
+          setMessage("TABLE CLEARED // FRESH 1-2-3 RACK_");
           resetThrow();
         }, 2500);
         return;
       }
     } else {
-      const reason = ball.rimHits ? "RIM OUT" : ball.tableBounces ? "TABLE BOUNCE" : powerRef.current < 0.48 ? "SHORT" : "MISS";
-      setMessage(`${reason} // READ THE TABLE AND ADJUST_`);
+      const reason = ball.rimHits ? "RIM OUT" : ball.tableBounces ? "TABLE BOUNCE" : powerRef.current < 0.48 ? "SHORT" : powerRef.current > 0.87 ? "LONG" : "MISS";
+      setMessage(`${reason} // FOLLOW THE SHADOW AND ADJUST_`);
       showFeedback({ title: reason, detail: `THROW ${throwNoRef.current} // NO CUP`, tone: "bad" }, 1750);
     }
 
@@ -157,7 +200,7 @@ export function BeerPongGame({ score, onScoreChange, storyReady }: ArcadeGamePro
       x: startX,
       y: startY,
       z: 18,
-      vx: lockedAim * 72,
+      vx: lockedAimRef.current * 72,
       vy: -(145 + finalPower * 100),
       vz: 100 + finalPower * 36,
       previousZ: 18,
@@ -166,15 +209,17 @@ export function BeerPongGame({ score, onScoreChange, storyReady }: ArcadeGamePro
       tableBounces: 0,
       sunkCup: null,
       resolved: false,
+      trail: [],
     };
     setPhase("resolving");
-    setMessage(`THROW ${throwNo} // BALL LIVE_`);
+    setMessage(`THROW ${throwNoRef.current} // WATCH THE SHADOW + ARC_`);
   }
 
   function lockControl() {
     if (storyReady || phase === "resolving" || phase === "result") return;
     if (phase === "aim") {
       setLockedAim(aim);
+      lockedAimRef.current = aim;
       setPhase("power");
       phaseStartedRef.current = performance.now();
       setMessage("AIM LOCKED // SET VERTICAL POWER_");
@@ -189,6 +234,34 @@ export function BeerPongGame({ score, onScoreChange, storyReady }: ArcadeGamePro
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     ctx.imageSmoothingEnabled = false;
+    // Capture the validated context for nested drawing helpers. TypeScript does not
+    // preserve the outer null-narrowing across callback/function boundaries.
+    const cupCtx = ctx;
+
+    function drawCup(index: number) {
+      const cup = CUP_POSITIONS[index];
+      const live = cupsRef.current.includes(index);
+      const top = projectTablePoint(cup.x, cup.y, CUP_RIM_Z);
+      const base = projectTablePoint(cup.x, cup.y, 0);
+      const radius = CUP_R * top.scale;
+      const baseRadius = radius * 0.76;
+      cupCtx.globalAlpha = live ? 1 : 0.11;
+      cupCtx.fillStyle = "#a91f2c";
+      cupCtx.beginPath();
+      cupCtx.moveTo(top.x - radius, top.y);
+      cupCtx.lineTo(top.x + radius, top.y);
+      cupCtx.lineTo(base.x + baseRadius, base.y + 6 * base.scale);
+      cupCtx.lineTo(base.x - baseRadius, base.y + 6 * base.scale);
+      cupCtx.closePath();
+      cupCtx.fill();
+      cupCtx.fillStyle = "#ef5961";
+      cupCtx.beginPath(); cupCtx.ellipse(top.x, top.y, radius, radius * 0.38, 0, 0, Math.PI * 2); cupCtx.fill();
+      cupCtx.fillStyle = "#f3d8b2";
+      cupCtx.beginPath(); cupCtx.ellipse(top.x, top.y, radius * 0.72, radius * 0.25, 0, 0, Math.PI * 2); cupCtx.fill();
+      cupCtx.fillStyle = "#772326";
+      cupCtx.beginPath(); cupCtx.ellipse(top.x, top.y + 1, radius * 0.5, radius * 0.16, 0, 0, Math.PI * 2); cupCtx.fill();
+      cupCtx.globalAlpha = 1;
+    }
 
     let previous = performance.now();
     const draw = (now: number) => {
@@ -203,6 +276,8 @@ export function BeerPongGame({ score, onScoreChange, storyReady }: ArcadeGamePro
         ball.z += ball.vz * dt;
         ball.vz -= GRAVITY * dt;
         ball.vx *= Math.pow(0.994, dt * 60);
+        ball.trail.push({ x: ball.x, y: ball.y, z: ball.z });
+        if (ball.trail.length > 24) ball.trail.shift();
 
         for (const cupIndex of cupsRef.current) {
           const cup = CUP_POSITIONS[cupIndex];
@@ -248,68 +323,109 @@ export function BeerPongGame({ score, onScoreChange, storyReady }: ArcadeGamePro
         else if (elapsed > 3300 || ball.y < -60 || ball.y > HEIGHT + 70 || ball.x < -70 || ball.x > WIDTH + 70 || (ball.z === 0 && Math.abs(ball.vz) < 6 && elapsed > 1300)) finishRef.current(ball);
       }
 
-      // Table and basement floor.
-      ctx.fillStyle = "#120b16";
+      // Basement / VGA backdrop.
+      ctx.fillStyle = "#100a16";
       ctx.fillRect(0, 0, WIDTH, HEIGHT);
-      ctx.fillStyle = "#253044";
-      for (let y = 0; y < HEIGHT; y += 24) ctx.fillRect(0, y, WIDTH, 1);
+      ctx.fillStyle = "#25213a";
+      for (let y = 0; y < HEIGHT; y += 26) ctx.fillRect(0, y, WIDTH, 1);
+
+      // Isometric three-quarter table. Physics still runs in world x/y/z coordinates.
+      const farLeft = projectTablePoint(TABLE_LEFT, TABLE_FAR_Y);
+      const farRight = projectTablePoint(TABLE_RIGHT, TABLE_FAR_Y);
+      const nearRight = projectTablePoint(TABLE_RIGHT, TABLE_NEAR_Y);
+      const nearLeft = projectTablePoint(TABLE_LEFT, TABLE_NEAR_Y);
       ctx.fillStyle = "#153e4c";
-      ctx.fillRect(74, 30, WIDTH - 148, HEIGHT - 54);
       ctx.strokeStyle = "#69bfd6";
       ctx.lineWidth = 3;
-      ctx.strokeRect(74, 30, WIDTH - 148, HEIGHT - 54);
-      ctx.strokeStyle = "#316f82";
-      ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(WIDTH / 2, 30); ctx.lineTo(WIDTH / 2, HEIGHT - 24); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(farLeft.x, farLeft.y);
+      ctx.lineTo(farRight.x, farRight.y);
+      ctx.lineTo(nearRight.x, nearRight.y);
+      ctx.lineTo(nearLeft.x, nearLeft.y);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
 
-      // Cups as actual top-down circles with liquid centers.
-      for (let index = 0; index < CUP_POSITIONS.length; index += 1) {
-        const cup = CUP_POSITIONS[index];
-        const live = cupsRef.current.includes(index);
-        ctx.globalAlpha = live ? 1 : 0.14;
-        ctx.fillStyle = "#d93b43";
-        ctx.beginPath(); ctx.arc(cup.x, cup.y, CUP_R, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = "#f2d7b0";
-        ctx.beginPath(); ctx.arc(cup.x, cup.y, CUP_R - 4, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = "#8d2a27";
-        ctx.beginPath(); ctx.arc(cup.x, cup.y, CUP_R - 7, 0, Math.PI * 2); ctx.fill();
-        ctx.globalAlpha = 1;
+      // Perspective guide lines make short/long distance readable.
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = "rgba(105,191,214,0.22)";
+      for (const worldX of [196, 258, 320, 382, 444]) {
+        const a = projectTablePoint(worldX, TABLE_FAR_Y);
+        const b = projectTablePoint(worldX, TABLE_NEAR_Y);
+        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
       }
+      for (const worldY of [90, 150, 210, 270, 330]) {
+        const a = projectTablePoint(TABLE_LEFT, worldY);
+        const b = projectTablePoint(TABLE_RIGHT, worldY);
+        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+      }
+
+      // Cups draw far-to-near so the 1-2-3 rack reads correctly in depth.
+      [...CUP_POSITIONS.keys()]
+        .sort((a, b) => CUP_POSITIONS[a].y - CUP_POSITIONS[b].y)
+        .forEach(drawCup);
 
       const currentPhase = phaseRef.current;
       if (!ball && (currentPhase === "aim" || currentPhase === "power")) {
-        ctx.setLineDash([5, 6]);
-        ctx.strokeStyle = currentPhase === "aim" ? "#f4cf66" : "#7ed8ef";
-        ctx.beginPath();
-        ctx.moveTo(WIDTH / 2, 326);
-        ctx.lineTo(WIDTH / 2 + (currentPhase === "aim" ? aimRef.current : lockedAimRef.current) * 120, 92);
-        ctx.stroke();
-        ctx.setLineDash([]);
+        const previewAim = currentPhase === "aim" ? aimRef.current : lockedAimRef.current;
+        const preview = predictedTrajectory(previewAim, powerRef.current);
+        ctx.fillStyle = "rgba(247,241,210,0.48)";
+        preview.forEach((point, index) => {
+          if (index % 2 !== 0) return;
+          const projected = projectTablePoint(point.x, point.y, point.z);
+          ctx.beginPath(); ctx.arc(projected.x, projected.y, 2.2, 0, Math.PI * 2); ctx.fill();
+        });
+        const landing = preview[preview.length - 1];
+        if (landing) {
+          const lp = projectTablePoint(landing.x, landing.y, 0);
+          ctx.strokeStyle = currentPhase === "aim" ? "#f4cf66" : "#7ed8ef";
+          ctx.beginPath(); ctx.ellipse(lp.x, lp.y, 11, 5, 0, 0, Math.PI * 2); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(lp.x - 14, lp.y); ctx.lineTo(lp.x + 14, lp.y); ctx.stroke();
+        }
       }
 
-      // Throwing hand / ball origin.
+      // Throwing hand / launch origin at the near end.
+      const hand = projectTablePoint(WIDTH / 2, 330, 7);
       ctx.fillStyle = "#f4cf66";
-      ctx.fillRect(WIDTH / 2 - 12, 334, 24, 18);
+      ctx.fillRect(hand.x - 12, hand.y - 4, 24, 14);
 
       if (ball) {
-        ctx.fillStyle = "rgba(0,0,0,0.42)";
-        ctx.beginPath(); ctx.ellipse(ball.x, ball.y, 7 + ball.z * 0.025, 4 + ball.z * 0.012, 0, 0, Math.PI * 2); ctx.fill();
+        // Shadow stays on the table, so height/depth is always legible.
+        const shadow = projectTablePoint(ball.x, ball.y, 0);
+        const flying = projectTablePoint(ball.x, ball.y, Math.max(0, ball.z));
+        const shadowFade = clamp(0.46 - ball.z / 260, 0.13, 0.46);
+        ctx.fillStyle = `rgba(0,0,0,${shadowFade.toFixed(3)})`;
+        ctx.beginPath(); ctx.ellipse(shadow.x, shadow.y, 8 * shadow.scale, 4 * shadow.scale, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = "rgba(247,241,210,0.16)";
+        ctx.setLineDash([2, 4]);
+        ctx.beginPath(); ctx.moveTo(shadow.x, shadow.y); ctx.lineTo(flying.x, flying.y); ctx.stroke();
+        ctx.setLineDash([]);
+
+        ball.trail.forEach((point, index) => {
+          const p = projectTablePoint(point.x, point.y, Math.max(0, point.z));
+          const alpha = ((index + 1) / Math.max(ball.trail.length, 1)) * 0.36;
+          ctx.fillStyle = `rgba(247,241,210,${alpha.toFixed(3)})`;
+          ctx.beginPath(); ctx.arc(p.x, p.y, 2.2, 0, Math.PI * 2); ctx.fill();
+        });
+
         ctx.fillStyle = "#f7f1d2";
         ctx.strokeStyle = "#8da2ad";
         ctx.lineWidth = 2;
-        const drawY = ball.y - ball.z * 0.42;
         const radius = 6 + clamp(ball.z / 65, 0, 1) * 3;
-        ctx.beginPath(); ctx.arc(ball.x, drawY, radius, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.arc(flying.x, flying.y, radius, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
         ctx.lineWidth = 1;
       }
 
       ctx.fillStyle = "#7ed8ef";
       ctx.font = "700 10px monospace";
       ctx.textAlign = "left";
-      ctx.fillText(`BASEMENT LEAGUE // THROW ${throwNoRef.current}`, 92, 53);
+      ctx.fillText(`BASEMENT LEAGUE // THROW ${throwNoRef.current}`, 42, 28);
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#f4cf66";
+      ctx.fillText("ARC + SHADOW = DEPTH", WIDTH / 2, 28);
       ctx.textAlign = "right";
       ctx.fillStyle = "#ff8f8f";
-      ctx.fillText(`${cupsRef.current.length} CUPS`, WIDTH - 92, 53);
+      ctx.fillText(`${cupsRef.current.length} CUPS`, WIDTH - 42, 28);
 
       frameRef.current = requestAnimationFrame(draw);
     };
@@ -321,14 +437,14 @@ export function BeerPongGame({ score, onScoreChange, storyReady }: ArcadeGamePro
   }, []);
 
   return (
-    <div className="intermission-game beer-pong-game beer-pong-game-v2">
+    <div className="intermission-game beer-pong-game beer-pong-game-v2 beer-pong-game-isometric">
       <header className="intermission-game-instructions">
-        <strong>BEER PONG // TOP-DOWN PHYSICS TABLE // REV 38R // {cups.length} CUPS REMAIN</strong>
-        <span>HORIZONTAL AIM // VERTICAL POWER // BALL CAN BANK, RIM, BOUNCE, OR DROP</span>
+        <strong>BEER PONG // ISOMETRIC PHYSICS TABLE // REV 38I // {cups.length} CUPS REMAIN</strong>
+        <span>1-2-3 RACK // HORIZONTAL AIM // VERTICAL POWER // ARC + SHADOW SHOW DEPTH</span>
       </header>
 
       <div className="arcade-physics-layout">
-        <canvas ref={canvasRef} className="arcade-physics-canvas beer-pong-physics-canvas" width={WIDTH} height={HEIGHT} aria-label="Top-down beer pong physics table" />
+        <canvas ref={canvasRef} className="arcade-physics-canvas beer-pong-physics-canvas beer-pong-isometric-canvas" width={WIDTH} height={HEIGHT} aria-label="Isometric beer pong physics table with projectile arc and ball shadow" />
         <AimPowerShotControls
           phase={phase === "result" ? "locked" : phase}
           aim={phase === "aim" ? aim : lockedAim}

@@ -38,15 +38,15 @@ def test_basketball_uses_simulated_ball_rim_and_backboard_physics() -> None:
     assert '"release"' not in game
 
 
-def test_beer_pong_is_top_down_and_scores_from_physical_cup_collision() -> None:
+def test_beer_pong_is_isometric_and_scores_from_physical_cup_collision() -> None:
     game = read("frontend/src/features/arcade/games/BeerPongGame.tsx")
 
-    assert "TOP-DOWN PHYSICS TABLE" in game
+    assert "ISOMETRIC PHYSICS TABLE" in game
     assert "CUP_POSITIONS" in game
     assert "ball.sunkCup" in game
     assert "ball.tableBounces" in game
     assert "ball.rimHits" in game
-    assert "Top-down beer pong physics table" in game
+    assert "Isometric beer pong physics table with projectile arc and ball shadow" in game
     assert "finishRef.current(ball)" in game
     assert "Six-cup rack" in game
     assert "one front cup nearest the player, then rows of two and three behind it" in game
@@ -106,13 +106,17 @@ def test_reconciliation_marker_and_beer_pong_front_rack_orientation() -> None:
     beer = read("frontend/src/features/arcade/games/BeerPongGame.tsx")
     hoops = read("frontend/src/features/arcade/games/BasketballGame.tsx")
 
-    assert "REV 38R" in beer
-    assert "REV 38H" in hoops
+    assert "REV 38I" in beer
+    assert "REV 38I" in hoops
     # Canvas origin is top-left and the shooter is near y=330, so the head/front
     # cup must have the largest y of the rack rows: 1 nearest, then 2, then 3.
     assert '{ x: 320, y: 124 }' in beer
     assert '{ x: 304, y: 94 }, { x: 336, y: 94 }' in beer
     assert '{ x: 288, y: 64 }, { x: 320, y: 64 }, { x: 352, y: 64 }' in beer
     assert "basketball-game-sideview" in hoops
-    assert "ANGLE // POWER // SHOOT" in hoops
+    assert "ANGLE // POWER" in hoops
     assert "LOCK ANGLE" in hoops
+    assert "courtGeometryForShot" in hoops
+    assert "NEW PLAYER + HOOP POSITION EACH SHOT" in hoops
+    assert "projectTablePoint" in beer
+    assert "ARC + SHADOW" in beer

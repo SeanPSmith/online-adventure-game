@@ -344,77 +344,35 @@ class AuthoringStore:
         cls,
         row: DatabaseRow,
     ) -> dict[str, Any]:
-
-        keys = set(
-            row.keys()
+        keys = set(row.keys())
+        document_kind = (
+            row["document_kind"]
+            if "document_kind" in keys
+            else None
+        )
+        raw_source = cls._json_load(row["source_json"])
+        source = normalize_source_document(
+            raw_source,
+            document_kind=document_kind,
         )
 
-
+        # Old persisted v2 rows are projected into schema v3 at read time. The
+        # database row is only rewritten when an author saves/creates a version,
+        # keeping published historical rows immutable while making them usable in
+        # the new editor and generation pipeline immediately.
         result = {
-            "version_id":
-                row[
-                    "version_id"
-                ],
-
-            "document_id":
-                row[
-                    "document_id"
-                ],
-
-            "version_number":
-                int(
-                    row[
-                        "version_number"
-                    ]
-                ),
-
-            "status":
-                row[
-                    "status"
-                ],
-
-            "source":
-                cls._json_load(
-                    row[
-                        "source_json"
-                    ]
-                ),
-
-            "compiled":
-                cls._json_load(
-                    row[
-                        "compiled_json"
-                    ]
-                ),
-
-            "strength":
-                cls._json_load(
-                    row[
-                        "strength_json"
-                    ]
-                ),
-
-            "created_by_user_id":
-                row[
-                    "created_by_user_id"
-                ],
-
-            "created_at":
-                row[
-                    "created_at"
-                ],
-
-            "updated_at":
-                row[
-                    "updated_at"
-                ],
-
-            "published_at":
-                row[
-                    "published_at"
-                ],
+            "version_id": row["version_id"],
+            "document_id": row["document_id"],
+            "version_number": int(row["version_number"]),
+            "status": row["status"],
+            "source": source,
+            "compiled": compile_source_document(source),
+            "strength": assess_document_strength(source),
+            "created_by_user_id": row["created_by_user_id"],
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"],
+            "published_at": row["published_at"],
         }
-
 
         for key in (
             "document_kind",
@@ -424,28 +382,11 @@ class AuthoringStore:
             "document_title",
             "document_slug",
         ):
-
             if key in keys:
-
-                value = row[
-                    key
-                ]
-
-
-                if (
-                    key
-                    == "is_archived"
-                ):
-
-                    value = bool(
-                        value
-                    )
-
-
-                result[
-                    key
-                ] = value
-
+                value = row[key]
+                if key == "is_archived":
+                    value = bool(value)
+                result[key] = value
 
         return result
 
@@ -518,6 +459,7 @@ class AuthoringStore:
                 v.version_number,
                 v.status,
                 v.strength_json,
+                v.source_json,
                 (
                     SELECT MAX(
                         published.version_number
@@ -575,11 +517,10 @@ class AuthoringStore:
 
         for row in rows:
 
-            strength = (
-                self._json_load(
-                    row[
-                        "strength_json"
-                    ]
+            strength = assess_document_strength(
+                normalize_source_document(
+                    self._json_load(row["source_json"]),
+                    document_kind=row["document_kind"],
                 )
             )
 
@@ -1503,6 +1444,32 @@ class AuthoringStore:
             )
 
 
+            document_row = (
+                connection.execute(
+                    """
+                    SELECT document_kind
+                    FROM author_documents
+                    WHERE document_id = ?
+                    """,
+                    (document_id,),
+                ).fetchone()
+            )
+            if document_row is None:
+                raise LookupError("Source document not found.")
+
+            # A new editable version is the migration boundary: legacy published
+            # rows stay immutable, while the new draft is persisted immediately
+            # in native schema v3 rather than carrying raw v2 JSON forward.
+            migrated_source = normalize_source_document(
+                self._json_load(base_row["source_json"]),
+                document_kind=normalize_document_kind(
+                    document_row["document_kind"]
+                ),
+            )
+            migrated_compiled = compile_source_document(migrated_source)
+            migrated_strength = assess_document_strength(migrated_source)
+
+
             now = (
                 _utc_now()
                 .isoformat()
@@ -1538,15 +1505,9 @@ class AuthoringStore:
                     version_id,
                     document_id,
                     new_version_number,
-                    base_row[
-                        "source_json"
-                    ],
-                    base_row[
-                        "compiled_json"
-                    ],
-                    base_row[
-                        "strength_json"
-                    ],
+                    self._json_dump(migrated_source),
+                    self._json_dump(migrated_compiled),
+                    self._json_dump(migrated_strength),
                     user_id,
                     now,
                     now,

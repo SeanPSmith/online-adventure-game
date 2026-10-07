@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Tales of Two — Author Console</title>
-    <link rel="stylesheet" href="/static/author/author.css?v=008">
+    <link rel="stylesheet" href="/static/author/author.css?v=009">
 </head>
 <body>
 <header class="topbar">
@@ -192,154 +192,200 @@
                 ></div>
             </section>
 
+            <section id="migration-panel" class="migration-panel" hidden>
+                <div class="section-kicker">LEGACY SOURCE PORTED</div>
+                <strong id="migration-title">SCHEMA V2 → V3</strong>
+                <p>Nothing was discarded. Obvious fields were moved into their new scope, and the original legacy source is retained internally for review.</p>
+                <div id="migration-review-list" class="migration-review-list"></div>
+            </section>
+
             <form id="adventure-form" autocomplete="off" spellcheck="true">
                 <details open>
-                    <summary><span>01</span>Identity & Controls</summary>
+                    <summary><span>01</span>Identity</summary>
                     <div class="section-body grid two">
                         <label>Title<input id="identity-title" data-path="identity.title" type="text"></label>
                         <label>Slug<input id="identity-slug" data-path="identity.slug" type="text"></label>
 
-                        <label>Primary Type
-                            <select data-path="identity.primary_type">
-                                <option value="journey">Journey</option>
-                                <option value="mystery">Mystery</option>
-                                <option value="expedition">Expedition</option>
-                                <option value="quest">Quest</option>
-                                <option value="survival">Survival</option>
-                                <option value="escape_heist">Escape / Heist</option>
-                                <option value="social_intrigue">Social / Intrigue</option>
-                            </select>
-                        </label>
+                        <div class="kind-only-grid wide" data-doc-kind="brief">
+                            <label>Primary Type
+                                <select data-path="identity.primary_type">
+                                    <option value="journey">Journey</option>
+                                    <option value="mystery">Mystery</option>
+                                    <option value="expedition">Expedition</option>
+                                    <option value="quest">Quest</option>
+                                    <option value="survival">Survival</option>
+                                    <option value="escape_heist">Escape / Heist</option>
+                                    <option value="social_intrigue">Social / Intrigue</option>
+                                </select>
+                            </label>
+                            <label>Secondary Type
+                                <select data-path="identity.secondary_type">
+                                    <option value="">None</option>
+                                    <option value="journey">Journey</option>
+                                    <option value="mystery">Mystery</option>
+                                    <option value="expedition">Expedition</option>
+                                    <option value="quest">Quest</option>
+                                    <option value="survival">Survival</option>
+                                    <option value="escape_heist">Escape / Heist</option>
+                                    <option value="social_intrigue">Social / Intrigue</option>
+                                </select>
+                            </label>
+                            <label>Length
+                                <select data-path="identity.length">
+                                    <option value="short">Short</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="long">Long</option>
+                                </select>
+                            </label>
+                            <label>Difficulty
+                                <select data-path="identity.difficulty">
+                                    <option value="introductory">Introductory</option>
+                                    <option value="easy">Easy</option>
+                                    <option value="moderate">Moderate</option>
+                                    <option value="hard">Hard</option>
+                                    <option value="brutal">Brutal</option>
+                                </select>
+                            </label>
+                        </div>
 
-                        <label>Secondary Type
-                            <select data-path="identity.secondary_type">
-                                <option value="">None</option>
-                                <option value="journey">Journey</option>
-                                <option value="mystery">Mystery</option>
-                                <option value="expedition">Expedition</option>
-                                <option value="quest">Quest</option>
-                                <option value="survival">Survival</option>
-                                <option value="escape_heist">Escape / Heist</option>
-                                <option value="social_intrigue">Social / Intrigue</option>
-                            </select>
-                        </label>
-
-                        <label>Length
-                            <select data-path="identity.length">
-                                <option value="short">Short</option>
-                                <option value="medium">Medium</option>
-                                <option value="long">Long</option>
-                            </select>
-                        </label>
-
-                        <label>Difficulty
-                            <select data-path="identity.difficulty">
-                                <option value="introductory">Introductory</option>
-                                <option value="easy">Easy</option>
-                                <option value="moderate">Moderate</option>
-                                <option value="hard">Hard</option>
-                                <option value="brutal">Brutal</option>
-                            </select>
-                        </label>
-
-                        <label>Genre<input data-path="identity.genre" type="text" placeholder="Supernatural fantasy"></label>
-                        <label>Tone<input data-path="identity.tone" type="text" placeholder="Quiet, eerie, curious"></label>
-                        <label class="wide">Weirdness<input data-path="identity.weirdness" type="range" min="0" max="5" step="1"></label>
+                        <label>Genre<input data-path="identity.genre" type="text" placeholder="Supernatural mystery, weird western, cozy fantasy..."></label>
+                        <label>Tone<input data-path="identity.tone" type="text" placeholder="Quiet, eerie, funny, tense..."></label>
+                        <label class="wide"><span data-kind-label-world="Default Weirdness" data-kind-label-brief="Weirdness">Weirdness</span><input data-path="identity.weirdness" type="range" min="0" max="5" step="1"></label>
                         <label class="wide">One-Sentence Pitch<textarea data-path="identity.one_sentence_pitch" rows="3" placeholder="What is this source fundamentally about?"></textarea></label>
-                        <label class="wide">Player Experience<textarea data-path="identity.player_experience" rows="4" placeholder="What should the players feel while playing stories from this source?"></textarea></label>
+                        <label class="wide">Player Experience<textarea data-path="identity.player_experience" rows="4" placeholder="What should players feel in this world / during this adventure?"></textarea></label>
                     </div>
                 </details>
 
-                <details open>
-                    <summary><span>02</span>Premise</summary>
+                <details open data-doc-kind="world">
+                    <summary><span>02</span>Setting & World Premise</summary>
                     <div class="section-body">
-                        <label>Starting Situation / World Premise<textarea data-path="premise" rows="9" placeholder="Give the director the core situation, world premise, mission, or starting pressure."></textarea></label>
+                        <p class="helper">What is this world, when/where is it, and what makes it distinct? Do not describe one specific adventure mission here.</p>
+                        <label>World Premise<textarea data-path="premise" rows="9" placeholder="The durable setting premise shared by adventures in this World..."></textarea></label>
                     </div>
                 </details>
 
-                <details>
+                <details open data-doc-kind="brief">
+                    <summary><span>02</span>Hook, Goal & Pressure</summary>
+                    <div class="section-body grid two">
+                        <label class="wide">Starting Situation<textarea data-path="starting_situation" rows="8" placeholder="What is happening when this particular adventure begins?"></textarea></label>
+                        <label class="wide">Core Goal / Pressure<textarea data-path="core_goal" rows="5" placeholder="What initially drives the players forward? What needs doing, finding, escaping, protecting, solving, or surviving?"></textarea></label>
+                    </div>
+                </details>
+
+                <details data-doc-kind="world">
                     <summary><span>03</span>Canon / World Truths</summary>
                     <div class="section-body">
-                        <p class="helper">Facts the director should treat as objectively true.</p>
+                        <p class="helper">Objective facts that remain true across adventures.</p>
                         <div id="world-truths-list" class="repeat-list"></div>
                         <button class="button add-button" type="button" data-add="world_truths">+ ADD WORLD TRUTH</button>
                     </div>
                 </details>
 
-                <details>
-                    <summary><span>04</span>Locations</summary>
+                <details data-doc-kind="world">
+                    <summary><span>04</span>World Rules</summary>
                     <div class="section-body">
+                        <p class="helper">How magic, technology, supernatural forces, society, geography, or other world systems work.</p>
+                        <div id="world-rules-list" class="repeat-list"></div>
+                        <button class="button add-button" type="button" data-add="world_rules">+ ADD WORLD RULE</button>
+                    </div>
+                </details>
+
+                <details data-doc-kind="brief">
+                    <summary><span>03</span>Adventure Facts / Local Conditions</summary>
+                    <div class="section-body">
+                        <p class="helper">Facts true for this adventure without becoming permanent World canon.</p>
+                        <div id="adventure-facts-list" class="repeat-list"></div>
+                        <button class="button add-button" type="button" data-add="adventure_facts">+ ADD ADVENTURE FACT</button>
+                    </div>
+                </details>
+
+                <details data-doc-kind="brief" id="world-reference-section">
+                    <summary><span>04</span>Featured World Content</summary>
+                    <div class="section-body">
+                        <p class="helper">Select existing World material to feature. The Brief stores references and adventure-specific usage notes; it does not duplicate the World canon.</p>
+                        <div id="world-reference-picker" class="world-reference-picker"></div>
+                    </div>
+                </details>
+
+                <details>
+                    <summary><span id="locations-section-number">05</span><span id="locations-section-title">Locations</span></summary>
+                    <div class="section-body">
+                        <p id="locations-section-help" class="helper"></p>
                         <div id="locations-list" class="repeat-list"></div>
-                        <button class="button add-button" type="button" data-add="locations">+ ADD LOCATION</button>
+                        <button id="locations-add-button" class="button add-button" type="button" data-add="locations">+ ADD LOCATION</button>
                     </div>
                 </details>
 
                 <details>
-                    <summary><span>05</span>NPCs</summary>
+                    <summary><span id="npcs-section-number">06</span><span id="npcs-section-title">People</span></summary>
                     <div class="section-body">
-                        <p class="helper">Three words is valid. Three pages is also valid.</p>
+                        <p id="npcs-section-help" class="helper">Three words is valid. Three pages is also valid.</p>
                         <div id="npcs-list" class="repeat-list"></div>
-                        <button class="button add-button" type="button" data-add="npcs">+ ADD NPC</button>
+                        <button id="npcs-add-button" class="button add-button" type="button" data-add="npcs">+ ADD NPC</button>
                     </div>
                 </details>
 
                 <details>
-                    <summary><span>06</span>Lore & Secrets</summary>
+                    <summary><span id="lore-section-number">07</span><span id="lore-section-title">Lore & Secrets</span></summary>
                     <div class="section-body">
+                        <p id="lore-section-help" class="helper"></p>
                         <div id="lore-secrets-list" class="repeat-list"></div>
-                        <button class="button add-button" type="button" data-add="lore_secrets">+ ADD LORE / SECRET</button>
+                        <button id="lore-add-button" class="button add-button" type="button" data-add="lore_secrets">+ ADD LORE / SECRET</button>
                     </div>
                 </details>
 
-                <details>
-                    <summary><span>07</span>Required / Preferred Moments</summary>
+                <details data-doc-kind="brief">
+                    <summary><span>08</span>Required / Preferred Moments</summary>
                     <div class="section-body">
+                        <p class="helper">Adventure beats only. These are not World lore.</p>
                         <div id="moments-list" class="repeat-list"></div>
                         <button class="button add-button" type="button" data-add="moments">+ ADD MOMENT</button>
                     </div>
                 </details>
 
                 <details>
-                    <summary><span>08</span>Story & Choice Guidance</summary>
+                    <summary><span id="guidance-section-number">08</span><span id="guidance-section-title">Story Flavor</span></summary>
                     <div class="section-body grid two">
                         <label>Humor<textarea data-path="story_guidance.humor" rows="4"></textarea></label>
                         <label>Danger<textarea data-path="story_guidance.danger" rows="4"></textarea></label>
                         <label>Violence<textarea data-path="story_guidance.violence" rows="4"></textarea></label>
                         <label>Weirdness<textarea data-path="story_guidance.weirdness" rows="4"></textarea></label>
-                        <label class="wide">Choice Guidance<textarea data-path="story_guidance.choice_guidance" rows="7" placeholder="Serious, risky, aggressive, chill, goofy, passive, character-specific..."></textarea></label>
-                        <label class="wide">Failure Philosophy<textarea data-path="story_guidance.failure_philosophy" rows="5"></textarea></label>
+                        <label class="wide" data-doc-kind="brief">Choice Guidance<textarea data-path="story_guidance.choice_guidance" rows="7" placeholder="Serious, risky, aggressive, chill, goofy, passive, character-specific..."></textarea></label>
                     </div>
                 </details>
 
                 <details>
-                    <summary><span>09</span>Forbidden Rules</summary>
+                    <summary><span id="forbidden-section-number">09</span><span id="forbidden-section-title">Boundaries</span></summary>
                     <div class="section-body">
+                        <p id="forbidden-section-help" class="helper"></p>
                         <div id="forbidden-rules-list" class="repeat-list"></div>
-                        <button class="button add-button" type="button" data-add="forbidden_rules">+ ADD FORBIDDEN RULE</button>
+                        <button id="forbidden-add-button" class="button add-button" type="button" data-add="forbidden_rules">+ ADD BOUNDARY</button>
                     </div>
                 </details>
 
                 <details>
-                    <summary><span>10</span>Story Threads</summary>
+                    <summary><span id="threads-section-number">10</span><span id="threads-section-title">Threads</span></summary>
                     <div class="section-body">
+                        <p id="threads-section-help" class="helper"></p>
                         <div id="story-threads-list" class="repeat-list"></div>
-                        <button class="button add-button" type="button" data-add="story_threads">+ ADD THREAD</button>
+                        <button id="threads-add-button" class="button add-button" type="button" data-add="story_threads">+ ADD THREAD</button>
                     </div>
                 </details>
 
-                <details>
-                    <summary><span>11</span>Replayability</summary>
+                <details data-doc-kind="brief">
+                    <summary><span>12</span>Replayability</summary>
                     <div class="section-body grid two">
                         <label>May Change Between Runs<textarea data-path="replayability.variable_elements" rows="7"></textarea></label>
-                        <label>Must Stay Canon<textarea data-path="replayability.fixed_elements" rows="7"></textarea></label>
+                        <label>Must Stay Fixed In This Adventure<textarea data-path="replayability.fixed_elements" rows="7"></textarea></label>
                         <label class="wide">Notes<textarea data-path="replayability.notes" rows="5"></textarea></label>
                     </div>
                 </details>
 
                 <details>
-                    <summary><span>12</span>Freeform Notes</summary>
-                    <div class="section-body">
-                        <label>Go Nuts<textarea data-path="freeform_notes" rows="12" placeholder="Gross shopkeeper. Old train line. One scene absolutely must happen in a thunderstorm. Do whatever fits."></textarea></label>
+                    <summary><span id="notes-section-number">11</span>Notes</summary>
+                    <div class="section-body grid two">
+                        <label class="wide">Director Notes <span class="field-help">Sent to AI/runtime.</span><textarea data-path="director_notes" rows="8" placeholder="Loose creative direction the Director should see..."></textarea></label>
+                        <label class="wide private-note-label">Private Author Notes <span class="field-help">Never sent to AI or runtime.</span><textarea data-path="private_notes" rows="8" placeholder="Your own reminders, TODOs, production notes, ideas to revisit..."></textarea></label>
                     </div>
                 </details>
             </form>
@@ -487,8 +533,9 @@
                     characters or places, desired moments, and any special restrictions.
                 </p>
                 <p>
-                    The Brief does not need to retell the whole World. It only needs to
-                    explain what matters for this run.
+                    The Brief does not need to retell the whole World. Use <strong>Featured World Content</strong>
+                    to select existing places, people, factions, and secrets, then describe only how they matter
+                    in this run. Add Adventure-Only content only when it genuinely exists for this story.
                 </p>
             </section>
         </div>
@@ -515,7 +562,9 @@
                 <li><strong>Three words can be useful.</strong> An NPC can begin as “mean baker, secretly lonely.” You can always expand later.</li>
                 <li><strong>Leave blanks on purpose.</strong> Empty space gives the generator room to surprise you.</li>
                 <li><strong>Use Required sparingly.</strong> Too many mandatory beats can make a short adventure feel railroaded.</li>
-                <li><strong>Secrets belong in the source.</strong> Players do not need to know them; the director can use them behind the scenes.</li>
+                <li><strong>Secrets belong in the right scope.</strong> Persistent hidden truth goes in the World; a one-night twist goes in the Brief.</li>
+                <li><strong>Use AI helpers freely, but keep the scopes honest.</strong> World AI deepens durable canon; Brief AI can read the linked World and should reference it instead of duplicating it.</li>
+                <li><strong>Director Notes are instructions; Private Author Notes are yours.</strong> Private notes are never sent to AI or runtime generation.</li>
                 <li><strong>Write the feeling, not just the facts.</strong> Tone and Player Experience are useful when you care how the session should feel.</li>
             </ul>
         </section>
@@ -618,6 +667,6 @@
 </dialog>
 
 <div id="toast" class="toast" hidden></div>
-<script src="/static/author/author.js?v=011" defer></script>
+<script src="/static/author/author.js?v=012" defer></script>
 </body>
 </html>

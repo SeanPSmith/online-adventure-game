@@ -222,6 +222,7 @@ class NpcCanonConstraintTests(
     ) -> None:
 
         source = {
+            "identity": {"document_kind": "brief"},
             "npcs": [
                 {
                     "name": "Bob",

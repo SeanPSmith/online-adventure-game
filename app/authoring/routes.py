@@ -461,6 +461,35 @@ async def assist_author_source(
 
     try:
 
+        linked_world_source = None
+
+        if (
+            payload.document_id
+            and payload.version_number
+        ):
+            active_version = (
+                await authoring_store.get_version(
+                    payload.document_id,
+                    payload.version_number,
+                )
+            )
+
+            if (
+                active_version
+                and active_version.get("document_kind") == "brief"
+                and active_version.get("parent_document_id")
+            ):
+                world_versions = (
+                    await authoring_store.list_versions(
+                        active_version["parent_document_id"]
+                    )
+                )
+                # Author assistance should see the newest linked World material,
+                # even when that World is still a draft. Runtime generation still
+                # requires an explicitly published World version.
+                if world_versions:
+                    linked_world_source = world_versions[0].get("source")
+
         return (
             await author_assist_service
             .assist(
@@ -479,6 +508,9 @@ async def assist_author_source(
 
                 field_path=
                     payload.field_path,
+
+                linked_world_source=
+                    linked_world_source,
             )
         )
 

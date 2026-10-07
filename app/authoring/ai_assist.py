@@ -13,6 +13,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from app.authoring.service import (
     default_source_document,
+    generation_source_document,
     normalize_source_document,
 )
 from app.generation.provider import (
@@ -23,6 +24,8 @@ from app.generation.provider import (
 
 ASSISTABLE_SECTIONS = (
     "world_truths",
+    "world_rules",
+    "adventure_facts",
     "locations",
     "npcs",
     "lore_secrets",
@@ -35,23 +38,36 @@ ASSISTABLE_SECTIONS = (
 AUTHOR_ASSIST_SYSTEM_INSTRUCTIONS = """
 You are the private authoring copilot for TALES OF TWO.
 
-You are NOT the runtime story Director. Your job is to turn a creator's rough,
-casual note into useful structured source material that a later Director can use.
+You are NOT the runtime story Director. Turn a creator's rough, casual note
+into useful structured source material that a later Director can use.
+
+SCOPE RULES
+- WORLD documents define durable nouns and laws: setting facts, places, recurring
+  people/factions, lore, world rules, ongoing tensions, and canon boundaries.
+- ADVENTURE BRIEFS define one run: starting situation, core goal/pressure, local
+  facts, featured world material, adventure-only cast/locations/secrets, moments,
+  restrictions, choice guidance, and replayability.
+- If linked World context is supplied for a Brief, treat it as read-only canon.
+  Prefer selecting relevant items into world_references by the exact supplied source_id
+  instead of restating or rewriting their biographies/lore in adventure-local fields.
+- Never invent a world_references source_id. The server validates every proposed reference
+  against the linked World and discards unknown IDs.
+- Never turn a World NPC into an adventure beat by inventing introduction timing.
+- Never promote an Adventure-local fact into permanent World canon.
+- PRIVATE AUTHOR NOTES are never provided to you and must never be inferred.
 
 AUTHORING PRINCIPLES
-- Preserve the author's concrete intent, names, dates, relationships, constraints,
-  mysteries, tone, and deliberately vague ideas.
-- Do not "solve" mysteries the author intentionally left unresolved.
-- If the author says an NPC has no name or must remain unnamed, leave the name empty.
-- If the author says something should matter later, preserve delayed introduction timing.
-- Prefer specific sensory or behavioral detail over generic fantasy filler.
+- Preserve the author's names, dates, relationships, constraints, mysteries, tone,
+  and deliberately vague ideas.
+- Do not solve mysteries the author intentionally left unresolved.
+- If an NPC must remain unnamed, leave the name empty.
+- Prefer concrete sensory/behavioral detail over generic genre filler.
 - Do not overbuild. A lightweight brief should remain lightweight.
 - Do not invent mechanical outcomes, dice results, player actions, or completed scenes.
-- Canon and forbidden rules in the supplied source outrank the rough note.
-- Existing authored fields are context. The server decides what generated values are
-  actually allowed to replace.
-- Empty strings and empty lists are acceptable when the rough note does not justify
-  filling a field. Do not manufacture filler just to make every field non-empty.
+- Canon and forbidden rules in supplied source outrank the rough note.
+- Existing authored fields are context; the server decides what generated values
+  may actually replace.
+- Empty strings/lists are acceptable when the note does not justify filling them.
 
 Return only the structured object requested by the response schema.
 """.strip()
@@ -81,8 +97,16 @@ class AuthorFieldAssistDraft(_StrictModel):
     value: str = Field(max_length=2400)
 
 
-class IdentityAssistDraft(_StrictModel):
+class WorldIdentityAssistDraft(_StrictModel):
     title: str = Field(max_length=160)
+    genre: str = Field(max_length=160)
+    tone: str = Field(max_length=240)
+    weirdness: int = Field(ge=0, le=5)
+    one_sentence_pitch: str = Field(max_length=500)
+    player_experience: str = Field(max_length=900)
+
+
+class BriefIdentityAssistDraft(WorldIdentityAssistDraft):
     primary_type: Literal[
         "journey",
         "mystery",
@@ -94,8 +118,6 @@ class IdentityAssistDraft(_StrictModel):
     ]
     secondary_type: str = Field(max_length=80)
     length: Literal["short", "medium", "long"]
-    genre: str = Field(max_length=160)
-    tone: str = Field(max_length=240)
     difficulty: Literal[
         "introductory",
         "easy",
@@ -103,9 +125,11 @@ class IdentityAssistDraft(_StrictModel):
         "hard",
         "brutal",
     ]
-    weirdness: int = Field(ge=0, le=5)
-    one_sentence_pitch: str = Field(max_length=500)
-    player_experience: str = Field(max_length=900)
+
+
+# Compatibility name used by a few tests/extensions that treated the old shared
+# identity model as the adventure identity model.
+IdentityAssistDraft = BriefIdentityAssistDraft
 
 
 class WorldTruthAssistDraft(_StrictModel):
@@ -122,11 +146,9 @@ class LocationAssistDraft(_StrictModel):
     importance: Importance
 
 
-class NpcAssistDraft(_StrictModel):
+class WorldNpcAssistDraft(_StrictModel):
     name: str = Field(max_length=160)
     role: str = Field(max_length=240)
-    availability: Literal["flexible", "reserved", "unavailable"]
-    introduction_timing: Literal["anytime", "early", "mid", "late", "finale"]
     occupation: str = Field(max_length=240)
     appearance: str = Field(max_length=900)
     personality: str = Field(max_length=900)
@@ -135,12 +157,17 @@ class NpcAssistDraft(_StrictModel):
     secret: str = Field(max_length=1200)
     relationship: str = Field(max_length=900)
     canonical_facts: str = Field(max_length=1400)
-    introduction_conditions: str = Field(max_length=900)
     location_constraints: str = Field(max_length=900)
     forbidden_uses: str = Field(max_length=900)
     ai_freedom: Literal["low", "medium", "high"]
     importance: Importance
     recurring: bool
+
+
+class NpcAssistDraft(WorldNpcAssistDraft):
+    availability: Literal["flexible", "reserved", "unavailable"]
+    introduction_timing: Literal["anytime", "early", "mid", "late", "finale"]
+    introduction_conditions: str = Field(max_length=900)
 
 
 class LoreSecretAssistDraft(_StrictModel):
@@ -179,16 +206,70 @@ class StoryGuidanceAssistDraft(_StrictModel):
     failure_philosophy: str = Field(max_length=900)
 
 
+class WorldStoryGuidanceAssistDraft(_StrictModel):
+    humor: str = Field(max_length=700)
+    danger: str = Field(max_length=700)
+    violence: str = Field(max_length=700)
+    weirdness: str = Field(max_length=700)
+
+
 class ReplayabilityAssistDraft(_StrictModel):
     variable_elements: str = Field(max_length=900)
     fixed_elements: str = Field(max_length=900)
     notes: str = Field(max_length=900)
 
 
-class AuthorDocumentAssistDraft(_StrictModel):
-    identity: IdentityAssistDraft
+class FeaturedWorldLocationAssistDraft(_StrictModel):
+    source_id: str = Field(max_length=120)
+    name: str = Field(max_length=160)
+    use: str = Field(max_length=900)
+    importance: Importance
+    timing: Literal["anytime", "early", "mid", "late", "finale"]
+
+
+class FeaturedWorldNpcAssistDraft(_StrictModel):
+    source_id: str = Field(max_length=120)
+    name: str = Field(max_length=160)
+    use: str = Field(max_length=900)
+    importance: Importance
+    timing: Literal["anytime", "early", "mid", "late", "finale"]
+
+
+class FeaturedWorldSecretAssistDraft(_StrictModel):
+    source_id: str = Field(max_length=120)
+    title: str = Field(max_length=180)
+    use: str = Field(max_length=900)
+    importance: Importance
+    timing: Literal["anytime", "early", "mid", "late", "finale"]
+    treatment: Literal["do_not_reveal", "foreshadow", "may_reveal", "must_reveal"]
+
+
+class FeaturedWorldContentAssistDraft(_StrictModel):
+    locations: list[FeaturedWorldLocationAssistDraft] = Field(max_length=5)
+    npcs: list[FeaturedWorldNpcAssistDraft] = Field(max_length=5)
+    lore_secrets: list[FeaturedWorldSecretAssistDraft] = Field(max_length=5)
+
+
+class WorldDocumentAssistDraft(_StrictModel):
+    identity: WorldIdentityAssistDraft
     premise: str = Field(max_length=1800)
     world_truths: list[WorldTruthAssistDraft] = Field(max_length=6)
+    world_rules: list[WorldTruthAssistDraft] = Field(max_length=5)
+    locations: list[LocationAssistDraft] = Field(max_length=5)
+    npcs: list[WorldNpcAssistDraft] = Field(max_length=5)
+    lore_secrets: list[LoreSecretAssistDraft] = Field(max_length=5)
+    forbidden_rules: list[ForbiddenRuleAssistDraft] = Field(max_length=5)
+    story_threads: list[StoryThreadAssistDraft] = Field(max_length=5)
+    story_guidance: WorldStoryGuidanceAssistDraft
+    director_notes: str = Field(max_length=1400)
+
+
+class BriefDocumentAssistDraft(_StrictModel):
+    identity: BriefIdentityAssistDraft
+    starting_situation: str = Field(max_length=1800)
+    core_goal: str = Field(max_length=900)
+    adventure_facts: list[WorldTruthAssistDraft] = Field(max_length=6)
+    world_references: FeaturedWorldContentAssistDraft
     locations: list[LocationAssistDraft] = Field(max_length=5)
     npcs: list[NpcAssistDraft] = Field(max_length=5)
     lore_secrets: list[LoreSecretAssistDraft] = Field(max_length=5)
@@ -197,13 +278,18 @@ class AuthorDocumentAssistDraft(_StrictModel):
     story_threads: list[StoryThreadAssistDraft] = Field(max_length=5)
     story_guidance: StoryGuidanceAssistDraft
     replayability: ReplayabilityAssistDraft
-    freeform_notes: str = Field(max_length=1400)
+    director_notes: str = Field(max_length=1400)
 
 
-SECTION_MODELS: dict[str, type[_StrictModel]] = {
+# Compatibility alias. Dynamic schema selection below chooses the actual kind.
+AuthorDocumentAssistDraft = BriefDocumentAssistDraft
+
+
+COMMON_SECTION_MODELS: dict[str, type[_StrictModel]] = {
     "world_truths": WorldTruthAssistDraft,
+    "world_rules": WorldTruthAssistDraft,
+    "adventure_facts": WorldTruthAssistDraft,
     "locations": LocationAssistDraft,
-    "npcs": NpcAssistDraft,
     "lore_secrets": LoreSecretAssistDraft,
     "moments": MomentAssistDraft,
     "forbidden_rules": ForbiddenRuleAssistDraft,
@@ -218,21 +304,24 @@ SIMPLE_TEXT_FIELD_PATHS = {
     "identity.one_sentence_pitch",
     "identity.player_experience",
     "premise",
+    "starting_situation",
+    "core_goal",
     "story_guidance.humor",
     "story_guidance.danger",
     "story_guidance.violence",
     "story_guidance.weirdness",
     "story_guidance.choice_guidance",
-    "story_guidance.failure_philosophy",
     "replayability.variable_elements",
     "replayability.fixed_elements",
     "replayability.notes",
-    "freeform_notes",
+    "director_notes",
 }
 
 
 REPEAT_TEXT_FIELDS: dict[str, set[str]] = {
     "world_truths": {"text"},
+    "world_rules": {"text"},
+    "adventure_facts": {"text"},
     "locations": {"name", "role", "description", "canon"},
     "npcs": {
         "name",
@@ -267,10 +356,9 @@ _REPEAT_FIELD_PATH = re.compile(
 
 
 SECTION_DEFAULTS: dict[str, dict[str, Any]] = {
-    "world_truths": {
-        "authority": "canon",
-        "text": "",
-    },
+    "world_truths": {"authority": "canon", "text": ""},
+    "world_rules": {"authority": "canon", "text": ""},
+    "adventure_facts": {"authority": "canon", "text": ""},
     "locations": {
         "name": "",
         "role": "",
@@ -308,14 +396,8 @@ SECTION_DEFAULTS: dict[str, dict[str, Any]] = {
         "reveal_guidance": "",
         "ai_can_alter": True,
     },
-    "moments": {
-        "authority": "preferred",
-        "text": "",
-    },
-    "forbidden_rules": {
-        "authority": "forbidden",
-        "text": "",
-    },
+    "moments": {"authority": "preferred", "text": ""},
+    "forbidden_rules": {"authority": "forbidden", "text": ""},
     "story_threads": {
         "title": "",
         "description": "",
@@ -386,26 +468,46 @@ class AuthorAssistService:
         return self._client
 
     @staticmethod
-    def _schema_for(section: str) -> tuple[str, type[_StrictModel]]:
+    def _schema_for(
+        section: str,
+        document_kind: str,
+    ) -> tuple[str, type[_StrictModel]]:
         if section == "document":
-            return "author_document_assist", AuthorDocumentAssistDraft
+            if document_kind == "world":
+                return "author_world_document_assist", WorldDocumentAssistDraft
+            return "author_brief_document_assist", BriefDocumentAssistDraft
 
         if section == "field":
             return "author_field_assist", AuthorFieldAssistDraft
 
-        model = SECTION_MODELS.get(section)
+        if section == "npcs":
+            model: type[_StrictModel] = (
+                WorldNpcAssistDraft
+                if document_kind == "world"
+                else NpcAssistDraft
+            )
+            return f"author_{document_kind}_npcs_assist", model
+
+        model = COMMON_SECTION_MODELS.get(section)
         if model is None:
             raise ValueError("Unknown AI authoring section.")
-
         return f"author_{section}_assist", model
 
     @staticmethod
-    def _compact_context(source: dict[str, Any], section: str) -> dict[str, Any]:
-        if section == "document":
-            return source
+    def _compact_context(
+        source: dict[str, Any],
+        section: str,
+        *,
+        linked_world_source: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        visible_source = generation_source_document(source)
 
-        def compact_items(name: str, keys: tuple[str, ...]) -> list[dict[str, Any]]:
-            items = source.get(name, [])
+        def compact_items(
+            container: dict[str, Any],
+            name: str,
+            keys: tuple[str, ...],
+        ) -> list[dict[str, Any]]:
+            items = container.get(name, [])
             if not isinstance(items, list):
                 return []
             compacted: list[dict[str, Any]] = []
@@ -419,37 +521,87 @@ class AuthorAssistService:
                 })
             return compacted
 
-        return {
-            "identity": source.get("identity", {}),
-            "premise": source.get("premise", ""),
-            "world_truths": compact_items(
-                "world_truths",
-                ("authority", "text"),
-            ),
-            "locations": compact_items(
-                "locations",
-                ("name", "role", "canon", "importance"),
-            ),
-            "npcs": compact_items(
-                "npcs",
-                (
-                    "name",
-                    "role",
-                    "occupation",
-                    "canonical_facts",
-                    "introduction_timing",
-                    "importance",
+        context: dict[str, Any]
+        if section == "document":
+            context = visible_source
+        else:
+            context = {
+                "identity": visible_source.get("identity", {}),
+                "premise": visible_source.get("premise", ""),
+                "starting_situation": visible_source.get("starting_situation", ""),
+                "core_goal": visible_source.get("core_goal", ""),
+                "world_truths": compact_items(
+                    visible_source, "world_truths", ("authority", "text")
                 ),
-            ),
-            "lore_secrets": compact_items(
-                "lore_secrets",
-                ("title", "text", "authority", "importance"),
-            ),
-            "forbidden_rules": compact_items(
-                "forbidden_rules",
-                ("text",),
-            ),
-        }
+                "world_rules": compact_items(
+                    visible_source, "world_rules", ("authority", "text")
+                ),
+                "adventure_facts": compact_items(
+                    visible_source, "adventure_facts", ("authority", "text")
+                ),
+                "world_references": visible_source.get("world_references", {}),
+                "locations": compact_items(
+                    visible_source,
+                    "locations",
+                    ("name", "role", "canon", "importance"),
+                ),
+                "npcs": compact_items(
+                    visible_source,
+                    "npcs",
+                    (
+                        "name",
+                        "role",
+                        "occupation",
+                        "canonical_facts",
+                        "introduction_timing",
+                        "importance",
+                    ),
+                ),
+                "lore_secrets": compact_items(
+                    visible_source,
+                    "lore_secrets",
+                    ("title", "text", "authority", "importance"),
+                ),
+                "forbidden_rules": compact_items(
+                    visible_source, "forbidden_rules", ("text",)
+                ),
+            }
+
+        if linked_world_source is not None:
+            world = generation_source_document(linked_world_source)
+            context = {
+                "current_document": context,
+                "linked_world_read_only": {
+                    "identity": world.get("identity", {}),
+                    "premise": world.get("premise", ""),
+                    "world_truths": compact_items(
+                        world, "world_truths", ("authority", "text")
+                    ),
+                    "world_rules": compact_items(
+                        world, "world_rules", ("authority", "text")
+                    ),
+                    "locations": compact_items(
+                        world,
+                        "locations",
+                        ("id", "name", "role", "canon", "importance"),
+                    ),
+                    "npcs": compact_items(
+                        world,
+                        "npcs",
+                        ("id", "name", "role", "occupation", "canonical_facts"),
+                    ),
+                    "lore_secrets": compact_items(
+                        world,
+                        "lore_secrets",
+                        ("id", "title", "text", "authority", "importance"),
+                    ),
+                    "forbidden_rules": compact_items(
+                        world, "forbidden_rules", ("text",)
+                    ),
+                },
+            }
+
+        return context
 
     async def _request(
         self,
@@ -459,8 +611,12 @@ class AuthorAssistService:
         source: dict[str, Any],
         current_item: dict[str, Any] | None,
         field_path: str | None = None,
+        linked_world_source: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        schema_name, model_type = self._schema_for(section)
+        document_kind = str(
+            source.get("identity", {}).get("document_kind", "world")
+        ).strip().lower()
+        schema_name, model_type = self._schema_for(section, document_kind)
         client = self._client_instance()
 
         payload = {
@@ -473,7 +629,12 @@ class AuthorAssistService:
             "field_path": field_path,
             "author_note": instruction.strip(),
             "current_item": current_item,
-            "source_context": self._compact_context(source, section),
+            "document_kind": document_kind,
+            "source_context": self._compact_context(
+                source,
+                section,
+                linked_world_source=linked_world_source,
+            ),
         }
 
         task_instruction = (
@@ -482,7 +643,15 @@ class AuthorAssistService:
             "canon, uncertainty, delayed reveals, and intentionally unnamed elements. "
             "Return useful source prose, not player-facing narration.\n\n"
             if section == "field"
-            else "Expand this author note into the requested structured authoring data.\n\n"
+            else (
+                "Expand this author note into WORLD source material only. Do not invent "
+                "adventure-specific beats, timing, or run controls.\n\n"
+                if document_kind == "world"
+                else "Expand this author note into this ADVENTURE BRIEF only. Use linked "
+                "World material as read-only context instead of duplicating it. When a linked "
+                "World item should be featured, select it through world_references using the exact "
+                "source_id provided in context; do not recreate that item locally.\n\n"
+            )
         )
 
         try:
@@ -564,6 +733,71 @@ class AuthorAssistService:
         result = copy.deepcopy(item)
         result.setdefault("id", str(uuid4()))
         return result
+
+    @staticmethod
+    def _validated_world_reference_proposal(
+        proposal: dict[str, Any],
+        linked_world_source: dict[str, Any] | None,
+    ) -> dict[str, Any]:
+        """Allow Brief AI to select World entities, never to invent them.
+
+        The model sees compact linked-World IDs, but the server remains authoritative:
+        unknown IDs are discarded and canonical display labels are copied from the
+        linked World rather than trusted from model output.
+        """
+        result = copy.deepcopy(proposal)
+        proposed = result.get("world_references")
+        if not isinstance(proposed, dict):
+            return result
+
+        if linked_world_source is None:
+            result["world_references"] = {
+                "locations": [],
+                "npcs": [],
+                "lore_secrets": [],
+            }
+            return result
+
+        world = generation_source_document(linked_world_source)
+        sanitized: dict[str, list[dict[str, Any]]] = {}
+
+        for key in ("locations", "npcs", "lore_secrets"):
+            world_items = world.get(key, [])
+            valid = {
+                str(item.get("id")): item
+                for item in world_items
+                if isinstance(item, dict) and str(item.get("id", "")).strip()
+            }
+            clean_items: list[dict[str, Any]] = []
+            seen: set[str] = set()
+            for item in proposed.get(key, []) if isinstance(proposed.get(key), list) else []:
+                if not isinstance(item, dict):
+                    continue
+                source_id = str(item.get("source_id", "")).strip()
+                canonical = valid.get(source_id)
+                if canonical is None or source_id in seen:
+                    continue
+                seen.add(source_id)
+                clean = copy.deepcopy(item)
+                clean["source_id"] = source_id
+                if key == "lore_secrets":
+                    clean["title"] = str(
+                        canonical.get("title")
+                        or canonical.get("text")
+                        or "Untitled secret"
+                    )
+                else:
+                    clean["name"] = str(
+                        canonical.get("name")
+                        or canonical.get("role")
+                        or "Unnamed item"
+                    )
+                clean_items.append(clean)
+            sanitized[key] = clean_items
+
+        result["world_references"] = sanitized
+        return result
+
 
     @classmethod
     def _merge_document_proposal(
@@ -828,6 +1062,7 @@ class AuthorAssistService:
         section: str = "document",
         item_index: int | None = None,
         field_path: str | None = None,
+        linked_world_source: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         normalized = normalize_source_document(source)
         instruction = str(instruction or "").strip()
@@ -853,6 +1088,7 @@ class AuthorAssistService:
                     "item": current_item,
                 },
                 field_path=field_path,
+                linked_world_source=linked_world_source,
             )
             merged, changed = self._apply_text_field(
                 normalized,
@@ -866,7 +1102,13 @@ class AuthorAssistService:
                 instruction=instruction,
                 source=normalized,
                 current_item=None,
+                linked_world_source=linked_world_source,
             )
+            if normalized.get("identity", {}).get("document_kind") == "brief":
+                proposal = self._validated_world_reference_proposal(
+                    proposal,
+                    linked_world_source,
+                )
             merged, changed = self._merge_document_proposal(
                 normalized,
                 proposal,
@@ -891,6 +1133,7 @@ class AuthorAssistService:
                 instruction=instruction,
                 source=normalized,
                 current_item=current_item,
+                linked_world_source=linked_world_source,
             )
             merged, changed = self._merge_item_proposal(
                 normalized,

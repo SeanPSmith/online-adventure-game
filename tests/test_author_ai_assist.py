@@ -44,8 +44,9 @@ class AuthorAssistMergeTests(unittest.TestCase):
                 "one_sentence_pitch": "AI pitch should not replace authored pitch.",
                 "player_experience": "Ordinary workday tension turning uncanny.",
             },
-            "premise": "A normal grocery shift develops impossible inconsistencies.",
-            "world_truths": [
+            "starting_situation": "A normal grocery shift develops impossible inconsistencies.",
+            "core_goal": "Finish the shift and learn why the store is changing.",
+            "adventure_facts": [
                 {"authority": "canon", "text": "It is September 22, 1984."},
             ],
             "locations": [],
@@ -67,7 +68,7 @@ class AuthorAssistMergeTests(unittest.TestCase):
                 "fixed_elements": "The date and store remain fixed.",
                 "notes": "Keep the opening grounded.",
             },
-            "freeform_notes": "Use fluorescent-light atmosphere.",
+            "director_notes": "Use fluorescent-light atmosphere.",
         }
 
         merged, changed = AuthorAssistService._merge_document_proposal(
@@ -84,9 +85,9 @@ class AuthorAssistMergeTests(unittest.TestCase):
         self.assertEqual(merged["identity"]["primary_type"], "social_intrigue")
         self.assertEqual(merged["identity"]["length"], "medium")
         self.assertIn("identity.primary_type", changed)
-        self.assertIn("premise", changed)
-        self.assertEqual(merged["world_truths"][0]["text"], "It is September 22, 1984.")
-        self.assertTrue(merged["world_truths"][0]["id"])
+        self.assertIn("starting_situation", changed)
+        self.assertEqual(merged["adventure_facts"][0]["text"], "It is September 22, 1984.")
+        self.assertTrue(merged["adventure_facts"][0]["id"])
 
     def test_npc_assist_preserves_explicit_unnamed_constraint(self) -> None:
         source = default_source_document(
@@ -313,18 +314,18 @@ def test_field_assist_changes_only_requested_text_field() -> None:
         document_kind="brief",
     )
     source["identity"]["tone"] = "Dry and eerie."
-    source["premise"] = "Two clerks are stuck working late."
+    source["starting_situation"] = "Two clerks are stuck working late."
 
     merged, changed = AuthorAssistService._apply_text_field(
         source,
-        "premise",
+        "starting_situation",
         "Two clerks work a dead Saturday shift while impossible details slowly invade the store.",
     )
 
-    assert changed == ["premise"]
+    assert changed == ["starting_situation"]
     assert merged["identity"]["tone"] == "Dry and eerie."
     assert merged["identity"]["title"] == "Saturday Shift"
-    assert merged["premise"].startswith("Two clerks work")
+    assert merged["starting_situation"].startswith("Two clerks work")
 
 
 def test_field_assist_supports_repeat_item_text_and_rejects_slug() -> None:

@@ -106,6 +106,8 @@ class AuthorAssistRequest(
         "document",
         "field",
         "world_truths",
+        "world_rules",
+        "adventure_facts",
         "locations",
         "npcs",
         "lore_secrets",
@@ -128,6 +130,22 @@ class AuthorAssistRequest(
     ) = Field(
         default=None,
         max_length=160,
+    )
+
+    document_id: (
+        str
+        | None
+    ) = Field(
+        default=None,
+        max_length=80,
+    )
+
+    version_number: (
+        int
+        | None
+    ) = Field(
+        default=None,
+        ge=1,
     )
 
 

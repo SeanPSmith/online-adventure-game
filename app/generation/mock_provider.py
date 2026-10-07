@@ -4,6 +4,10 @@ from typing import (
     Any,
 )
 
+from app.authoring.service import (
+    generation_source_document,
+)
+
 from app.generation.provider import (
     AdventureGenerationProvider,
 )
@@ -150,6 +154,18 @@ def _item_texts(
     return results
 
 
+def _reference_names(
+    source: dict[str, Any],
+    key: str,
+    *,
+    max_items: int,
+) -> list[str]:
+    refs = source.get("world_references", {})
+    if not isinstance(refs, dict):
+        return []
+    return _item_names(refs.get(key, []), max_items=max_items)
+
+
 class MockAdventureGenerationProvider(
     AdventureGenerationProvider
 ):
@@ -172,16 +188,12 @@ class MockAdventureGenerationProvider(
         Any,
     ]:
 
-        world = (
-            world_version[
-                "source"
-            ]
+        world = generation_source_document(
+            world_version["source"]
         )
 
-        brief = (
-            brief_version[
-                "source"
-            ]
+        brief = generation_source_document(
+            brief_version["source"]
         )
 
 
@@ -213,7 +225,7 @@ class MockAdventureGenerationProvider(
         premise = (
             _clean(
                 brief.get(
-                    "premise"
+                    "starting_situation"
                 )
             )
             or _clean(
@@ -236,48 +248,30 @@ class MockAdventureGenerationProvider(
         )
 
 
-        major_locations = (
-            _item_names(
-                brief.get(
-                    "locations"
-                ),
-                max_items=5,
-            )
+        major_locations = _reference_names(
+            brief,
+            "locations",
+            max_items=5,
         )
-
-
+        for name in _item_names(brief.get("locations"), max_items=5):
+            if name not in major_locations:
+                major_locations.append(name)
         if not major_locations:
-
-            major_locations = (
-                _item_names(
-                    world.get(
-                        "locations"
-                    ),
-                    max_items=5,
-                )
-            )
+            major_locations = _item_names(world.get("locations"), max_items=5)
+        major_locations = major_locations[:5]
 
 
-        major_npcs = (
-            _item_names(
-                brief.get(
-                    "npcs"
-                ),
-                max_items=5,
-            )
+        major_npcs = _reference_names(
+            brief,
+            "npcs",
+            max_items=5,
         )
-
-
+        for name in _item_names(brief.get("npcs"), max_items=5):
+            if name not in major_npcs:
+                major_npcs.append(name)
         if not major_npcs:
-
-            major_npcs = (
-                _item_names(
-                    world.get(
-                        "npcs"
-                    ),
-                    max_items=5,
-                )
-            )
+            major_npcs = _item_names(world.get("npcs"), max_items=5)
+        major_npcs = major_npcs[:5]
 
 
         required_elements = (
@@ -475,11 +469,8 @@ class MockAdventureGenerationProvider(
 
             "core_goal":
                 (
-                    _clean(
-                        brief_identity.get(
-                            "one_sentence_pitch"
-                        )
-                    )
+                    _clean(brief.get("core_goal"))
+                    or _clean(brief_identity.get("one_sentence_pitch"))
                     or premise
                 ),
 

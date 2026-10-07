@@ -36,6 +36,61 @@ from app.generation.store import (
 )
 
 
+
+
+def _validate_featured_world_references(
+    world_source: dict[str, Any],
+    brief_source: dict[str, Any],
+) -> None:
+    """Ensure Brief references exist in the exact published World version used.
+
+    Author AI may see the newest linked World draft while generation intentionally
+    pins published versions. If a Brief features something that only exists in a
+    newer/unpublished World version, fail clearly instead of silently generating
+    against mismatched canon.
+    """
+    refs = brief_source.get("world_references", {})
+    if not isinstance(refs, dict):
+        return
+
+    missing: list[str] = []
+    for key, label in (
+        ("locations", "location"),
+        ("npcs", "person/faction"),
+        ("lore_secrets", "lore/secret"),
+    ):
+        world_items = world_source.get(key, [])
+        valid_ids = {
+            str(item.get("id"))
+            for item in world_items
+            if isinstance(item, dict) and str(item.get("id", "")).strip()
+        }
+        items = refs.get(key, [])
+        if not isinstance(items, list):
+            continue
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            source_id = str(item.get("source_id", "")).strip()
+            if source_id and source_id in valid_ids:
+                continue
+            name = str(
+                item.get("name")
+                or item.get("title")
+                or source_id
+                or "unnamed reference"
+            ).strip()
+            missing.append(f"{label}: {name}")
+
+    if missing:
+        detail = "; ".join(missing[:6])
+        raise ValueError(
+            "This Adventure Brief features World content that is not present in "
+            "the selected published World version: " + detail + ". Publish/select "
+            "the matching World version or update the Brief references before generation."
+        )
+
+
 class AdventureGenerationService:
 
     def __init__(
@@ -170,6 +225,12 @@ class AdventureGenerationService:
             raise ValueError(
                 "That adventure brief belongs to a different world."
             )
+
+
+        _validate_featured_world_references(
+            world_version.get("source", {}),
+            brief_version.get("source", {}),
+        )
 
 
         seed = (

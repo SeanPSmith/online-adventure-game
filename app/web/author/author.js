@@ -32,6 +32,33 @@ const ui = {
     previewCompiledButton: byId("preview-compiled-button"),
     worldLinkPanel: byId("world-link-panel"),
     worldLinkTitle: byId("world-link-title"),
+    migrationPanel: byId("migration-panel"),
+    migrationTitle: byId("migration-title"),
+    migrationReviewList: byId("migration-review-list"),
+    worldReferencePicker: byId("world-reference-picker"),
+    locationsSectionNumber: byId("locations-section-number"),
+    locationsSectionTitle: byId("locations-section-title"),
+    locationsSectionHelp: byId("locations-section-help"),
+    locationsAddButton: byId("locations-add-button"),
+    npcsSectionNumber: byId("npcs-section-number"),
+    npcsSectionTitle: byId("npcs-section-title"),
+    npcsSectionHelp: byId("npcs-section-help"),
+    npcsAddButton: byId("npcs-add-button"),
+    loreSectionNumber: byId("lore-section-number"),
+    loreSectionTitle: byId("lore-section-title"),
+    loreSectionHelp: byId("lore-section-help"),
+    loreAddButton: byId("lore-add-button"),
+    guidanceSectionNumber: byId("guidance-section-number"),
+    guidanceSectionTitle: byId("guidance-section-title"),
+    forbiddenSectionNumber: byId("forbidden-section-number"),
+    forbiddenSectionTitle: byId("forbidden-section-title"),
+    forbiddenSectionHelp: byId("forbidden-section-help"),
+    forbiddenAddButton: byId("forbidden-add-button"),
+    threadsSectionNumber: byId("threads-section-number"),
+    threadsSectionTitle: byId("threads-section-title"),
+    threadsSectionHelp: byId("threads-section-help"),
+    threadsAddButton: byId("threads-add-button"),
+    notesSectionNumber: byId("notes-section-number"),
 
     authorAiDialog: byId("author-ai-dialog"),
     authorAiTitle: byId("author-ai-title"),
@@ -107,6 +134,8 @@ let currentFilter = "all";
 let createContextParentId = null;
 let authorAssistInFlight = false;
 let authorAiTarget = null;
+let linkedWorldSource = null;
+let linkedWorldVersionLabel = "";
 
 
 /*
@@ -339,81 +368,109 @@ function strengthLabel(score) {
 }
 
 
+function referenceStrength(source) {
+    const refs = source?.world_references ?? {};
+    const total = ["locations", "npcs", "lore_secrets"].reduce(
+        (sum, key) => sum + (Array.isArray(refs[key]) ? refs[key].length : 0),
+        0,
+    );
+    return Math.min(1, total / 4);
+}
+
+
 function assessStrength(source) {
     const identity = source.identity ?? {};
-    const identityFields = [
-        identity.title,
-        identity.primary_type,
-        identity.one_sentence_pitch,
-        identity.player_experience,
-    ];
+    const kind = identity.document_kind ?? "world";
 
-    const identityScore = (
-        identityFields.filter(
-            value => String(value ?? "").trim()
-        ).length
-        / identityFields.length
-    );
+    let sections;
+    let weights;
 
-    const guidance = source.story_guidance ?? {};
-    const guidanceScore = [
-        "humor",
-        "danger",
-        "violence",
-        "weirdness",
-        "choice_guidance",
-        "failure_philosophy",
-    ].reduce(
-        (total, key) =>
-            total + textStrength(guidance[key], 90),
-        0,
-    ) / 6;
+    if (kind === "world") {
+        const identityFields = [
+            identity.title,
+            identity.genre,
+            identity.tone,
+            identity.one_sentence_pitch,
+        ];
+        const identityScore = (
+            identityFields.filter(value => String(value ?? "").trim()).length
+            / identityFields.length
+        );
+        const guidance = source.story_guidance ?? {};
+        const guidanceScore = ["humor", "danger", "violence", "weirdness"].reduce(
+            (total, key) => total + textStrength(guidance[key], 80),
+            0,
+        ) / 4;
 
-    const replay = source.replayability ?? {};
-    const replayScore = [
-        "variable_elements",
-        "fixed_elements",
-        "notes",
-    ].reduce(
-        (total, key) =>
-            total + textStrength(replay[key], 100),
-        0,
-    ) / 3;
+        sections = {
+            identity: identityScore,
+            setting: textStrength(source.premise, 300),
+            canon: listStrength(source.world_truths, 5),
+            rules: listStrength(source.world_rules, 3),
+            locations: listStrength(source.locations, 4),
+            people: listStrength(source.npcs, 4),
+            lore: listStrength(source.lore_secrets, 4),
+            boundaries: listStrength(source.forbidden_rules, 3),
+            tensions: listStrength(source.story_threads, 3),
+            defaults: guidanceScore,
+            director_notes: textStrength(source.director_notes, 220),
+        };
+        weights = {
+            identity: 12, setting: 12, canon: 14, rules: 8, locations: 12,
+            people: 12, lore: 10, boundaries: 8, tensions: 6, defaults: 4,
+            director_notes: 2,
+        };
+    } else {
+        const identityFields = [
+            identity.title,
+            identity.primary_type,
+            identity.one_sentence_pitch,
+            identity.player_experience,
+        ];
+        const identityScore = (
+            identityFields.filter(value => String(value ?? "").trim()).length
+            / identityFields.length
+        );
+        const guidance = source.story_guidance ?? {};
+        const guidanceScore = [
+            "humor", "danger", "violence", "weirdness", "choice_guidance",
+        ].reduce(
+            (total, key) => total + textStrength(guidance[key], 80),
+            0,
+        ) / 5;
+        const replay = source.replayability ?? {};
+        const replayScore = ["variable_elements", "fixed_elements", "notes"].reduce(
+            (total, key) => total + textStrength(replay[key], 100),
+            0,
+        ) / 3;
 
-    const sections = {
-        identity: identityScore,
-        premise: textStrength(source.premise, 300),
-        canon: listStrength(source.world_truths, 6),
-        locations: listStrength(source.locations, 4),
-        npcs: listStrength(source.npcs, 4),
-        lore: listStrength(source.lore_secrets, 4),
-        moments: listStrength(source.moments, 5),
-        forbidden: listStrength(source.forbidden_rules, 3),
-        guidance: guidanceScore,
-        threads: listStrength(source.story_threads, 4),
-        replayability: replayScore,
-        freeform: textStrength(source.freeform_notes, 250),
-    };
-
-    const weights = {
-        identity: 10,
-        premise: 10,
-        canon: 12,
-        locations: 10,
-        npcs: 10,
-        lore: 8,
-        moments: 10,
-        forbidden: 7,
-        guidance: 8,
-        threads: 5,
-        replayability: 5,
-        freeform: 5,
-    };
+        sections = {
+            identity: identityScore,
+            starting_situation: textStrength(source.starting_situation, 280),
+            core_goal: textStrength(source.core_goal, 140),
+            adventure_facts: listStrength(source.adventure_facts, 4),
+            world_references: referenceStrength(source),
+            local_locations: listStrength(source.locations, 2),
+            local_npcs: listStrength(source.npcs, 2),
+            local_secrets: listStrength(source.lore_secrets, 2),
+            moments: listStrength(source.moments, 4),
+            restrictions: listStrength(source.forbidden_rules, 2),
+            guidance: guidanceScore,
+            threads: listStrength(source.story_threads, 3),
+            replayability: replayScore,
+            director_notes: textStrength(source.director_notes, 180),
+        };
+        weights = {
+            identity: 10, starting_situation: 12, core_goal: 10,
+            adventure_facts: 8, world_references: 10, local_locations: 6,
+            local_npcs: 6, local_secrets: 6, moments: 10, restrictions: 6,
+            guidance: 6, threads: 4, replayability: 4, director_notes: 2,
+        };
+    }
 
     const score = Math.round(
         Object.entries(weights).reduce(
-            (total, [key, weight]) =>
-                total + sections[key] * weight,
+            (total, [key, weight]) => total + sections[key] * weight,
             0,
         )
     );
@@ -422,22 +479,14 @@ function assessStrength(source) {
         score,
         label: strengthLabel(score),
         sections: Object.fromEntries(
-            Object.entries(sections).map(
-                ([key, value]) => {
-                    const sectionScore = Math.round(value * 100);
-
-                    return [
-                        key,
-                        {
-                            score: sectionScore,
-                            label: strengthLabel(sectionScore),
-                        },
-                    ];
-                }
-            )
+            Object.entries(sections).map(([key, value]) => {
+                const sectionScore = Math.round(value * 100);
+                return [key, {score: sectionScore, label: strengthLabel(sectionScore)}];
+            })
         ),
     };
 }
+
 
 
 /* =========================================================
@@ -446,6 +495,8 @@ function assessStrength(source) {
 
 const authorAssistPlaceholders = {
     world_truths: "Rough canon fact: the mine fire never actually went out...",
+    world_rules: "Magic can only cross running water when invited...",
+    adventure_facts: "Tonight the bridge is washed out and the phones are dead...",
     locations: "Some field behind a farm; seems ordinary now, matters later...",
     npcs: "An unnamed evil entity; mysterious, cruel, speaks in riddles...",
     lore_secrets: "People think the bell is haunted, but it is warning them...",
@@ -674,6 +725,8 @@ async function submitAuthorAiHelper() {
                     ? authorAiTarget.fieldPath
                     : null
             ),
+            document_id: activeVersion?.document_id ?? null,
+            version_number: activeVersion?.version_number ?? null,
         };
 
         const result = await api(
@@ -753,6 +806,8 @@ function decorateSimpleAiFields() {
                 )
             )
             || control.dataset.path === "identity.slug"
+            || control.dataset.path === "private_notes"
+            || !controlMatchesActiveDocument(control)
         ) {
             continue;
         }
@@ -804,6 +859,18 @@ function decorateSimpleAiFields() {
 
 const templates = {
     world_truths: () => ({
+        id: makeId(),
+        authority: "canon",
+        text: "",
+    }),
+
+    world_rules: () => ({
+        id: makeId(),
+        authority: "canon",
+        text: "",
+    }),
+
+    adventure_facts: () => ({
         id: makeId(),
         authority: "canon",
         text: "",
@@ -876,6 +943,8 @@ const templates = {
 
 const containers = {
     world_truths: byId("world-truths-list"),
+    world_rules: byId("world-rules-list"),
+    adventure_facts: byId("adventure-facts-list"),
     locations: byId("locations-list"),
     npcs: byId("npcs-list"),
     lore_secrets: byId("lore-secrets-list"),
@@ -973,6 +1042,8 @@ function sectionFields(sectionName, item) {
 
     if (
         sectionName === "world_truths"
+        || sectionName === "world_rules"
+        || sectionName === "adventure_facts"
         || sectionName === "moments"
         || sectionName === "forbidden_rules"
     ) {
@@ -1040,72 +1111,22 @@ function sectionFields(sectionName, item) {
     }
 
     if (sectionName === "npcs") {
-        return [
+        const isWorld = (activeSource?.identity?.document_kind ?? "world") === "world";
+        const fields = [
             makeField("Name", "name", item.name),
             makeField("Role / Archetype", "role", item.role),
-            makeField(
-                "Availability",
-                "availability",
-                item.availability ?? "flexible",
-                {
-                    options: [
-                        ["flexible", "FLEXIBLE"],
-                        ["reserved", "RESERVED"],
-                        ["unavailable", "UNAVAILABLE"],
-                    ],
-                },
-            ),
-            makeField(
-                "Introduction Timing",
-                "introduction_timing",
-                item.introduction_timing ?? "anytime",
-                {
-                    options: [
-                        ["anytime", "ANYTIME"],
-                        ["early", "EARLY"],
-                        ["mid", "MID"],
-                        ["late", "LATE"],
-                        ["finale", "FINALE"],
-                    ],
-                },
-            ),
             makeField(
                 "Occupation / Affiliation",
                 "occupation",
                 item.occupation,
             ),
+            makeField("Appearance", "appearance", item.appearance, {type: "textarea"}),
+            makeField("Personality", "personality", item.personality, {type: "textarea"}),
+            makeField("What They Want", "wants", item.wants, {type: "textarea"}),
+            makeField("What They Know", "knows", item.knows, {type: "textarea"}),
+            makeField("Secret", "secret", item.secret, {type: "textarea"}),
             makeField(
-                "Appearance",
-                "appearance",
-                item.appearance,
-                {type: "textarea"},
-            ),
-            makeField(
-                "Personality",
-                "personality",
-                item.personality,
-                {type: "textarea"},
-            ),
-            makeField(
-                "What They Want",
-                "wants",
-                item.wants,
-                {type: "textarea"},
-            ),
-            makeField(
-                "What They Know",
-                "knows",
-                item.knows,
-                {type: "textarea"},
-            ),
-            makeField(
-                "Secret",
-                "secret",
-                item.secret,
-                {type: "textarea"},
-            ),
-            makeField(
-                "Relationship to Players",
+                "Relationship / Context",
                 "relationship",
                 item.relationship,
                 {type: "textarea"},
@@ -1114,64 +1135,72 @@ function sectionFields(sectionName, item) {
                 "Canonical Facts",
                 "canonical_facts",
                 item.canonical_facts,
-                {
-                    type: "textarea",
-                    wide: true,
-                },
-            ),
-            makeField(
-                "Introduction Conditions",
-                "introduction_conditions",
-                item.introduction_conditions,
-                {
-                    type: "textarea",
-                    wide: true,
-                },
+                {type: "textarea", wide: true},
             ),
             makeField(
                 "Location Constraints",
                 "location_constraints",
                 item.location_constraints,
-                {
-                    type: "textarea",
-                    wide: true,
-                },
+                {type: "textarea", wide: true},
             ),
             makeField(
                 "Forbidden Uses",
                 "forbidden_uses",
                 item.forbidden_uses,
-                {
-                    type: "textarea",
-                    wide: true,
-                },
+                {type: "textarea", wide: true},
             ),
             makeField(
                 "AI Freedom",
                 "ai_freedom",
                 item.ai_freedom,
-                {
-                    options: [
-                        ["low", "LOW"],
-                        ["medium", "MEDIUM"],
-                        ["high", "HIGH"],
-                    ],
-                },
+                {options: [["low", "LOW"], ["medium", "MEDIUM"], ["high", "HIGH"]]},
             ),
-            makeField(
-                "Importance",
-                "importance",
-                item.importance,
-                {options: importanceOptions},
-            ),
-            makeField(
-                "Recurring Character",
-                "recurring",
-                item.recurring,
-                {type: "checkbox"},
-            ),
+            makeField("Importance", "importance", item.importance, {options: importanceOptions}),
+            makeField("Recurring Character", "recurring", item.recurring, {type: "checkbox"}),
         ];
+
+        if (!isWorld) {
+            fields.splice(
+                2,
+                0,
+                makeField(
+                    "Availability In This Adventure",
+                    "availability",
+                    item.availability ?? "flexible",
+                    {options: [
+                        ["flexible", "FLEXIBLE"],
+                        ["reserved", "RESERVED"],
+                        ["unavailable", "UNAVAILABLE"],
+                    ]},
+                ),
+                makeField(
+                    "Introduction Timing",
+                    "introduction_timing",
+                    item.introduction_timing ?? "anytime",
+                    {options: [
+                        ["anytime", "ANYTIME"],
+                        ["early", "EARLY"],
+                        ["mid", "MID"],
+                        ["late", "LATE"],
+                        ["finale", "FINALE"],
+                    ]},
+                ),
+            );
+            fields.splice(
+                fields.findIndex(definition => definition.key === "location_constraints"),
+                0,
+                makeField(
+                    "Introduction Conditions",
+                    "introduction_conditions",
+                    item.introduction_conditions,
+                    {type: "textarea", wide: true},
+                ),
+            );
+        }
+
+        return fields;
     }
+
 
     if (sectionName === "lore_secrets") {
         return [
@@ -1365,12 +1394,26 @@ function renderRepeatSection(sectionName) {
    FORM
 ========================================================= */
 
+function controlMatchesActiveDocument(control) {
+    const scoped = control.closest("[data-doc-kind]");
+    if (!scoped) {
+        return true;
+    }
+    const kind = activeSource?.identity?.document_kind ?? "world";
+    return scoped.dataset.docKind === kind;
+}
+
+
 function readSimpleFields() {
     if (!activeSource) {
         return;
     }
 
     for (const control of ui.form.querySelectorAll("[data-path]")) {
+        if (!controlMatchesActiveDocument(control)) {
+            continue;
+        }
+
         let value = control.value;
 
         if (control.type === "range") {
@@ -1428,10 +1471,15 @@ function syncFormToSource() {
 
 function renderSimpleFields() {
     for (const control of ui.form.querySelectorAll("[data-path]")) {
-        control.value = (
-            getPath(activeSource, control.dataset.path)
-            ?? ""
-        );
+        if (!controlMatchesActiveDocument(control)) {
+            continue;
+        }
+        const value = getPath(activeSource, control.dataset.path);
+        if (control.type === "checkbox") {
+            control.checked = Boolean(value);
+        } else {
+            control.value = value ?? "";
+        }
     }
 }
 
@@ -1466,6 +1514,377 @@ function updateStrengthUI() {
 }
 
 
+function renderMigrationPanel() {
+    const migration = activeSource?.migration ?? {};
+    const fromVersion = migration?.from_schema_version;
+    const reviewQueue = Array.isArray(migration?.review_queue)
+        ? migration.review_queue
+        : [];
+
+    ui.migrationPanel.hidden = !fromVersion;
+    if (!fromVersion) {
+        ui.migrationReviewList.replaceChildren();
+        return;
+    }
+
+    ui.migrationTitle.textContent = `SCHEMA V${fromVersion} → V3`;
+    ui.migrationReviewList.replaceChildren();
+
+    if (!reviewQueue.length) {
+        const clean = document.createElement("div");
+        clean.className = "migration-review-item clean";
+        clean.textContent = "AUTOMATIC PORT COMPLETE // NO AMBIGUOUS FIELDS";
+        ui.migrationReviewList.appendChild(clean);
+        return;
+    }
+
+    for (const item of reviewQueue) {
+        if (!item || typeof item !== "object") continue;
+        const row = document.createElement("div");
+        row.className = "migration-review-item";
+        const strong = document.createElement("strong");
+        strong.textContent = String(item.label ?? "Legacy field");
+        const note = document.createElement("span");
+        note.textContent = "REVIEW // ported conservatively; original value preserved below";
+        row.append(strong, note);
+
+        if (item.value !== undefined && item.value !== null) {
+            const details = document.createElement("details");
+            details.className = "migration-review-value";
+            const summary = document.createElement("summary");
+            summary.textContent = "VIEW LEGACY VALUE";
+            const pre = document.createElement("pre");
+            pre.textContent = typeof item.value === "string"
+                ? item.value
+                : JSON.stringify(item.value, null, 2);
+            details.append(summary, pre);
+            row.appendChild(details);
+        }
+
+        ui.migrationReviewList.appendChild(row);
+    }
+}
+
+
+function setDocumentScopedVisibility(kind) {
+    for (const element of ui.form.querySelectorAll("[data-doc-kind]")) {
+        element.hidden = element.dataset.docKind !== kind;
+    }
+
+    for (const label of ui.form.querySelectorAll("[data-kind-label-world]")) {
+        label.textContent = (
+            kind === "world"
+                ? label.dataset.kindLabelWorld
+                : label.dataset.kindLabelBrief
+        );
+    }
+}
+
+
+function renderSectionLanguage(kind) {
+    const isWorld = kind === "world";
+
+    ui.locationsSectionNumber.textContent = isWorld ? "05" : "05";
+    ui.locationsSectionTitle.textContent = isWorld ? "World Locations" : "Adventure-Only Locations";
+    ui.locationsSectionHelp.textContent = isWorld
+        ? "Persistent places that exist across stories in this World."
+        : "Only add places unique to this adventure. Feature existing World locations above instead of copying them.";
+    ui.locationsAddButton.textContent = isWorld ? "+ ADD WORLD LOCATION" : "+ ADD ADVENTURE LOCATION";
+
+    ui.npcsSectionNumber.textContent = "06";
+    ui.npcsSectionTitle.textContent = isWorld ? "People & Factions" : "Adventure-Only Cast";
+    ui.npcsSectionHelp.textContent = isWorld
+        ? "Define who they are in the World. Adventure timing belongs in a Brief."
+        : "Only add characters unique to this adventure. Feature recurring World characters above.";
+    ui.npcsAddButton.textContent = isWorld ? "+ ADD PERSON / FACTION" : "+ ADD ADVENTURE NPC";
+
+    ui.loreSectionNumber.textContent = "07";
+    ui.loreSectionTitle.textContent = isWorld ? "World Lore & Secrets" : "Adventure-Only Secrets";
+    ui.loreSectionHelp.textContent = isWorld
+        ? "Persistent history, mysteries, hidden truths, and who knows them."
+        : "Secrets specific to this run. Reference existing World secrets above instead of rewriting them.";
+    ui.loreAddButton.textContent = isWorld ? "+ ADD WORLD LORE / SECRET" : "+ ADD ADVENTURE SECRET";
+
+    ui.guidanceSectionNumber.textContent = isWorld ? "08" : "09";
+    ui.guidanceSectionTitle.textContent = isWorld ? "Default Story Flavor" : "Story & Choice Guidance";
+
+    ui.forbiddenSectionNumber.textContent = isWorld ? "09" : "10";
+    ui.forbiddenSectionTitle.textContent = isWorld ? "Canon Boundaries" : "Adventure Restrictions";
+    ui.forbiddenSectionHelp.textContent = isWorld
+        ? "Things no adventure in this World should contradict or permanently change."
+        : "Limits for this adventure only. World canon boundaries still outrank these.";
+    ui.forbiddenAddButton.textContent = isWorld ? "+ ADD CANON BOUNDARY" : "+ ADD ADVENTURE RESTRICTION";
+
+    ui.threadsSectionNumber.textContent = isWorld ? "10" : "11";
+    ui.threadsSectionTitle.textContent = isWorld ? "Ongoing Tensions" : "Adventure Threads";
+    ui.threadsSectionHelp.textContent = isWorld
+        ? "Wars, rivalries, mysteries, pressures, and unresolved conflicts that can fuel many stories."
+        : "Plot threads this particular adventure should open, revisit, or resolve.";
+    ui.threadsAddButton.textContent = isWorld ? "+ ADD WORLD TENSION" : "+ ADD ADVENTURE THREAD";
+
+    ui.notesSectionNumber.textContent = isWorld ? "11" : "13";
+}
+
+
+function referenceLabel(item, key) {
+    if (key === "lore_secrets") {
+        return String(item?.title ?? item?.text ?? "Untitled secret");
+    }
+    return String(item?.name ?? item?.role ?? "Unnamed item");
+}
+
+
+function selectedWorldReference(key, sourceId) {
+    const refs = activeSource?.world_references?.[key];
+    if (!Array.isArray(refs)) return null;
+    return refs.find(ref => ref?.source_id === sourceId) ?? null;
+}
+
+
+function ensureReferenceBuckets() {
+    if (!activeSource.world_references || typeof activeSource.world_references !== "object") {
+        activeSource.world_references = {};
+    }
+    for (const key of ["locations", "npcs", "lore_secrets"]) {
+        if (!Array.isArray(activeSource.world_references[key])) {
+            activeSource.world_references[key] = [];
+        }
+    }
+}
+
+
+function toggleWorldReference(key, item, enabled) {
+    ensureReferenceBuckets();
+    const sourceId = String(item?.id ?? "");
+    if (!sourceId) return;
+    const refs = activeSource.world_references[key];
+    const existingIndex = refs.findIndex(ref => ref?.source_id === sourceId);
+
+    if (enabled && existingIndex < 0) {
+        const label = referenceLabel(item, key);
+        refs.push({
+            id: makeId(),
+            source_id: sourceId,
+            name: key === "lore_secrets" ? "" : label,
+            title: key === "lore_secrets" ? label : "",
+            use: "",
+            importance: "major",
+            timing: "anytime",
+            treatment: key === "lore_secrets" ? "may_reveal" : "feature",
+        });
+    } else if (!enabled && existingIndex >= 0) {
+        refs.splice(existingIndex, 1);
+    }
+
+    markDirty();
+    renderWorldReferencePicker();
+}
+
+
+function renderWorldReferencePicker() {
+    if (!ui.worldReferencePicker) return;
+    ui.worldReferencePicker.replaceChildren();
+
+    if ((activeSource?.identity?.document_kind ?? "world") !== "brief") {
+        return;
+    }
+
+    if (!linkedWorldSource) {
+        const empty = document.createElement("div");
+        empty.className = "world-reference-empty";
+        empty.textContent = "LINKED WORLD CONTENT IS NOT AVAILABLE YET. SAVE/PUBLISH WORLD MATERIAL, THEN REOPEN THIS BRIEF.";
+        ui.worldReferencePicker.appendChild(empty);
+        return;
+    }
+
+    ensureReferenceBuckets();
+    const isDraft = activeVersion?.status === "draft";
+
+    const heading = document.createElement("div");
+    heading.className = "world-reference-source";
+    heading.textContent = `${linkedWorldSource.identity?.title ?? activeVersion?.parent_title ?? "WORLD"} // ${linkedWorldVersionLabel}`;
+    ui.worldReferencePicker.appendChild(heading);
+
+    const groups = [
+        ["locations", "LOCATIONS"],
+        ["npcs", "PEOPLE / FACTIONS"],
+        ["lore_secrets", "LORE / SECRETS"],
+    ];
+
+    for (const [key, titleText] of groups) {
+        const section = document.createElement("section");
+        section.className = "world-reference-group";
+        const title = document.createElement("h4");
+        title.textContent = titleText;
+        section.appendChild(title);
+
+        const items = Array.isArray(linkedWorldSource[key]) ? linkedWorldSource[key] : [];
+        if (!items.length) {
+            const none = document.createElement("p");
+            none.className = "helper";
+            none.textContent = "No authored items in this World yet.";
+            section.appendChild(none);
+        }
+
+        for (const item of items) {
+            const sourceId = String(item?.id ?? "");
+            if (!sourceId) continue;
+            const selected = selectedWorldReference(key, sourceId);
+
+            const card = document.createElement("article");
+            card.className = "world-reference-card";
+            card.classList.toggle("selected", Boolean(selected));
+
+            const row = document.createElement("label");
+            row.className = "world-reference-toggle";
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.checked = Boolean(selected);
+            checkbox.disabled = !isDraft;
+            checkbox.addEventListener("change", () => {
+                toggleWorldReference(key, item, checkbox.checked);
+            });
+            const name = document.createElement("strong");
+            name.textContent = referenceLabel(item, key);
+            row.append(checkbox, name);
+            card.appendChild(row);
+
+            const summary = document.createElement("p");
+            summary.className = "world-reference-summary";
+            summary.textContent = String(
+                item.canon ?? item.canonical_facts ?? item.text ?? item.description ?? item.role ?? ""
+            ).slice(0, 280);
+            if (summary.textContent) card.appendChild(summary);
+
+            if (selected) {
+                const controls = document.createElement("div");
+                controls.className = "world-reference-controls";
+
+                const useLabel = document.createElement("label");
+                useLabel.textContent = "Adventure Use";
+                const use = document.createElement("textarea");
+                use.rows = 3;
+                use.value = selected.use ?? "";
+                use.disabled = !isDraft;
+                use.placeholder = key === "npcs"
+                    ? "How should this person matter in this adventure?"
+                    : key === "locations"
+                        ? "How is this place used in this adventure?"
+                        : "How should this secret/lore matter here?";
+                use.addEventListener("input", () => {
+                    selected.use = use.value;
+                    markDirty();
+                });
+                useLabel.appendChild(use);
+                controls.appendChild(useLabel);
+
+                const importanceLabel = document.createElement("label");
+                importanceLabel.textContent = "Importance";
+                const importance = document.createElement("select");
+                for (const value of ["minor", "supporting", "major", "critical"]) {
+                    const option = document.createElement("option");
+                    option.value = value;
+                    option.textContent = value.toUpperCase();
+                    importance.appendChild(option);
+                }
+                importance.value = selected.importance ?? "major";
+                importance.disabled = !isDraft;
+                importance.addEventListener("change", () => {
+                    selected.importance = importance.value;
+                    markDirty();
+                });
+                importanceLabel.appendChild(importance);
+                controls.appendChild(importanceLabel);
+
+                const timingLabel = document.createElement("label");
+                timingLabel.textContent = "Timing";
+                const timing = document.createElement("select");
+                for (const value of ["anytime", "early", "mid", "late", "finale"]) {
+                    const option = document.createElement("option");
+                    option.value = value;
+                    option.textContent = value.toUpperCase();
+                    timing.appendChild(option);
+                }
+                timing.value = selected.timing ?? "anytime";
+                timing.disabled = !isDraft;
+                timing.addEventListener("change", () => {
+                    selected.timing = timing.value;
+                    markDirty();
+                });
+                timingLabel.appendChild(timing);
+                controls.appendChild(timingLabel);
+
+                if (key === "lore_secrets") {
+                    const treatmentLabel = document.createElement("label");
+                    treatmentLabel.textContent = "Reveal Treatment";
+                    const treatment = document.createElement("select");
+                    for (const [value, text] of [
+                        ["do_not_reveal", "DO NOT REVEAL"],
+                        ["foreshadow", "FORESHADOW ONLY"],
+                        ["may_reveal", "MAY REVEAL"],
+                        ["must_reveal", "MUST REVEAL"],
+                    ]) {
+                        const option = document.createElement("option");
+                        option.value = value;
+                        option.textContent = text;
+                        treatment.appendChild(option);
+                    }
+                    treatment.value = selected.treatment ?? "may_reveal";
+                    treatment.disabled = !isDraft;
+                    treatment.addEventListener("change", () => {
+                        selected.treatment = treatment.value;
+                        markDirty();
+                    });
+                    treatmentLabel.appendChild(treatment);
+                    controls.appendChild(treatmentLabel);
+                }
+
+                card.appendChild(controls);
+            }
+
+            section.appendChild(card);
+        }
+
+        ui.worldReferencePicker.appendChild(section);
+    }
+}
+
+
+async function refreshLinkedWorldSource() {
+    linkedWorldSource = null;
+    linkedWorldVersionLabel = "";
+
+    if (
+        !activeVersion
+        || activeVersion.document_kind !== "brief"
+        || !activeVersion.parent_document_id
+    ) {
+        return;
+    }
+
+    const world = library.find(
+        item => item.document_id === activeVersion.parent_document_id
+    );
+    if (!world) return;
+
+    const versionNumber = world.latest_published_version ?? world.latest_version;
+    if (!versionNumber) return;
+
+    try {
+        const version = await api(
+            `/api/author/adventures/${world.document_id}/versions/${versionNumber}`
+        );
+        linkedWorldSource = structuredClone(version.source);
+        linkedWorldVersionLabel = (
+            `${String(version.status ?? "draft").toUpperCase()} v${version.version_number}`
+        );
+    } catch {
+        linkedWorldSource = null;
+        linkedWorldVersionLabel = "UNAVAILABLE";
+    }
+}
+
+
 function renderEditor() {
     if (!activeVersion || !activeSource) {
         ui.editor.hidden = true;
@@ -1480,6 +1899,10 @@ function renderEditor() {
     const isWorld = kind === "world";
     const isDraft = activeVersion.status === "draft";
     const archived = Boolean(activeVersion.is_archived);
+
+    setDocumentScopedVisibility(kind);
+    renderSectionLanguage(kind);
+    renderMigrationPanel();
 
     ui.editorKicker.textContent = (
         `${kind.toUpperCase()} // ${activeVersion.status.toUpperCase()} v${activeVersion.version_number}`
@@ -1510,7 +1933,8 @@ function renderEditor() {
 
     ui.worldLinkTitle.textContent = (
         activeVersion.parent_title
-        ?? ""
+            ? `${activeVersion.parent_title}${linkedWorldVersionLabel ? ` // ${linkedWorldVersionLabel}` : ""}`
+            : ""
     );
 
     ui.generationPanel.hidden = (
@@ -1545,6 +1969,7 @@ function renderEditor() {
         renderRepeatSection(sectionName);
     }
 
+    renderWorldReferencePicker();
     refreshAiHelperButtons();
     updateStrengthUI();
 }
@@ -2573,6 +2998,7 @@ async function loadVersion(documentId, versionNumber) {
         clearTimeout(autosaveTimer);
         markSaved();
         renderLibrary();
+        await refreshLinkedWorldSource();
         renderEditor();
 
     } catch (error) {

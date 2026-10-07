@@ -12,6 +12,10 @@ from pydantic import (
     ValidationError,
 )
 
+from app.authoring.service import (
+    generation_source_document,
+)
+
 from app.generation.provider import (
     AdventureGenerationConfigurationError,
     AdventureGenerationProvider,
@@ -53,6 +57,9 @@ DESIGN GOALS
 - Preserve room for meaningful choices and divergent approaches.
 - Favor failure-as-complication over dead ends.
 - Use authored names, places, truths, and secrets when they matter.
+- WORLD and ADVENTURE BRIEF are separate authority layers. World defines durable canon;
+  the Brief defines this run. Brief world_references identify existing World material
+  to feature without duplicating or rewriting its canon.
 - Do not spoil hidden truths in the public-facing premise, player synopsis, or core goal.
 - PLAYER SYNOPSIS is storefront copy for players, not design documentation. Write 2-4
   punchy, polished sentences that establish the hook, immediate situation, and flavor
@@ -118,6 +125,8 @@ def _authority_texts(
 
     for section_name in (
         "world_truths",
+        "world_rules",
+        "adventure_facts",
         "moments",
         "forbidden_rules",
     ):
@@ -177,21 +186,29 @@ def _npc_canon_constraints(source: dict[str, Any]) -> list[str]:
     if not isinstance(items, list):
         return constraints
 
+    identity = source.get("identity", {})
+    document_kind = (
+        str(identity.get("document_kind", "world")).strip().lower()
+        if isinstance(identity, dict)
+        else "world"
+    )
+
     for item in items:
         if not isinstance(item, dict):
             continue
         name = _clean(item.get("name"))
         if not name:
             continue
-        fields = (
+        fields = [
             ("role", "canonical role"),
             ("relationship", "relationship/context"),
             ("canonical_facts", "canonical facts"),
             ("occupation", "canonical occupation/affiliation"),
-            ("introduction_conditions", "introduction conditions"),
             ("location_constraints", "location constraints"),
             ("forbidden_uses", "forbidden uses"),
-        )
+        ]
+        if document_kind == "brief":
+            fields.append(("introduction_conditions", "introduction conditions"))
         for key, label in fields:
             value = _clean(item.get(key))
             if value:
@@ -199,21 +216,79 @@ def _npc_canon_constraints(source: dict[str, Any]) -> list[str]:
                 if text not in constraints:
                     constraints.append(text)
 
-        availability = _clean(item.get("availability")).lower()
-        if availability and availability != "flexible":
-            text = f"NPC {name} — availability: {availability.upper()}"
-            if text not in constraints:
-                constraints.append(text)
+        if document_kind == "brief":
+            availability = _clean(item.get("availability")).lower()
+            if availability and availability != "flexible":
+                text = f"NPC {name} — availability: {availability.upper()}"
+                if text not in constraints:
+                    constraints.append(text)
 
-        introduction_timing = _clean(item.get("introduction_timing")).lower()
-        if introduction_timing and introduction_timing != "anytime":
-            text = (
-                f"NPC {name} — introduction timing: "
-                f"{introduction_timing.upper()}"
-            )
-            if text not in constraints:
-                constraints.append(text)
+            introduction_timing = _clean(item.get("introduction_timing")).lower()
+            if introduction_timing and introduction_timing != "anytime":
+                text = (
+                    f"NPC {name} — introduction timing: "
+                    f"{introduction_timing.upper()}"
+                )
+                if text not in constraints:
+                    constraints.append(text)
     return constraints
+
+
+def _world_reference_constraints(
+    source: dict[str, Any],
+    authority: str,
+) -> list[str]:
+    refs = source.get("world_references", {})
+    if not isinstance(refs, dict):
+        return []
+
+    results: list[str] = []
+
+    if authority == "required":
+        for key, label in (("locations", "location"), ("npcs", "character")):
+            items = refs.get(key, [])
+            if not isinstance(items, list):
+                continue
+            for item in items:
+                if not isinstance(item, dict):
+                    continue
+                name = _clean(item.get("name") or item.get("title"))
+                if not name:
+                    continue
+                use = _clean(item.get("use"))
+                timing = _clean(item.get("timing"))
+                text = f"Feature World {label}: {name}."
+                if use:
+                    text += f" Adventure use: {use}."
+                if timing and timing != "anytime":
+                    text += f" Timing: {timing.upper()}."
+                if text not in results:
+                    results.append(text)
+
+        secrets = refs.get("lore_secrets", [])
+        if isinstance(secrets, list):
+            for item in secrets:
+                if not isinstance(item, dict):
+                    continue
+                if _clean(item.get("treatment")).lower() != "must_reveal":
+                    continue
+                name = _clean(item.get("title") or item.get("name"))
+                if name:
+                    results.append(f"Reveal featured World secret: {name}.")
+
+    if authority == "forbidden":
+        secrets = refs.get("lore_secrets", [])
+        if isinstance(secrets, list):
+            for item in secrets:
+                if not isinstance(item, dict):
+                    continue
+                if _clean(item.get("treatment")).lower() != "do_not_reveal":
+                    continue
+                name = _clean(item.get("title") or item.get("name"))
+                if name:
+                    results.append(f"Do not reveal featured World secret: {name}.")
+
+    return results
 
 
 def _merge_required_constraints(
@@ -267,6 +342,10 @@ def _merge_required_constraints(
                 authority,
             )
             + _authority_texts(
+                brief_source,
+                authority,
+            )
+            + _world_reference_constraints(
                 brief_source,
                 authority,
             )
@@ -593,9 +672,9 @@ class OpenAIAdventureGenerationProvider(
                     ],
 
                 "source":
-                    world_version[
-                        "source"
-                    ],
+                    generation_source_document(
+                        world_version["source"]
+                    ),
             },
 
             "adventure_brief": {
@@ -610,9 +689,9 @@ class OpenAIAdventureGenerationProvider(
                     ],
 
                 "source":
-                    brief_version[
-                        "source"
-                    ],
+                    generation_source_document(
+                        brief_version["source"]
+                    ),
             },
         }
 
@@ -758,6 +837,11 @@ class OpenAIAdventureGenerationProvider(
             _clean(
                 identity.get(
                     "one_sentence_pitch"
+                )
+            )
+            or _clean(
+                source.get(
+                    "starting_situation"
                 )
             )
             or _clean(
@@ -1227,16 +1311,12 @@ class OpenAIAdventureGenerationProvider(
             )
         )
 
-        world_source = (
-            world_version[
-                "source"
-            ]
+        world_source = generation_source_document(
+            world_version["source"]
         )
 
-        brief_source = (
-            brief_version[
-                "source"
-            ]
+        brief_source = generation_source_document(
+            brief_version["source"]
         )
 
         _merge_required_constraints(

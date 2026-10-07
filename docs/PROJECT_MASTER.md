@@ -4,7 +4,7 @@
 > Update or rewrite the relevant sections in this file as the product changes; do not create another numbered changelog copy.
 
 **Last consolidated:** 2026-10-06  
-**Current local baseline:** through Pass 38I (variable Hoops geometry + isometric Beer Pong depth/readability hotfix)  
+**Current local baseline:** through Pass 39 (World / Adventure authoring schema separation + legacy migration)  
 **Public site:** `https://onlinetextadventure.com`  
 **Primary release command:** `./scripts/release-staging.sh "Describe the release"`
 
@@ -468,26 +468,77 @@ Canvas is preferred for current 2D/pseudo-3D VGA cabinets. Three.js is reserved 
 
 ## 11. Authoring System
 
-The Author system provides structured guidance so adventures have enough canon and intent for reliable AI direction without requiring an author to hand-write every minor field.
+The Author system deliberately separates **durable World canon** from **one-adventure direction**. Worlds define the nouns, laws, history, places, people, factions, and persistent truths of a setting. Adventure Briefs define what is happening now inside a linked World: the hook, goal, run controls, featured World material, local facts, beats, restrictions, and replay behavior.
 
-### Structured content
+Author source documents use **schema v3**. Existing schema-v2 documents are ported forward on read and become native v3 the next time an editable draft is saved. Historical published rows remain immutable. Legacy values with an obvious destination are moved automatically; ambiguous values are retained in a read-only migration snapshot and surfaced in a migration review panel rather than silently discarded. Legacy repeatable items receive deterministic IDs so new Brief references remain stable even when the linked World has not yet been resaved as v3.
 
-Author data may include:
+### World source scope
 
-- premise and story guidance;
-- world truths;
-- locations;
-- NPCs;
-- lore/secrets;
-- moments;
-- forbidden rules;
-- threads;
+Worlds may define:
+
+- World identity, genre, tone, baseline weirdness, pitch, and intended player experience;
+- setting / World premise;
+- canonical World truths;
+- World rules such as magic, technology, supernatural, social, or physical constraints;
+- persistent locations;
+- recurring people, factions, affiliations, motives, knowledge, secrets, and canonical facts;
+- lore / secrets and who knows them;
+- canon boundaries / forbidden uses;
+- ongoing tensions and unresolved World-level threads;
+- default humor, danger, violence, and weirdness flavor;
+- Director-visible notes;
+- private Author notes.
+
+A World does **not** own adventure length, difficulty, primary/secondary adventure type, required moments, replayability, NPC introduction timing, choice guidance, or failure philosophy. Those are run/adventure concerns.
+
+### Adventure Brief source scope
+
+Adventure Briefs may define:
+
+- Adventure identity, primary/secondary type, length, difficulty, tone, and weirdness override;
+- starting situation / hook;
+- core goal or immediate pressure;
+- adventure-local facts / conditions that are true for this story without becoming World canon;
+- featured World locations, people/factions, and lore/secrets by reference;
+- adventure-only locations, NPCs, and secrets when genuinely local to the run;
+- required / preferred / inspiration moments;
+- adventure restrictions;
+- adventure-specific story threads;
+- choice guidance and the game-level failure-becomes-complication behavior;
 - replayability guidance;
-- tone, genre, difficulty, weirdness, length, and related metadata.
+- Director-visible notes;
+- private Author notes.
+
+The key rule is **reference instead of duplicate**. If a World already defines Blackwater Hotel or Mayor Higgins, the Brief selects that World entity and adds only adventure-use metadata such as importance, timing, role in this story, or reveal treatment. The Brief does not need to rewrite the entity's canonical biography or location lore.
+
+World references are read-only links to the linked World source. Adventure-local entities remain separate. Runtime generation receives World and Brief as two authority layers; Brief references can require/feature existing World material without copying it into Brief canon. Generation validates every featured reference against the exact selected published World version and stops with a clear mismatch error if the Brief points at material that exists only in another/draft World version.
+
+### Canon and precedence
+
+Generation should interpret source authority in this order:
+
+1. World canon / World rules / canon boundaries;
+2. Adventure facts, featured World references, required moments, and adventure restrictions;
+3. Adventure preferences and story guidance;
+4. one-off generation requests.
+
+A Brief may specialize how World material is used in one adventure, but it must not silently rewrite durable World canon.
+
+### Director notes vs private notes
+
+`director_notes` are intentional AI/runtime instructions and may be included in authoring/generation context.
+
+`private_notes` are for the human author only. They are stored with the source document but are removed from compiled generation input, runtime source, linked-World AI context, and AI-assisted field/item prompts.
+
+Legacy `freeform_notes` migrate to Director Notes because historically they were generator-visible.
+
+### Document strength
+
+Worlds and Briefs have separate strength rubrics. A World is not penalized for lacking required adventure moments or replayability. A Brief is not penalized for correctly referencing World entities instead of duplicating large location/NPC/lore catalogs.
 
 ### AI Helper philosophy
 
-AI authoring is scoped, not a one-click replacement for authorship.
+AI authoring remains a first-class feature and is scoped, not a one-click replacement for authorship.
 
 - Text fields can expose a small **AI** helper.
 - Repeatable objects (NPC, location, lore item, thread, etc.) can expose **AI ITEM** expansion.
@@ -495,14 +546,19 @@ AI authoring is scoped, not a one-click replacement for authorship.
 - AI fills only the requested field or empty/default portions of the selected item.
 - Existing authored canon must not be overwritten silently.
 - Title/slug/critical identifiers and server-authoritative values are protected.
+- World AI is instructed to deepen durable setting canon without inventing adventure beats or NPC introduction timing.
+- Brief AI receives the linked World as read-only context and should reference existing World material rather than restating/reinventing it.
+- Private Author Notes are never included in AI context.
 
-Example:
+Example World input:
 
 ```text
-"unnamed evil entity, mysterious, speaks in riddles, appears late"
+"unnamed evil entity, mysterious, speaks in riddles"
 ```
 
-can expand into structured NPC guidance while preserving the explicit rule that the entity has no name.
+can expand into durable NPC/setting guidance without deciding that the entity appears in Act III.
+
+A Brief can then feature that same World NPC and add adventure-only instructions such as `importance=major`, `timing=late`, and "initially helpful, increasingly evasive" without rewriting the NPC's canonical identity.
 
 ### Player-facing synopsis
 
@@ -855,27 +911,16 @@ Explore episodic/persistent-world systems such as:
 
 ## 20. Recent Release History
 
-This is intentionally short. The historical numbered changelog files remain an archive; this section only records the recent product milestones needed to understand the current codebase.
+This is intentionally short. Historical numbered changelog files remain archive material; this section records only recent milestones needed to understand the current codebase.
 
-- **Pass 22 — Dashboard IA:** journey/Hero/adventure/system hierarchy and searchable library.
-- **Pass 23 — Character Sheet UI:** RPG dossier, grouped Skills, Talent presentation, consistent controls.
-- **Pass 24 / 24A — Advancement:** robust queued multi-point allocation and explicit Attribute/Skill/Talent currency labels.
-- **Pass 25 — Shareable Invites:** `/join/:roomCode`, native share sheet, copy/text/email, auth/Hero creation return flow.
-- **Pass 26 — Partner Notifications:** initial joined/locked/your-turn/results/finale in-app notification groundwork before true closed-page delivery arrived in Pass 33.
-- **Pass 27 — Master Documentation:** canonical `PROJECT_MASTER.md` exposed through the protected Admin documentation console.
-- **Pass 28 / 28A — Scene ASCII Pipeline:** deterministic story-aware scene art replaced runtime placeholders; 28A reapplies the art integration on the current session/QTE/scaling codebase.
-- **Pass 29A — Arcade Pacing Polish:** compact non-obstructive feedback for continuous action games, longer between-round breathing room, and escalating/risk-reward Highway 84 driving.
 - **Pass 29B — Public Site / Home / Footer Cleanup:** rebuilt product-first homepage, public Rulebook, responsive anonymous/authenticated navigation, unified auth presentation, real public footer, legal/product notices, and deploy-visible frontend build fingerprint.
 - **Pass 31 — Story Clarity + Contextual QTE Progression:** novel-like grounded narration rules, Director-authored scene-coupled QTEs with precommitted answers, real one-round Hero buffs/nerfs, and explicit per-player level-up celebrations.
-- **Pass 32 — Multiplayer UX + Sharing + ASCII Social Language:** room-authorized read-only partner Hero switching, explicit invite/live-moment/ending/Chronicle sharing, centralized terminal reaction vocabulary for chat/presence/notifications, plus randomized Outlier grids and symbols.
+- **Pass 32 — Multiplayer UX + Sharing + ASCII Social Language:** room-authorized read-only partner Hero switching, explicit invite/live-moment/ending/Chronicle sharing, centralized terminal reaction vocabulary, plus randomized Outlier grids and symbols.
 - **Pass 33 — Real Notifications:** persisted account notification preferences, real service-worker Web Push, direct account room invites, optional SES email, verified opt-in AWS SMS, and non-blocking external delivery isolated from authoritative gameplay.
-- **Pass 34 — Arcade Expansion + Publication Control:** Beer Pong, Pixel Hoops, Blackjack, War, Radar Fleet, and Mahjong Match join the admin lab; persistent admin PUSH/PULL controls now determine which cabinets appear in the player-facing Arcade without requiring a redeploy.
-- **Pass 35 — Visual Hierarchy / Semantic Color System:** introduces a muted structural-blue chassis for headers, panel bands, section framing, modal chrome, and grouped information while preserving phosphor green for live gameplay state, interaction, meters, scores, and success; the existing layouts remain intact while visual hierarchy becomes deliberately layered instead of monochrome.
-- **Pass 36 — Arcade Juice / Variety / Cabinet Polish:** dedicated Hangman catalog parity, first-pass animated Hoops/Beer Pong revisions, host-level compact-vs-overlay score feedback, and richer Blackjack/War card dealing, deck-state, war-pot, win/loss presentation with cabinet-specific VGA color.
-- **Pass 37 — Arcade Physics / Gameplay Readability:** replaces rejected Hoops/Beer Pong timing concepts with horizontal-aim + vertical-power physics play, rebuilds Bowling as a top-down collision-driven lane while retaining spin, and adds explicit fleet/pair state communication to Radar Fleet and Mahjong Match.
-- **Pass 38 — Arcade Modes + Projectile Variety:** formalizes solo/two-player/multiplayer-style metadata for every cabinet, adds standalone P1/P2 hotseat matches with score banks and rematches, makes co-op intermissions explicitly present their multiplayer style, and upgrades Gorilla Artillery with seeded variable terrain, terrain collision, moving targets, and new battlefields after knockouts.
-- **Pass 38H — Pixel Hoops Side-View Hotfix:** replaces the rejected oblique/lateral-aim Hoops cabinet with a side-view basketball simulation using an ANGLE meter, vertical POWER meter, visible projectile arc, physical backboard/front-rim/back-rim collisions, floor bounce, and physics-driven makes/misses. No release-timing gate is used.
-- **Pass 38I — Hoops Geometry + Isometric Beer Pong:** varies Pixel Hoops shooter/rim geometry every attempt using a deterministic turn/shot seed while keeping two-control ANGLE + POWER physics; reprojects Beer Pong into a three-quarter isometric table without changing world-space collision rules, adding perspective guides, predicted arc/landing marker, ball shadow, and flight trail so depth and shot outcomes are legible.
+- **Pass 34 — Arcade Expansion + Publication Control:** new cabinets plus persistent admin PUSH/PULL controls for the player-facing Arcade.
+- **Pass 35 — Visual Hierarchy / Semantic Color System:** structural blue for shell/header hierarchy while phosphor green remains live gameplay / interaction signal.
+- **Pass 36–38I — Arcade Gameplay / Physics / Modes Refinement:** richer cabinet presentation, ball/object physics, state readability, solo/two-player modes, terrain variation, side-view Hoops, and isometric Beer Pong depth cues.
+- **Pass 39 — World / Adventure Authoring Separation:** introduces schema-v3 kind-specific World and Adventure Brief sources, loss-preserving legacy migration, deterministic legacy entity IDs, featured World references instead of duplication, separate strength rubrics, Director-vs-private notes, and linked-World-aware AI authoring while keeping generation compatibility.
 
 ---
 

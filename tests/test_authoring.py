@@ -153,6 +153,9 @@ class AuthoringServiceTests(
 
                 slug=
                     "test",
+
+                document_kind=
+                    "brief",
             )
         )
 
@@ -252,7 +255,7 @@ class AuthoringServiceTests(
 
 
         self.assertIn(
-            "## Premise",
+            "## Setting & World Premise",
             rendered,
         )
 

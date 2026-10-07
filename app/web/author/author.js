@@ -3814,11 +3814,127 @@ function restoreReturnToGameRoute() {
 
 
 /* =========================================================
+   SITE-NATIVE SELECT MENUS
+========================================================= */
+
+function installTerminalSelect(nativeSelect) {
+    if (
+        !(nativeSelect instanceof HTMLSelectElement)
+        || nativeSelect.dataset.terminalSelect === "ready"
+    ) {
+        return;
+    }
+
+    nativeSelect.dataset.terminalSelect = "ready";
+    nativeSelect.classList.add("author-native-select-shadow");
+
+    const shell = document.createElement("div");
+    shell.className = "author-terminal-select";
+
+    const trigger = document.createElement("button");
+    trigger.type = "button";
+    trigger.className = "author-terminal-select-trigger";
+    trigger.setAttribute("aria-haspopup", "listbox");
+    trigger.setAttribute("aria-expanded", "false");
+
+    const menu = document.createElement("div");
+    menu.className = "author-terminal-select-menu";
+    menu.setAttribute("role", "listbox");
+    menu.hidden = true;
+
+    function selectedLabel() {
+        const option = nativeSelect.options[nativeSelect.selectedIndex];
+        return option ? option.textContent.trim() : "—";
+    }
+
+    function syncTrigger() {
+        trigger.textContent = selectedLabel();
+        trigger.disabled = nativeSelect.disabled;
+    }
+
+    function closeMenu() {
+        menu.hidden = true;
+        shell.classList.remove("is-open");
+        trigger.setAttribute("aria-expanded", "false");
+    }
+
+    function renderMenu() {
+        menu.replaceChildren();
+
+        Array.from(nativeSelect.options).forEach(option => {
+            const item = document.createElement("button");
+            item.type = "button";
+            item.setAttribute("role", "option");
+            item.setAttribute(
+                "aria-selected",
+                option.value === nativeSelect.value ? "true" : "false",
+            );
+            item.className = (
+                option.value === nativeSelect.value
+                    ? "is-selected"
+                    : ""
+            );
+            item.textContent = option.textContent.trim();
+            item.disabled = option.disabled;
+            item.addEventListener("click", () => {
+                nativeSelect.value = option.value;
+                nativeSelect.dispatchEvent(new Event("change", { bubbles: true }));
+                syncTrigger();
+                closeMenu();
+            });
+            menu.appendChild(item);
+        });
+    }
+
+    trigger.addEventListener("click", () => {
+        if (!menu.hidden) {
+            closeMenu();
+            return;
+        }
+        renderMenu();
+        menu.hidden = false;
+        shell.classList.add("is-open");
+        trigger.setAttribute("aria-expanded", "true");
+    });
+
+    nativeSelect.addEventListener("change", syncTrigger);
+
+    const selectObserver = new MutationObserver(() => {
+        syncTrigger();
+        if (!menu.hidden) {
+            renderMenu();
+        }
+    });
+    selectObserver.observe(nativeSelect, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+    });
+
+    document.addEventListener("pointerdown", event => {
+        if (!shell.contains(event.target)) {
+            closeMenu();
+        }
+    });
+
+    shell.append(trigger, menu);
+    nativeSelect.insertAdjacentElement("afterend", shell);
+    syncTrigger();
+}
+
+
+function installTerminalSelects() {
+    document.querySelectorAll("select").forEach(installTerminalSelect);
+}
+
+
+/* =========================================================
    BOOT
 ========================================================= */
 
 async function boot() {
     restoreReturnToGameRoute();
+    installTerminalSelects();
     try {
         const auth = await api(
             "/api/author/me"

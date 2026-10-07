@@ -243,6 +243,19 @@ class StorefrontSynopsisTests(unittest.TestCase):
                 "when ordinary customers and inventory begin behaving impossibly."
             ),
             player_synopsis=synopsis,
+            opening_scene={
+                "title": "The First Wrong Thing",
+                "body": (
+                    "The fluorescent hum above the counter changes pitch just as the last ordinary customer leaves. "
+                    "A row of cans turns its labels toward the register one after another, though nobody has touched the shelf. "
+                    "Outside, the parking lot lights blink off from the road inward, leaving the front windows black mirrors."
+                ),
+                "choices": [
+                    {"label":"CHECK THE AISLE","description":"Inspect the shelf before anything else changes.","archetype":"investigative","tone":"cautious","risk_level":"low","reward_level":"moderate","impact_level":"meaningful","possible_gains":["A clue"],"possible_costs":["Time"],"check":{"difficulty":8,"skill":"awareness","stat":None}},
+                    {"label":"LOCK THE DOOR","description":"Secure the entrance before the darkness reaches the store.","archetype":"bold","tone":"assertive","risk_level":"moderate","reward_level":"high","impact_level":"scene_shifting","possible_gains":["Control"],"possible_costs":["Isolation"],"check":{"difficulty":10,"skill":None,"stat":"agility"}},
+                    {"label":"CALL OUT","description":"Test whether anyone else in the store answers normally.","archetype":"social","tone":"defiant","risk_level":"high","reward_level":"high","impact_level":"meaningful","possible_gains":["A reaction"],"possible_costs":["Attention"],"check":{"difficulty":11,"skill":None,"stat":"presence"}},
+                ],
+            },
             core_goal="Figure out what is wrong with the store and survive the shift.",
             major_locations=["Elk City Superette"],
             major_npcs=[],

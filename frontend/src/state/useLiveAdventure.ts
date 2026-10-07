@@ -49,12 +49,14 @@ export interface LiveAdventureState {
   storyAdvancing: StoryAdvancingPayload | null;
   intermissionResult: IntermissionResult | null;
   microEventResolution: QuickEvent | null;
+  turnReceipt: TurnResolvedPayload | null;
   lastTurn: TurnResolvedPayload | null;
   finale: FinalePayload | null;
   error: string;
   retryableError: ServerErrorPayload | null;
   submitChoice: (choiceId: string) => void;
   retryPendingTurn: () => void;
+  startAdventure: () => void;
   requestWrapUp: () => void;
   submitMicroEventChoice: (optionId: string) => void;
   submitIntermissionScore: (turnNumber: number, gameId: string, score: number) => void;
@@ -82,6 +84,7 @@ export function useLiveAdventure(
   const [storyAdvancing, setStoryAdvancing] = useState<StoryAdvancingPayload | null>(null);
   const [intermissionResult, setIntermissionResult] = useState<IntermissionResult | null>(null);
   const [microEventResolution, setMicroEventResolution] = useState<QuickEvent | null>(null);
+  const [turnReceipt, setTurnReceipt] = useState<TurnResolvedPayload | null>(null);
   const [lastTurn, setLastTurn] = useState<TurnResolvedPayload | null>(null);
   const [finale, setFinale] = useState<FinalePayload | null>(null);
   const [error, setError] = useState("");
@@ -118,6 +121,7 @@ export function useLiveAdventure(
     setStoryAdvancing(null);
     setIntermissionResult(null);
     setMicroEventResolution(null);
+    setTurnReceipt(null);
     setLastTurn(null);
     setFinale(null);
     setError("");
@@ -193,6 +197,7 @@ export function useLiveAdventure(
         setChoiceAccepted(null);
         setTurnLockCountdown(null);
         setStoryAdvancing(null);
+        setTurnReceipt(null);
         setRetryableError(null);
       }
 
@@ -270,10 +275,17 @@ export function useLiveAdventure(
       }
     };
 
+    const onTurnReceiptReady = (payload: TurnResolvedPayload) => {
+      if (!matchesRoom(payload?.room_code)) return;
+      setTurnReceipt(payload);
+      setRetryableError(null);
+    };
+
     const onTurnResolved = (payload: TurnResolvedPayload) => {
       if (!matchesRoom(payload?.room_code)) return;
 
       setLastTurn(payload);
+      setTurnReceipt(payload);
       setTurnLockCountdown(null);
       setStoryAdvancing(null);
       setRetryableError(null);
@@ -320,6 +332,7 @@ export function useLiveAdventure(
     socket.on("story_advancing", onStoryAdvancing);
     socket.on("intermission_result", onIntermissionResult);
     socket.on("micro_event_updated", onMicroEventUpdated);
+    socket.on("turn_receipt_ready", onTurnReceiptReady);
     socket.on("turn_resolved", onTurnResolved);
     socket.on("room_error", onRoomError);
     socket.on("game_error", onGameError);
@@ -344,6 +357,7 @@ export function useLiveAdventure(
       socket.off("story_advancing", onStoryAdvancing);
       socket.off("intermission_result", onIntermissionResult);
       socket.off("micro_event_updated", onMicroEventUpdated);
+      socket.off("turn_receipt_ready", onTurnReceiptReady);
       socket.off("turn_resolved", onTurnResolved);
       socket.off("room_error", onRoomError);
       socket.off("game_error", onGameError);
@@ -370,6 +384,14 @@ export function useLiveAdventure(
     setError("");
 
     getGameSocket().emit("retry_pending_turn", {
+      room_code: normalizedRoomCode,
+    });
+  }, [normalizedRoomCode]);
+
+  const startAdventure = useCallback(() => {
+    if (!normalizedRoomCode) return;
+    setError("");
+    getGameSocket().emit("start_adventure", {
       room_code: normalizedRoomCode,
     });
   }, [normalizedRoomCode]);
@@ -437,12 +459,14 @@ export function useLiveAdventure(
     storyAdvancing,
     intermissionResult,
     microEventResolution,
+    turnReceipt,
     lastTurn,
     finale,
     error,
     retryableError,
     submitChoice,
     retryPendingTurn,
+    startAdventure,
     requestWrapUp,
     submitMicroEventChoice,
     submitIntermissionScore,

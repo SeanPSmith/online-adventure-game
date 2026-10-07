@@ -2709,6 +2709,55 @@ async function createCharacter() {
 }
 
 
+function siteConfirm({ title, message, confirmLabel = "CONFIRM", cancelLabel = "CANCEL" }) {
+    return new Promise(resolve => {
+        const backdrop = document.createElement("div");
+        backdrop.className = "site-confirm-backdrop";
+
+        const panel = document.createElement("section");
+        panel.className = "site-confirm-panel";
+        panel.setAttribute("role", "dialog");
+        panel.setAttribute("aria-modal", "true");
+
+        const heading = document.createElement("strong");
+        heading.textContent = title;
+
+        const copy = document.createElement("p");
+        copy.textContent = message;
+
+        const actions = document.createElement("div");
+        actions.className = "site-confirm-actions";
+
+        const cancel = document.createElement("button");
+        cancel.type = "button";
+        cancel.className = "button subtle";
+        cancel.textContent = cancelLabel;
+
+        const confirm = document.createElement("button");
+        confirm.type = "button";
+        confirm.className = "button danger";
+        confirm.textContent = confirmLabel;
+
+        function finish(value) {
+            backdrop.remove();
+            resolve(value);
+        }
+
+        cancel.addEventListener("click", () => finish(false));
+        confirm.addEventListener("click", () => finish(true));
+        backdrop.addEventListener("click", event => {
+            if (event.target === backdrop) finish(false);
+        });
+
+        actions.append(cancel, confirm);
+        panel.append(heading, copy, actions);
+        backdrop.append(panel);
+        document.body.append(backdrop);
+        confirm.focus();
+    });
+}
+
+
 async function deleteCharacter(
     character,
 ) {
@@ -2721,12 +2770,14 @@ async function deleteCharacter(
     }
 
 
-    if (
-        !window.confirm(
-            `Delete ${character.name}?`
-        )
-    ) {
+    const confirmed = await siteConfirm({
+        title: "DELETE HERO?",
+        message: `Delete ${character.name}? This cannot be undone.`,
+        confirmLabel: "DELETE HERO",
+        cancelLabel: "KEEP HERO",
+    });
 
+    if (!confirmed) {
         return;
     }
 

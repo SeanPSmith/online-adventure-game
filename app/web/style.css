@@ -3985,3 +3985,37 @@ body.is-signed-out > .terminal-shell #auth-panel {
 }
 
 
+
+/* Pass 40 // never fall back to browser-native confirmation UI. */
+.site-confirm-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: rgba(0, 0, 0, .82);
+}
+
+.site-confirm-panel {
+    width: min(520px, 100%);
+    border: 1px solid var(--green, #62e887);
+    background: #050806;
+    color: var(--text, #d9eadc);
+    box-shadow: 10px 10px 0 rgba(0,0,0,.75);
+    padding: 20px;
+}
+
+.site-confirm-panel > strong {
+    display: block;
+    margin-bottom: 14px;
+    color: var(--green, #62e887);
+}
+
+.site-confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}

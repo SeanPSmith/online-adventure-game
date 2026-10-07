@@ -8049,3 +8049,277 @@ textarea:focus {
     min-height: 102px;
   }
 }
+
+/* =========================================================
+   PASS 40 // SITE-NATIVE MENUS + INSTANT ADVENTURE LOBBY
+========================================================= */
+.terminal-select {
+  position: relative;
+  min-width: 0;
+  width: 100%;
+}
+
+.terminal-select-trigger,
+.terminal-select-menu button {
+  width: 100%;
+  border: 1px solid var(--green-line-dim);
+  border-radius: 0;
+  background: #000;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+}
+
+.terminal-select-trigger {
+  min-height: 42px;
+  padding: 9px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.terminal-select-trigger:hover:not(:disabled),
+.terminal-select-trigger:focus-visible,
+.terminal-select.is-open .terminal-select-trigger {
+  border-color: var(--green);
+  box-shadow: inset 3px 0 0 rgba(72, 255, 112, 0.55);
+  outline: none;
+}
+
+.terminal-select-trigger b {
+  color: var(--green);
+}
+
+.terminal-select-menu {
+  position: absolute;
+  z-index: 80;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 280px;
+  overflow-y: auto;
+  border: 1px solid var(--structure-soft);
+  background: var(--bg-deep);
+  box-shadow: 7px 7px 0 rgba(0, 0, 0, 0.72);
+}
+
+.terminal-select-menu button {
+  min-height: 42px;
+  padding: 9px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-width: 0 0 1px;
+  border-color: var(--green-line-dim);
+}
+
+.terminal-select-menu button:last-child {
+  border-bottom: 0;
+}
+
+.terminal-select-menu button:hover,
+.terminal-select-menu button:focus-visible,
+.terminal-select-menu button.is-selected {
+  background: rgba(72, 255, 112, 0.1);
+  color: var(--green-soft);
+  outline: none;
+}
+
+.terminal-select-menu button.is-selected b {
+  color: var(--green);
+}
+
+.modal-action-row {
+  width: 100%;
+  justify-content: flex-end;
+}
+
+.modal-copy-stack {
+  display: grid;
+  gap: 14px;
+}
+
+.adventure-lobby-stage {
+  display: grid;
+  gap: 18px;
+}
+
+.adventure-lobby-roster {
+  display: grid;
+  gap: 8px;
+}
+
+.adventure-lobby-player {
+  min-height: 44px;
+  padding: 9px 12px;
+  border: 1px solid var(--structure-line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  color: var(--muted);
+}
+
+.adventure-lobby-player.is-ready {
+  border-color: var(--green-line-dim);
+  color: var(--text);
+}
+
+.adventure-lobby-player strong {
+  color: var(--green);
+}
+
+.adventure-get-started {
+  min-height: 54px;
+  font-size: 1.05rem;
+  letter-spacing: 0.08em;
+}
+
+.story-reveal {
+  position: relative;
+}
+
+.story-reveal.is-unfurling {
+  cursor: pointer;
+}
+
+.story-reveal-word {
+  opacity: 0;
+  transition: opacity 180ms ease-out;
+}
+
+.story-reveal-word.is-visible {
+  opacity: 1;
+}
+
+.story-reveal-skip {
+  margin-top: 6px;
+  border: 0;
+  border-bottom: 1px solid var(--green-line-dim);
+  background: transparent;
+  color: var(--green-muted);
+  font: inherit;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  padding: 4px 0;
+}
+
+.story-reveal-skip:hover,
+.story-reveal-skip:focus-visible {
+  color: var(--green-soft);
+  border-bottom-color: var(--green);
+  outline: none;
+}
+
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .story-reveal-word {
+    opacity: 1;
+    transition: none;
+  }
+}
+
+/* Pass 41 // compact resolved-turn carousel */
+.turn-history-panel .panel-body {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.turn-history-controls {
+  display: grid;
+  grid-template-columns: 2.6rem 1fr 2.6rem;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.turn-history-controls > span {
+  text-align: center;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  font-size: 0.78rem;
+}
+
+.turn-history-controls button {
+  min-height: 2.35rem;
+  border: 1px solid var(--border-strong, currentColor);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.turn-history-controls button:disabled {
+  opacity: 0.28;
+  cursor: default;
+}
+
+.turn-history-card {
+  display: grid;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.turn-history-scene {
+  display: grid;
+  gap: 0.16rem;
+}
+
+.turn-history-scene small {
+  opacity: 0.68;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.turn-history-choices {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.turn-history-choices > div {
+  display: grid;
+  grid-template-columns: minmax(4.5rem, 0.55fr) minmax(0, 1.3fr);
+  gap: 0.12rem 0.5rem;
+  padding-block: 0.35rem;
+  border-block-start: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.12));
+}
+
+.turn-history-choices span,
+.turn-history-choices em {
+  font-size: 0.7rem;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.turn-history-choices strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.turn-history-choices em {
+  grid-column: 2;
+  font-style: normal;
+  opacity: 0.78;
+}
+
+.turn-history-card > p {
+  margin: 0;
+  max-height: 8.5rem;
+  overflow: auto;
+  font-size: 0.83rem;
+  line-height: 1.45;
+  opacity: 0.88;
+}

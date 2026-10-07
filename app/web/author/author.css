@@ -1415,3 +1415,77 @@ dialog::backdrop {
     font-size: 0.76rem;
     line-height: 1.45;
 }
+
+/* =========================================================
+   PASS 40 // SITE-NATIVE AUTHOR SELECT MENUS
+========================================================= */
+.author-native-select-shadow {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+.author-terminal-select {
+    position: relative;
+    width: 100%;
+}
+
+.author-terminal-select-trigger,
+.author-terminal-select-menu button {
+    width: 100%;
+    border: 1px solid var(--line, #315b42);
+    border-radius: 0;
+    background: #030706;
+    color: var(--text, #c7e8cf);
+    font: inherit;
+    text-align: left;
+}
+
+.author-terminal-select-trigger {
+    min-height: 42px;
+    padding: 9px 34px 9px 10px;
+    position: relative;
+}
+
+.author-terminal-select-trigger::after {
+    content: "⌄";
+    position: absolute;
+    right: 11px;
+    color: var(--green, #6ee98c);
+}
+
+.author-terminal-select-trigger:hover:not(:disabled),
+.author-terminal-select-trigger:focus-visible,
+.author-terminal-select.is-open .author-terminal-select-trigger {
+    border-color: var(--green, #6ee98c);
+    outline: none;
+}
+
+.author-terminal-select-menu {
+    position: absolute;
+    z-index: 120;
+    left: 0;
+    right: 0;
+    top: calc(100% + 4px);
+    max-height: 260px;
+    overflow-y: auto;
+    border: 1px solid var(--green, #6ee98c);
+    background: #010302;
+    box-shadow: 7px 7px 0 rgba(0,0,0,.72);
+}
+
+.author-terminal-select-menu button {
+    min-height: 40px;
+    padding: 8px 10px;
+    border-width: 0 0 1px;
+}
+
+.author-terminal-select-menu button:hover,
+.author-terminal-select-menu button:focus-visible,
+.author-terminal-select-menu button.is-selected {
+    background: rgba(90, 220, 120, .12);
+    color: var(--green, #6ee98c);
+    outline: none;
+}

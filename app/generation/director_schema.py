@@ -79,7 +79,7 @@ class DirectorChoiceDraft(
     # without sacrificing clarity.
     description: str = Field(
         min_length=8,
-        max_length=320,
+        max_length=240,
     )
 
     archetype: Literal[
@@ -133,12 +133,12 @@ class DirectorChoiceDraft(
 
     possible_gains: list[str] = Field(
         min_length=1,
-        max_length=4,
+        max_length=3,
     )
 
     possible_costs: list[str] = Field(
         min_length=1,
-        max_length=4,
+        max_length=3,
     )
 
     check: DirectorCheckDraft | None
@@ -390,61 +390,61 @@ class DirectorStoryStateDraft(
     active_npcs: list[
         DirectorNpcStateDraft
     ] = Field(
-        max_length=12,
+        max_length=8,
     )
 
     active_threats: list[
         DirectorThreatDraft
     ] = Field(
-        max_length=8,
+        max_length=6,
     )
 
     known_facts: list[
         str
     ] = Field(
-        max_length=18,
+        max_length=12,
     )
 
     player_private_knowledge: list[
         DirectorKnowledgeDraft
     ] = Field(
-        max_length=12,
+        max_length=8,
     )
 
     unresolved_threads: list[
         str
     ] = Field(
-        max_length=12,
+        max_length=8,
     )
 
     resolved_threads: list[
         str
     ] = Field(
-        max_length=12,
+        max_length=6,
     )
 
     important_items: list[
         DirectorItemStateDraft
     ] = Field(
-        max_length=12,
+        max_length=8,
     )
 
     active_advantages: list[
         str
     ] = Field(
-        max_length=10,
+        max_length=6,
     )
 
     recent_consequences: list[
         DirectorConsequenceDraft
     ] = Field(
-        max_length=10,
+        max_length=6,
     )
 
     closed_opportunities: list[
         str
     ] = Field(
-        max_length=10,
+        max_length=6,
     )
 
 
@@ -568,7 +568,7 @@ class DirectorStoryTurnDraft(
 
     scene_body: str = Field(
         min_length=20,
-        max_length=2400,
+        max_length=1800,
     )
 
     choices: list[
@@ -584,7 +584,7 @@ class DirectorStoryTurnDraft(
 
     memory_summary: str = Field(
         min_length=10,
-        max_length=900,
+        max_length=600,
     )
 
     story_state: DirectorStoryStateDraft
@@ -708,6 +708,39 @@ class DirectorStoryTurnDraft(
             raise ValueError(
                 "Offer at most one explicitly safe/cautious choice per turn."
             )
+
+        # QTE mechanics are never story prose. The fictional cue may be present,
+        # but the UI prompt/options/timer/effect language must remain isolated in
+        # quick_event so readers encounter the reaction only when the modal opens.
+        if self.quick_event is not None:
+            body = " ".join(self.scene_body.casefold().split())
+            forbidden_mechanics = (
+                "qte",
+                "quick reaction",
+                "correct answer",
+                "right answer",
+                "wrong answer",
+                "countdown",
+                "reaction timer",
+                "buff",
+                "nerf",
+                "next round bonus",
+            )
+            leaked = [phrase for phrase in forbidden_mechanics if phrase in body]
+
+            prompt = " ".join(self.quick_event.prompt.casefold().split())
+            if len(prompt) >= 24 and prompt in body:
+                leaked.append("quick-event prompt")
+
+            for option in self.quick_event.options:
+                label = " ".join(option.label.casefold().split())
+                if len(label) >= 8 and label in body:
+                    leaked.append(f"quick-event option '{option.label}'")
+
+            if leaked:
+                raise ValueError(
+                    "QTE leakage in scene_body: " + ", ".join(leaked)
+                )
 
         return self
 

@@ -283,12 +283,14 @@ export interface FinalePayload {
 
 export interface TurnResolvedPayload {
   room_code: string;
+  preliminary?: boolean;
   adventure_id?: string;
   previous_scene_id?: string;
   scene_id?: string;
   resolution?: string;
   results?: TurnResult[];
   turn_number?: number;
+  resolved_turn_number?: number;
   world_flags?: Record<string, unknown>;
   hero_progression?: Record<string, HeroProgressionUpdate>;
   completed?: boolean;
@@ -352,11 +354,30 @@ export interface MicroEventUpdatedPayload {
   timed_out?: boolean;
 }
 
+export interface TurnHistoryChoice {
+  player_name: string;
+  choice_label: string;
+  outcome: string;
+  roll: number | null;
+  total: number | null;
+  difficulty: number | null;
+}
+
+export interface TurnHistoryEntry {
+  turn_number: number;
+  scene_title: string;
+  next_scene_title: string;
+  resolution: string;
+  choices: TurnHistoryChoice[];
+}
+
 export interface GameState {
   room_code: string;
   play_mode: "coop" | "solo";
   required_players: number;
+  started: boolean;
   can_start_solo: boolean;
+  can_begin_adventure: boolean;
   adventure_id: string;
   adventure_title: string;
   turn_number: number;
@@ -364,6 +385,7 @@ export interface GameState {
   readiness: ReadinessPlayer[];
   party_heroes: PartyHeroSnapshot[];
   last_resolution: string | null;
+  turn_history: TurnHistoryEntry[];
   last_turn_result: TurnResolvedPayload | null;
   director_complete: boolean;
   ai_directed: boolean;
@@ -473,6 +495,7 @@ export interface ServerToClientEvents {
   adventure_left: (payload: { room_code: string; character_id: string }) => void;
   adventure_abandoned: (payload: { room_code: string; message: string }) => void;
   solo_started: (payload: { room_code: string; play_mode: "solo" }) => void;
+  adventure_started: (payload: { room_code: string; turn_number: number }) => void;
   wrap_up_vote_recorded: (payload: ServerErrorPayload & {
     player_id: string;
     votes: number;
@@ -486,6 +509,7 @@ export interface ServerToClientEvents {
   intermission_result: (payload: IntermissionResult & { room_code: string }) => void;
   micro_event_updated: (payload: MicroEventUpdatedPayload) => void;
   choice_accepted: (payload: ChoiceAcceptedPayload) => void;
+  turn_receipt_ready: (payload: TurnResolvedPayload) => void;
   turn_resolved: (payload: TurnResolvedPayload) => void;
   player_notification: (payload: PlayerNotificationPayload) => void;
 }
@@ -528,6 +552,7 @@ export interface ClientToServerEvents {
   leave_adventure: (payload: { room_code: string; character_id: string }) => void;
   abandon_adventure: (payload: { room_code: string }) => void;
   start_solo: (payload: { room_code: string }) => void;
+  start_adventure: (payload: { room_code: string }) => void;
   request_wrap_up: (payload: { room_code: string }) => void;
   sync_adventure_state: (payload: { room_code: string }) => void;
   submit_choice: (payload: { choice_id: string }) => void;

@@ -271,6 +271,9 @@ class SQLiteStateStore:
                 "turn_number":
                     game_session.turn_number,
 
+                "started":
+                    bool(game_session.started),
+
                 "submissions":
                     dict(
                         game_session.submissions
@@ -298,6 +301,11 @@ class SQLiteStateStore:
                 "director_history":
                     list(
                         game_session.director_history
+                    ),
+
+                "turn_archive":
+                    list(
+                        game_session.turn_archive
                     ),
 
                 "director_min_turns":
@@ -560,7 +568,12 @@ class SQLiteStateStore:
                         game_session.story_state
                     ),
                     json.dumps(
-                        game_session.director_history
+                        getattr(
+                            game_session,
+                            "turn_archive",
+                            [],
+                        )
+                        or game_session.director_history
                     ),
                     json.dumps(
                         game_session.director_usage

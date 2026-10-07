@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { PageTitle } from "../../components/ui/PageTitle";
 import { Panel } from "../../components/ui/Panel";
+import { TerminalSelect } from "../../components/ui/TerminalSelect";
 import { RoomInviteButton } from "../../components/game/RoomInviteButton";
 import { listCharacters, type Character } from "../../services/characters";
 import type {
@@ -332,17 +333,16 @@ export function GameHomePage() {
           <div className="join-room-form dashboard-join-form">
             <label>
               <span>ENTER AS</span>
-              <select
+              <TerminalSelect
                 value={selectedHeroId}
-                onChange={(event) => setSelectedHeroId(event.target.value)}
+                onChange={setSelectedHeroId}
                 disabled={selectableHeroes.length === 0}
-              >
-                {selectableHeroes.map((hero) => (
-                  <option value={hero.character_id} key={hero.character_id}>
-                    {hero.name} // LVL {hero.level}
-                  </option>
-                ))}
-              </select>
+                ariaLabel="Hero used to join the room"
+                options={selectableHeroes.map((hero) => ({
+                  value: hero.character_id,
+                  label: `${hero.name} // LVL ${hero.level}`,
+                }))}
+              />
             </label>
 
             <label>
@@ -433,17 +433,16 @@ export function GameHomePage() {
           </div>
           <label className="catalog-hero-select">
             <span>ENTER AS</span>
-            <select
+            <TerminalSelect
               value={selectedHeroId}
-              onChange={(event) => setSelectedHeroId(event.target.value)}
+              onChange={setSelectedHeroId}
               disabled={selectableHeroes.length === 0}
-            >
-              {selectableHeroes.map((hero) => (
-                <option value={hero.character_id} key={hero.character_id}>
-                  {hero.name} // LVL {hero.level}
-                </option>
-              ))}
-            </select>
+              ariaLabel="Hero used to start an adventure"
+              options={selectableHeroes.map((hero) => ({
+                value: hero.character_id,
+                label: `${hero.name} // LVL ${hero.level}`,
+              }))}
+            />
           </label>
         </div>
 
@@ -466,11 +465,12 @@ export function GameHomePage() {
 
           <label className="catalog-filter-field">
             <span>FILTER</span>
-            <select value={selectedTag} onChange={(event) => setSelectedTag(event.target.value)}>
-              {catalogTags.map((tag) => (
-                <option key={tag} value={tag}>{tag}</option>
-              ))}
-            </select>
+            <TerminalSelect
+              value={selectedTag}
+              onChange={setSelectedTag}
+              ariaLabel="Adventure catalog filter"
+              options={catalogTags.map((tag) => ({ value: tag, label: tag }))}
+            />
           </label>
 
           <div className="catalog-result-count">
@@ -541,7 +541,7 @@ export function GameHomePage() {
           >
             <header className="adventure-synopsis-header">
               <div>
-                <span className="eyebrow">AI-GENERATED PLAYER SYNOPSIS</span>
+                <span className="eyebrow">ADVENTURE SYNOPSIS</span>
                 <h2 id="adventure-synopsis-title">{pendingAdventure.title}</h2>
               </div>
               <button
@@ -577,8 +577,8 @@ export function GameHomePage() {
               </div>
 
               <div className="system-notice synopsis-party-note">
-                CO-OP WILL WAIT FOR THE REQUIRED PARTY BEFORE RESOLVING TURN ONE.
-                YOU CAN EXPLICITLY SWITCH THE ROOM TO SOLO AFTER ENTERING IF YOU MEAN TO PLAY ALONE.
+                THE FIRST STORY PAGE IS ALREADY PREPARED. ASSEMBLE THE PARTY OR SWITCH TO SOLO,
+                THEN THE HOST PRESSES GET STARTED AND TURN ONE OPENS IMMEDIATELY.
               </div>
             </div>
 
@@ -592,7 +592,7 @@ export function GameHomePage() {
                 disabled={!connected || !selectedHeroId}
                 onClick={beginPendingAdventure}
               >
-                ENTER THE STORY
+                ENTER LOBBY
               </button>
             </footer>
           </section>

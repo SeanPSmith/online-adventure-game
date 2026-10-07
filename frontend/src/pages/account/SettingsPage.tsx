@@ -14,6 +14,11 @@ import {
   type NotificationChannels,
   type NotificationPreferences,
 } from "../../services/notifications";
+import {
+  readStoryDisplayPreferences,
+  writeStoryDisplayPreferences,
+  type StoryDisplayPreferences,
+} from "../../services/storyPreferences";
 
 const EMPTY_CHANNELS: NotificationChannels = {
   pushAvailable: false,
@@ -36,6 +41,9 @@ export function SettingsPage() {
   const [verificationCode, setVerificationCode] = useState("");
   const [status, setStatus] = useState("LOADING ACCOUNT NOTIFICATION SETTINGS...");
   const [busy, setBusy] = useState(false);
+  const [storyDisplay, setStoryDisplay] = useState<StoryDisplayPreferences>(() =>
+    readStoryDisplayPreferences(),
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -359,9 +367,32 @@ export function SettingsPage() {
         </div>
       </Panel>
 
+      <Panel title="STORY DISPLAY">
+        <div className="notification-settings-grid">
+          <div className="notification-setting-row">
+            <div>
+              <strong>WORD-BY-WORD STORY REVEAL</strong>
+              <p>Fade new story prose in one word at a time instead of displaying the whole page at once.</p>
+              <small>CLICK THE STORY OR USE REVEAL ALL TO SKIP. REDUCED-MOTION BROWSER SETTINGS ALWAYS WIN.</small>
+            </div>
+            <label className="terminal-toggle">
+              <input
+                type="checkbox"
+                checked={storyDisplay.wordReveal}
+                onChange={(event) => {
+                  const next = writeStoryDisplayPreferences({ wordReveal: event.target.checked });
+                  setStoryDisplay(next);
+                }}
+              />
+              <span>{storyDisplay.wordReveal ? "ON" : "OFF"}</span>
+            </label>
+          </div>
+        </div>
+      </Panel>
+
       <Panel title="MORE PREFERENCES">
         <p className="muted-copy">
-          Audio, accessibility, animation/reduced-motion, chat-event visibility, and additional controls can continue to live here as those systems mature.
+          Audio, accessibility, and additional presentation controls can continue to live here as those systems mature.
         </p>
       </Panel>
     </>

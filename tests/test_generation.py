@@ -309,6 +309,19 @@ class GenerationSchemaTests(
             "player_synopsis":
                 "The road home has shifted overnight, and every mile points somewhere stranger. Reach the old observatory before sunrise and find out what changed.",
 
+            "opening_scene": {
+                "title": "THE ROAD MOVES",
+                "body": (
+                    "The mile marker that should point home now faces the opposite direction, and the road beyond it bends toward a horizon neither traveler remembers. "
+                    "The old observatory light flashes once through the trees before disappearing again, while fresh tire tracks cross the pavement and end in the grass."
+                ),
+                "choices": [
+                    {"label":"READ THE TRACKS","description":"Study the fresh tire marks before following them.","archetype":"investigative","tone":"cautious","risk_level":"low","reward_level":"moderate","impact_level":"meaningful","possible_gains":["Direction"],"possible_costs":["Time"],"check":{"difficulty":8,"skill":"survival","stat":None}},
+                    {"label":"TAKE THE BEND","description":"Commit to the changed road before it changes again.","archetype":"bold","tone":"assertive","risk_level":"moderate","reward_level":"high","impact_level":"scene_shifting","possible_gains":["Momentum"],"possible_costs":["Exposure"],"check":{"difficulty":10,"skill":None,"stat":"agility"}},
+                    {"label":"WAIT FOR THE LIGHT","description":"Watch the tree line for another signal from the observatory.","archetype":"investigative","tone":"desperate","risk_level":"high","reward_level":"high","impact_level":"meaningful","possible_gains":["A pattern"],"possible_costs":["Lost initiative"],"check":{"difficulty":11,"skill":None,"stat":"perception"}},
+                ],
+            },
+
             "core_goal":
                 "Reach the old observatory before sunrise.",
 

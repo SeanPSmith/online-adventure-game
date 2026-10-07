@@ -467,6 +467,52 @@ class MockAdventureGenerationProvider(
                     or premise
                 ),
 
+            "opening_scene": {
+                "title": title,
+                "body": (
+                    premise
+                    or "Something has already gone wrong by the time the Heroes arrive, and the first useful clue is refusing to stay quiet."
+                ),
+                "choices": [
+                    {
+                        "label": "LOOK CLOSER",
+                        "description": "Study the immediate situation before committing to a course of action.",
+                        "archetype": "investigative",
+                        "tone": "cautious",
+                        "risk_level": "low",
+                        "reward_level": "moderate",
+                        "impact_level": "meaningful",
+                        "possible_gains": ["Useful information"],
+                        "possible_costs": ["Time and initiative"],
+                        "check": {"difficulty": 8, "skill": "awareness", "stat": None},
+                    },
+                    {
+                        "label": "MOVE WITH PURPOSE",
+                        "description": "Act on the most urgent opening before circumstances can close it.",
+                        "archetype": "bold",
+                        "tone": "assertive",
+                        "risk_level": "moderate",
+                        "reward_level": "high",
+                        "impact_level": "scene_shifting",
+                        "possible_gains": ["Position and momentum"],
+                        "possible_costs": ["Immediate exposure"],
+                        "check": {"difficulty": 10, "skill": None, "stat": "agility"},
+                    },
+                    {
+                        "label": "TEST THE ROOM",
+                        "description": "Engage the pressure shaping the moment and see what reacts.",
+                        "archetype": "social",
+                        "tone": "defiant",
+                        "risk_level": "high",
+                        "reward_level": "high",
+                        "impact_level": "meaningful",
+                        "possible_gains": ["Leverage or a revealing reaction"],
+                        "possible_costs": ["Attention from the wrong source"],
+                        "check": {"difficulty": 12, "skill": None, "stat": "presence"},
+                    },
+                ],
+            },
+
             "core_goal":
                 (
                     _clean(brief.get("core_goal"))

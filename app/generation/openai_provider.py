@@ -32,8 +32,10 @@ SYSTEM_INSTRUCTIONS = """
 You are the adventure architect for TALES OF TWO, a two-player
 cooperative interactive story/RPG.
 
-Your job in this call is NOT to narrate gameplay. Produce a compact,
-high-quality ADVENTURE SEED that a later runtime director can use.
+Your job is to produce a compact, high-quality ADVENTURE SEED that a later
+runtime director can use. The one deliberate exception to planning-only output is
+opening_scene: write the actual first playable page now so players never wait for a
+live Director call merely to begin the adventure.
 
 AUTHORITY RULES
 - CANON: objectively true. Never contradict it.
@@ -61,12 +63,16 @@ DESIGN GOALS
   the Brief defines this run. Brief world_references identify existing World material
   to feature without duplicating or rewriting its canon.
 - Do not spoil hidden truths in the public-facing premise, player synopsis, or core goal.
-- PLAYER SYNOPSIS is storefront copy for players, not design documentation. Write 2-4
-  punchy, polished sentences that establish the hook, immediate situation, and flavor
-  without exposing hidden truths, planned twists, finale details, author notes, or
-  mechanical instructions. Transform the author's rough pitch into finished teaser copy;
-  never copy it verbatim or merely clean up its grammar. Prefer a concrete place, time,
-  oddity, or pressure point over generic phrases such as "our heroes have to figure it out."
+- PLAYER SYNOPSIS is a spoiler-safe literary introduction, not design documentation and
+  not a dump of the form. It will receive a dedicated prose pass after this seed is valid.
+  Supply a useful draft, but do not copy the author's words verbatim.
+- OPENING SCENE is the actual first playable page of the adventure, generated NOW rather
+  than after a player enters a room. Write novel-like scene prose that places the Heroes
+  inside an immediate situation without listing setting fields, locations, NPC dossiers,
+  lore, goals, or design notes. It must stand on its own as fiction and end at a meaningful
+  decision point with 3-6 genuinely distinct choices. At least two choices require checks.
+- The opening is TURN ONE. Do not write a fake START / LET'S GO / BEGIN ADVENTURE choice.
+  Every opening choice must be an action the Hero can actually take inside the fiction.
 - Keep a SHORT adventure genuinely compact when the brief requests short.
 - Avoid generic filler. Build concrete tensions, motives, reversals, and
   opportunities for player agency.
@@ -987,12 +993,6 @@ class OpenAIAdventureGenerationProvider(
 
                 "core_goal":
                     draft.core_goal,
-
-                "major_locations":
-                    draft.major_locations,
-
-                "major_npcs":
-                    draft.major_npcs,
             },
         }
 
@@ -1004,13 +1004,16 @@ class OpenAIAdventureGenerationProvider(
                     self.economy_model,
 
                 instructions=(
-                    "Write player-facing storefront copy for a Tales of Two adventure. "
-                    "Return 2-4 vivid sentences, roughly 60-110 words. Make it "
-                    "feel like finished game copy rather than an author's note. Establish "
-                    "the immediate situation and intriguing pressure without revealing "
-                    "hidden truths, twists, the finale, or mechanical instructions. Do not "
-                    "copy or lightly edit the rough author pitch. Do not mention prompts, "
-                    "seeds, AI, the Director, or design notes."
+                    "Write the player-facing introduction for a Tales of Two adventure. "
+                    "Return one or two short paragraphs, roughly 90-180 words, written like "
+                    "the opening jacket copy of a good novel: atmospheric, confident, and "
+                    "inviting. Explain what kind of trouble the Heroes are stepping into "
+                    "without listing locations, NPCs, lore entries, objectives, tags, or "
+                    "form fields. Do not inventory proper-place names. Do not reveal hidden "
+                    "truths, planned twists, the finale, or mechanics. Do not copy, quote, "
+                    "or lightly edit the author's rough pitch; infer the adventure from the "
+                    "safe planning data and write genuinely new prose. Do not mention prompts, "
+                    "seeds, AI, the Director, forms, or design notes."
                 ),
 
                 input=(
@@ -1276,33 +1279,32 @@ class OpenAIAdventureGenerationProvider(
 
         synopsis_polish = None
 
-        if self._synopsis_needs_polish(
-            draft,
-            brief_version,
-        ):
-            try:
-                (
-                    polished_synopsis,
-                    synopsis_polish,
-                ) = await self._polish_player_synopsis(
-                    draft=
-                        draft,
+        # Player synopsis is intentionally a separate AI writing pass. The seed
+        # architect understands the adventure; this pass converts that plan into
+        # spoiler-safe literary copy instead of echoing Author Studio fields.
+        try:
+            (
+                polished_synopsis,
+                synopsis_polish,
+            ) = await self._polish_player_synopsis(
+                draft=
+                    draft,
 
-                    brief_version=
-                        brief_version,
-                )
+                brief_version=
+                    brief_version,
+            )
 
-                draft = draft.model_copy(
-                    update={
-                        "player_synopsis":
-                            polished_synopsis,
-                    }
-                )
+            draft = draft.model_copy(
+                update={
+                    "player_synopsis":
+                        polished_synopsis,
+                }
+            )
 
-            except Exception:
-                # The seed itself is already valid. Storefront copy polish is an
-                # enhancement and must never make author seed generation fail.
-                synopsis_polish = None
+        except Exception:
+            # The approved seed remains usable if the optional copywriter call
+            # fails; its seed-authored synopsis is the deterministic fallback.
+            synopsis_polish = None
 
         seed = (
             draft

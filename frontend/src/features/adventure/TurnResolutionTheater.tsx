@@ -251,7 +251,7 @@ export function TurnResolutionTheater({
           <span className="eyebrow">AUTHORITATIVE TURN RECEIPT</span>
           <h2>LET'S SEE HOW THAT WENT.</h2>
         </div>
-        <span>SERVER RESOLVED</span>
+        <span>{receipt.preliminary ? "RESULTS READY // STORY WRITING" : "SERVER RESOLVED"}</span>
       </header>
 
       <div className="theater-results">

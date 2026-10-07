@@ -13,7 +13,7 @@ def test_adventure_synopsis_uses_generated_player_synopsis() -> None:
 
     assert "metadata?.player_synopsis" in source
     assert "generatedSynopsis(pendingAdventure)" in source
-    assert "AI-GENERATED PLAYER SYNOPSIS" in source
+    assert "ADVENTURE SYNOPSIS" in source
 
 
 def test_adventure_page_exposes_retry_without_reroll_ui() -> None:

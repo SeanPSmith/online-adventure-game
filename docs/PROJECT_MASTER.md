@@ -4,7 +4,7 @@
 > Update or rewrite the relevant sections in this file as the product changes; do not create another numbered changelog copy.
 
 **Last consolidated:** 2026-10-06  
-**Current local baseline:** through Pass 39 (World / Adventure authoring schema separation + legacy migration)  
+**Current local baseline:** through Pass 41 (bounded Director context + early turn receipts + turn-history carousel)  
 **Public site:** `https://onlinetextadventure.com`  
 **Primary release command:** `./scripts/release-staging.sh "Describe the release"`
 
@@ -170,22 +170,24 @@ Losing browser storage must never destroy authoritative adventure progress.
 
 ### Starting a journey
 
-1. Player selects a Hero.
-2. Player opens an adventure card and reads player-facing synopsis/preflight information.
-3. Player starts explicitly as Solo or Co-op.
-4. Co-op rooms require the configured party before authoritative turn resolution.
-5. Host can share a canonical `/join/:roomCode` link.
+1. Player selects a Hero and opens an adventure card.
+2. The card/preflight shows a dedicated AI-written literary synopsis, not copied Author Studio fields or a location/lore inventory.
+3. Entering creates a **pre-start lobby**. The approved adventure seed already contains the real Turn 1 scene and real choices, so no live Director request is required merely to open the story.
+4. In Co-op, the required Heroes are considered ready when present and online. The host may share `/join/:roomCode` or switch the still-unstarted room to Solo.
+5. Once the required party is ready, the host presses **GET STARTED**. This flips persisted room/session launch state and reveals the already-prepared Turn 1 immediately.
+6. Story choices are unavailable before launch and are never used as a fake readiness/start signal. The old generated `LET'S GO` opening choice is retired.
 
 ### Turn loop
 
 1. Director/story scene is displayed.
 2. Players select and lock choices.
 3. Python freezes authoritative TurnFacts and rolls/check inputs.
-4. Director generation launches immediately.
-5. Resolution theater / dice / QTE / arcade intermission can play while generation continues.
-6. Generated output is validated and committed.
-7. New scene/choices arrive.
-8. Story viewport returns to the top for the next beat.
+4. A low-cost recap request and the next-scene Story Director request launch in parallel.
+5. As soon as the cheap recap is available, the dice/result receipt may be shown **before** the next scene finishes writing. If the player clears the receipt first, the arcade/intermission masks only the remaining story-writing tail.
+6. The Story Director writes the **new** playable beat rather than re-narrating the previous roll. It may use at most a 1-2 sentence causal bridge before moving forward.
+7. Generated output is validated and committed.
+8. New scene/choices arrive and the story viewport returns to the top.
+9. Resolved turns remain available in the compact in-room Turn History carousel with prior choices, checks/outcomes, and recap text.
 
 ### Director failure recovery
 
@@ -218,18 +220,38 @@ Old one-player rooms that were accidentally created as Co-op are migrated safely
 
 The governing readability rule is: **mystery is allowed; confusing prose is not.** A player may be uncertain about why something bizarre is happening, but should not be uncertain about what just happened, where it happened, or what their Hero can react to.
 
-### Latency strategy
+### Latency and token-budget strategy
 
-Director latency is masked rather than allowed to freeze the UX:
+Director latency is masked and bounded rather than allowed to grow with the chronicle:
 
-- generation begins as soon as authoritative turn facts are frozen;
-- dice/resolution presentation and arcade intermissions run in parallel;
-- story-ready countdown transitions out of the arcade when the next beat is available;
-- if generation is already fast, the arcade can be skipped naturally.
+- **Turn 1 is pre-generated with the approved seed**, including its title, novel-like body, and 3-6 real actions, so GET STARTED never waits on a runtime model call;
+- generation begins as soon as authoritative turn facts are frozen for subsequent turns;
+- the inexpensive recap narrator (economy model / low reasoning) reads the frozen TurnFacts and can surface the dice/result receipt while the main Story Director is still writing;
+- normal story turns keep the strong story model but use **low reasoning**; medium reasoning is reserved for Finale Window / Wrap-Up / Finale beats;
+- routine turns are capped around a 4.8k provider output budget and high-stakes closing beats around 5.6k rather than increasing toward 9-10k as the run gets longer;
+- runtime seed context excludes the player synopsis and the already-consumed pre-generated opening; potential-finale planning is withheld until convergence;
+- structured story-state context is deterministically windowed (active NPCs/threats, facts, threads, items, advantages, consequences, closed opportunities) so long chronicles cannot feed an ever-growing ledger back into every request;
+- only the two most recent compact turn-history entries and two recent micro-events are sent as redundant continuity context;
+- JSON input is compact-serialized rather than pretty-printed;
+- repair work uses the economy model with low reasoning instead of spending another full story-model pass;
+- choice/opening freshness remains validated/logged but **does not trigger a second full-turn regeneration**. Playability beats stylistic perfection;
+- dice/result presentation and arcade intermissions mask whatever generation time remains.
 
 ### Output reliability
 
-The current system includes structured validation, repair/fallback behavior, hard timeout/retry state, and persistent pending-turn recovery. Further optimization should focus on context size, output budgets, model selection, and generation telemetry without reducing story quality.
+The system includes strict structured validation, deterministic normalization, one bounded economy-model repair path for malformed/invalid structured output, hard timeout/retry state, and persistent pending-turn recovery. Frozen choices and rolls are never rerolled on retry. Provider/context telemetry logs request size, compact story-state size, elapsed time, and token usage so future budget tuning can be driven by actual runtime data.
+
+### Turn recap continuity
+
+The fast post-roll recap is a readable rendering of the same frozen authoritative TurnFacts used by the Story Director. It is deliberately a **cheap result-page job**, not part of the expensive prose-generation responsibility: one compact paragraph normally covers each Hero's intent, actual roll/check outcome, concrete success/failure, supplied bodily/positional/social consequences, and explicit HP/effect/item/clue/relationship changes. It never invents the next scene or choice. The live Director receives the same frozen facts but is explicitly told not to repeat the recap; after at most 1-2 causal bridge sentences it must move the chronicle forward.
+
+### In-room turn history
+
+The live Adventure sidebar exposes resolved turns as a compact previous/next carousel. Each history card shows the resolved scene, each Hero's selected action, check outcome/roll/DC when present, the resulting recap, and the title of the scene that followed. Player history is persisted in a separate `turn_archive` (defensively capped at 100 entries; the live socket snapshot exposes the latest 50) and **never feeds the Story Director prompt**. Director context remains independently capped to its small recent-history window, so browsing a long playthrough does not increase AI context or token cost. Legacy room snapshots without `turn_archive` fall back to their existing Director history.
+
+### Story reveal presentation
+
+Players can enable/disable **word-by-word story reveal** in Settings. New scene prose fades in one word at a time, can be skipped instantly with `REVEAL ALL` or by clicking the story, and automatically disables animation when the browser requests reduced motion. This is presentation-only local state; the complete scene text remains available to assistive technology and never affects game authority.
 
 ### Scene ASCII art pipeline
 
@@ -370,7 +392,7 @@ Quick-time events are authored as part of the story beat instead of being assemb
 Current behavior:
 
 - QTE cadence remains server-owned; the Director is only asked to author one on a turn where Python has already determined that a quick event is due;
-- on an eligible turn, the Director generates the QTE together with the same `scene_body`, so the visible hazard/opportunity, prompt, choices, and consequences share one narrative context;
+- on an eligible turn, the Director generates the QTE in the same structured response as `scene_body`, but **QTE mechanics are a separate UI layer**. Story prose contains only the fictional cue/hazard/opportunity and may not mention QTEs, quick reactions, timers/countdowns, odds, correct/right/wrong answers, option labels, buffs/nerfs, or the coming prompt; schema validation rejects leakage and routes it through Director repair;
 - each QTE has **2 or 3 plausible choices and exactly one correct answer committed before the player responds**; two choices therefore have a 50% blind baseline and three choices roughly a 33% blind baseline, while attentive reading can improve the player's odds;
 - the committed correct option remains server-private while the event is live and is only revealed as a label after resolution; the system never chooses success after seeing the player's response;
 - a correct response grants a contextual **one-round buff** and an incorrect response or timeout applies a contextual **one-round nerf**;
@@ -562,7 +584,7 @@ A Brief can then feature that same World NPC and add adventure-only instructions
 
 ### Player-facing synopsis
 
-Generated adventures persist an AI-generated player synopsis. If synopsis quality resembles the raw author pitch too closely, a separate lightweight storefront-copy pass may improve it without blocking adventure generation.
+Generated adventures persist a player synopsis produced by a **dedicated lightweight AI copy pass every time**. The synopsis is one or two short literary paragraphs that infer the adventure from safe planning data rather than quoting/cleaning the Brief. It must read like novel jacket copy: atmospheric and inviting, without listing locations, NPC dossiers, lore entries, objectives, tags, hidden truths, finale plans, mechanics, forms, or design notes. If that optional copy pass fails, the validated seed synopsis remains the fallback so generation itself is not blocked.
 
 Retired seeds are hidden from new player discovery while existing rooms using them remain recoverable.
 
@@ -921,6 +943,7 @@ This is intentionally short. Historical numbered changelog files remain archive 
 - **Pass 35 — Visual Hierarchy / Semantic Color System:** structural blue for shell/header hierarchy while phosphor green remains live gameplay / interaction signal.
 - **Pass 36–38I — Arcade Gameplay / Physics / Modes Refinement:** richer cabinet presentation, ball/object physics, state readability, solo/two-player modes, terrain variation, side-view Hoops, and isometric Beer Pong depth cues.
 - **Pass 39 — World / Adventure Authoring Separation:** introduces schema-v3 kind-specific World and Adventure Brief sources, loss-preserving legacy migration, deterministic legacy entity IDs, featured World references instead of duplication, separate strength rubrics, Director-vs-private notes, and linked-World-aware AI authoring while keeping generation compatibility.
+- **Pass 40 — Instant Opening + Launch / Story Polish:** pre-generates the real first playable scene with the seed, separates persisted lobby launch state from turn choices, adds host GET STARTED + pre-start Solo switching, replaces browser-native React dropdown/confirm UI, always rewrites synopsis as literary player copy, hard-isolates QTE mechanics from story prose, strengthens post-roll recap continuity, and adds optional word-by-word story reveal.
 
 ---
 

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
+import { TerminalSelect } from "../../components/ui/TerminalSelect";
 import { listCharacters, type Character } from "../../services/characters";
 import { useAuth } from "../../state/AuthContext";
 import { useGameSocket } from "../../state/GameSocketContext";
@@ -172,13 +173,15 @@ export function JoinInvitePage() {
           <div className="join-room-form invite-join-form">
             <label>
               <span>ENTER AS</span>
-              <select value={selectedHeroId} onChange={(event) => setSelectedHeroId(event.target.value)}>
-                {selectableHeroes.map((hero) => (
-                  <option value={hero.character_id} key={hero.character_id}>
-                    {hero.name} // LVL {hero.level}
-                  </option>
-                ))}
-              </select>
+              <TerminalSelect
+                value={selectedHeroId}
+                onChange={setSelectedHeroId}
+                ariaLabel="Hero used to join this adventure"
+                options={selectableHeroes.map((hero) => ({
+                  value: hero.character_id,
+                  label: `${hero.name} // LVL ${hero.level}`,
+                }))}
+              />
             </label>
 
             <button

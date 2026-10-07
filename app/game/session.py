@@ -195,6 +195,11 @@ class GameSession:
 
     turn_number: int = 1
 
+    # The room lobby is distinct from turn submissions. New rooms remain in a
+    # pre-start state until the host presses GET STARTED; restored legacy rooms
+    # without this field are treated as already started for compatibility.
+    started: bool = False
+
 
     # player_id -> choice_id
 
@@ -234,6 +239,17 @@ class GameSession:
     )
 
     director_history: list[
+        dict[
+            str,
+            Any,
+        ]
+    ] = field(
+        default_factory=list
+    )
+
+    # Player-facing resolved-turn archive. This is intentionally separate from
+    # director_history so UI history never expands the Story Director prompt.
+    turn_archive: list[
         dict[
             str,
             Any,
@@ -1024,6 +1040,13 @@ class GameSessionManager:
                     )
                 ),
 
+            started=
+                (
+                    bool(data.get("started"))
+                    if "started" in data
+                    else True
+                ),
+
             submissions=
                 dict(
                     data.get(
@@ -1099,6 +1122,32 @@ class GameSessionManager:
                     if isinstance(
                         data.get(
                             "director_history"
+                        ),
+                        list,
+                    )
+
+                    else []
+                ),
+
+            turn_archive=
+                (
+                    list(
+                        data.get(
+                            "turn_archive",
+                            data.get(
+                                "director_history",
+                                [],
+                            ),
+                        )
+                    )
+
+                    if isinstance(
+                        data.get(
+                            "turn_archive",
+                            data.get(
+                                "director_history",
+                                [],
+                            ),
                         ),
                         list,
                     )
@@ -2366,6 +2415,8 @@ class GameSessionManager:
             session.turn_number
         )
 
+        resolved_scene_title = str(session.scene.title or "").strip()
+
         completed = bool(
             director_output.get(
                 "completed",
@@ -2860,9 +2911,15 @@ class GameSessionManager:
                 ) + 1
 
 
-        session.director_history.append({
+        history_entry = {
             "turn_number":
                 resolved_turn,
+
+            "source_scene_title":
+                resolved_scene_title,
+
+            "next_scene_title":
+                session.dynamic_scene["title"],
 
             "choices": [
                 {
@@ -2967,7 +3024,22 @@ class GameSessionManager:
 
             "completed":
                 completed,
-        })
+        }
+
+
+        # Keep a broader player-facing archive without feeding it back into the
+        # Director context window. Persistence caps this defensively.
+        session.turn_archive.append(
+            deepcopy(history_entry)
+        )
+        session.turn_archive = (
+            session.turn_archive[-100:]
+        )
+
+
+        session.director_history.append(
+            deepcopy(history_entry)
+        )
 
 
         session.director_history = (
@@ -3110,6 +3182,9 @@ class GameSessionManager:
 
             "turn_number":
                 session.turn_number,
+
+            "resolved_turn_number":
+                resolved_turn,
 
             "world_flags":
                 dict(

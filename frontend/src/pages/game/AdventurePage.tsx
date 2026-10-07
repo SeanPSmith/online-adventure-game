@@ -13,10 +13,12 @@ import { ChoiceInspector } from "../../features/adventure/ChoiceInspector";
 import { LevelUpModal } from "../../features/adventure/LevelUpModal";
 import { QuickEventModal } from "../../features/adventure/QuickEventModal";
 import { TurnTheater } from "../../features/adventure/TurnTheater";
+import { StoryReveal } from "../../features/adventure/StoryReveal";
 import { useTurnTheater } from "../../features/adventure/useTurnTheater";
 import { getCharacter, type Character } from "../../services/characters";
 import type { PartyHeroSnapshot, SceneChoice } from "../../services/game";
 import { rememberGameRoute } from "../../services/gameRouteMemory";
+import { readStoryDisplayPreferences, type StoryDisplayPreferences } from "../../services/storyPreferences";
 import { useGameSocket } from "../../state/GameSocketContext";
 import { useLiveAdventure } from "../../state/useLiveAdventure";
 import { useModal } from "../../state/ModalContext";
@@ -73,7 +75,7 @@ export function AdventurePage() {
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { openModal } = useModal();
+  const { openModal, closeModal } = useModal();
 
   const {
     adventures,
@@ -106,6 +108,7 @@ export function AdventurePage() {
     game: live.game,
     lockCountdown: live.turnLockCountdown,
     storyAdvancing: live.storyAdvancing,
+    turnReceipt: live.turnReceipt,
     lastTurn: live.lastTurn,
     retryableError: live.retryableError,
     error: live.error,
@@ -119,10 +122,16 @@ export function AdventurePage() {
   const [selectedChoiceId, setSelectedChoiceId] = useState("");
   const [lockPending, setLockPending] = useState(false);
   const [dismissedLevelUpKey, setDismissedLevelUpKey] = useState("");
+  const [storyPreferences, setStoryPreferences] = useState<StoryDisplayPreferences>(() =>
+    readStoryDisplayPreferences(),
+  );
+  const [historyIndex, setHistoryIndex] = useState(0);
   const storyPaneRef = useRef<HTMLElement | null>(null);
 
   const scene = live.game?.scene;
   const readiness = live.game?.readiness ?? [];
+  const turnHistory = live.game?.turn_history ?? [];
+  const historyEntry = turnHistory[historyIndex] ?? null;
 
   const localReadiness = readiness.find(
     (player) => player.player_id === live.playerId,
@@ -143,7 +152,9 @@ export function AdventurePage() {
   const displayHero: Character | PartyHeroSnapshot | null =
     isInspectingSelf && hero ? hero : inspectedPartyHero;
 
-  const choiceLocked = Boolean(localReadiness?.ready || live.choiceAccepted);
+  const choiceLocked = Boolean(
+    live.game?.started && (localReadiness?.ready || live.choiceAccepted),
+  );
 
   const selectedChoice = scene?.choices.find(
     (choice) => choice.id === selectedChoiceId,
@@ -206,8 +217,30 @@ export function AdventurePage() {
     theater.phase !== "none";
 
   useEffect(() => {
+    if (turnHistory.length === 0) {
+      setHistoryIndex(0);
+      return;
+    }
+    setHistoryIndex((current) => Math.min(turnHistory.length - 1, Math.max(0, current)));
+  }, [turnHistory.length]);
+
+  useEffect(() => {
+    // New completed turns should land on the newest history card, while manual
+    // carousel navigation remains stable until another turn is committed.
+    if (turnHistory.length > 0) {
+      setHistoryIndex(turnHistory.length - 1);
+    }
+  }, [turnHistory.length, turnNumber]);
+
+  useEffect(() => {
     rememberGameRoute(`${location.pathname}${location.search}`);
   }, [location.pathname, location.search]);
+
+  useEffect(() => {
+    const syncStoryPreferences = () => setStoryPreferences(readStoryDisplayPreferences());
+    window.addEventListener("tot:story-display-changed", syncStoryPreferences);
+    return () => window.removeEventListener("tot:story-display-changed", syncStoryPreferences);
+  }, []);
 
   useEffect(() => {
     // A new Director scene should always begin at the top of the story pane.
@@ -334,6 +367,33 @@ export function AdventurePage() {
     });
   }
 
+  function confirmSoloStart() {
+    openModal({
+      title: "SWITCH ROOM TO SOLO?",
+      body: (
+        <div className="modal-copy-stack">
+          <p>This locks the journey to your Hero. A second Hero will no longer be able to join this room.</p>
+          <div className="system-notice">THE PRE-GENERATED OPENING WILL NOT CHANGE. YOU CAN START IMMEDIATELY AFTER SWITCHING.</div>
+        </div>
+      ),
+      actions: (
+        <div className="button-row modal-action-row">
+          <button className="button" type="button" onClick={closeModal}>KEEP CO-OP</button>
+          <button
+            className="button button-primary"
+            type="button"
+            onClick={() => {
+              closeModal();
+              startSolo(normalizedRoomCode);
+            }}
+          >
+            PLAY SOLO
+          </button>
+        </div>
+      ),
+    });
+  }
+
   function lockChoice() {
     if (!selectedChoiceId || choicesBlocked) return;
 
@@ -391,11 +451,13 @@ export function AdventurePage() {
                     {player.player_id === live.playerId ? "YOU" : player.name}
                   </span>
                   <strong>
-                    {player.ready
-                      ? "LOCKED"
-                      : player.online
-                        ? "CHOOSING"
-                        : "OFFLINE"}
+                    {!live.game?.started
+                      ? player.online ? "READY" : "OFFLINE"
+                      : player.ready
+                        ? "LOCKED"
+                        : player.online
+                          ? "CHOOSING"
+                          : "OFFLINE"}
                   </strong>
                 </div>
               ))}
@@ -435,15 +497,7 @@ ${scene.body.slice(0, 260)}`}
                 <button
                   className="button button-quiet"
                   type="button"
-                  onClick={() => {
-                    const confirmed = window.confirm(
-                      "Switch this co-op room to SOLO? A second Hero will no longer be able to join this journey.",
-                    );
-
-                    if (confirmed) {
-                      startSolo(normalizedRoomCode);
-                    }
-                  }}
+                  onClick={confirmSoloStart}
                 >
                   START SOLO
                 </button>
@@ -477,40 +531,76 @@ ${scene.body.slice(0, 260)}`}
             </section>
           ) : null}
 
-          <article className="story-copy">
-            <div className="story-heading-row">
-              <span className="eyebrow">CURRENT SCENE</span>
-              <span className="story-turn-marker">TURN {String(turnNumber).padStart(2, "0")}</span>
-            </div>
-            <h1>{scene?.title ?? "PICKING UP THE THREAD_"}</h1>
-
-            {scene?.body ? (
-              scene.body.split(/\n{2,}/).map((paragraph, index) => (
-                <p key={`${scene.id}:${index}`}>{paragraph}</p>
-              ))
-            ) : (
-              <>
-                <p className="muted-copy">
-                  {live.status === "error"
-                    ? "THE CHRONICLE CANNOT BE OPENED."
-                    : "CONSULTING THE CHRONICLE_"}
-                </p>
-                {live.status === "error" ? (
-                  <div className="system-notice adventure-restore-failure">
-                    <strong>{live.error || "THE RESTORE DID NOT COMPLETE."}</strong>
-                    <span>
-                      The Adventure Hall has a recovery/abandon control for this saved room.
-                    </span>
-                    <Link className="button button-primary" to="/game">
-                      RETURN TO ADVENTURE HALL
-                    </Link>
+          {!live.game?.started ? (
+            <article className="story-copy adventure-lobby-stage">
+              <div className="story-heading-row">
+                <span className="eyebrow">PARTY ASSEMBLY</span>
+                <span className="story-turn-marker">TURN 01 PREPARED</span>
+              </div>
+              <h1>THE STORY IS READY.</h1>
+              <p>
+                The first real scene has already been written. No generation wait is hiding behind this button;
+                once the required Heroes are present, the host opens the chronicle and Turn 1 appears immediately.
+              </p>
+              <div className="adventure-lobby-roster">
+                {readiness.map((player) => (
+                  <div className={`adventure-lobby-player ${player.online ? "is-ready" : ""}`} key={player.player_id}>
+                    <span>{player.player_id === live.playerId ? "YOU" : player.name}</span>
+                    <strong>{player.online ? "READY" : "OFFLINE"}</strong>
                   </div>
-                ) : null}
-              </>
-            )}
-          </article>
+                ))}
+              </div>
+              {localRoomPlayer?.is_host ? (
+                <button
+                  className="button button-primary adventure-get-started"
+                  type="button"
+                  disabled={!live.game?.can_begin_adventure}
+                  onClick={live.startAdventure}
+                >
+                  {live.game?.can_begin_adventure ? "GET STARTED" : "WAITING FOR PARTY"}
+                </button>
+              ) : (
+                <div className="system-notice">HOST WILL START WHEN THE PARTY IS READY.</div>
+              )}
+            </article>
+          ) : (
+            <article className="story-copy">
+              <div className="story-heading-row">
+                <span className="eyebrow">CURRENT SCENE</span>
+                <span className="story-turn-marker">TURN {String(turnNumber).padStart(2, "0")}</span>
+              </div>
+              <h1>{scene?.title ?? "PICKING UP THE THREAD_"}</h1>
 
-          {live.finale ? (
+              {scene?.body ? (
+                <StoryReveal
+                  sceneId={scene.id}
+                  text={scene.body}
+                  enabled={storyPreferences.wordReveal}
+                />
+              ) : (
+                <>
+                  <p className="muted-copy">
+                    {live.status === "error"
+                      ? "THE CHRONICLE CANNOT BE OPENED."
+                      : "CONSULTING THE CHRONICLE_"}
+                  </p>
+                  {live.status === "error" ? (
+                    <div className="system-notice adventure-restore-failure">
+                      <strong>{live.error || "THE RESTORE DID NOT COMPLETE."}</strong>
+                      <span>
+                        The Adventure Hall has a recovery/abandon control for this saved room.
+                      </span>
+                      <Link className="button button-primary" to="/game">
+                        RETURN TO ADVENTURE HALL
+                      </Link>
+                    </div>
+                  ) : null}
+                </>
+              )}
+            </article>
+          )}
+
+          {live.game?.started && live.finale ? (
             <section className="finale-inline journey-finale-summary">
               <header className="finale-summary-header">
                 <div>
@@ -592,7 +682,7 @@ ${scene.body.slice(0, 260)}`}
                 </button>
               </div>
             </section>
-          ) : (
+          ) : live.game?.started ? (
             <section className="choice-area">
               <header className="choice-area-heading">
                 <div>
@@ -690,7 +780,7 @@ ${scene.body.slice(0, 260)}`}
                 </button>
               </div>
             </section>
-          )}
+          ) : null}
         </section>
 
         <aside className="adventure-sidebar">
@@ -868,6 +958,62 @@ ${scene.body.slice(0, 260)}`}
               </p>
             )}
           </Panel>
+
+          {turnHistory.length > 0 ? (
+            <Panel title={`TURN HISTORY // ${turnHistory.length}`} className="turn-history-panel">
+              <div className="turn-history-controls">
+                <button
+                  type="button"
+                  aria-label="Previous resolved turn"
+                  disabled={historyIndex <= 0}
+                  onClick={() => setHistoryIndex((current) => Math.max(0, current - 1))}
+                >
+                  ←
+                </button>
+                <span>TURN {historyEntry?.turn_number ?? historyIndex + 1}</span>
+                <button
+                  type="button"
+                  aria-label="Next resolved turn"
+                  disabled={historyIndex >= turnHistory.length - 1}
+                  onClick={() => setHistoryIndex((current) => Math.min(turnHistory.length - 1, current + 1))}
+                >
+                  →
+                </button>
+              </div>
+
+              {historyEntry ? (
+                <article className="turn-history-card">
+                  <div className="turn-history-scene">
+                    <span className="eyebrow">{historyEntry.scene_title || "PREVIOUS SCENE"}</span>
+                    {historyEntry.next_scene_title ? (
+                      <small>→ {historyEntry.next_scene_title}</small>
+                    ) : null}
+                  </div>
+
+                  <div className="turn-history-choices">
+                    {historyEntry.choices.map((choice, index) => (
+                      <div key={`${choice.player_name}:${choice.choice_label}:${index}`}>
+                        <span>{choice.player_name || `HERO ${index + 1}`}</span>
+                        <strong>{choice.choice_label}</strong>
+                        <em className={choice.outcome ? `is-${choice.outcome.replaceAll("_", "-")}` : ""}>
+                          {choice.outcome
+                            ? outcomeLabel(choice.outcome)
+                            : "NO CHECK"}
+                          {choice.total != null && choice.difficulty != null
+                            ? ` // ${choice.total} / DC ${choice.difficulty}${choice.roll != null ? ` (D20 ${choice.roll})` : ""}`
+                            : ""}
+                        </em>
+                      </div>
+                    ))}
+                  </div>
+
+                  {historyEntry.resolution ? (
+                    <p>{historyEntry.resolution}</p>
+                  ) : null}
+                </article>
+              ) : null}
+            </Panel>
+          ) : null}
 
           {live.error && !live.retryableError && !live.game?.director_retry_required ? (
             <div className="adventure-error">

@@ -84,7 +84,7 @@ def test_story_schema_exposes_required_nullable_director_qte() -> None:
     schema = DirectorStoryTurnDraft.model_json_schema()
     assert "quick_event" in schema["required"]
     assert "quick_event" in schema["properties"]
-    assert schema["properties"]["scene_body"]["maxLength"] == 2400
+    assert schema["properties"]["scene_body"]["maxLength"] == 1800
 
 
 def test_authored_qte_commits_correct_answer_without_exposing_it() -> None:

@@ -12,6 +12,7 @@ interface ModalOptions {
   title: string;
   body: ReactNode;
   dismissLabel?: string;
+  actions?: ReactNode;
 }
 
 interface ModalContextValue {
@@ -53,9 +54,11 @@ export function ModalProvider({ children }: { children: ReactNode }) {
                 </header>
                 <div className="modal-body">{modal.body}</div>
                 <footer className="modal-footer">
-                  <button className="button button-primary" type="button" onClick={closeModal}>
-                    {modal.dismissLabel ?? "CLOSE"}
-                  </button>
+                  {modal.actions ?? (
+                    <button className="button button-primary" type="button" onClick={closeModal}>
+                      {modal.dismissLabel ?? "CLOSE"}
+                    </button>
+                  )}
                 </footer>
               </section>
             </div>,

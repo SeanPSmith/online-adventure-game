@@ -20,9 +20,8 @@ function receiptKey(receipt: TurnResolvedPayload | null) {
 
   return [
     receipt.room_code,
-    receipt.turn_number ?? "?",
+    receipt.resolved_turn_number ?? receipt.turn_number ?? "?",
     receipt.previous_scene_id ?? "?",
-    receipt.scene_id ?? "?",
   ].join(":");
 }
 
@@ -71,6 +70,7 @@ export function useTurnTheater({
   game,
   lockCountdown,
   storyAdvancing,
+  turnReceipt,
   lastTurn,
   retryableError,
   error,
@@ -80,6 +80,7 @@ export function useTurnTheater({
   game: GameState | null;
   lockCountdown: TurnLockCountdownPayload | null;
   storyAdvancing: StoryAdvancingPayload | null;
+  turnReceipt: TurnResolvedPayload | null;
   lastTurn: TurnResolvedPayload | null;
   retryableError: ServerErrorPayload | null;
   error: string;
@@ -201,10 +202,18 @@ export function useTurnTheater({
 
         const queuedReceipt = pendingReceiptRef.current;
         if (queuedReceipt) {
-          beginStoryReady(
-            queuedReceipt,
-            Boolean(activeIntermissionRef.current),
-          );
+          pendingReceiptRef.current = null;
+          setActiveReceipt(queuedReceipt);
+          if (queuedReceipt.preliminary) {
+            // Dice/results are already known. Show them immediately while the
+            // Story Director keeps writing the next scene in parallel.
+            setPhase("resolution");
+          } else {
+            beginStoryReady(
+              queuedReceipt,
+              Boolean(activeIntermissionRef.current),
+            );
+          }
           return;
         }
 
@@ -299,13 +308,73 @@ export function useTurnTheater({
   }, [game, phase, beginLockCountdown, rememberIntermission]);
 
   useEffect(() => {
+    if (!turnReceipt || turnReceipt.room_code !== roomCode) return;
+
+    const key = receiptKey(turnReceipt);
+    if (!key) return;
+
+    const acknowledged = readAcknowledgedReceipt(roomCode, characterId);
+    if (acknowledged === key) return;
+
+    if (phase === "lock-countdown") {
+      pendingReceiptRef.current = turnReceipt;
+      return;
+    }
+
+    if (activeReceipt && receiptKey(activeReceipt) === key) {
+      // Upgrade the preliminary receipt in place when the final committed turn
+      // arrives; never replay the dice animation for the same resolved turn.
+      setActiveReceipt(turnReceipt);
+      return;
+    }
+
+    clearLockTimer();
+    clearReadyTimer();
+    clearReadyFallback();
+    pendingReceiptRef.current = null;
+    setActiveReceipt(turnReceipt);
+    setCountdownValue(0);
+    setPhase(turnReceipt.preliminary ? "resolution" : "story-ready");
+
+    if (!turnReceipt.preliminary) {
+      // Restored/final receipts keep the familiar short reveal cadence.
+      beginStoryReady(
+        turnReceipt,
+        phase === "intermission" || Boolean(activeIntermissionRef.current),
+      );
+    }
+  }, [
+    turnReceipt,
+    roomCode,
+    characterId,
+    phase,
+    activeReceipt,
+    beginStoryReady,
+    clearLockTimer,
+    clearReadyTimer,
+    clearReadyFallback,
+  ]);
+
+  useEffect(() => {
     if (!lastTurn || lastTurn.room_code !== roomCode) return;
 
     const key = receiptKey(lastTurn);
     if (!key) return;
 
     const acknowledged = readAcknowledgedReceipt(roomCode, characterId);
-    if (acknowledged === key) return;
+    if (acknowledged === key) {
+      // The player already read the early dice/result receipt. Once the final
+      // story commit arrives, release any remaining arcade/intermission shell
+      // instead of replaying the same receipt.
+      clearLockTimer();
+      clearReadyTimer();
+      clearReadyFallback();
+      rememberIntermission(null);
+      setActiveReceipt(null);
+      setCountdownValue(0);
+      setPhase("none");
+      return;
+    }
 
     const durableKey = receiptKey(game?.last_turn_result ?? null);
     const isFreshEventReceipt = Boolean(durableKey && durableKey !== key) || !durableKey;
@@ -320,7 +389,10 @@ export function useTurnTheater({
       return;
     }
 
-    if (activeReceipt && receiptKey(activeReceipt) === key) return;
+    if (activeReceipt && receiptKey(activeReceipt) === key) {
+      setActiveReceipt(lastTurn);
+      return;
+    }
 
     beginStoryReady(
       lastTurn,
@@ -335,6 +407,10 @@ export function useTurnTheater({
     phase,
     activeReceipt,
     beginStoryReady,
+    clearLockTimer,
+    clearReadyTimer,
+    clearReadyFallback,
+    rememberIntermission,
   ]);
 
   useEffect(() => {

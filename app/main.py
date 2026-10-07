@@ -545,20 +545,76 @@ def room_can_start_solo(
         return False
 
 
-    # A generated opening scene may already have Director history or
-    # pending story facts before the first Hero acts. Those are setup
-    # artifacts, not evidence that co-op play has begun. Solo remains
-    # available until a player has actually committed/resolved turn 1.
-    return (
-        int(
-            session.turn_number
-            or 1
-        )
-        == 1
-        and not session.submissions
-        and not session.last_resolution
-        and not session.completed
-    )
+    # Lobby state is explicit now. Opening prose/choices may already exist, but
+    # they are not playable until GET STARTED flips this persisted flag.
+    return not bool(getattr(session, "started", True)) and not session.completed
+
+
+def room_can_begin_adventure(
+    room,
+    session,
+) -> bool:
+    if room is None or session is None or session.completed or bool(getattr(session, "started", True)):
+        return False
+
+    if not room.has_required_party:
+        return False
+
+    online_players = [
+        player
+        for player in room.players.values()
+        if player.is_online
+    ]
+
+    return len(online_players) >= int(room.required_players or 1)
+
+
+def public_turn_history(session) -> list[dict]:
+    """Compact player-facing archive of resolved choices and outcomes."""
+
+    history: list[dict] = []
+
+    archive = list(getattr(session, "turn_archive", []) or [])
+    if not archive:
+        archive = list(getattr(session, "director_history", []) or [])
+
+    # The socket snapshot carries a useful play-history window, while the
+    # persisted archive remains broader and entirely separate from AI context.
+    for entry in archive[-50:]:
+        if not isinstance(entry, dict):
+            continue
+
+        choices = []
+        for choice in entry.get("choices", []):
+            if not isinstance(choice, dict):
+                continue
+            check = choice.get("check") if isinstance(choice.get("check"), dict) else None
+            choices.append({
+                "player_name": str(choice.get("player_name", "") or ""),
+                "choice_label": str(choice.get("choice_label", "") or ""),
+                "outcome": str((check or {}).get("outcome", "") or ""),
+                "roll": (check or {}).get("roll"),
+                "total": (check or {}).get("total"),
+                "difficulty": (check or {}).get("difficulty"),
+            })
+
+        history.append({
+            "turn_number": int(entry.get("turn_number", 0) or 0),
+            "scene_title": str(
+                entry.get("source_scene_title")
+                or entry.get("scene_title")
+                or "Previous Turn"
+            ),
+            "next_scene_title": str(
+                entry.get("next_scene_title")
+                or entry.get("scene_title")
+                or ""
+            ),
+            "resolution": str(entry.get("resolution", "") or ""),
+            "choices": choices,
+        })
+
+    return history
 
 
 def build_game_state(
@@ -612,8 +668,11 @@ def build_game_state(
                     player.is_online,
 
                 "ready":
-                    player_id
-                    in session.submissions,
+                    (
+                        bool(player.is_online)
+                        if not session.started
+                        else player_id in session.submissions
+                    ),
             }
         )
 
@@ -628,8 +687,17 @@ def build_game_state(
         "required_players":
             room.required_players,
 
+        "started":
+            bool(session.started),
+
         "can_start_solo":
             room_can_start_solo(
+                room,
+                session,
+            ),
+
+        "can_begin_adventure":
+            room_can_begin_adventure(
                 room,
                 session,
             ),
@@ -651,6 +719,9 @@ def build_game_state(
 
         "last_resolution":
             session.last_resolution,
+
+        "turn_history":
+            public_turn_history(session),
 
         "director_complete":
             session.completed,
@@ -3390,6 +3461,69 @@ async def abandon_adventure(
 
 
 # =========================================================
+# START ADVENTURE
+# =========================================================
+
+@sio.event
+async def start_adventure(
+    sid,
+    data,
+):
+    user = await require_socket_user(sid)
+    if user is None:
+        return
+
+    room = rooms.room_for_socket(sid)
+    player = rooms.player_for_socket(sid)
+    if room is None or player is None:
+        await sio.emit(
+            "room_error",
+            {"message": "Resume an adventure first."},
+            to=sid,
+        )
+        return
+
+    if player.user_id != user.user_id or not player.is_host:
+        await sio.emit(
+            "room_error",
+            {"room_code": room.code, "message": "Only the host can start the adventure."},
+            to=sid,
+        )
+        return
+
+    session = game_sessions.get_or_create(room.code)
+    if session.started:
+        await broadcast_game_state(room.code)
+        return
+
+    if not room_can_begin_adventure(room, session):
+        await sio.emit(
+            "room_error",
+            {
+                "room_code": room.code,
+                "message": "All required Heroes must be present and online before the adventure can start.",
+            },
+            to=sid,
+        )
+        return
+
+    session.started = True
+    session.submissions.clear()
+    await persist_room_state(room.code)
+
+    await sio.emit(
+        "adventure_started",
+        {"room_code": room.code, "turn_number": session.turn_number},
+        room=room.code,
+    )
+    await broadcast_game_state(room.code)
+    await refresh_adventure_lists(
+        member.user_id
+        for member in room.players.values()
+    )
+
+
+# =========================================================
 # START SOLO
 # =========================================================
 
@@ -3918,6 +4052,20 @@ async def finalize_resolved_turn(
                 ),
             )
 
+            director_wall_started = time.perf_counter()
+
+            # The result receipt is intentionally cheap and independent of the
+            # expensive next-scene generation. Start both at once, expose the
+            # dice/outcome as soon as the economy recap is ready, and let the
+            # arcade/intermission cover only whatever story-writing tail remains.
+            recap_task = asyncio.create_task(
+                runtime_director.generate_recap(
+                    session=session,
+                    characters_by_player_id=characters_by_player_id,
+                    turn_facts=result,
+                )
+            )
+
             director_task = asyncio.create_task(
                 runtime_director.advance(
                     session=
@@ -3931,6 +4079,9 @@ async def finalize_resolved_turn(
 
                     turn_facts=
                         result,
+
+                    recap_task=
+                        recap_task,
                 )
             )
 
@@ -3938,10 +4089,47 @@ async def finalize_resolved_turn(
                 room.code
             ] = director_task
 
+            receipt_done, _ = await asyncio.wait(
+                {recap_task},
+                timeout=8.0,
+            )
+
+            receipt_resolution = str(result.get("resolution", "") or "").strip()
+            if recap_task in receipt_done:
+                try:
+                    receipt_result = recap_task.result()
+                    receipt_resolution = str(
+                        receipt_result.get("resolution_narration", receipt_resolution)
+                        or receipt_resolution
+                    ).strip()
+                except Exception as receipt_error:
+                    print(
+                        "[TURN RECEIPT FALLBACK] "
+                        f"room={room.code} turn={resolved_turn_number} "
+                        f"type={type(receipt_error).__name__} detail={receipt_error}"
+                    )
+
+            await sio.emit(
+                "turn_receipt_ready",
+                {
+                    "room_code": room.code,
+                    **result,
+                    "resolution": receipt_resolution,
+                    "preliminary": True,
+                    "resolved_turn_number": resolved_turn_number,
+                },
+                room=room.code,
+            )
+
+            remaining_director_timeout = max(
+                1.0,
+                hard_timeout_seconds - (time.perf_counter() - director_wall_started),
+            )
+
             done, _pending = await asyncio.wait(
                 {director_task},
                 timeout=
-                    hard_timeout_seconds,
+                    remaining_director_timeout,
             )
 
             if director_task not in done:
@@ -4310,6 +4498,20 @@ async def submit_choice(
                 sid,
         )
 
+        return
+
+
+    session = game_sessions.get_or_create(room.code)
+
+    if not session.started:
+        await sio.emit(
+            "game_error",
+            {
+                "room_code": room.code,
+                "message": "The adventure has not started yet. Wait for the host to press GET STARTED.",
+            },
+            to=sid,
+        )
         return
 
 

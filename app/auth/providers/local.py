@@ -89,105 +89,75 @@ class LocalAuthProvider(
         ).strip()
 
     # -----------------------------------------------------
-    # REGISTRATION VALIDATION
+    # ACCOUNT VALIDATION
     # -----------------------------------------------------
+
+    def validate_identity(
+        self,
+        email: str,
+        username: str,
+    ) -> tuple[str, str]:
+
+        email = self.normalize_email(email)
+        username = self.normalize_username(username)
+
+        if not email:
+            raise RegistrationError("Email is required.")
+
+        if len(email) > MAX_EMAIL_LENGTH:
+            raise RegistrationError("Email address is too long.")
+
+        if not EMAIL_PATTERN.match(email):
+            raise RegistrationError("Enter a valid email address.")
+
+        if not username:
+            raise RegistrationError("Username is required.")
+
+        if len(username) < MIN_USERNAME_LENGTH:
+            raise RegistrationError(
+                f"Username must be at least {MIN_USERNAME_LENGTH} characters."
+            )
+
+        if len(username) > MAX_USERNAME_LENGTH:
+            raise RegistrationError(
+                f"Username cannot exceed {MAX_USERNAME_LENGTH} characters."
+            )
+
+        if not USERNAME_PATTERN.match(username):
+            raise RegistrationError(
+                "Username may contain only letters, numbers, underscores, and hyphens."
+            )
+
+        return email, username
+
+    def validate_password(
+        self,
+        password: str,
+    ) -> str:
+
+        password = str(password or "")
+
+        if len(password) < MIN_PASSWORD_LENGTH:
+            raise RegistrationError(
+                f"Password must be at least {MIN_PASSWORD_LENGTH} characters."
+            )
+
+        if len(password) > MAX_PASSWORD_LENGTH:
+            raise RegistrationError("Password is too long.")
+
+        return password
 
     def validate_registration(
         self,
         email: str,
         username: str,
         password: str,
-    ) -> tuple[
-        str,
-        str,
-        str,
-    ]:
+    ) -> tuple[str, str, str]:
 
-        email = self.normalize_email(
-            email
-        )
+        email, username = self.validate_identity(email, username)
+        password = self.validate_password(password)
 
-        username = self.normalize_username(
-            username
-        )
-
-        password = str(
-            password or ""
-        )
-
-        # EMAIL
-
-        if not email:
-
-            raise RegistrationError(
-                "Email is required."
-            )
-
-        if len(email) > MAX_EMAIL_LENGTH:
-
-            raise RegistrationError(
-                "Email address is too long."
-            )
-
-        if not EMAIL_PATTERN.match(
-            email
-        ):
-
-            raise RegistrationError(
-                "Enter a valid email address."
-            )
-
-        # USERNAME
-
-        if not username:
-
-            raise RegistrationError(
-                "Username is required."
-            )
-
-        if len(username) < MIN_USERNAME_LENGTH:
-
-            raise RegistrationError(
-                f"Username must be at least "
-                f"{MIN_USERNAME_LENGTH} characters."
-            )
-
-        if len(username) > MAX_USERNAME_LENGTH:
-
-            raise RegistrationError(
-                f"Username cannot exceed "
-                f"{MAX_USERNAME_LENGTH} characters."
-            )
-
-        if not USERNAME_PATTERN.match(
-            username
-        ):
-
-            raise RegistrationError(
-                "Username may contain only letters, "
-                "numbers, underscores, and hyphens."
-            )
-
-        # PASSWORD
-
-        if len(password) < MIN_PASSWORD_LENGTH:
-
-            raise RegistrationError(
-                f"Password must be at least "
-                f"{MIN_PASSWORD_LENGTH} characters."
-            )
-
-        if len(password) > MAX_PASSWORD_LENGTH:
-
-            raise RegistrationError(
-                "Password is too long."
-            )
-
-        return (
-            email,
-            username,
-            password,
-        )
+        return email, username, password
 
     # -----------------------------------------------------
     # REGISTER

@@ -12,6 +12,8 @@ from app.auth.models import (
 
 from app.auth.providers.base import (
     AuthProvider,
+    InvalidCredentialsError,
+    RegistrationError,
 )
 
 from app.auth.providers.local import (
@@ -23,6 +25,12 @@ from app.auth.sessions import (
     hash_session_token,
     utc_now,
 )
+
+from app.auth.passwords import (
+    hash_password,
+    verify_password,
+)
+
 
 from app.auth.store import (
     auth_store,
@@ -467,6 +475,95 @@ class AuthService:
 
 
     # =====================================================
+    # ACCOUNT SELF-SERVICE
+    # =====================================================
+
+    async def current_session(
+        self,
+        session_token: str | None,
+    ) -> AuthSession | None:
+
+        if not session_token:
+            return None
+
+        return await auth_store.get_session_by_token_hash(
+            hash_session_token(session_token)
+        )
+
+    async def update_profile(
+        self,
+        *,
+        user_id: str,
+        current_password: str,
+        email: str,
+        username: str,
+    ) -> User:
+
+        stored = await auth_store.get_user_by_id(user_id)
+
+        if stored is None or not verify_password(current_password, stored.password_hash):
+            raise InvalidCredentialsError("Current password is incorrect.")
+
+        email, username = local_auth_provider.validate_identity(email, username)
+
+        by_email = await auth_store.get_user_by_email(email)
+        if by_email is not None and by_email.user_id != user_id:
+            raise RegistrationError("An account already exists with that email address.")
+
+        by_username = await auth_store.get_user_by_username(username)
+        if by_username is not None and by_username.user_id != user_id:
+            raise RegistrationError("That username is already in use.")
+
+        await auth_store.update_user_identity(user_id, email, username)
+        refreshed = await auth_store.get_user_by_id(user_id)
+
+        if refreshed is None:
+            raise RuntimeError("Account disappeared during profile update.")
+
+        return refreshed.to_user()
+
+    async def change_password(
+        self,
+        *,
+        user_id: str,
+        current_password: str,
+        new_password: str,
+    ) -> None:
+
+        stored = await auth_store.get_user_by_id(user_id)
+
+        if stored is None or not verify_password(current_password, stored.password_hash):
+            raise InvalidCredentialsError("Current password is incorrect.")
+
+        new_password = local_auth_provider.validate_password(new_password)
+
+        if verify_password(new_password, stored.password_hash):
+            raise RegistrationError("New password must be different from the current password.")
+
+        await auth_store.update_password_hash(
+            user_id,
+            hash_password(new_password),
+        )
+
+    async def delete_account(
+        self,
+        *,
+        user_id: str,
+        current_password: str,
+        confirmation: str,
+    ) -> None:
+
+        stored = await auth_store.get_user_by_id(user_id)
+
+        if stored is None or not verify_password(current_password, stored.password_hash):
+            raise InvalidCredentialsError("Current password is incorrect.")
+
+        if confirmation.strip().casefold() != stored.username.casefold():
+            raise RegistrationError("Type your username exactly to confirm account deletion.")
+
+        await auth_store.delete_user_account(user_id)
+
+    # =====================================================
     # LOGOUT ALL
     # =====================================================
 
@@ -477,6 +574,18 @@ class AuthService:
 
         await auth_store.delete_user_sessions(
             user_id
+        )
+
+    async def logout_other_sessions(
+        self,
+        *,
+        user_id: str,
+        current_session_id: str,
+    ) -> int:
+
+        return await auth_store.delete_user_sessions_except(
+            user_id,
+            current_session_id,
         )
 
 

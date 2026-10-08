@@ -31,7 +31,7 @@ function errorMessage(reason: unknown) {
   return reason instanceof Error ? reason.message : "The notification service did not respond.";
 }
 
-export function SettingsPage() {
+export function SettingsPage({ section = "all" }: { section?: "all" | "notifications" | "preferences" }) {
   const [preferences, setPreferences] = useState<NotificationPreferences>(() =>
     readNotificationPreferences(),
   );
@@ -165,8 +165,9 @@ export function SettingsPage() {
 
   return (
     <>
-      <PageTitle eyebrow="ACCOUNT" title="SETTINGS" />
+      {section === "all" ? <PageTitle eyebrow="ACCOUNT" title="SETTINGS" /> : null}
 
+      {section !== "preferences" ? (
       <Panel title="REAL-WORLD ADVENTURE NOTIFICATIONS">
         <div className="notification-settings-grid">
           <p className="muted-copy notification-settings-intro">
@@ -366,7 +367,9 @@ export function SettingsPage() {
           {status ? <div className="system-notice notification-settings-status">{status}</div> : null}
         </div>
       </Panel>
+      ) : null}
 
+      {section !== "notifications" ? (<>
       <Panel title="STORY DISPLAY">
         <div className="notification-settings-grid">
           <div className="notification-setting-row">
@@ -390,11 +393,12 @@ export function SettingsPage() {
         </div>
       </Panel>
 
-      <Panel title="MORE PREFERENCES">
+      <Panel title="PRESENTATION NOTES">
         <p className="muted-copy">
-          Audio, accessibility, and additional presentation controls can continue to live here as those systems mature.
+          Reduced-motion browser settings always override animated story reveal. Additional audio and accessibility controls can land here as those systems become real.
         </p>
       </Panel>
+      </>) : null}
     </>
   );
 }

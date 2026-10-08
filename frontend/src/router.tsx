@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router";
+import { Navigate, createBrowserRouter } from "react-router";
 import { RootLayout } from "./layouts/RootLayout";
 import { PublicLayout } from "./layouts/PublicLayout";
 import { GameLayout } from "./layouts/GameLayout";
@@ -23,7 +23,6 @@ import { RulebookPage } from "./pages/game/RulebookPage";
 import { ArcadeLabPage } from "./pages/game/ArcadeLabPage";
 
 import { AccountPage } from "./pages/account/AccountPage";
-import { SettingsPage } from "./pages/account/SettingsPage";
 import { AuthorPage } from "./pages/author/AuthorPage";
 import { AdminPage } from "./pages/admin/AdminPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
@@ -68,7 +67,7 @@ export const router = createBrowserRouter([
             element: <AccountLayout />,
             children: [
               { path: "account", element: <AccountPage /> },
-              { path: "settings", element: <SettingsPage /> },
+              { path: "settings", element: <Navigate to="/account?tab=preferences" replace /> },
               { path: "author", element: <AuthorPage /> },
               { path: "admin", element: <AdminPage /> },
             ],

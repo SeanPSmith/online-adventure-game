@@ -24,10 +24,15 @@ from app.auth.providers.base import (
 )
 
 from app.auth.schemas import (
+    AccountDeleteRequest,
     AuthResponse,
     LoginRequest,
     MessageResponse,
+    PasswordChangeRequest,
+    ProfileUpdateRequest,
     RegisterRequest,
+    SecurityResponse,
+    SessionMutationResponse,
     UserResponse,
 )
 
@@ -193,6 +198,59 @@ def clear_session_cookie(
         path=
             COOKIE_PATH,
     )
+
+
+def _request_is_safe_account_write(
+    request: Request,
+) -> bool:
+
+    if request.headers.get("X-TOT-Account-Request") != "1":
+        return False
+
+    fetch_site = (
+        request.headers.get("sec-fetch-site", "")
+        .strip()
+        .lower()
+    )
+
+    return fetch_site in {
+        "",
+        "none",
+        "same-origin",
+        "same-site",
+    }
+
+
+async def require_current_user(
+    session_token: str | None = Cookie(
+        default=None,
+        alias=SESSION_COOKIE_NAME,
+    ),
+):
+
+    user = await auth_service.authenticate_session(session_token)
+
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required.",
+        )
+
+    return user
+
+
+async def require_account_write(
+    request: Request,
+    user=Depends(require_current_user),
+):
+
+    if not _request_is_safe_account_write(request):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Account write request rejected.",
+        )
+
+    return user
 
 
 # =========================================================
@@ -370,6 +428,188 @@ async def logout(
         message=
             "Logged out."
     )
+
+
+# =========================================================
+# ACCOUNT SELF-SERVICE
+# =========================================================
+
+@router.patch(
+    "/profile",
+    response_model=AuthResponse,
+)
+async def update_profile(
+    payload: ProfileUpdateRequest,
+    user=Depends(require_account_write),
+):
+
+    try:
+        updated = await auth_service.update_profile(
+            user_id=str(user.user_id),
+            current_password=payload.current_password,
+            email=payload.email,
+            username=payload.username,
+        )
+    except InvalidCredentialsError as error:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(error),
+        ) from error
+    except RegistrationError as error:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(error),
+        ) from error
+
+    return AuthResponse(
+        authenticated=True,
+        user=user_response(updated),
+    )
+
+
+@router.post(
+    "/password",
+    response_model=MessageResponse,
+)
+async def change_password(
+    payload: PasswordChangeRequest,
+    session_token: str | None = Cookie(
+        default=None,
+        alias=SESSION_COOKIE_NAME,
+    ),
+    user=Depends(require_account_write),
+):
+
+    try:
+        await auth_service.change_password(
+            user_id=str(user.user_id),
+            current_password=payload.current_password,
+            new_password=payload.new_password,
+        )
+    except InvalidCredentialsError as error:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(error),
+        ) from error
+    except RegistrationError as error:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(error),
+        ) from error
+
+    current = await auth_service.current_session(session_token)
+
+    if current is not None:
+        await auth_service.logout_other_sessions(
+            user_id=str(user.user_id),
+            current_session_id=current.session_id,
+        )
+
+    return MessageResponse(
+        message="Password updated. Other signed-in devices were disconnected."
+    )
+
+
+@router.get(
+    "/security",
+    response_model=SecurityResponse,
+)
+async def account_security(
+    session_token: str | None = Cookie(
+        default=None,
+        alias=SESSION_COOKIE_NAME,
+    ),
+    user=Depends(require_current_user),
+):
+
+    current = await auth_service.current_session(session_token)
+
+    if current is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Session expired.",
+        )
+
+    sessions = [
+        session
+        for session in await auth_store.list_user_sessions(str(user.user_id))
+        if not session.is_expired
+    ]
+
+    return SecurityResponse(
+        provider="local",
+        active_sessions=len(sessions),
+        current_session_id=current.session_id,
+        current_session_created_at=current.created_at.isoformat(),
+        current_session_last_seen_at=current.last_seen_at.isoformat(),
+        current_session_expires_at=current.expires_at.isoformat(),
+    )
+
+
+@router.post(
+    "/sessions/logout-others",
+    response_model=SessionMutationResponse,
+)
+async def logout_other_sessions(
+    session_token: str | None = Cookie(
+        default=None,
+        alias=SESSION_COOKIE_NAME,
+    ),
+    user=Depends(require_account_write),
+):
+
+    current = await auth_service.current_session(session_token)
+
+    if current is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Session expired.",
+        )
+
+    revoked = await auth_service.logout_other_sessions(
+        user_id=str(user.user_id),
+        current_session_id=current.session_id,
+    )
+
+    return SessionMutationResponse(
+        message="Other sessions signed out.",
+        revoked_sessions=revoked,
+    )
+
+
+@router.delete(
+    "/account",
+    response_model=MessageResponse,
+)
+async def delete_account(
+    payload: AccountDeleteRequest,
+    response: Response,
+    user=Depends(require_account_write),
+):
+
+    try:
+        await auth_service.delete_account(
+            user_id=str(user.user_id),
+            current_password=payload.current_password,
+            confirmation=payload.confirmation,
+        )
+    except InvalidCredentialsError as error:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(error),
+        ) from error
+    except RegistrationError as error:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(error),
+        ) from error
+
+    clear_session_cookie(response)
+
+    return MessageResponse(
+        message="Account deleted."
+    )
+
 
 # =========================================================
 # ADMIN CONTROL ROOM

@@ -4,7 +4,7 @@
 > Update or rewrite the relevant sections in this file as the product changes; do not create another numbered changelog copy.
 
 **Last consolidated:** 2026-10-06  
-**Current local baseline:** through Pass 41 (bounded Director context + early turn receipts + turn-history carousel)  
+**Current local baseline:** through Pass 42 (tabbed Account Center + self-service profile/security controls)  
 **Public site:** `https://onlinetextadventure.com`  
 **Primary release command:** `./scripts/release-staging.sh "Describe the release"`
 
@@ -251,7 +251,7 @@ The live Adventure sidebar exposes resolved turns as a compact previous/next car
 
 ### Story reveal presentation
 
-Players can enable/disable **word-by-word story reveal** in Settings. New scene prose fades in one word at a time, can be skipped instantly with `REVEAL ALL` or by clicking the story, and automatically disables animation when the browser requests reduced motion. This is presentation-only local state; the complete scene text remains available to assistive technology and never affects game authority.
+Players can enable/disable **word-by-word story reveal** in Account Center → Preferences. New scene prose fades in one word at a time, can be skipped instantly with `REVEAL ALL` or by clicking the story, and automatically disables animation when the browser requests reduced motion. This is presentation-only local state; the complete scene text remains available to assistive technology and never affects game authority.
 
 ### Scene ASCII art pipeline
 
@@ -702,6 +702,12 @@ External channel delivery is deliberately **off the authoritative gameplay path*
 
 The frontend deploy must publish `/notification-sw.js` with revalidation/no-cache headers even though hashed Vite assets remain immutable.
 
+### Account Center
+
+`/account` is the single player-facing self-service hub. It uses site-native tabs for Profile, Preferences, Notifications, Security, and Billing. Players can update username/email with current-password verification, change passwords, inspect active-session metadata, sign out other devices, manage the existing notification channels/event filters, and control story presentation preferences. The Billing tab is an explicit early-access stub until a real billing provider exists; it must never pretend that payment data is connected.
+
+Account deletion is a real destructive operation protected by current-password verification plus typed-username confirmation. Deletion removes the login identity, sessions, permissions, notification registrations, phone verification data, owned Heroes, personal history identity, and active room snapshots that still contain the account. Shared published author artifacts and generated adventures are preserved only when required for other players, with creator attribution replaced by a deterministic deleted-account tombstone so the deleted identity is no longer retained as authorship metadata. The legacy `/settings` route redirects into Account Center preferences.
+
 ---
 
 ## 14. Dashboard and Gameplay UI Direction
@@ -944,6 +950,8 @@ This is intentionally short. Historical numbered changelog files remain archive 
 - **Pass 36–38I — Arcade Gameplay / Physics / Modes Refinement:** richer cabinet presentation, ball/object physics, state readability, solo/two-player modes, terrain variation, side-view Hoops, and isometric Beer Pong depth cues.
 - **Pass 39 — World / Adventure Authoring Separation:** introduces schema-v3 kind-specific World and Adventure Brief sources, loss-preserving legacy migration, deterministic legacy entity IDs, featured World references instead of duplication, separate strength rubrics, Director-vs-private notes, and linked-World-aware AI authoring while keeping generation compatibility.
 - **Pass 40 — Instant Opening + Launch / Story Polish:** pre-generates the real first playable scene with the seed, separates persisted lobby launch state from turn choices, adds host GET STARTED + pre-start Solo switching, replaces browser-native React dropdown/confirm UI, always rewrites synopsis as literary player copy, hard-isolates QTE mechanics from story prose, strengthens post-roll recap continuity, and adds optional word-by-word story reveal.
+- **Pass 41 — Story Runtime Budget + Turn History:** bounds Director input/output budgets, separates cheap post-roll recap from forward-moving prose, surfaces early result receipts while the next scene writes, prevents freshness checks from triggering full rewrites, caps long-run continuity state, and adds a player-only compact turn-history carousel that never feeds AI context.
+- **Pass 42 — Account Center:** replaces the read-only profile card with a tabbed self-service account hub for profile editing, presentation preferences, notifications, password/session security, an honest billing stub, and password/typed-username protected account deletion while preserving shared published content with anonymized attribution.
 
 ---
 

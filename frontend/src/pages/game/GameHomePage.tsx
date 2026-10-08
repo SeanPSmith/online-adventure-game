@@ -518,8 +518,7 @@ export function GameHomePage() {
             <Link to="/game/history"><strong>CHRONICLES</strong><span>Completed journeys and sealed stories.</span></Link>
             <Link to="/game/arcade"><strong>ARCADE</strong><span>Practice cabinets and intermission games.</span></Link>
             <Link to="/game/rulebook"><strong>RULEBOOK</strong><span>Checks, XP, Talents and progression.</span></Link>
-            <Link to="/account"><strong>ACCOUNT</strong><span>Profile and account controls.</span></Link>
-            <Link to="/settings"><strong>SETTINGS</strong><span>Preferences and system options.</span></Link>
+            <Link to="/account"><strong>ACCOUNT CENTER</strong><span>Profile, preferences, alerts, security, and billing.</span></Link>
             {canAuthor ? <a href="/author-console"><strong>AUTHOR</strong><span>Worlds, lore and adventure seeds.</span></a> : null}
             {isAdmin ? <Link to="/admin"><strong>CONTROL ROOM</strong><span>Users, live rooms and site analytics.</span></Link> : null}
           </nav>

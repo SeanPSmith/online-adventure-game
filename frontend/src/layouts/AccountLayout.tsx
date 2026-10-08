@@ -17,7 +17,6 @@ export function AccountLayout() {
         </Link>
         <nav className="header-nav">
           <NavLink to="/account">ACCOUNT</NavLink>
-          <NavLink to="/settings">SETTINGS</NavLink>
           {canAuthor ? <a href="/author-console">AUTHOR</a> : null}
           {isAdmin ? <NavLink to="/admin">ADMIN</NavLink> : null}
           {isAdmin ? <NavLink to="/game/arcade">ARCADE</NavLink> : null}

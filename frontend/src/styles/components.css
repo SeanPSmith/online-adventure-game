@@ -8323,3 +8323,270 @@ textarea:focus {
   line-height: 1.45;
   opacity: 0.88;
 }
+
+/* =========================================================
+   PASS 42 // ACCOUNT CENTER
+========================================================= */
+
+.account-command-bar {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  margin-bottom: 12px;
+  border: var(--border);
+  background: var(--structure-line-dim);
+}
+
+.account-command-bar > div {
+  min-width: 0;
+  padding: 12px 14px;
+  background: var(--structure-panel);
+}
+
+.account-command-bar strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--structure-soft);
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-tabs {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1px;
+  margin-bottom: 12px;
+  border: var(--border);
+  background: var(--structure-line-dim);
+}
+
+.account-tabs button {
+  min-height: 60px;
+  border: 0;
+  background: var(--structure-panel);
+  color: var(--structure-dim);
+  display: grid;
+  gap: 4px;
+  place-content: center;
+  text-align: center;
+  cursor: pointer;
+  font: inherit;
+}
+
+.account-tabs button:hover,
+.account-tabs button:focus-visible {
+  background: var(--structure-panel-strong);
+  color: var(--structure-soft);
+  outline: 1px solid var(--structure);
+  outline-offset: -2px;
+}
+
+.account-tabs button.is-active {
+  background: #041507;
+  color: var(--live);
+  box-shadow: inset 0 -3px 0 var(--live);
+}
+
+.account-tabs button span {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.account-tabs button small {
+  color: var(--structure-muted);
+  font-size: 8px;
+}
+
+.account-tabs button.is-active small {
+  color: var(--live-dim);
+}
+
+.account-tab-content,
+.account-tab-stack {
+  display: grid;
+  gap: 12px;
+}
+
+.account-form {
+  display: grid;
+  gap: 14px;
+}
+
+.account-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.account-security-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.account-field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.account-field > span {
+  color: var(--structure-soft);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.account-field small {
+  color: var(--text-dim);
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.account-field .account-field-error {
+  color: var(--red);
+}
+
+.account-confirm-field {
+  max-width: 520px;
+}
+
+.account-form-actions,
+.account-session-layout,
+.account-danger-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.account-form-actions .muted-copy {
+  margin: 0;
+  font-size: 9px;
+}
+
+.account-inline-status {
+  margin: 0;
+}
+
+.account-data-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.account-data-grid > div {
+  min-width: 0;
+}
+
+.account-session-layout .account-data-grid {
+  flex: 1 1 620px;
+}
+
+.account-danger-panel {
+  border-color: color-mix(in srgb, var(--red) 65%, var(--structure-line));
+}
+
+.account-danger-panel .panel-heading {
+  color: var(--red);
+  border-color: color-mix(in srgb, var(--red) 55%, var(--structure-line));
+}
+
+.account-danger-row p,
+.billing-status-card p,
+.account-delete-dialog p {
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+
+.account-delete-button {
+  border-color: var(--red);
+  color: var(--red);
+  background: rgba(255, 99, 99, 0.04);
+}
+
+.account-delete-button:hover:not(:disabled),
+.account-delete-button:focus-visible:not(:disabled) {
+  background: var(--red);
+  color: var(--bg-deep);
+}
+
+.account-delete-dialog {
+  display: grid;
+  gap: 14px;
+}
+
+.account-danger-callout {
+  border: 1px solid var(--red);
+  padding: 10px 12px;
+  color: var(--red);
+  background: rgba(255, 99, 99, 0.06);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.account-delete-actions {
+  justify-content: flex-end;
+}
+
+.billing-status-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 18px;
+  align-items: center;
+  margin-bottom: 16px;
+  border: 1px solid var(--structure-line-dim);
+  padding: 16px;
+  background: var(--structure-panel);
+}
+
+.billing-plan-mark {
+  width: 76px;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--amber);
+  color: var(--amber);
+  font-size: 28px;
+  font-weight: 900;
+}
+
+.billing-status-card h2 {
+  margin: 5px 0 7px;
+  color: var(--amber);
+  font-size: 18px;
+}
+
+.billing-status-card p {
+  margin: 0;
+  max-width: 760px;
+}
+
+.billing-data-grid {
+  margin-bottom: 14px;
+}
+
+@media (max-width: 760px) {
+  .account-command-bar,
+  .account-form-grid,
+  .account-security-grid,
+  .account-data-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .account-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .account-tabs button:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .billing-status-card {
+    grid-template-columns: 1fr;
+  }
+
+  .billing-plan-mark {
+    width: 60px;
+  }
+}

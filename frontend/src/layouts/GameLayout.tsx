@@ -31,8 +31,7 @@ export function GameLayout() {
               {canAuthor ? <a href="/author-console">AUTHOR</a> : null}
               {isAdmin ? <NavLink to="/admin">CONTROL ROOM</NavLink> : null}
               <NavLink to="/account">ACCOUNT</NavLink>
-              <NavLink to="/settings">SETTINGS</NavLink>
-              <button className="button button-quiet" type="button" onClick={() => void logout()}>
+                  <button className="button button-quiet" type="button" onClick={() => void logout()}>
                 LOG OUT
               </button>
             </div>

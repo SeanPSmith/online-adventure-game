@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
+import json
 
 from datetime import datetime
 from pathlib import Path
@@ -178,8 +180,10 @@ class SQLiteAuthStore:
                     connection.execute(
                         """
                         SELECT DISTINCT
-                            created_by_user_id
+                            author_documents.created_by_user_id
                         FROM author_documents
+                        INNER JOIN users
+                            ON users.user_id = author_documents.created_by_user_id
                         """
                     )
                     .fetchall()
@@ -775,6 +779,154 @@ class SQLiteAuthStore:
 
 
     # =====================================================
+    # USER — PROFILE UPDATE
+    # =====================================================
+
+    async def update_user_identity(
+        self,
+        user_id: str,
+        email: str,
+        username: str,
+    ) -> None:
+
+        await asyncio.to_thread(
+            self._update_user_identity_sync,
+            user_id,
+            email,
+            username,
+        )
+
+    def _update_user_identity_sync(
+        self,
+        user_id: str,
+        email: str,
+        username: str,
+    ) -> None:
+
+        with self._connect() as connection:
+            connection.execute(
+                """
+                UPDATE users
+                SET email = ?, username = ?
+                WHERE user_id = ?
+                """,
+                (email, username, user_id),
+            )
+
+            connection.commit()
+
+    # =====================================================
+    # USER — ACCOUNT DELETE
+    # =====================================================
+
+    @staticmethod
+    def _table_exists(
+        connection: DatabaseConnection,
+        table_name: str,
+    ) -> bool:
+
+        rows = connection.execute(
+            f"PRAGMA table_info({table_name})"
+        ).fetchall()
+
+        return bool(rows)
+
+    async def delete_user_account(
+        self,
+        user_id: str,
+    ) -> None:
+
+        await asyncio.to_thread(
+            self._delete_user_account_sync,
+            user_id,
+        )
+
+    def _delete_user_account_sync(
+        self,
+        user_id: str,
+    ) -> None:
+
+        # Published author content and generated adventures may be shared by
+        # other players. Preserve those artifacts while removing the account's
+        # identity from their attribution metadata.
+        tombstone = (
+            "deleted:"
+            + hashlib.sha256(user_id.encode("utf-8")).hexdigest()[:16]
+        )
+
+        with self._connect() as connection:
+            for table_name in (
+                "author_documents",
+                "author_versions",
+                "generated_adventures",
+            ):
+                if not self._table_exists(connection, table_name):
+                    continue
+
+                connection.execute(
+                    f"UPDATE {table_name} "
+                    "SET created_by_user_id = ? "
+                    "WHERE created_by_user_id = ?",
+                    (tombstone, user_id),
+                )
+
+            if self._table_exists(connection, "adventure_history_players"):
+                connection.execute(
+                    "DELETE FROM adventure_history_players WHERE user_id = ?",
+                    (user_id,),
+                )
+
+            # Active room snapshots are transient gameplay state and can contain
+            # player names/Hero IDs. Remove any room that still references the
+            # deleted account instead of leaving personal data in a JSON blob.
+            if self._table_exists(connection, "room_snapshots"):
+                rows = connection.execute(
+                    "SELECT room_code, payload FROM room_snapshots"
+                ).fetchall()
+
+                room_codes_to_delete: list[str] = []
+
+                for row in rows:
+                    try:
+                        payload = json.loads(str(row["payload"]))
+                    except (TypeError, json.JSONDecodeError):
+                        continue
+
+                    players = (
+                        payload.get("room", {}).get("players", [])
+                        if isinstance(payload, dict)
+                        else []
+                    )
+
+                    if any(
+                        isinstance(player, dict)
+                        and str(player.get("user_id", "")) == user_id
+                        for player in players
+                    ):
+                        room_codes_to_delete.append(str(row["room_code"]))
+
+                for room_code in room_codes_to_delete:
+                    connection.execute(
+                        "DELETE FROM room_snapshots WHERE room_code = ?",
+                        (room_code,),
+                    )
+
+                    if self._table_exists(connection, "chat_messages"):
+                        connection.execute(
+                            "DELETE FROM chat_messages WHERE room_code = ?",
+                            (room_code,),
+                        )
+
+            # FK cascades remove sessions, permissions, notification records,
+            # phone verifications, push subscriptions and owned Heroes.
+            connection.execute(
+                "DELETE FROM users WHERE user_id = ?",
+                (user_id,),
+            )
+
+            connection.commit()
+
+    # =====================================================
     # USER — PASSWORD UPDATE
     # =====================================================
 
@@ -1107,6 +1259,74 @@ class SQLiteAuthStore:
             )
 
             connection.commit()
+
+    async def list_user_sessions(
+        self,
+        user_id: str,
+    ) -> list[AuthSession]:
+
+        return await asyncio.to_thread(
+            self._list_user_sessions_sync,
+            user_id,
+        )
+
+    def _list_user_sessions_sync(
+        self,
+        user_id: str,
+    ) -> list[AuthSession]:
+
+        with self._connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT
+                    session_id, user_id, token_hash,
+                    created_at, expires_at, last_seen_at
+                FROM auth_sessions
+                WHERE user_id = ?
+                ORDER BY last_seen_at DESC
+                """,
+                (user_id,),
+            ).fetchall()
+
+        sessions: list[AuthSession] = []
+
+        for row in rows:
+            session = self._row_to_session(row)
+            if session is not None:
+                sessions.append(session)
+
+        return sessions
+
+    async def delete_user_sessions_except(
+        self,
+        user_id: str,
+        session_id: str,
+    ) -> int:
+
+        return await asyncio.to_thread(
+            self._delete_user_sessions_except_sync,
+            user_id,
+            session_id,
+        )
+
+    def _delete_user_sessions_except_sync(
+        self,
+        user_id: str,
+        session_id: str,
+    ) -> int:
+
+        with self._connect() as connection:
+            cursor = connection.execute(
+                """
+                DELETE FROM auth_sessions
+                WHERE user_id = ?
+                  AND session_id <> ?
+                """,
+                (user_id, session_id),
+            )
+
+            connection.commit()
+            return int(getattr(cursor, "rowcount", 0) or 0)
 
     # =====================================================
     # SESSION — CLEANUP

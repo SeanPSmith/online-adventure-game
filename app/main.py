@@ -803,6 +803,17 @@ def build_game_state(
                     "play_mode":
                         room.play_mode,
 
+                    "submitted_player_ids":
+                        sorted(
+                            (
+                                session.intermission_scores.get(
+                                    str(session.turn_number),
+                                    {},
+                                )
+                                or {}
+                            ).keys()
+                        ),
+
                     "intermission_stats":
                         game_sessions.intermission_stats(
                             room.code,

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 from typing import (
     Literal,
 )
@@ -448,6 +450,23 @@ class DirectorStoryStateDraft(
     )
 
 
+_TRAILING_CJK_RECAP_NOISE = re.compile(
+    r"(?:\s*[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF\u3040-\u30FF\uAC00-\uD7AF\U00020000-\U0002EBEF\U00030000-\U0003134F]+[\u3000-\u303F\s]*)+$"
+)
+
+
+def sanitize_recap_text(value: str) -> str:
+    """Strip model-only trailing CJK glyph noise from English result recaps.
+
+    Tales of Two's player-facing runtime is currently English.  We deliberately
+    target only a trailing CJK/Kana/Hangul run so punctuation, accented names,
+    em-dashes, and other legitimate Unicode inside the recap are preserved.
+    """
+    clean = value.replace("\u200b", "").replace("\ufeff", "").strip()
+    clean = _TRAILING_CJK_RECAP_NOISE.sub("", clean).rstrip()
+    return clean
+
+
 class DirectorRecapDraft(
     BaseModel
 ):
@@ -464,7 +483,7 @@ class DirectorRecapDraft(
 
     @field_validator(
         "resolution_narration",
-        mode="after",
+        mode="before",
     )
     @classmethod
     def strip_text(
@@ -472,7 +491,7 @@ class DirectorRecapDraft(
         value: str,
     ) -> str:
 
-        return value.strip()
+        return sanitize_recap_text(value)
 
 
 

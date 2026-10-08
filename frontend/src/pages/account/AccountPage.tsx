@@ -320,26 +320,65 @@ function SecurityTab() {
 }
 
 function BillingTab() {
+  const [usage, setUsage] = useState<authApi.AccountUsageSnapshot | null>(null);
+  const [status, setStatus] = useState("LOADING PLAYTEST ALLOWANCE...");
+
+  useEffect(() => {
+    void authApi.getAccountUsage()
+      .then((snapshot) => {
+        setUsage(snapshot);
+        setStatus("");
+      })
+      .catch((reason) => setStatus(`:/ ${errorMessage(reason)}`));
+  }, []);
+
+  const budget = usage?.entitlement.monthly_budget_usd ?? 0;
+  const spent = usage?.usage.estimated_cost_usd ?? 0;
+  const remaining = usage?.usage.remaining_budget_usd;
+  const percent = usage?.entitlement.is_unlimited || budget <= 0
+    ? 0
+    : Math.min(100, (spent / budget) * 100);
+
   return (
     <div className="account-tab-stack">
-      <Panel title="BILLING // EARLY ACCESS">
+      <Panel title="ACCESS & AI USAGE // PLAYTEST">
         <div className="billing-status-card">
           <div className="billing-plan-mark">T2</div>
           <div>
             <span className="eyebrow">CURRENT ACCESS</span>
-            <h2>EARLY ACCESS // NO BILLING</h2>
+            <h2>{usage?.entitlement.plan_id.toUpperCase() ?? "PLAYTESTER"}</h2>
             <p>
-              Tales of Two does not have a billing provider connected yet. This tab is intentionally
-              reserved so subscriptions, invoices, payment methods, or usage plans can land here without
-              redesigning the Account Center later.
+              Tales of Two is still in playtest access. There is no payment provider connected yet,
+              but AI usage is metered so testing cannot accidentally create an unlimited model bill.
             </p>
           </div>
         </div>
-        <div className="data-grid account-data-grid billing-data-grid">
-          <div><b>PLAN</b><span>EARLY ACCESS</span></div>
-          <div><b>STATUS</b><span>NO BILLING REQUIRED</span></div>
-          <div><b>PAYMENT METHOD</b><span>NONE ON FILE</span></div>
-          <div><b>NEXT CHARGE</b><span>$0.00</span></div>
+
+        {status ? <div className="system-notice account-inline-status">{status}</div> : null}
+
+        {usage ? (
+          <>
+            <div className="data-grid account-data-grid billing-data-grid">
+              <div><b>PLAN</b><span>{usage.entitlement.plan_id.toUpperCase()}</span></div>
+              <div><b>PERIOD</b><span>{usage.period_key}</span></div>
+              <div><b>AI REQUESTS</b><span>{usage.usage.requests.toLocaleString()}</span></div>
+              <div><b>EST. AI USAGE</b><span>${spent.toFixed(4)}</span></div>
+              <div><b>MONTHLY ALLOWANCE</b><span>{usage.entitlement.is_unlimited ? "UNLIMITED" : `$${budget.toFixed(2)}`}</span></div>
+              <div><b>REMAINING</b><span>{usage.entitlement.is_unlimited ? "UNLIMITED" : `$${Number(remaining ?? 0).toFixed(4)}`}</span></div>
+              <div><b>INPUT TOKENS</b><span>{usage.usage.input_tokens.toLocaleString()}</span></div>
+              <div><b>OUTPUT TOKENS</b><span>{usage.usage.output_tokens.toLocaleString()}</span></div>
+            </div>
+            {!usage.entitlement.is_unlimited && budget > 0 ? (
+              <div className="billing-usage-meter" aria-label={`${percent.toFixed(0)} percent of AI allowance used`}>
+                <div style={{ width: `${percent}%` }} />
+              </div>
+            ) : null}
+          </>
+        ) : null}
+
+        <div className="account-billing-note">
+          <strong>NO PAYMENT METHOD REQUIRED</strong>
+          <span>Playtest allowances are assigned by the Tales of Two operator. Subscriptions and invoices are not enabled yet.</span>
         </div>
         <button className="button" type="button" disabled>MANAGE BILLING // NOT YET ENABLED</button>
       </Panel>

@@ -98,3 +98,27 @@ export function deleteAccount(currentPassword: string, confirmation: string) {
     }),
   });
 }
+
+export interface AccountUsageSnapshot {
+  period_key: string;
+  entitlement: {
+    user_id: string;
+    plan_id: string;
+    monthly_budget_usd: number;
+    monthly_request_limit: number;
+    is_unlimited: boolean;
+    source: string;
+  };
+  usage: {
+    requests: number;
+    input_tokens: number;
+    output_tokens: number;
+    estimated_cost_usd: number;
+    reserved_usd: number;
+    remaining_budget_usd: number | null;
+  };
+}
+
+export function getAccountUsage() {
+  return apiFetch<AccountUsageSnapshot>("/api/auth/usage");
+}

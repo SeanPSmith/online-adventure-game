@@ -182,3 +182,65 @@ export interface AdminProjectDocumentation {
 export function getAdminProjectDocumentation() {
   return apiFetch<AdminProjectDocumentation>("/api/auth/admin/project-docs");
 }
+
+
+export interface AdminUsageSnapshot {
+  generated_at: string;
+  period_key: string;
+  guardrails: {
+    global_daily_budget_usd: number;
+    global_daily_request_limit: number;
+    default_playtester_budget_usd: number;
+    default_playtester_request_limit: number;
+  };
+  today: { requests: number; estimated_cost_usd: number };
+  month: {
+    requests: number;
+    failed_requests: number;
+    input_tokens: number;
+    output_tokens: number;
+    estimated_cost_usd: number;
+    average_latency_ms: number;
+  };
+  top_users: Array<{
+    user_id: string;
+    username: string;
+    requests: number;
+    failed_requests: number;
+    input_tokens: number;
+    output_tokens: number;
+    estimated_cost_usd: number;
+  }>;
+  operations: Array<{
+    operation: string;
+    model: string;
+    requests: number;
+    input_tokens: number;
+    output_tokens: number;
+    estimated_cost_usd: number;
+    average_latency_ms: number;
+  }>;
+}
+
+export function getAdminUsage() {
+  return apiFetch<AdminUsageSnapshot>("/api/auth/admin/usage");
+}
+
+export function setUserEntitlement(
+  userId: string,
+  payload: {
+    plan_id: string;
+    monthly_budget_usd: number;
+    monthly_request_limit: number;
+    is_unlimited: boolean;
+  },
+) {
+  return apiFetch<{ updated_by: string; entitlement: unknown; usage: unknown }>(
+    `/api/auth/admin/users/${encodeURIComponent(userId)}/entitlement`,
+    {
+      method: "PUT",
+      headers: adminHeaders,
+      body: JSON.stringify(payload),
+    },
+  );
+}

@@ -35,6 +35,10 @@ from app.generation.store import (
     generated_adventure_store,
 )
 
+from app.usage import (
+    ai_usage_scope,
+)
+
 
 
 
@@ -233,23 +237,28 @@ class AdventureGenerationService:
         )
 
 
-        seed = (
-            await self.provider
-            .generate_seed(
+        with ai_usage_scope(
+            user_id=user_id,
+            adventure_id=f"author:{brief_document_id}:{brief_version_number}",
+            surface="author_generation",
+        ):
+            seed = (
+                await self.provider
+                .generate_seed(
 
-                world_version=
-                    world_version,
+                    world_version=
+                        world_version,
 
-                brief_version=
-                    brief_version,
+                    brief_version=
+                        brief_version,
 
-                special_request=
-                    special_request,
+                    special_request=
+                        special_request,
 
-                quality_tier=
-                    quality_tier,
+                    quality_tier=
+                        quality_tier,
+                )
             )
-        )
 
 
         return (

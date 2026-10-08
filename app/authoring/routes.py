@@ -490,29 +490,45 @@ async def assist_author_source(
                 if world_versions:
                     linked_world_source = world_versions[0].get("source")
 
-        return (
-            await author_assist_service
-            .assist(
+        with ai_usage_scope(
+            user_id=user.user_id,
+            adventure_id=(payload.document_id or "author-draft"),
+            surface="author_assist",
+        ):
+            return (
+                await author_assist_service
+                .assist(
 
-                source=
-                    payload.source,
+                    source=
+                        payload.source,
 
-                instruction=
-                    payload.instruction,
+                    instruction=
+                        payload.instruction,
 
-                section=
-                    payload.section,
+                    section=
+                        payload.section,
 
-                item_index=
-                    payload.item_index,
+                    item_index=
+                        payload.item_index,
 
-                field_path=
-                    payload.field_path,
+                    field_path=
+                        payload.field_path,
 
-                linked_world_source=
-                    linked_world_source,
+                    linked_world_source=
+                        linked_world_source,
+                )
             )
-        )
+
+    except UsageLimitExceeded as error:
+
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail={
+                "message": str(error),
+                "code": error.code,
+                "usage": error.snapshot,
+            },
+        ) from error
 
     except AdventureGenerationConfigurationError as error:
 

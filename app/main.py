@@ -81,6 +81,12 @@ from app.generation.store import (
     generated_adventure_store,
 )
 
+from app.usage import (
+    UsageLimitExceeded,
+    ai_usage_scope,
+    ai_usage_store,
+)
+
 from app.characters.routes import (
     router as character_router,
 )
@@ -340,6 +346,8 @@ async def lifespan(
     await store.initialize()
 
     await auth_service.initialize()
+
+    await ai_usage_store.initialize()
 
     await notification_service.initialize()
 
@@ -4058,32 +4066,57 @@ async def finalize_resolved_turn(
             # expensive next-scene generation. Start both at once, expose the
             # dice/outcome as soon as the economy recap is ready, and let the
             # arcade/intermission cover only whatever story-writing tail remains.
-            recap_task = asyncio.create_task(
-                runtime_director.generate_recap(
-                    session=session,
-                    characters_by_player_id=characters_by_player_id,
-                    turn_facts=result,
-                )
+            host_player = next(
+                (member for member in room.players.values() if member.is_host),
+                next(iter(room.players.values()), None),
+            )
+            usage_user_id = getattr(host_player, "user_id", None)
+            generated_adventure_id = (
+                session.adventure.metadata.get("generated_adventure_id")
+                if isinstance(session.adventure.metadata, dict)
+                else None
             )
 
-            director_task = asyncio.create_task(
-                runtime_director.advance(
-                    session=
-                        session,
-
-                    room=
-                        room,
-
-                    characters_by_player_id=
-                        characters_by_player_id,
-
-                    turn_facts=
-                        result,
-
-                    recap_task=
-                        recap_task,
+            # ContextVars are copied into asyncio tasks at creation time. Both
+            # parallel model calls therefore bill to the host/account that owns
+            # this run without adding billing parameters throughout game logic.
+            with ai_usage_scope(
+                user_id=usage_user_id,
+                room_code=room.code,
+                adventure_id=session.adventure_id,
+                generated_adventure_id=(
+                    str(generated_adventure_id)
+                    if generated_adventure_id
+                    else None
+                ),
+                surface="live_adventure",
+            ):
+                recap_task = asyncio.create_task(
+                    runtime_director.generate_recap(
+                        session=session,
+                        characters_by_player_id=characters_by_player_id,
+                        turn_facts=result,
+                    )
                 )
-            )
+
+                director_task = asyncio.create_task(
+                    runtime_director.advance(
+                        session=
+                            session,
+
+                        room=
+                            room,
+
+                        characters_by_player_id=
+                            characters_by_player_id,
+
+                        turn_facts=
+                            result,
+
+                        recap_task=
+                            recap_task,
+                    )
+                )
 
             _director_tasks[
                 room.code
@@ -4302,6 +4335,7 @@ async def finalize_resolved_turn(
     except (
         CharacterError,
         DirectorError,
+        UsageLimitExceeded,
         ValueError,
     ) as error:
 

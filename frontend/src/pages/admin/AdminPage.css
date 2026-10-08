@@ -103,3 +103,13 @@
     font-size: 12px;
   }
 }
+
+.admin-usage-actions { display: flex; gap: .35rem; flex-wrap: wrap; justify-content: flex-end; }
+.admin-usage-actions .button { min-width: 3.25rem; padding-inline: .55rem; }
+.admin-user-actions { display: flex; gap: .4rem; flex-wrap: wrap; justify-content: flex-end; align-items: center; }
+.admin-usage-list > div { grid-template-columns: 2.5rem minmax(0, 1fr) auto; align-items: center; }
+@media (max-width: 760px) {
+  .admin-usage-list > div { grid-template-columns: 2rem minmax(0, 1fr); }
+  .admin-usage-list .admin-usage-actions { grid-column: 1 / -1; justify-content: flex-start; }
+  .admin-user-actions { justify-content: flex-start; }
+}

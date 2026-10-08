@@ -29,6 +29,10 @@ from app.generation.store import (
     generated_adventure_store,
 )
 
+from app.usage import (
+    UsageLimitExceeded,
+)
+
 
 router = APIRouter(
     prefix="/api/author/generated",
@@ -109,6 +113,17 @@ async def generate_adventure(
                     user.user_id,
             )
         )
+
+    except UsageLimitExceeded as error:
+
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail={
+                "message": str(error),
+                "code": error.code,
+                "usage": error.snapshot,
+            },
+        ) from error
 
     except AdventureGenerationConfigurationError as error:
 

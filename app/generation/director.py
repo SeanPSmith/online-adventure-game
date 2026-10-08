@@ -23,6 +23,11 @@ from app.generation.store import (
     generated_adventure_store,
 )
 
+from app.usage import (
+    UsageLimitExceeded,
+    metered_openai_call,
+)
+
 from app.characters.models import (
     Skill,
     Stat,
@@ -1104,12 +1109,19 @@ class OpenAIRuntimeDirector:
         recap_started = time.perf_counter()
 
         try:
+            recap_input = json.dumps(
+                recap_payload,
+                ensure_ascii=False,
+            )
             response = (
-                await self
-                ._client_instance()
-                .responses
-                .create(
+                await metered_openai_call(
+                    operation="director_recap",
                     model=self.economy_model,
+                    max_output_tokens=520,
+                    input_hint=recap_input,
+                    metadata={"reasoning": self.economy_reasoning},
+                    request=lambda: self._client_instance().responses.create(
+                        model=self.economy_model,
                     instructions=(
                         "You are the fast turn narrator for TALES OF TWO. "
                         "Write ONLY the player-facing continuity bridge for the turn that "
@@ -1128,10 +1140,7 @@ class OpenAIRuntimeDirector:
                         "the same frozen TURN FACTS, so this recap must be a faithful readable "
                         "record of that packet. Return the requested structured output only."
                     ),
-                    input=json.dumps(
-                        recap_payload,
-                        ensure_ascii=False,
-                    ),
+                        input=recap_input,
                     reasoning={
                         "effort": self.economy_reasoning,
                     },
@@ -1145,7 +1154,8 @@ class OpenAIRuntimeDirector:
                             "schema": recap_schema,
                         },
                     },
-                    store=False,
+                        store=False,
+                    ),
                 )
             )
 
@@ -1673,11 +1683,14 @@ class OpenAIRuntimeDirector:
             try:
 
                 probe_response = (
-                    await self
-                    ._client_instance()
-                    .responses
-                    .create(
+                    await metered_openai_call(
+                        operation="director_context_probe",
                         model=model,
+                        max_output_tokens=32,
+                        input_hint=request_input,
+                        metadata={"reasoning": "low"},
+                        request=lambda: self._client_instance().responses.create(
+                            model=model,
                         instructions=(
                             director_instructions
                             + "\n\nDIAGNOSTIC OVERRIDE: Do not generate a story turn. "
@@ -1689,7 +1702,8 @@ class OpenAIRuntimeDirector:
                             "effort": "low",
                         },
                         max_output_tokens=32,
-                        store=False,
+                            store=False,
+                        ),
                     )
                 )
 
@@ -1755,12 +1769,15 @@ class OpenAIRuntimeDirector:
         try:
 
             response = (
-                await self
-                ._client_instance()
-                .responses
-                .create(
-                    model=
-                        model,
+                await metered_openai_call(
+                    operation="director_story",
+                    model=model,
+                    max_output_tokens=turn_output_tokens,
+                    input_hint=request_input,
+                    metadata={"reasoning": reasoning, "turn": current_turn},
+                    request=lambda: self._client_instance().responses.create(
+                        model=
+                            model,
 
                     instructions=
                         director_instructions,
@@ -1795,10 +1812,14 @@ class OpenAIRuntimeDirector:
                         },
                     },
 
-                    store=
-                        False,
+                        store=
+                            False,
+                    ),
                 )
             )
+
+        except UsageLimitExceeded:
+            raise
 
         except Exception as error:
 
@@ -2010,12 +2031,16 @@ class OpenAIRuntimeDirector:
             )
 
             try:
+                repair_limit = min(4200, max(3200, turn_output_tokens))
                 repair_response = (
-                    await self
-                    ._client_instance()
-                    .responses
-                    .create(
+                    await metered_openai_call(
+                        operation="director_json_repair",
                         model=self.economy_model,
+                        max_output_tokens=repair_limit,
+                        input_hint=repair_input,
+                        metadata={"reasoning": self.economy_reasoning, "turn": current_turn},
+                        request=lambda: self._client_instance().responses.create(
+                            model=self.economy_model,
                         instructions=(
                             "Repair the supplied TALES OF TWO Director output into "
                             "one complete JSON object matching the requested schema. "
@@ -2027,7 +2052,7 @@ class OpenAIRuntimeDirector:
                         ),
                         input=repair_input,
                         reasoning={"effort": self.economy_reasoning},
-                        max_output_tokens=min(4200, max(3200, turn_output_tokens)),
+                            max_output_tokens=repair_limit,
                         text={
                             "format": {
                                 "type": "json_schema",
@@ -2037,7 +2062,8 @@ class OpenAIRuntimeDirector:
                                 "schema": response_schema,
                             },
                         },
-                        store=False,
+                            store=False,
+                        ),
                     )
                 )
             except Exception as repair_error:
@@ -2104,12 +2130,16 @@ class OpenAIRuntimeDirector:
             )
 
             try:
+                repair_limit = min(4200, max(3200, turn_output_tokens))
                 repair_response = (
-                    await self
-                    ._client_instance()
-                    .responses
-                    .create(
+                    await metered_openai_call(
+                        operation="director_schema_repair",
                         model=self.economy_model,
+                        max_output_tokens=repair_limit,
+                        input_hint=repair_input,
+                        metadata={"reasoning": self.economy_reasoning, "turn": current_turn},
+                        request=lambda: self._client_instance().responses.create(
+                            model=self.economy_model,
                         instructions=(
                             "Repair the supplied TALES OF TWO Director JSON so it "
                             "passes the requested schema and semantic constraints. "
@@ -2128,7 +2158,7 @@ class OpenAIRuntimeDirector:
                         ),
                         input=repair_input,
                         reasoning={"effort": self.economy_reasoning},
-                        max_output_tokens=min(4200, max(3200, turn_output_tokens)),
+                            max_output_tokens=repair_limit,
                         text={
                             "format": {
                                 "type": "json_schema",
@@ -2138,7 +2168,8 @@ class OpenAIRuntimeDirector:
                                 "schema": response_schema,
                             },
                         },
-                        store=False,
+                            store=False,
+                        ),
                     )
                 )
             except Exception as repair_error:

@@ -62,6 +62,10 @@ from app.auth.sessions import (
     SESSION_LIFETIME,
 )
 
+from app.usage import (
+    ai_usage_store,
+)
+
 
 # =========================================================
 # ROUTER
@@ -612,11 +616,29 @@ async def delete_account(
 
 
 # =========================================================
+# AI USAGE / PLAYTEST ALLOWANCE
+# =========================================================
+
+@router.get("/usage")
+async def account_ai_usage(
+    user=Depends(require_current_user),
+):
+    return await ai_usage_store.user_snapshot(user.user_id)
+
+
+# =========================================================
 # ADMIN CONTROL ROOM
 # =========================================================
 
 class AdminAuthorAccessRequest(BaseModel):
     enabled: bool
+
+
+class AdminEntitlementRequest(BaseModel):
+    plan_id: str = "playtester"
+    monthly_budget_usd: float = 5.0
+    monthly_request_limit: int = 500
+    is_unlimited: bool = False
 
 
 async def require_admin_user(
@@ -692,6 +714,13 @@ async def admin_analytics(
     return await admin_analytics_service.snapshot()
 
 
+@router.get("/admin/usage")
+async def admin_ai_usage(
+    user=Depends(require_admin_user),
+):
+    return await ai_usage_store.admin_snapshot(limit=40)
+
+
 @router.get("/admin/project-docs")
 async def admin_project_docs(
     user=Depends(require_admin_user),
@@ -723,6 +752,37 @@ async def admin_list_users(
             user_response(stored.to_user()).model_dump()
             for stored in users
         ]
+    }
+
+
+@router.put("/admin/users/{user_id}/entitlement")
+async def admin_set_entitlement(
+    user_id: str,
+    payload: AdminEntitlementRequest,
+    admin=Depends(require_admin_write),
+):
+    target = await auth_store.get_user_by_id(user_id)
+    if target is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found.",
+        )
+
+    plan_id = str(payload.plan_id or "playtester").strip()[:64] or "playtester"
+    budget = max(0.0, min(10_000.0, float(payload.monthly_budget_usd)))
+    request_limit = max(0, min(1_000_000, int(payload.monthly_request_limit)))
+    entitlement = await ai_usage_store.set_entitlement(
+        user_id=user_id,
+        plan_id=plan_id,
+        monthly_budget_microusd=int(round(budget * 1_000_000)),
+        monthly_request_limit=request_limit,
+        is_unlimited=bool(payload.is_unlimited),
+        updated_by=admin.user_id,
+    )
+    return {
+        "updated_by": admin.username,
+        "entitlement": entitlement.public_data(),
+        "usage": await ai_usage_store.user_snapshot(user_id),
     }
 
 

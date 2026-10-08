@@ -8590,3 +8590,25 @@ textarea:focus {
     width: 60px;
   }
 }
+
+/* Pass 43 // playtest usage meter */
+.billing-usage-meter {
+  height: 12px;
+  border: 1px solid var(--border-strong, currentColor);
+  background: rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  margin: 0.75rem 0 1rem;
+}
+.billing-usage-meter > div {
+  height: 100%;
+  background: var(--color-success, currentColor);
+  transition: width 180ms ease;
+}
+.account-billing-note {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.9rem 1rem;
+  border-left: 3px solid var(--color-accent, currentColor);
+  margin: 1rem 0;
+}
+.account-billing-note span { opacity: 0.78; }

@@ -3,8 +3,8 @@
 > **Canonical project document.** This file replaces the old append-only changelog workflow.
 > Update or rewrite the relevant sections in this file as the product changes; do not create another numbered changelog copy.
 
-**Last consolidated:** 2026-10-06  
-**Current local baseline:** through Pass 42 (tabbed Account Center + self-service profile/security controls)  
+**Last consolidated:** 2026-10-07  
+**Current local baseline:** through Pass 43 (AI usage metering + playtest entitlements + spend guardrails)  
 **Public site:** `https://onlinetextadventure.com`  
 **Primary release command:** `./scripts/release-staging.sh "Describe the release"`
 
@@ -704,7 +704,9 @@ The frontend deploy must publish `/notification-sw.js` with revalidation/no-cach
 
 ### Account Center
 
-`/account` is the single player-facing self-service hub. It uses site-native tabs for Profile, Preferences, Notifications, Security, and Billing. Players can update username/email with current-password verification, change passwords, inspect active-session metadata, sign out other devices, manage the existing notification channels/event filters, and control story presentation preferences. The Billing tab is an explicit early-access stub until a real billing provider exists; it must never pretend that payment data is connected.
+`/account` is the single player-facing self-service hub. It uses site-native tabs for Profile, Preferences, Notifications, Security, and Billing. Players can update username/email with current-password verification, change passwords, inspect active-session metadata, sign out other devices, manage the existing notification channels/event filters, and control story presentation preferences. The Billing tab remains payment-provider-free, but now shows the player's real playtest entitlement and metered AI usage. Server-side Pass 43 guardrails enforce per-account monthly request/spend allowances plus a configurable global daily request/spend ceiling before OpenAI calls leave the app. Admin accounts are exempt from per-account allowance caps but not from the global kill switch.
+
+Pass 43 defaults are intentionally conservative and environment-overridable: `TOT_AI_PLAYTESTER_MONTHLY_BUDGET_USD=5.00`, `TOT_AI_PLAYTESTER_MONTHLY_REQUEST_LIMIT=500`, `TOT_AI_GLOBAL_DAILY_BUDGET_USD=25.00`, and `TOT_AI_GLOBAL_DAILY_REQUEST_LIMIT=1500`. `TOT_AI_MODEL_PRICING_JSON` can override per-model input/cached-input/output rates without changing application code. Usage events store token counts, model, operation, latency, failure state, room/adventure scope, and estimated USD; they do not store prompts or generated story text.
 
 Account deletion is a real destructive operation protected by current-password verification plus typed-username confirmation. Deletion removes the login identity, sessions, permissions, notification registrations, phone verification data, owned Heroes, personal history identity, and active room snapshots that still contain the account. Shared published author artifacts and generated adventures are preserved only when required for other players, with creator attribution replaced by a deterministic deleted-account tombstone so the deleted identity is no longer retained as authorship metadata. The legacy `/settings` route redirects into Account Center preferences.
 
@@ -951,6 +953,7 @@ This is intentionally short. Historical numbered changelog files remain archive 
 - **Pass 39 — World / Adventure Authoring Separation:** introduces schema-v3 kind-specific World and Adventure Brief sources, loss-preserving legacy migration, deterministic legacy entity IDs, featured World references instead of duplication, separate strength rubrics, Director-vs-private notes, and linked-World-aware AI authoring while keeping generation compatibility.
 - **Pass 40 — Instant Opening + Launch / Story Polish:** pre-generates the real first playable scene with the seed, separates persisted lobby launch state from turn choices, adds host GET STARTED + pre-start Solo switching, replaces browser-native React dropdown/confirm UI, always rewrites synopsis as literary player copy, hard-isolates QTE mechanics from story prose, strengthens post-roll recap continuity, and adds optional word-by-word story reveal.
 - **Pass 41 — Story Runtime Budget + Turn History:** bounds Director input/output budgets, separates cheap post-roll recap from forward-moving prose, surfaces early result receipts while the next scene writes, prevents freshness checks from triggering full rewrites, caps long-run continuity state, and adds a player-only compact turn-history carousel that never feeds AI context.
+- **Pass 43 — Usage Metering + Entitlements:** meters OpenAI seed, synopsis, author-assist, runtime story, recap, diagnostic, and repair calls; records tokens/latency/failures/estimated USD by user/adventure/operation; reserves budget before outbound calls; enforces per-playtester monthly allowances and a global daily kill switch; exposes allowance/usage in Account Billing and cost controls in the Admin Control Room. Pricing defaults are environment-overridable so rate changes do not require application logic changes.
 - **Pass 42 — Account Center:** replaces the read-only profile card with a tabbed self-service account hub for profile editing, presentation preferences, notifications, password/session security, an honest billing stub, and password/typed-username protected account deletion while preserving shared published content with anonymized attribution.
 
 ---

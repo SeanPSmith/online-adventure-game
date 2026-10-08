@@ -21,6 +21,10 @@ from app.generation.provider import (
     AdventureGenerationResponseError,
 )
 
+from app.usage import (
+    metered_openai_call,
+)
+
 
 ASSISTABLE_SECTIONS = (
     "world_truths",
@@ -655,31 +659,40 @@ class AuthorAssistService:
         )
 
         try:
-            response = await client.responses.create(
+            request_input = (
+                task_instruction
+                + json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+            )
+            output_limit = (
+                min(self.max_output_tokens, 1400)
+                if section == "field"
+                else self.max_output_tokens
+            )
+            response = await metered_openai_call(
+                operation=f"author_assist_{section}",
                 model=self.model,
-                instructions=AUTHOR_ASSIST_SYSTEM_INSTRUCTIONS,
-                input=(
-                    task_instruction
-                    + json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
-                ),
-                reasoning={"effort": self.reasoning},
-                max_output_tokens=(
-                    min(self.max_output_tokens, 1400)
-                    if section == "field"
-                    else self.max_output_tokens
-                ),
-                text={
-                    "format": {
-                        "type": "json_schema",
-                        "name": schema_name,
-                        "description": (
-                            "Structured Tales of Two authoring material generated from a rough creator note."
-                        ),
-                        "strict": True,
-                        "schema": model_type.model_json_schema(),
+                max_output_tokens=output_limit,
+                input_hint=request_input,
+                metadata={"reasoning": self.reasoning, "document_kind": document_kind},
+                request=lambda: client.responses.create(
+                    model=self.model,
+                    instructions=AUTHOR_ASSIST_SYSTEM_INSTRUCTIONS,
+                    input=request_input,
+                    reasoning={"effort": self.reasoning},
+                    max_output_tokens=output_limit,
+                    text={
+                        "format": {
+                            "type": "json_schema",
+                            "name": schema_name,
+                            "description": (
+                                "Structured Tales of Two authoring material generated from a rough creator note."
+                            ),
+                            "strict": True,
+                            "schema": model_type.model_json_schema(),
+                        },
                     },
-                },
-                store=False,
+                    store=False,
+                ),
             )
         except AdventureGenerationConfigurationError:
             raise

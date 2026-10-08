@@ -27,6 +27,10 @@ from app.generation.seed_schema import (
     PlayerSynopsisDraft,
 )
 
+from app.usage import (
+    metered_openai_call,
+)
+
 
 SYSTEM_INSTRUCTIONS = """
 You are the adventure architect for TALES OF TWO, a two-player
@@ -724,47 +728,52 @@ class OpenAIAdventureGenerationProvider(
         )
 
         return (
-            await client
-            .responses
-            .create(
-                model=
-                    model,
+            await metered_openai_call(
+                operation="adventure_seed",
+                model=model,
+                max_output_tokens=self.max_output_tokens,
+                input_hint=prompt,
+                metadata={"reasoning": reasoning},
+                request=lambda: client.responses.create(
+                    model=
+                        model,
 
-                instructions=
-                    SYSTEM_INSTRUCTIONS,
+                    instructions=
+                        SYSTEM_INSTRUCTIONS,
 
-                input=
-                    prompt,
+                    input=
+                        prompt,
 
-                reasoning={
-                    "effort":
-                        reasoning,
-                },
-
-                max_output_tokens=
-                    self.max_output_tokens,
-
-                text={
-                    "format": {
-                        "type":
-                            "json_schema",
-
-                        "name":
-                            "adventure_seed",
-
-                        "description":
-                            "A validated planning seed for a two-player Tales of Two adventure.",
-
-                        "strict":
-                            True,
-
-                        "schema":
-                            self._response_schema(),
+                    reasoning={
+                        "effort":
+                            reasoning,
                     },
-                },
 
-                store=
-                    False,
+                    max_output_tokens=
+                        self.max_output_tokens,
+
+                    text={
+                        "format": {
+                            "type":
+                                "json_schema",
+
+                            "name":
+                                "adventure_seed",
+
+                            "description":
+                                "A validated planning seed for a two-player Tales of Two adventure.",
+
+                            "strict":
+                                True,
+
+                            "schema":
+                                self._response_schema(),
+                        },
+                    },
+
+                    store=
+                        False,
+                ),
             )
         )
 
@@ -996,10 +1005,19 @@ class OpenAIAdventureGenerationProvider(
             },
         }
 
+        synopsis_input = (
+            "Create a distinct player synopsis from this safe public planning data:\n\n"
+            + json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+        )
+
         response = (
-            await client
-            .responses
-            .create(
+            await metered_openai_call(
+                operation="player_synopsis",
+                model=self.economy_model,
+                max_output_tokens=min(self.max_output_tokens, 1000),
+                input_hint=synopsis_input,
+                metadata={"reasoning": self.economy_reasoning},
+                request=lambda: client.responses.create(
                 model=
                     self.economy_model,
 
@@ -1016,17 +1034,7 @@ class OpenAIAdventureGenerationProvider(
                     "seeds, AI, the Director, forms, or design notes."
                 ),
 
-                input=(
-                    "Create a distinct player synopsis from this safe public planning data:\n\n"
-                    + json.dumps(
-                        payload,
-                        ensure_ascii=False,
-                        separators=(
-                            ",",
-                            ":",
-                        ),
-                    )
-                ),
+                input=synopsis_input,
 
                 reasoning={
                     "effort":
@@ -1058,6 +1066,7 @@ class OpenAIAdventureGenerationProvider(
 
                 store=
                     False,
+                ),
             )
         )
 
@@ -1126,10 +1135,18 @@ class OpenAIAdventureGenerationProvider(
             self._client_instance()
         )
 
+        repair_input = (
+            "Repair this malformed adventure seed:\n\n" + invalid_output
+        )
+
         response = (
-            await client
-            .responses
-            .create(
+            await metered_openai_call(
+                operation="adventure_seed_repair",
+                model=self.repair_model,
+                max_output_tokens=self.max_output_tokens,
+                input_hint=repair_input,
+                metadata={"reasoning": "low"},
+                request=lambda: client.responses.create(
                 model=
                     self.repair_model,
 
@@ -1139,10 +1156,7 @@ class OpenAIAdventureGenerationProvider(
                     "Do not add commentary."
                 ),
 
-                input=(
-                    "Repair this malformed adventure seed:\n\n"
-                    + invalid_output
-                ),
+                input=repair_input,
 
                 reasoning={
                     "effort":
@@ -1170,6 +1184,7 @@ class OpenAIAdventureGenerationProvider(
 
                 store=
                     False,
+                ),
             )
         )
 

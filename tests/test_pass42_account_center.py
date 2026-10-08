@@ -30,7 +30,8 @@ def test_account_center_is_single_tabbed_self_service_surface() -> None:
     assert "CHANGE PASSWORD" in page
     assert "SIGN OUT OTHER DEVICES" in page
     assert "DELETE ACCOUNT PERMANENTLY" in page
-    assert "EARLY ACCESS // NO BILLING" in page
+    assert "ACCESS & AI USAGE // PLAYTEST" in page
+    assert "NO PAYMENT METHOD REQUIRED" in page
     assert '<Navigate to="/account?tab=preferences" replace />' in router
     assert 'to="/settings"' not in game_layout
     assert 'to="/settings"' not in account_layout

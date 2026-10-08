@@ -59,7 +59,8 @@ def test_result_receipt_is_emitted_before_story_commit() -> None:
     commit = source.index('.commit_director_turn(', wait)
     assert receipt < wait < commit
     assert 'runtime_director.generate_recap(' in source
-    assert 'recap_task=\n                        recap_task' in source
+    assert 'recap_task=' in source
+    assert 'recap_task,' in source
 
 
 def test_turn_archive_is_exposed_and_rendered_as_compact_carousel() -> None:

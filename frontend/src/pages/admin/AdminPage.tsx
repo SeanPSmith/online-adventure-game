@@ -6,11 +6,14 @@ import { Panel } from "../../components/ui/Panel";
 import {
   contentImportErrorMessage,
   getAdminAnalytics,
+  getAdminUsage,
   getAdminProjectDocumentation,
   importAuthorContent,
   listUsers,
   setAuthorAccess,
+  setUserEntitlement,
   type AdminAnalyticsSnapshot,
+  type AdminUsageSnapshot,
   type AdminProjectDocumentation,
   type ContentImportReport,
 } from "../../services/admin";
@@ -49,6 +52,9 @@ export function AdminPage() {
   const [importReport, setImportReport] = useState<ContentImportReport | null>(null);
   const [analytics, setAnalytics] = useState<AdminAnalyticsSnapshot | null>(null);
   const [analyticsError, setAnalyticsError] = useState("");
+  const [usage, setUsage] = useState<AdminUsageSnapshot | null>(null);
+  const [usageError, setUsageError] = useState("");
+  const [usageWorkingUserId, setUsageWorkingUserId] = useState("");
   const [projectDocs, setProjectDocs] = useState<AdminProjectDocumentation | null>(null);
   const [projectDocsOpen, setProjectDocsOpen] = useState(false);
   const [projectDocsLoading, setProjectDocsLoading] = useState(false);
@@ -81,6 +87,17 @@ export function AdminPage() {
     }
   }, []);
 
+
+  const loadUsage = useCallback(async () => {
+    try {
+      const snapshot = await getAdminUsage();
+      setUsage(snapshot);
+      setUsageError("");
+    } catch (reason) {
+      setUsageError(reason instanceof Error ? reason.message : "AI usage telemetry unavailable.");
+    }
+  }, []);
+
   const loadProjectDocs = useCallback(async () => {
     setProjectDocsLoading(true);
     setProjectDocsError("");
@@ -105,13 +122,15 @@ export function AdminPage() {
 
     void loadUsers();
     void loadAnalytics();
+    void loadUsage();
 
     const interval = window.setInterval(() => {
       void loadAnalytics();
+      void loadUsage();
     }, 10000);
 
     return () => window.clearInterval(interval);
-  }, [isAdmin, loadAnalytics, loadUsers]);
+  }, [isAdmin, loadAnalytics, loadUsage, loadUsers]);
 
   const visibleUsers = useMemo(() => users, [users]);
   const maxDailyTurns = useMemo(
@@ -145,6 +164,24 @@ export function AdminPage() {
       setError(reason instanceof Error ? reason.message : "Permission update failed.");
     } finally {
       setWorkingUserId("");
+    }
+  }
+
+  async function setAllowance(userId: string, budget: number, unlimited = false) {
+    setUsageWorkingUserId(userId);
+    setUsageError("");
+    try {
+      await setUserEntitlement(userId, {
+        plan_id: unlimited ? "operator" : "playtester",
+        monthly_budget_usd: budget,
+        monthly_request_limit: unlimited ? 0 : 500,
+        is_unlimited: unlimited,
+      });
+      await loadUsage();
+    } catch (reason) {
+      setUsageError(reason instanceof Error ? reason.message : "Allowance update failed.");
+    } finally {
+      setUsageWorkingUserId("");
     }
   }
 
@@ -311,6 +348,34 @@ export function AdminPage() {
         </div>
       </Panel>
 
+      <Panel title="AI COST CONTROL // PLAYTEST GUARDRAILS">
+        {usageError ? <div className="form-error">{usageError}</div> : null}
+        <div className="admin-stat-grid">
+          <div><span>TODAY EST. COST</span><strong>${(usage?.today.estimated_cost_usd ?? 0).toFixed(4)}</strong></div>
+          <div><span>TODAY REQUESTS</span><strong>{usage?.today.requests ?? "—"}</strong></div>
+          <div><span>MONTH EST. COST</span><strong>${(usage?.month.estimated_cost_usd ?? 0).toFixed(4)}</strong></div>
+          <div><span>MONTH REQUESTS</span><strong>{usage?.month.requests ?? "—"}</strong></div>
+          <div><span>FAILED CALLS</span><strong>{usage?.month.failed_requests ?? "—"}</strong></div>
+          <div><span>AVG LATENCY</span><strong>{usage ? `${Math.round(usage.month.average_latency_ms / 100) / 10}s` : "—"}</strong></div>
+          <div><span>DAILY KILL SWITCH</span><strong>${(usage?.guardrails.global_daily_budget_usd ?? 0).toFixed(2)}</strong></div>
+          <div><span>DEFAULT TESTER</span><strong>${(usage?.guardrails.default_playtester_budget_usd ?? 0).toFixed(2)}/MO</strong></div>
+        </div>
+        <div className="admin-ranking-list admin-usage-list">
+          {(usage?.top_users ?? []).map((entry, index) => (
+            <div key={entry.user_id}>
+              <b>{String(index + 1).padStart(2, "0")}</b>
+              <span><strong>{entry.username}</strong><small>${entry.estimated_cost_usd.toFixed(4)} // {entry.requests} calls // {entry.input_tokens.toLocaleString()} in / {entry.output_tokens.toLocaleString()} out</small></span>
+              <span className="admin-usage-actions">
+                <button className="button subtle" type="button" disabled={usageWorkingUserId === entry.user_id} onClick={() => void setAllowance(entry.user_id, 5)}> $5 </button>
+                <button className="button subtle" type="button" disabled={usageWorkingUserId === entry.user_id} onClick={() => void setAllowance(entry.user_id, 10)}> $10 </button>
+                <button className="button subtle" type="button" disabled={usageWorkingUserId === entry.user_id} onClick={() => void setAllowance(entry.user_id, 0, true)}> UNLIMITED </button>
+              </span>
+            </div>
+          ))}
+        </div>
+        <p className="muted-copy">Model costs are estimates from configured per-token rates. The server enforces both per-account monthly allowances and a global daily ceiling before each OpenAI request leaves the app.</p>
+      </Panel>
+
       <Panel title="PLAY ACTIVITY // LAST 14 COMPLETION DAYS">
         <div className="admin-activity-chart">
           {(analytics?.daily_activity ?? []).map((day) => (
@@ -419,21 +484,30 @@ export function AdminPage() {
                       ))
                     : <span className="muted-copy">NO SPECIAL ACCESS</span>}
                 </div>
-                <button
-                  className={`button ${hasAuthor ? "subtle" : "primary"}`}
-                  type="button"
-                  disabled={busy || isTargetAdmin}
-                  onClick={() => void toggleAuthor(target)}
-                  title={
-                    isTargetAdmin
-                      ? "Administrator author access is protected."
-                      : hasAuthor
-                        ? "Revoke Author and Publish access"
-                        : "Grant Author and Publish access"
-                  }
-                >
-                  {busy ? "UPDATING_" : hasAuthor ? "REVOKE AUTHOR" : "GRANT AUTHOR"}
-                </button>
+                <div className="admin-user-actions">
+                  <button
+                    className={`button ${hasAuthor ? "subtle" : "primary"}`}
+                    type="button"
+                    disabled={busy || isTargetAdmin}
+                    onClick={() => void toggleAuthor(target)}
+                    title={
+                      isTargetAdmin
+                        ? "Administrator author access is protected."
+                        : hasAuthor
+                          ? "Revoke Author and Publish access"
+                          : "Grant Author and Publish access"
+                    }
+                  >
+                    {busy ? "UPDATING_" : hasAuthor ? "REVOKE AUTHOR" : "GRANT AUTHOR"}
+                  </button>
+                  {!isTargetAdmin ? (
+                    <>
+                      <button className="button subtle" type="button" disabled={usageWorkingUserId === target.user_id} onClick={() => void setAllowance(target.user_id, 5)}>AI $5</button>
+                      <button className="button subtle" type="button" disabled={usageWorkingUserId === target.user_id} onClick={() => void setAllowance(target.user_id, 10)}>AI $10</button>
+                      <button className="button subtle" type="button" disabled={usageWorkingUserId === target.user_id} onClick={() => void setAllowance(target.user_id, 0, true)}>AI ∞</button>
+                    </>
+                  ) : null}
+                </div>
               </article>
             );
           })}

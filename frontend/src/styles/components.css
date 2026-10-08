@@ -8612,3 +8612,12 @@ textarea:focus {
   margin: 1rem 0;
 }
 .account-billing-note span { opacity: 0.78; }
+
+/* First-run guide uses the existing site typography and responsive panel system. */
+.first-run-guide { margin-bottom: 1.5rem; }
+.onboarding-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; padding-left: 1.5rem; }
+.onboarding-steps li { min-width: 0; padding: .5rem; overflow-wrap: anywhere; }
+.onboarding-steps h2 { font-size: 1rem; }
+.onboarding-steps p { line-height: 1.5; }
+.onboarding-steps .button { white-space: normal; }
+@media (max-width: 800px) { .onboarding-steps { grid-template-columns: 1fr; } }

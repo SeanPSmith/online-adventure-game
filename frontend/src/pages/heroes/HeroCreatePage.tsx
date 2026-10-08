@@ -69,6 +69,29 @@ export function HeroCreatePage() {
     })).filter((group) => group.skills.length > 0);
   }, [rules]);
 
+  function balancedStart() {
+    if (!rules) return;
+    function spread(definitions: Array<{ id: string }>, minimum: number, maximum: number, budget: number) {
+      const values = initialValues(definitions, minimum);
+      let remaining = budget - definitions.length * minimum;
+      while (remaining > 0) {
+        let placed = false;
+        for (const definition of definitions) {
+          if (remaining > 0 && values[definition.id] < maximum) {
+            values[definition.id] += 1;
+            remaining -= 1;
+            placed = true;
+          }
+        }
+        if (!placed) break;
+      }
+      return values;
+    }
+    setStats(spread(rules.stats, rules.stat_min, rules.stat_max, rules.stat_point_budget));
+    setSkills(spread(rules.skills, rules.skill_min, rules.skill_max, rules.skill_point_budget));
+    setError("");
+  }
+
   function nudge(
     kind: "stat" | "skill",
     id: string,
@@ -138,7 +161,12 @@ export function HeroCreatePage() {
       />
 
       <form className="hero-create-layout" onSubmit={submit}>
-        <Panel title="IDENTITY // DIRECTOR CANON">
+        <div className="system-notice">
+          <p>Your Hero is the character you bring into each story. Give them a name and optional background, then assign abilities below.</p>
+          <button className="button" type="button" disabled={!rules || working} onClick={balancedStart}>USE BALANCED STARTING ABILITIES</button>
+          <p>You can adjust these points before creating your Hero.</p>
+        </div>
+        <Panel title="HERO IDENTITY">
           <label className="field-label">
             <span>HERO NAME</span>
             <input
@@ -159,13 +187,12 @@ export function HeroCreatePage() {
               rows={5}
               placeholder="A former night-shift paramedic who hates confined spaces, talks too much when nervous, and never leaves anyone behind."
             />
-            <small>{bio.length}/800 // AUTHOR CANON — THE DIRECTOR MAY USE THIS IN PLAY</small>
+            <small>{bio.length}/800 // OPTIONAL BACKGROUND — HELPS PERSONALIZE YOUR STORIES</small>
           </label>
 
           <p className="muted-copy">
-            Keep it useful rather than exhaustive. A few strong facts give the Director
-            enough material to make choices, callbacks, NPC reactions, and story beats feel
-            like they belong to this Hero.
+            A few details are plenty: where they came from, what matters to them, and one memorable quirk.
+            Your background can shape how characters and events respond to your Hero.
           </p>
         </Panel>
 

@@ -876,6 +876,17 @@ class SQLiteAuthStore:
                     (user_id,),
                 )
 
+            if self._table_exists(connection, "player_onboarding"):
+                connection.execute("DELETE FROM player_onboarding WHERE user_id = ?", (user_id,))
+
+            if self._table_exists(connection, "abandoned_adventures"):
+                rows = connection.execute("SELECT room_code, payload FROM abandoned_adventures").fetchall()
+                for row in rows:
+                    payload = json.loads(row["payload"])
+                    if any(p.get("user_id") == user_id for p in payload.get("players", [])):
+                        connection.execute("DELETE FROM abandoned_adventures WHERE room_code = ?", (row["room_code"],))
+                connection.execute("DELETE FROM abandoned_adventures WHERE user_id = ?", (user_id,))
+
             # Active room snapshots are transient gameplay state and can contain
             # player names/Hero IDs. Remove any room that still references the
             # deleted account instead of leaving personal data in a JSON blob.

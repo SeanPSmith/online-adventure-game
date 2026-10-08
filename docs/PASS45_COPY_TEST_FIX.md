@@ -1,0 +1,1 @@
+Apply these two full replacement files over Pass 45. The test now matches the player-facing Bio copy. PROJECT_MASTER.md remains under docs/ and its correction notes are appended. All 306 tests and project builds pass. Rerun the same staging release command after copying the files.

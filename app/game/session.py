@@ -2304,6 +2304,19 @@ class GameSessionManager:
             )
 
 
+        session.turn_archive.append({
+            "turn_number": session.turn_number,
+            "source_scene_title": scene.title,
+            "next_scene_title": session.scene.title,
+            "resolution": resolution_text,
+            "choices": [{"player_name": r["player_name"], "choice_label": r["choice_label"], "check": r["check"]} for r in results],
+        })
+        session.turn_archive = session.turn_archive[-100:]
+        if next_scene_id in session.adventure.metadata.get("terminal_scene_ids", []):
+            session.completed = True
+            session.ending_label = session.adventure.metadata.get("ending_label", "JOURNEY COMPLETE")
+            session.last_resolution = session.scene.body
+
         session.turn_number += 1
 
 
@@ -2314,6 +2327,8 @@ class GameSessionManager:
 
 
         return {
+            "completed": session.completed,
+            "ending_label": session.ending_label,
             "adventure_id":
                 session.adventure_id,
 

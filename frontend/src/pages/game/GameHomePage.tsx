@@ -1,3 +1,4 @@
+import { FirstRunGuide } from "../../features/onboarding/FirstRunGuide";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { PageTitle } from "../../components/ui/PageTitle";
@@ -66,6 +67,7 @@ export function GameHomePage() {
     clearRoomEntry,
   } = useGameSocket();
 
+  const [starterCreating, setStarterCreating] = useState(false);
   const [heroes, setHeroes] = useState<Character[]>([]);
   const [heroError, setHeroError] = useState("");
   const [selectedHeroId, setSelectedHeroId] = useState("");
@@ -113,6 +115,16 @@ export function GameHomePage() {
   }, []);
 
   useEffect(() => {
+    if (!starterCreating) return;
+    const timeout = window.setTimeout(() => setStarterCreating(false), 15000);
+    return () => window.clearTimeout(timeout);
+  }, [starterCreating]);
+
+  useEffect(() => {
+    if (latestError || !connected) setStarterCreating(false);
+  }, [latestError, connected]);
+
+  useEffect(() => {
     if (!lastRoomEntry) return;
 
     const code = lastRoomEntry.room.code;
@@ -131,7 +143,7 @@ export function GameHomePage() {
   );
 
   const selectableHeroes = useMemo(
-    () => heroes.filter((hero) => !occupiedHeroIds.has(hero.character_id)),
+    () => heroes.filter((hero) => hero.is_alive && !occupiedHeroIds.has(hero.character_id)),
     [heroes, occupiedHeroIds],
   );
 
@@ -253,6 +265,20 @@ export function GameHomePage() {
           ) : null}
         </div>
       ) : null}
+
+      <FirstRunGuide
+        heroes={selectableHeroes}
+        selectedHeroId={selectedHeroId}
+        onSelectHero={setSelectedHeroId}
+        connected={connected}
+        starterAvailable={catalog.some(adventure => adventure.adventure_id === "first_light")}
+        creating={starterCreating}
+        onStart={mode => {
+          clearError();
+          setStarterCreating(true);
+          createRoom(selectedHeroId, "first_light", mode);
+        }}
+      />
 
       <section className="dashboard-command-grid">
         <Panel title="CONTINUE JOURNEY" className="dashboard-journey-panel">
@@ -515,7 +541,7 @@ export function GameHomePage() {
       <section className="dashboard-system-section">
         <Panel title="SYSTEM MENU" className="dashboard-system-panel">
           <nav className="dashboard-system-menu" aria-label="Game tools">
-            <Link to="/game/history"><strong>CHRONICLES</strong><span>Completed journeys and sealed stories.</span></Link>
+            <Link to="/game/adventures"><strong>MY ADVENTURES</strong><span>Continue journeys, read Chronicles, and view abandoned stories.</span></Link>
             <Link to="/game/arcade"><strong>ARCADE</strong><span>Practice cabinets and intermission games.</span></Link>
             <Link to="/game/rulebook"><strong>RULEBOOK</strong><span>Checks, XP, Talents and progression.</span></Link>
             <Link to="/account"><strong>ACCOUNT CENTER</strong><span>Profile, preferences, alerts, security, and billing.</span></Link>

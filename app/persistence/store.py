@@ -27,7 +27,7 @@ DATABASE_PATH = (
     / "game_state.sqlite3"
 )
 
-SCHEMA_VERSION = 5
+SCHEMA_VERSION = 7
 
 
 class SQLiteStateStore:
@@ -172,6 +172,28 @@ class SQLiteStateStore:
             )
 
 
+            connection.execute("""
+                CREATE TABLE IF NOT EXISTS abandoned_adventures (
+                    room_code TEXT NOT NULL,
+                    user_id TEXT NOT NULL,
+                    payload TEXT NOT NULL,
+                    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    PRIMARY KEY (room_code, user_id)
+                )
+            """)
+
+            connection.execute("""
+                CREATE TABLE IF NOT EXISTS player_onboarding (
+                    user_id TEXT PRIMARY KEY,
+                    dismissed INTEGER NOT NULL DEFAULT 0
+                )
+            """)
+
+            history_columns = {row["name"] for row in connection.execute("PRAGMA table_info(adventure_history)").fetchall()}
+            for name in ("world_title", "play_mode"):
+                if name not in history_columns:
+                    connection.execute(f"ALTER TABLE adventure_history ADD COLUMN {name} TEXT NOT NULL DEFAULT ''")
+
             existing_player_columns = {
                 row["name"]
                 for row in connection.execute(
@@ -261,6 +283,9 @@ class SQLiteStateStore:
 
 
             "game": {
+
+                "adventure_title": game_session.adventure.title,
+                "world_title": getattr(game_session.adventure, "metadata", {}).get("world_title", ""),
 
                 "adventure_id":
                     game_session.adventure_id,
@@ -583,6 +608,12 @@ class SQLiteStateStore:
 
 
             connection.execute(
+                "UPDATE adventure_history SET world_title = ?, play_mode = ? WHERE history_id = ?",
+                (getattr(game_session.adventure, "metadata", {}).get("world_title") or "",
+                 getattr(room, "play_mode", "coop"), history_id),
+            )
+
+            connection.execute(
                 """
                 DELETE FROM adventure_history_players
                 WHERE history_id = ?
@@ -768,7 +799,7 @@ class SQLiteStateStore:
         self,
         *,
         user_id: str,
-        character_id: str,
+        character_id: str | None = None,
     ) -> list[dict]:
 
         return await asyncio.to_thread(
@@ -781,7 +812,7 @@ class SQLiteStateStore:
     def _list_completed_adventures_sync(
         self,
         user_id: str,
-        character_id: str,
+        character_id: str | None,
     ) -> list[dict]:
 
         with self._connect() as connection:
@@ -800,7 +831,10 @@ class SQLiteStateStore:
                     history.recap,
                     history.story_state_json,
                     history.director_usage_json,
-                    history.completed_at
+                    history.completed_at,
+                    history.world_title,
+                    history.play_mode,
+                    history.director_history_json
                 FROM adventure_history AS history
 
                 INNER JOIN adventure_history_players AS player
@@ -808,12 +842,13 @@ class SQLiteStateStore:
                     = history.history_id
 
                 WHERE player.user_id = ?
-                  AND player.character_id = ?
+                  AND (? IS NULL OR player.character_id = ?)
 
                 ORDER BY history.completed_at DESC
                 """,
                 (
                     user_id,
+                    character_id,
                     character_id,
                 ),
             ).fetchall()
@@ -874,7 +909,18 @@ class SQLiteStateStore:
                     usage = {}
 
 
+                try:
+                    archive = json.loads(row["director_history_json"])
+                except (ValueError, TypeError):
+                    archive = []
+                turn_history = [{"turn_number": turn.get("turn_number", 0),
+                                 "scene_title": turn.get("source_scene_title") or turn.get("scene_title", ""),
+                                 "resolution": turn.get("resolution", "")}
+                                for turn in archive if isinstance(turn, dict)]
                 stories.append({
+                    "world_title": row["world_title"],
+                    "play_mode": row["play_mode"],
+                    "turn_history": turn_history,
                     "history_id":
                         row[
                             "history_id"
@@ -993,6 +1039,98 @@ class SQLiteStateStore:
 
         return stories
 
+
+    async def onboarding_dismissed(self, user_id: str) -> bool:
+        return await asyncio.to_thread(self._onboarding_dismissed_sync, user_id)
+
+    def _onboarding_dismissed_sync(self, user_id):
+        with self._connect() as connection:
+            row = connection.execute("SELECT dismissed FROM player_onboarding WHERE user_id = ?", (user_id,)).fetchone()
+        return bool(row and row["dismissed"])
+
+    async def dismiss_onboarding(self, user_id: str) -> None:
+        await asyncio.to_thread(self._dismiss_onboarding_sync, user_id)
+
+    def _dismiss_onboarding_sync(self, user_id):
+        with self._connect() as connection:
+            connection.execute("""
+                INSERT INTO player_onboarding (user_id, dismissed) VALUES (?, 1)
+                ON CONFLICT(user_id) DO UPDATE SET dismissed = 1
+            """, (user_id,))
+            connection.commit()
+
+    async def archive_abandoned_adventure(self, room, session) -> None:
+        if session.completed:
+            return
+        # Archive before removing any live state. One private record per member.
+        payload = {
+            "room_code": room.code,
+            "adventure_id": session.adventure_id,
+            "adventure_title": session.adventure.title,
+            "turn_count": session.turn_number,
+            "recap": session.last_resolution or "",
+            "play_mode": room.play_mode,
+            "world_title": getattr(session.adventure, "metadata", {}).get("world_title", ""),
+            "players": [{"character_name": p.name, "character_id": p.character_id, "user_id": p.user_id}
+                        for p in room.players.values()],
+        }
+        members = [p.user_id for p in room.players.values()]
+        await asyncio.to_thread(self._archive_abandoned_sync, payload, members)
+
+    def _archive_abandoned_sync(self, payload, members):
+        with self._connect() as connection:
+            for user_id in set(members):
+                connection.execute("""
+                    INSERT INTO abandoned_adventures (room_code, user_id, payload)
+                    VALUES (?, ?, ?)
+                    ON CONFLICT(room_code, user_id) DO NOTHING
+                """, (payload["room_code"], user_id, json.dumps(payload)))
+            connection.commit()
+
+    async def list_player_library(self, user_id: str) -> dict:
+        return await asyncio.to_thread(self._list_player_library_sync, user_id)
+
+    def _list_player_library_sync(self, user_id: str) -> dict:
+        active = []
+        with self._connect() as connection:
+            rows = connection.execute(
+                "SELECT payload, updated_at FROM room_snapshots ORDER BY updated_at DESC"
+            ).fetchall()
+            abandoned = connection.execute(
+                "SELECT payload, updated_at FROM abandoned_adventures WHERE user_id = ? ORDER BY updated_at DESC",
+                (user_id,),
+            ).fetchall()
+        for row in rows:
+            try:
+                payload = json.loads(row["payload"])
+                room, game = payload["room"], payload["game"]
+                members = [p for p in room["players"] if p["user_id"] == user_id]
+                if not members or game.get("completed"):
+                    continue
+                for member in members:
+                    active.append({
+                        "room_code": room["code"], "character_id": member["character_id"],
+                        "adventure_id": game["adventure_id"],
+                        "adventure_title": game.get("adventure_title", ""),
+                        "world_title": game.get("world_title", ""),
+                        "turn_count": game.get("turn_number", 0),
+                        "target_turns": game.get("director_target_turns"),
+                        "updated_at": row["updated_at"], "play_mode": room.get("play_mode", "coop"),
+                        "recap": game.get("last_resolution") or "",
+                        "players": [{"character_name": p["name"], "character_id": p["character_id"]} for p in room["players"]],
+                    })
+            except (ValueError, TypeError, KeyError):
+                continue
+        completed = self._list_completed_adventures_sync(user_id, None)
+        # Multiple Heroes from one account must not duplicate the same Chronicle.
+        completed = list({story["history_id"]: story for story in completed}.values())
+        archived = []
+        for row in abandoned:
+            entry = dict(json.loads(row["payload"]), updated_at=row["updated_at"])
+            for player in entry["players"]:
+                player.pop("user_id", None)
+            archived.append(entry)
+        return {"active": active, "completed": completed, "abandoned": archived}
 
     # =====================================================
     # DELETE ROOM

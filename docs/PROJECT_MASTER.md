@@ -4,7 +4,7 @@
 > Update or rewrite the relevant sections in this file as the product changes; do not create another numbered changelog copy.
 
 **Last consolidated:** 2026-10-07  
-**Current local baseline:** through Pass 43 (AI usage metering + playtest entitlements + spend guardrails)  
+**Current local baseline:** through Pass 44 (My Adventures / Resume / Player Library)  
 **Public site:** `https://onlinetextadventure.com`  
 **Primary release command:** `./scripts/release-staging.sh "Describe the release"`
 
@@ -50,7 +50,8 @@ The public shell uses one terminal/IRC visual language across home, auth, legal,
 - `/game/heroes` — Hero Hall.
 - `/game/heroes/:heroId` — Character Sheet.
 - `/game/adventure/...` — live adventure room.
-- `/game/chronicles` — completed adventure history / sealed chronicles.
+- `/game/adventures` — My Adventures: Active, Completed, and Abandoned shelves.
+- `/game/history` — legacy completed Chronicle archive remains accessible.
 - `/game/arcade` — player Arcade; administrators see the same route as Arcade Lab with publication controls.
 - `/game/rulebook` — player-facing RPG rules.
 - account/settings routes — account configuration and notification preferences.
@@ -244,6 +245,12 @@ The system includes strict structured validation, deterministic normalization, o
 ### Turn recap continuity
 
 The fast post-roll recap is a readable rendering of the same frozen authoritative TurnFacts used by the Story Director. It is deliberately a **cheap result-page job**, not part of the expensive prose-generation responsibility: one compact paragraph normally covers each Hero's intent, actual roll/check outcome, concrete success/failure, supplied bodily/positional/social consequences, and explicit HP/effect/item/clue/relationship changes. It never invents the next scene or choice. The live Director receives the same frozen facts but is explicitly told not to repeat the recap; after at most 1-2 causal bridge sentences it must move the chronicle forward.
+
+### My Adventures / player library
+
+`/game/adventures` is the player's unified library, reachable from primary navigation and Home. Active, Completed, and Abandoned shelves include search, party/Hero names, turns, saved/completed dates, World where available, and a previous-story receipt. Active entries continue through the existing room/Hero-authorized resume route; pending turns use its existing recovery controls. The read-only authenticated `/api/player/adventures` endpoint never starts AI generation. Completed records are queried by account and deduplicated across Heroes, with readable archived turn receipts and Chronicle sharing. Starting another adventure opens the existing catalog and creates a fresh run rather than resetting history.
+
+Host abandonment archives an account-scoped unfinished record for each party member before deleting the room. Archived runs cannot be resumed and do not count as completed adventures. Previous abandonments cannot be reconstructed because earlier releases deleted them. Account deletion removes abandoned records containing the account, including shared party records, to avoid retaining deleted identity data. SQLite/PostgreSQL-compatible initialization adds the archive table and legacy-safe history metadata columns. Dates indicate the latest persisted snapshot, which may include connection state changes; they are not a separate activity analytics clock. World/mode metadata unavailable in old completed records remains blank.
 
 ### In-room turn history
 
@@ -790,7 +797,7 @@ Important persisted domains include:
 - Author documents/versions;
 - generated adventures;
 - approved/retired publication state;
-- completed adventure history;
+- completed adventure history and account-scoped abandoned adventure records;
 - persistent story/finale records;
 - frozen turn/recovery state required for safe Director retry.
 
@@ -958,6 +965,8 @@ This is intentionally short. Historical numbered changelog files remain archive 
 
 ---
 
+- **Pass 44 — My Adventures / Resume / Player Library:** clean frontend installs now explicitly include `@types/node`; adds the authenticated account library and Active/Completed/Abandoned shelves, existing resume/recovery links, readable Chronicle receipts, search, saved dates, and durable abandonment archives.
+
 ## 21. Documentation Policy
 
 Going forward:
@@ -970,3 +979,52 @@ Going forward:
 6. Historical changelogs/README pass files may remain in source as archive material, but they are not authoritative.
 7. Never place API keys, passwords, AWS secrets, private tokens, or sensitive user data in this document.
 
+
+
+---
+
+## Pass 45 — First-Run Onboarding + Starter Adventure (2026-10-08)
+
+**Latest implementation baseline: Pass 45, following the Pass 44 player library.** This update is appended to the canonical document in `docs/PROJECT_MASTER.md`; preceding content is preserved. Future pass notes should also be appended here rather than replacing prior notes or creating numbered master copies.
+
+### Player first-run experience
+
+Home offers a short three-step guide: choose/create a Hero, select Solo or With a Friend, and open the First Light starter lobby. The guide explains Hero, World, and Adventure in player language, describes co-op choices and invites, and points players to My Adventures for automatic save/resume. New players with no account-scoped Active, Completed, or Abandoned records see the guide automatically; existing players can reopen it with **How to Start**. **Skip Guide** is saved per account on the server, survives browser/device changes, and does not block playing. An unavailable preference service leaves Home and the manual guide usable. Existing account histories prevent repetitive onboarding.
+
+Hero creation offers **Use Balanced Starting Abilities**, assigning the required attribute/skill point budgets within creation caps while preserving editable values. Name and optional Bio remain player-authored. Hero creation returns to Home when entered from the guide. Available-Hero selection excludes deceased Heroes and those in unfinished adventures. Lobby and Hero-creation copy use player terms instead of Author/Director terminology.
+
+### Curated starter: First Light
+
+`first_light` is a separately registered built-in Adventure in **Lantern Harbor**, visible in the regular catalog and recommended in onboarding. Players return a lost lighthouse lantern over three short turns, estimated at 5–10 minutes, for 1–2 Heroes. The introduction explains actions, dice checks, locking choices together, and saving. Every route reaches the same authored ending; poor dice rolls still advance the story. This finite static story makes no model requests and requires no generated/approved author content to begin.
+
+Solo selection is carried in the `create_room` socket payload and applied before the room is persisted or announced. Co-op retains the existing two-Hero party gate and lobby invitation flow. Both modes still require the host to press **Get Started**; the guide does not bypass lobby readiness or character ownership.
+
+Static sessions now preserve compact player turn receipts. Adventures declaring `terminal_scene_ids` complete when a resolved turn enters one of those scenes, using the configured ending label and terminal prose. Existing looping internal adventures have no terminal marker and retain their prior behavior. The normal finale, Hero progression, completion persistence, Chronicle, and resume protections apply to First Light. Static stories do not schedule AI QTEs.
+
+### Persistence and operations
+
+Authenticated `/api/player/onboarding` reports whether the automatic guide should appear. `/api/player/onboarding/dismiss` requires an authenticated session and the site's account-request header, and writes only that account's preference. The compatible initializer adds `player_onboarding` with an idempotent account-scoped dismissal row. Account deletion removes that row. No new subscription, payment provider, publishing permission, or paid AI path is introduced.
+
+### Validation and deployment
+
+- 306 Python tests passed, including 20 new checks covering every starter route in solo/co-op, final Chronicle persistence, zero Director usage, persistent account-scoped skip preferences, authentication/request guards, and requested room-mode/readiness behavior.
+- Existing browser JavaScript syntax, React TypeScript/production build, and AWS CDK TypeScript build passed.
+- Browser visual/mobile QA remains unverified in this environment; the browser download failed during the preceding pass. Responsive guide CSS uses three columns on desktop and one column below 800px.
+- No cloud deployment or paid model calls performed.
+
+Apply the Pass 45 full replacement overlay after Pass 44. Deployment smoke checks: create a new account, use balanced Hero creation, return to Home, open First Light in Solo and finish its three turns, read the resulting Chronicle, then repeat in co-op with a second account and verify the party gate/invite flow. Confirm Skip Guide persists on reload and How to Start reopens it. Check the guide, Hero creator, lobby, and finale on a phone.
+
+Release command:
+
+```bash
+./scripts/release-staging.sh "Pass 45: first-run player guide, balanced Hero setup, and First Light starter adventure"
+```
+
+
+---
+
+## Pass 45 correction — Hero creation copy contract (2026-10-08)
+
+The staging release check exposed a stale UI-contract assertion after the final Pass 45 copy edit. Hero creation now says **Optional Background — Helps Personalize Your Stories**; `tests/test_character_ui_contract.py` now expects that player-facing wording. Bio input and progression-rule assertions remain in place. This correction changes the test only, with no gameplay or production UI changes.
+
+Validation: complete project verification passed: 306 Python tests, legacy browser JavaScript syntax, React TypeScript/production build, and AWS CDK TypeScript build. Apply the replacement test file and this appended canonical document over Pass 45, then rerun the staging release command.

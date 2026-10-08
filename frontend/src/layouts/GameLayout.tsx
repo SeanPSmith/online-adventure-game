@@ -22,7 +22,7 @@ export function GameLayout() {
         <nav className="header-nav game-nav" aria-label="Primary navigation">
           <NavLink to="/game" end>HOME</NavLink>
           <NavLink to="/game/heroes">HEROES</NavLink>
-          <NavLink to="/game/history">CHRONICLES</NavLink>
+          <NavLink to="/game/adventures">MY ADVENTURES</NavLink>
           <details className="header-system-menu">
             <summary>SYSTEM</summary>
             <div className="header-system-popover">

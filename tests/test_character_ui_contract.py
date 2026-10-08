@@ -10,7 +10,7 @@ def read(path: str) -> str:
 def test_character_creation_exposes_bio_and_progression_rules():
     source = read("frontend/src/pages/heroes/HeroCreatePage.tsx")
     assert "BIO // BACKGROUND, TEMPERAMENT, QUIRKS" in source
-    assert "DIRECTOR MAY USE THIS IN PLAY" in source
+    assert "OPTIONAL BACKGROUND — HELPS PERSONALIZE YOUR STORIES" in source
     assert "EVERY LEVEL" in source
     assert "ATTRIBUTE POINT" in source
     assert "TALENT POINT" in source

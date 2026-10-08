@@ -463,7 +463,7 @@ export function AdventurePage() {
               ))}
 
               <div className={`turn-status-chip director-status is-${directorState.toLowerCase()}`}>
-                <span>DIRECTOR</span>
+                <span>STORY</span>
                 <strong>{directorState}</strong>
               </div>
 
@@ -539,8 +539,8 @@ ${scene.body.slice(0, 260)}`}
               </div>
               <h1>THE STORY IS READY.</h1>
               <p>
-                The first real scene has already been written. No generation wait is hiding behind this button;
-                once the required Heroes are present, the host opens the chronicle and Turn 1 appears immediately.
+                Your story is ready. Playing solo? Press Get Started to begin. Playing with a friend?
+                Invite them or share your room code, wait for their Hero to join, then the host presses Get Started.
               </p>
               <div className="adventure-lobby-roster">
                 {readiness.map((player) => (

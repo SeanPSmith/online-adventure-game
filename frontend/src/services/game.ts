@@ -545,7 +545,7 @@ export interface ClientToServerEvents {
     payload: { room_code: string; identifier: string },
     ack: (response: RoomInviteAck) => void,
   ) => void;
-  create_room: (payload: { character_id: string; adventure_id: string }) => void;
+  create_room: (payload: { character_id: string; adventure_id: string; play_mode?: "solo" | "coop" }) => void;
   join_room: (payload: { character_id: string; room_code: string }) => void;
   resume_adventure: (payload: { room_code: string; character_id: string }) => void;
   exit_adventure_view: (payload?: Record<string, never>) => void;

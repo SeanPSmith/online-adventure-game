@@ -14,6 +14,9 @@ import socketio
 
 from fastapi import (
     FastAPI,
+    Cookie,
+    Request,
+    HTTPException,
 )
 
 from fastapi.responses import (
@@ -1056,6 +1059,41 @@ async def request_adventure_catalog(
 # =========================================================
 # ADVENTURE LIST
 # =========================================================
+
+@fastapi_app.get("/api/player/onboarding")
+async def player_onboarding(tot_session: str | None = Cookie(default=None)):
+    user = await auth_service.authenticate_session(tot_session)
+    if user is None:
+        raise HTTPException(status_code=401, detail="Authentication required.")
+    library = await store.list_player_library(user.user_id)
+    has_journey = any(library.values())
+    return {"show_guide": not has_journey and not await store.onboarding_dismissed(user.user_id)}
+
+
+@fastapi_app.post("/api/player/onboarding/dismiss")
+async def dismiss_player_onboarding(request: Request, tot_session: str | None = Cookie(default=None)):
+    user = await auth_service.authenticate_session(tot_session)
+    if user is None:
+        raise HTTPException(status_code=401, detail="Authentication required.")
+    if request.headers.get("X-TOT-Account-Request") != "1":
+        raise HTTPException(status_code=403, detail="Use the site's player guide controls.")
+    await store.dismiss_onboarding(user.user_id)
+    return {"dismissed": True}
+
+
+@fastapi_app.get("/api/player/adventures")
+async def player_adventure_library(tot_session: str | None = Cookie(default=None)):
+    user = await auth_service.authenticate_session(tot_session)
+    if user is None:
+        raise HTTPException(status_code=401, detail="Authentication required.")
+    library = await store.list_player_library(user.user_id)
+    live = {(entry["room_code"], entry["character_id"]): entry
+            for entry in build_adventure_list(user.user_id)}
+    for entry in library["active"]:
+        current = live.get((entry["room_code"], entry["character_id"]), {})
+        entry.update({key: value for key, value in current.items() if key != "players"})
+    return library
+
 
 def build_adventure_list(
     user_id: str,
@@ -2483,6 +2521,9 @@ async def create_room(
     )
 
 
+    if data.get("play_mode") == "solo":
+        rooms.start_solo(room_code=room.code, user_id=user.user_id)
+
     await sio.enter_room(
         sid,
         room.code,
@@ -3431,6 +3472,10 @@ async def abandon_adventure(
         room_code
     )
 
+
+    await store.archive_abandoned_adventure(
+        room, game_sessions.get_or_create(room_code)
+    )
 
     await sio.emit(
 

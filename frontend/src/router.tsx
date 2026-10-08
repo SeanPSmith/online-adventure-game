@@ -18,6 +18,7 @@ import { AdventurePage } from "./pages/game/AdventurePage";
 import { HeroManagerPage } from "./pages/heroes/HeroManagerPage";
 import { HeroCreatePage } from "./pages/heroes/HeroCreatePage";
 import { HeroSheetPage } from "./pages/heroes/HeroSheetPage";
+import { MyAdventuresPage } from "./pages/game/MyAdventuresPage";
 import { HistoryPage } from "./pages/game/HistoryPage";
 import { RulebookPage } from "./pages/game/RulebookPage";
 import { ArcadeLabPage } from "./pages/game/ArcadeLabPage";
@@ -58,6 +59,7 @@ export const router = createBrowserRouter([
               { path: "heroes", element: <HeroManagerPage /> },
               { path: "heroes/new", element: <HeroCreatePage /> },
               { path: "heroes/:heroId", element: <HeroSheetPage /> },
+              { path: "adventures", element: <MyAdventuresPage /> },
               { path: "history", element: <HistoryPage /> },
               { path: "rulebook", element: <RulebookPage /> },
               { path: "arcade", element: <ArcadeLabPage /> },

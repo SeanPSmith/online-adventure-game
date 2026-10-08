@@ -1059,15 +1059,17 @@ class SQLiteStateStore:
             """, (user_id,))
             connection.commit()
 
-    async def archive_abandoned_adventure(self, room, session) -> None:
+    async def archive_abandoned_adventure(self, room, session, *, operator_id=None) -> None:
         if session.completed:
             return
         # Archive before removing any live state. One private record per member.
         payload = {
             "room_code": room.code,
+            "ended_by": "operator" if operator_id else "host",
             "adventure_id": session.adventure_id,
             "adventure_title": session.adventure.title,
             "turn_count": session.turn_number,
+            "started": bool(getattr(session, "started", True)),
             "recap": session.last_resolution or "",
             "play_mode": room.play_mode,
             "world_title": getattr(session.adventure, "metadata", {}).get("world_title", ""),
@@ -1075,9 +1077,9 @@ class SQLiteStateStore:
                         for p in room.players.values()],
         }
         members = [p.user_id for p in room.players.values()]
-        await asyncio.to_thread(self._archive_abandoned_sync, payload, members)
+        await asyncio.to_thread(self._archive_abandoned_sync, payload, members, operator_id)
 
-    def _archive_abandoned_sync(self, payload, members):
+    def _archive_abandoned_sync(self, payload, members, operator_id=None):
         with self._connect() as connection:
             for user_id in set(members):
                 connection.execute("""
@@ -1085,6 +1087,11 @@ class SQLiteStateStore:
                     VALUES (?, ?, ?)
                     ON CONFLICT(room_code, user_id) DO NOTHING
                 """, (payload["room_code"], user_id, json.dumps(payload)))
+            if operator_id:
+                from app.admin.operations import insert_action
+                connection.execute("DELETE FROM room_snapshots WHERE room_code = ?", (payload["room_code"],))
+                connection.execute("DELETE FROM chat_messages WHERE room_code = ?", (payload["room_code"],))
+                insert_action(connection, operator_id, "room_terminate", payload["room_code"])
             connection.commit()
 
     async def list_player_library(self, user_id: str) -> dict:

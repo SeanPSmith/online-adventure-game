@@ -23,9 +23,9 @@ def bootstrap_permissions(path: Path) -> None:
             "CREATE TABLE user_permissions (user_id TEXT NOT NULL, permission TEXT NOT NULL)"
         )
         connection.execute(
-            "CREATE TABLE users (user_id TEXT PRIMARY KEY, username TEXT NOT NULL)"
+            "CREATE TABLE users (user_id TEXT PRIMARY KEY, username TEXT NOT NULL, is_active INTEGER NOT NULL DEFAULT 1)"
         )
-        connection.execute("INSERT INTO users VALUES ('player-1', 'tester')")
+        connection.execute("INSERT INTO users (user_id, username) VALUES ('player-1', 'tester')")
         connection.commit()
     finally:
         connection.close()

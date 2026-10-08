@@ -86,6 +86,8 @@ class AdminAnalyticsService:
 
             if completed:
                 state = "COMPLETE"
+            elif session is None or not getattr(session, "started", True):
+                state = "LOBBY"
             elif room.online_count <= 0:
                 state = "IDLE"
             elif frozen_turn:

@@ -80,6 +80,10 @@ class AIUsageStore:
     def _initialize_sync(self) -> None:
         self.database_path.parent.mkdir(parents=True, exist_ok=True)
         with self._connect() as connection:
+            connection.execute("""CREATE TABLE IF NOT EXISTS ai_controls (
+                control_id TEXT PRIMARY KEY, paused INTEGER NOT NULL DEFAULT 0
+            )""")
+            connection.execute("INSERT INTO ai_controls (control_id, paused) VALUES ('global', 0) ON CONFLICT(control_id) DO NOTHING")
             connection.execute(
                 """
                 CREATE TABLE IF NOT EXISTS ai_usage_events (
@@ -137,7 +141,8 @@ class AIUsageStore:
             connection.execute(
                 """
                 UPDATE ai_usage_events
-                SET status = 'failed', error_type = 'stale_reservation', reserved_cost_microusd = 0
+                SET status = 'failed', error_type = 'stale_reservation',
+                    estimated_cost_microusd = reserved_cost_microusd, reserved_cost_microusd = 0
                 WHERE status = 'pending' AND occurred_at < ?
                 """,
                 (stale_cutoff,),
@@ -291,6 +296,12 @@ class AIUsageStore:
         period_key = now.strftime("%Y-%m")
         day_key = now.strftime("%Y-%m-%d")
         with self._connect() as connection:
+            account = connection.execute("SELECT is_active FROM users WHERE user_id = ?", (user_id,)).fetchone()
+            if account is None or not account["is_active"]:
+                raise UsageLimitExceeded("This account is disabled.", code="account_disabled")
+            control = connection.execute("SELECT paused FROM ai_controls WHERE control_id = 'global'").fetchone()
+            if control and control["paused"]:
+                raise UsageLimitExceeded("AI generation is temporarily paused by the operator. Your adventure is saved; resume when generation reopens.", code="operator_paused")
             entitlement = self._entitlement_sync(connection, user_id)
             requests, spent, reserved, _, _ = self._period_usage_sync(connection, user_id, period_key)
 

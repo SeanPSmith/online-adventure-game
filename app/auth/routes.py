@@ -49,6 +49,8 @@ from app.admin.content_portability import (
     import_author_content_bundle,
 )
 
+from app.admin.operations import operations_store
+
 from app.admin.analytics import (
     admin_analytics_service,
 )
@@ -721,6 +723,63 @@ async def admin_ai_usage(
     return await ai_usage_store.admin_snapshot(limit=40)
 
 
+class AdminActiveRequest(BaseModel):
+    enabled: bool
+
+
+class AdminPauseRequest(BaseModel):
+    paused: bool
+
+
+class AdminTerminateRequest(BaseModel):
+    confirmation: str
+
+
+@router.get("/admin/operations")
+async def admin_operations(user=Depends(require_admin_user)):
+    from app import main
+    snapshot = await operations_store.snapshot()
+    live, _ = admin_analytics_service._live_snapshot()
+    for room in live:
+        session = main.game_sessions.get(room["room_code"])
+        room["state"] = ("WRITING" if room["room_code"] in main._director_active_rooms
+                         else "RECOVERY REQUIRED" if session and session.pending_turn_facts else room["state"])
+        room["started"] = bool(session and session.started)
+        room["pending_qte"] = bool(session and session.pending_micro_event)
+    snapshot["rooms"] = live
+    return snapshot
+
+
+@router.put("/admin/ai-pause")
+async def admin_ai_pause(payload: AdminPauseRequest, admin=Depends(require_admin_write)):
+    await operations_store.set_pause(admin.user_id, payload.paused)
+    return {"paused": payload.paused}
+
+
+@router.put("/admin/users/{user_id}/active")
+async def admin_account_active(user_id: str, payload: AdminActiveRequest, admin=Depends(require_admin_write)):
+    try:
+        await operations_store.set_account_active(admin.user_id, user_id, payload.enabled)
+    except LookupError as error:
+        raise HTTPException(status_code=404, detail=str(error)) from error
+    except PermissionError as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
+    if not payload.enabled:
+        from app.main import disconnect_account_sockets
+        await disconnect_account_sockets(user_id)
+    return {"user_id": user_id, "is_active": payload.enabled}
+
+
+@router.post("/admin/rooms/{room_code}/terminate")
+async def admin_terminate_room(room_code: str, payload: AdminTerminateRequest, admin=Depends(require_admin_write)):
+    from app.main import terminate_operator_room
+    room_code = room_code.strip().upper()
+    if payload.confirmation.strip().upper() != room_code:
+        raise HTTPException(status_code=400, detail="Type the room code to end this room.")
+    await terminate_operator_room(room_code, admin.user_id)
+    return {"terminated": room_code}
+
+
 @router.get("/admin/project-docs")
 async def admin_project_docs(
     user=Depends(require_admin_user),
@@ -779,6 +838,7 @@ async def admin_set_entitlement(
         is_unlimited=bool(payload.is_unlimited),
         updated_by=admin.user_id,
     )
+    await operations_store.audit(admin.user_id, "entitlement_set", user_id, {key: value for key, value in entitlement.public_data().items() if key != "user_id"})
     return {
         "updated_by": admin.username,
         "entitlement": entitlement.public_data(),
@@ -816,6 +876,8 @@ async def admin_set_author_access(
         await auth_store.revoke_permission(user_id, "author")
         await auth_store.revoke_permission(user_id, "publish")
         await auth_store.grant_permission(user_id, "author_denied")
+
+    await operations_store.audit(admin.user_id, "author_access_set", user_id, {"enabled": payload.enabled})
 
     refreshed = await auth_store.get_user_by_id(
         user_id

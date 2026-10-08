@@ -876,6 +876,10 @@ class SQLiteAuthStore:
                     (user_id,),
                 )
 
+            if self._table_exists(connection, "operator_actions"):
+                connection.execute("UPDATE operator_actions SET actor_id = ? WHERE actor_id = ?", (tombstone, user_id))
+                connection.execute("UPDATE operator_actions SET target_id = ? WHERE target_id = ?", (tombstone, user_id))
+
             if self._table_exists(connection, "player_onboarding"):
                 connection.execute("DELETE FROM player_onboarding WHERE user_id = ?", (user_id,))
 

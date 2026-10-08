@@ -27,6 +27,8 @@ from fastapi.staticfiles import (
     StaticFiles,
 )
 
+from app.admin.operations import operations_store
+
 from app.auth.routes import (
     router as auth_router,
 )
@@ -347,6 +349,7 @@ async def lifespan(
 ):
 
     await store.initialize()
+    await operations_store.initialize()
 
     await auth_service.initialize()
 
@@ -1060,6 +1063,49 @@ async def request_adventure_catalog(
 # ADVENTURE LIST
 # =========================================================
 
+async def disconnect_account_sockets(user_id: str) -> None:
+    for sid in list(_user_sids.get(user_id, set())):
+        socket_auth.disconnect(sid)
+        unregister_user_sid(user_id, sid)
+        try:
+            await sio.disconnect(sid)
+        except Exception:
+            # Session revocation and the per-event account guard remain authoritative.
+            pass
+        # Also handle transports that had already vanished without a callback.
+        await disconnect(sid, "operator_disabled")
+
+
+async def terminate_operator_room(room_code: str, actor_id: str) -> None:
+    if rooms.room_by_code(room_code) is None:
+        raise HTTPException(status_code=404, detail="Room not found.")
+    cancel_director_task(room_code)
+    lock = turn_resolution_lock(room_code)
+    try:
+        await asyncio.wait_for(lock.acquire(), timeout=10)
+    except asyncio.TimeoutError:
+        raise HTTPException(status_code=409, detail="The current turn is still settling. Refresh and try again.")
+    try:
+        room = rooms.room_by_code(room_code)
+        session = game_sessions.get(room_code)
+        if room is None or session is None:
+            raise HTTPException(status_code=404, detail="Room not found.")
+        if session.completed:
+            raise HTTPException(status_code=409, detail="This adventure is complete; its Chronicle is preserved.")
+        user_ids = {member.user_id for member in room.players.values()}
+        connected = [member.sid for member in room.players.values() if member.sid]
+        # Archive, durable deletion and audit share one database transaction.
+        await store.archive_abandoned_adventure(room, session, operator_id=actor_id)
+        rooms.remove_room(room_code)
+        game_sessions.remove(room_code)
+    finally:
+        lock.release()
+    await sio.emit("adventure_abandoned", {"room_code": room_code, "message": "The operator ended this room. Your Hero progress is preserved."}, room=room_code)
+    for sid in connected:
+        await sio.leave_room(sid, room_code)
+    await refresh_adventure_lists(user_ids)
+
+
 @fastapi_app.get("/api/player/onboarding")
 async def player_onboarding(tot_session: str | None = Cookie(default=None)):
     user = await auth_service.authenticate_session(tot_session)
@@ -1443,11 +1489,11 @@ async def require_socket_user(
     )
 
 
-    if (
-        user is not None
-    ):
-
-        return user
+    if user is not None:
+        stored_user = await auth_store.get_user_by_id(user.user_id)
+        if stored_user is not None and stored_user.is_active:
+            return stored_user.to_user()
+        socket_auth.disconnect(sid)
 
 
     await sio.emit(
@@ -4970,6 +5016,11 @@ async def submit_micro_event_choice(
         return
 
     if completed:
+        # Telemetry must never prevent a resolved QTE's gameplay persistence.
+        try:
+            await operations_store.record_qte(room.code, event)
+        except Exception as error:
+            print(f"[OPERATIONS QTE] type={type(error).__name__}")
         # QTE boons/banes are real Hero effects. Persist them before broadcasting
         # the resolved event so the next authoritative turn definitely sees them.
         for character in characters.values():
@@ -5125,18 +5176,19 @@ async def retry_pending_turn(
             )
             return
 
-        await finalize_resolved_turn(
-            room=
-                room,
-            session=
-                session,
-            characters_by_player_id=
-                characters_by_player_id,
-            result=
-                result,
-            resolved_turn_number=
-                resolved_turn_number,
-        )
+        with ai_usage_scope(retry_attempt=True):
+            await finalize_resolved_turn(
+                room=
+                    room,
+                session=
+                    session,
+                characters_by_player_id=
+                    characters_by_player_id,
+                result=
+                    result,
+                resolved_turn_number=
+                    resolved_turn_number,
+            )
 
 
 # =========================================================

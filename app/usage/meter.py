@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import time
 from contextlib import contextmanager
 from contextvars import ContextVar
@@ -17,6 +18,7 @@ class UsageScope:
     adventure_id: str | None = None
     generated_adventure_id: str | None = None
     surface: str = "unknown"
+    retry_attempt: bool = False
 
 
 _scope: ContextVar[UsageScope] = ContextVar("tales_of_two_ai_usage_scope", default=UsageScope())
@@ -93,11 +95,20 @@ async def metered_openai_call(
         provider="openai",
         model=model,
         reserved_cost_microusd=reserve,
-        metadata=metadata,
+        metadata={**(metadata or {}), "retry_attempt": scope.retry_attempt},
     )
     started = time.perf_counter()
     try:
         response = await request()
+    except asyncio.CancelledError:
+        # Provider cancellation may occur after dispatch. Keep the conservative
+        # estimate charged rather than silently refunding potentially spent tokens.
+        await asyncio.shield(ai_usage_store.finish_event(
+            event_id=event_id, status="failed", estimated_cost_microusd=reserve,
+            latency_ms=int((time.perf_counter() - started) * 1000),
+            error_type="CancelledError",
+        ))
+        raise
     except Exception as error:
         await ai_usage_store.finish_event(
             event_id=event_id,

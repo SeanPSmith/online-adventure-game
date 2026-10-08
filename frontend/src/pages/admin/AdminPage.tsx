@@ -1,3 +1,4 @@
+import { OperationsDashboard } from "./OperationsDashboard";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import "./AdminPage.css";
 import { Link, Navigate } from "react-router";
@@ -11,6 +12,7 @@ import {
   importAuthorContent,
   listUsers,
   setAuthorAccess,
+  setAccountActive,
   setUserEntitlement,
   type AdminAnalyticsSnapshot,
   type AdminUsageSnapshot,
@@ -43,6 +45,7 @@ export function AdminPage() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [pendingAccount, setPendingAccount] = useState<User | null>(null);
   const [workingUserId, setWorkingUserId] = useState("");
   const [bundle, setBundle] = useState<LegacyContentBundle | null>(null);
   const [bundleName, setBundleName] = useState("");
@@ -165,6 +168,18 @@ export function AdminPage() {
     } finally {
       setWorkingUserId("");
     }
+  }
+
+  async function toggleAccount(target: User) {
+    setWorkingUserId(target.user_id);
+    setError("");
+    try {
+      await setAccountActive(target.user_id, !target.is_active);
+      setPendingAccount(null);
+      await loadUsers(search);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Account update failed.");
+    } finally {setWorkingUserId("");}
   }
 
   async function setAllowance(userId: string, budget: number, unlimited = false) {
@@ -310,12 +325,14 @@ export function AdminPage() {
         </Panel>
       ) : null}
 
-      <Panel title="LIVE OPERATIONS">
+      <OperationsDashboard />
+
+      <Panel title="PLAYER ACTIVITY">
         {analyticsError ? <div className="form-error">{analyticsError}</div> : null}
 
         <div className="admin-stat-grid">
           <div><span>ONLINE PLAYERS</span><strong>{analytics?.live.online_players ?? "—"}</strong></div>
-          <div><span>LIVE ROOMS</span><strong>{analytics?.live.rooms ?? "—"}</strong></div>
+          <div><span>STORED ROOMS</span><strong>{analytics?.live.rooms ?? "—"}</strong></div>
           <div><span>RECENT USERS</span><strong>{analytics?.accounts.recently_active_users ?? "—"}</strong></div>
           <div><span>REGISTERED</span><strong>{analytics?.accounts.registered_users ?? "—"}</strong></div>
           <div><span>ADVENTURES COMPLETE</span><strong>{analytics?.totals.adventures_completed ?? "—"}</strong></div>
@@ -324,28 +341,6 @@ export function AdminPage() {
           <div><span>AUTHORS</span><strong>{analytics?.accounts.authors ?? "—"}</strong></div>
         </div>
 
-        <div className="admin-live-room-list">
-          {(analytics?.live.rooms_detail ?? []).map((room) => (
-            <article className="admin-live-room" key={room.room_code}>
-              <div>
-                <span className="eyebrow">{room.state}</span>
-                <strong>{room.adventure_title}</strong>
-                <small>ROOM {room.room_code} // {room.play_mode.toUpperCase()} // TURN {room.turn_number}</small>
-              </div>
-              <div className="admin-live-players">
-                {room.players.map((player) => (
-                  <span key={`${room.room_code}-${player.user_id}-${player.hero_name}`}>
-                    {player.is_online ? "●" : "○"} {player.username} / {player.hero_name}
-                    {player.is_host ? " [HOST]" : ""}
-                  </span>
-                ))}
-              </div>
-            </article>
-          ))}
-          {analytics && analytics.live.rooms_detail.length === 0 ? (
-            <div className="empty-state"><strong>THE TAVERN IS QUIET.</strong><span>No rooms are active right now.</span></div>
-          ) : null}
-        </div>
       </Panel>
 
       <Panel title="AI COST CONTROL // PLAYTEST GUARDRAILS">
@@ -373,6 +368,12 @@ export function AdminPage() {
             </div>
           ))}
         </div>
+        <details>
+          <summary>CALLS BY OPERATION / MODEL</summary>
+          <div className="operations-table-wrap"><table><thead><tr><th>Operation / Model</th><th>Calls</th><th>Input / Output tokens</th><th>Estimated cost</th><th>Average latency</th></tr></thead><tbody>
+            {(usage?.operations ?? []).map(row => <tr key={`${row.operation}:${row.model}`}><td>{row.operation}<br />{row.model}</td><td>{row.requests}</td><td>{row.input_tokens.toLocaleString()} / {row.output_tokens.toLocaleString()}</td><td>${row.estimated_cost_usd.toFixed(4)}</td><td>{(row.average_latency_ms / 1000).toFixed(1)}s</td></tr>)}
+          </tbody></table></div>
+        </details>
         <p className="muted-copy">Model costs are estimates from configured per-token rates. The server enforces both per-account monthly allowances and a global daily ceiling before each OpenAI request leaves the app.</p>
       </Panel>
 
@@ -427,10 +428,10 @@ export function AdminPage() {
         </div>
       </Panel>
 
-      <Panel title="AUTHOR ACCESS">
+      <Panel title="ACCOUNTS / ACCESS / ALLOWANCES">
         <p className="muted-copy">
           Granting Author access also grants Publish. This console cannot create another
-          administrator; superuser authority remains bootstrap-only.
+          administrator; superuser authority remains bootstrap-only. Allowance buttons set the total monthly budget; they do not add credits or reset usage.
         </p>
 
         <form
@@ -500,11 +501,19 @@ export function AdminPage() {
                   >
                     {busy ? "UPDATING_" : hasAuthor ? "REVOKE AUTHOR" : "GRANT AUTHOR"}
                   </button>
+                  {pendingAccount?.user_id === target.user_id ? (
+                    <div className="system-notice" role="group" aria-label="Confirm account status change">
+                      <p>{pendingAccount.is_active ? "Disable" : "Enable"} {pendingAccount.username}? Disabling revokes all login sessions and blocks new play. Existing Hero and adventure data is preserved.</p>
+                      <button className="button" type="button" disabled={busy} onClick={() => void toggleAccount(pendingAccount)}>CONFIRM {pendingAccount.is_active ? "DISABLE" : "ENABLE"}</button>
+                      <button className="button" type="button" disabled={busy} onClick={() => setPendingAccount(null)}>CANCEL</button>
+                    </div>
+                  ) : null}
                   {!isTargetAdmin ? (
                     <>
-                      <button className="button subtle" type="button" disabled={usageWorkingUserId === target.user_id} onClick={() => void setAllowance(target.user_id, 5)}>AI $5</button>
-                      <button className="button subtle" type="button" disabled={usageWorkingUserId === target.user_id} onClick={() => void setAllowance(target.user_id, 10)}>AI $10</button>
-                      <button className="button subtle" type="button" disabled={usageWorkingUserId === target.user_id} onClick={() => void setAllowance(target.user_id, 0, true)}>AI ∞</button>
+                      <button className="button subtle" type="button" disabled={busy} onClick={() => setPendingAccount(target)}>{target.is_active ? "DISABLE ACCOUNT" : "ENABLE ACCOUNT"}</button>
+                      <button className="button subtle" type="button" disabled={usageWorkingUserId === target.user_id} onClick={() => void setAllowance(target.user_id, 5)}>SET $5/MO</button>
+                      <button className="button subtle" type="button" disabled={usageWorkingUserId === target.user_id} onClick={() => void setAllowance(target.user_id, 10)}>SET $10/MO</button>
+                      <button className="button subtle" type="button" disabled={usageWorkingUserId === target.user_id} onClick={() => void setAllowance(target.user_id, 0, true)}>SET UNLIMITED</button>
                     </>
                   ) : null}
                 </div>

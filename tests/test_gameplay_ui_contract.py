@@ -167,7 +167,11 @@ def test_admin_control_room_exposes_live_analytics_and_arcade_navigation() -> No
     layout = read("layouts/AccountLayout.tsx")
 
     assert 'getAdminAnalytics' in page
-    assert 'LIVE OPERATIONS' in page
+    assert '<OperationsDashboard />' in page
+    assert 'PLAYER ACTIVITY' in page
+    operations = read("pages/admin/OperationsDashboard.tsx")
+    assert 'PLAYTEST OPERATIONS' in operations
+    assert 'getOperations' in operations
     assert 'POPULAR ADVENTURES' in page
     assert 'TOP PLAYERS // BY TURNS' in page
     assert 'RECENT COMPLETIONS' in page

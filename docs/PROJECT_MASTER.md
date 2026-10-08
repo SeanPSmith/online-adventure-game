@@ -1028,3 +1028,48 @@ Release command:
 The staging release check exposed a stale UI-contract assertion after the final Pass 45 copy edit. Hero creation now says **Optional Background — Helps Personalize Your Stories**; `tests/test_character_ui_contract.py` now expects that player-facing wording. Bio input and progression-rule assertions remain in place. This correction changes the test only, with no gameplay or production UI changes.
 
 Validation: complete project verification passed: 306 Python tests, legacy browser JavaScript syntax, React TypeScript/production build, and AWS CDK TypeScript build. Apply the replacement test file and this appended canonical document over Pass 45, then rerun the staging release command.
+
+
+---
+
+## Pass 46 — Admin / Playtest Operations Dashboard (2026-10-08)
+
+**Latest implementation baseline: Pass 46, following Pass 45 and its copy-contract correction.** This section is appended to `docs/PROJECT_MASTER.md`; all preceding content remains intact.
+
+### Operator surface
+
+The existing Control Room now opens with **Playtest Operations**. Operators can search rooms by code, title, Hero, or state; inspect the party and turn/QTE status; distinguish active generation from recovery-required turns; and see retained lifecycle counts. The former duplicate room listing is replaced by a Player Activity summary. Existing account analytics, per-user spend and allowance controls, Arcade/Author publication controls, content import, and project-document viewer remain available.
+
+The dashboard adds monthly estimated spend and pending reservations by adventure/room, input/output token counts, failure rates, average latency, JSON/schema repair share, and the latest 40 generation failures with operation, model, error type, latency, room and event ID. Existing usage data is also exposed as a calls-by-operation/model table. Failure telemetry contains error types, not raw provider messages, prompts, or generated stories.
+
+Explicit player-retry provider calls carry a `retry_attempt` marker in usage metadata. Tracked retry share is calculated only over marked calls in the selected current UTC month; older unmarked calls are excluded and an empty sample displays No Data. This measures provider calls inside a player retry, not a ratio of failed turns. Repair calls remain a separate metric and may overlap with retry calls.
+
+QTE telemetry records one outcome per room/event ID when an event resolves, counting whether any submitted response used the timeout sentinel. It stores no response text or player identity. The dashboard labels this as observed resolved-event telemetry beginning with Pass 46, not a historical reconstruction or a disconnect-timeout guarantee. Telemetry write failure cannot prevent the resolved QTE's gameplay persistence. Retained started-run counts combine available started snapshots, completion history, and known started abandonment records; deleted/unrecorded historical runs are unavailable, so this is not an all-time acquisition funnel.
+
+### Operator controls and enforcement
+
+- **Pause / Resume AI:** a persistent database control checked before a metered provider reservation, including admin requests. Pausing prevents new metered admissions; already admitted/in-flight calls may finish. Existing account allowances and global daily ceilings still apply after resuming. Static First Light and Arcade do not require AI generation. The pause mutation and its audit record share a transaction.
+- **Disable / Enable Account:** available for non-admin accounts with a site-native confirmation. Disabling revokes every login session, disconnects local sockets, clears socket presence, and blocks new metered AI calls. Gameplay socket actions revalidate account status against durable account state instead of trusting only the connection-time cache. Existing Hero/adventure data is preserved. Administrator accounts cannot be changed through this control. State mutation, session revocation, and audit share a transaction.
+- **End Room:** requires typing its room code. The server cancels the tracked Director task and waits for the turn-resolution lock before archiving. Archive creation, durable room/chat deletion, and audit are one transaction; runtime state is then removed and participants are notified. Completed Chronicles cannot be terminated here. The unfinished run appears in My Adventures as ended by the operator, and cannot be resumed. If a turn does not settle within ten seconds, the endpoint returns a controlled conflict instead of deleting through an active commit.
+- **Allowances / Author Access:** the existing controls remain server-protected and now record operator actions. Allowance buttons explicitly set the total monthly budget; they do not add credits or reset usage. Recent audit entries show actor/target labels and details. Account deletion replaces retained audit identity fields with the existing deleted-account tombstone.
+
+Cancelled provider calls close their reservation as failed with `CancelledError`, charging the conservative pre-call estimate because exact provider billing is unknown after cancellation. Stale pending calls recovered at startup likewise retain their reserved estimate as estimated spend instead of silently refunding it. These are estimates, not reconciled provider invoices.
+
+### APIs and storage
+
+Read-only `/api/auth/admin/operations` and writes to `/api/auth/admin/ai-pause`, `/api/auth/admin/users/{user_id}/active`, and `/api/auth/admin/rooms/{room_code}/terminate` use the existing admin authentication and administrative request-header/origin guards. Ordinary or anonymous accounts receive the concealed admin response; writes require the existing `X-TOT-Admin-Request` convention.
+
+Initialization adds SQLite/PostgreSQL-compatible `ai_controls`, `operator_actions`, and `qte_outcomes` tables. Defaults leave AI open. Existing pause state survives initialization/restart. Live room state remains process-local under the existing runtime architecture; spend, controls, audit, and observed QTE outcomes are durable. No additional runtime dependency or cloud deployment is introduced.
+
+### Validation
+
+- Complete `scripts/check-project.sh` passed after the final source changes: **319 Python tests**, legacy browser JavaScript syntax, React TypeScript/production build, and AWS CDK TypeScript build.
+- Thirteen new operator regressions cover durable pause for players/admins, session revocation, administrator protection, cost/failure aggregation, idempotent QTE telemetry, cancellation/stale-reservation estimates, room-termination cleanup races, cached socket rejection, CSRF/admin guards, retry-sample classification, audit rollback, deletion anonymization, and socket presence cleanup.
+- Headless Chromium checks at 1440px and 390px passed for rendering, absence of page-wide horizontal overflow, room inspection, typed termination confirmation, pause confirmation, and account-disable confirmation. Browser checks used mocked service responses; Python tests exercised real temporary SQLite stores and runtime room managers. No cloud end-to-end test, paid AI call, or deployment was performed.
+- Existing non-blocking build chunk-size and dependency deprecation warnings remain.
+
+Apply the full replacement Pass 46 overlay after Pass 45 and its copy-test correction. On staging, verify fresh telemetry, pause/resume with a tester account, disable/re-enable a disposable tester, and terminate a disposable unfinished room. Confirm its archive appears for participants and that completed Chronicles remain accessible. Test normal gameplay and the next attempted generation after resuming AI.
+
+```bash
+./scripts/release-staging.sh "Pass 46: playtest operations dashboard, AI pause, account controls, and audited room termination"
+```

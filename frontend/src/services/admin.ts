@@ -244,3 +244,23 @@ export function setUserEntitlement(
     },
   );
 }
+
+export interface OperationsRoom {
+ room_code: string; adventure_id: string; adventure_title: string; play_mode: string;
+ turn_number: number; state: string; online_count: number; player_count: number; started: boolean; pending_qte: boolean;
+ players: Array<{user_id: string; hero_name: string; is_online: boolean; is_host: boolean}>;
+}
+export interface OperationsSnapshot {
+ generated_at: string; period_key: string; ai_paused: boolean;
+ metrics: {retry_calls: number; retry_call_share: number | null; requests: number; failed: number; repairs: number; pending: number; average_latency_ms: number; failure_rate: number; repair_call_share: number; reserved_today_usd: number};
+ lifecycle: {started_retained: number; active: number; lobbies: number; completed: number; abandoned: number};
+ qte: {resolved: number; timed_out: number; timeout_rate: number | null};
+ adventures: Array<{adventure_id: string | null; room_code: string | null; requests: number; input_tokens: number; output_tokens: number; estimated_cost_usd: number; reserved_usd: number; failed: number}>;
+ failures: Array<{event_id: string; occurred_at: string; room_code: string | null; adventure_id: string | null; user_id: string; operation: string; model: string; error_type: string; latency_ms: number}>;
+ actions: Array<{event_id: string; occurred_at: string; actor_id: string; actor_label?: string; target_label?: string; action: string; target_id: string; details: Record<string, unknown>}>;
+ rooms: OperationsRoom[];
+}
+export function getOperations() {return apiFetch<OperationsSnapshot>("/api/auth/admin/operations");}
+export function setAIPause(paused: boolean) {return apiFetch("/api/auth/admin/ai-pause", {method: "PUT", headers: adminHeaders, body: JSON.stringify({paused})});}
+export function setAccountActive(userId: string, enabled: boolean) {return apiFetch(`/api/auth/admin/users/${encodeURIComponent(userId)}/active`, {method: "PUT", headers: adminHeaders, body: JSON.stringify({enabled})});}
+export function terminateRoom(roomCode: string, confirmation: string) {return apiFetch(`/api/auth/admin/rooms/${encodeURIComponent(roomCode)}/terminate`, {method: "POST", headers: adminHeaders, body: JSON.stringify({confirmation})});}

@@ -113,3 +113,18 @@
   .admin-usage-list .admin-usage-actions { grid-column: 1 / -1; justify-content: flex-start; }
   .admin-user-actions { justify-content: flex-start; }
 }
+
+.operations-dashboard { margin-bottom: 1.5rem; }
+.operations-table-wrap { overflow-x: auto; margin: 1rem 0; }
+.operations-table-wrap table { width: 100%; border-collapse: collapse; text-align: left; font-size: .8rem; }
+.operations-table-wrap th, .operations-table-wrap td { padding: .65rem; border-bottom: 1px solid var(--green-dim); vertical-align: top; overflow-wrap: anywhere; }
+.operations-room-detail { width: 100%; overflow-wrap: anywhere; }
+.operations-dashboard .system-notice { margin-top: 1rem; }
+
+.operations-table-wrap table { min-width: 560px; }
+.operations-table-wrap:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+.operations-table-wrap pre { white-space: pre-wrap; max-width: 24rem; }
+@media (max-width: 640px) {
+  .operations-dashboard .admin-stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .operations-dashboard .admin-stat-grid > div { min-width: 0; }
+}

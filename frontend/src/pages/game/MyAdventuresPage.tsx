@@ -7,7 +7,7 @@ import { apiFetch } from "../../services/api";
 import { useGameSocket } from "../../state/GameSocketContext";
 type Shelf = "active" | "completed" | "abandoned";
 interface Journey {
- room_code: string; character_id?: string; adventure_id: string; adventure_title?: string;
+ ended_by?: string; room_code: string; character_id?: string; adventure_id: string; adventure_title?: string;
  world_title?: string; target_turns?: number; turn_history?: {turn_number: number; scene_title: string; resolution: string}[]; turn_count: number; updated_at?: string; completed_at?: string; play_mode?: string;
  recap: string; final_resolution?: string; ending_label?: string; director_retry_required?: boolean;
  players: {character_name: string; character_id: string}[];
@@ -54,7 +54,7 @@ export function MyAdventuresPage() {
      <div className="history-card-actions">
       {shelf === "active" ? <Link className="button button-primary" to={`/game/adventure/${encodeURIComponent(row.room_code)}?hero=${encodeURIComponent(row.character_id || "")}`}>{row.director_retry_required ? "RECOVER ADVENTURE" : "CONTINUE"}</Link> : null}
       {shelf === "completed" ? <><details><summary>READ CHRONICLE</summary><p>{row.final_resolution || row.recap}</p>{row.turn_history?.map((turn, index) => <section key={index}><strong>TURN {turn.turn_number} // {turn.scene_title}</strong><p>{turn.resolution}</p></section>)}</details><ShareMomentButton title={`${title} — Tales of Two`} text={`${row.ending_label || ""} // ${text}`} url={`${window.location.origin}/`} label="SHARE CHRONICLE" className="button button-quiet" /><Link className="button" to="/game">PLAY ANOTHER ADVENTURE</Link></> : null}
-      {shelf === "abandoned" ? <span>Ended by the host. Hero progress is preserved.</span> : null}
+      {shelf === "abandoned" ? <span>Ended by {row.ended_by === "operator" ? "the operator" : "the host"}. Hero progress is preserved.</span> : null}
      </div>
     </article>;
    })}</div>

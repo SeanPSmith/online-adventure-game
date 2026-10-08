@@ -28,6 +28,9 @@ say "Legacy browser JavaScript syntax"
 node --check app/web/author/author.js
 node --check app/web/adventure_ui.js
 
+say "Adventure reconnect regressions"
+node --test scripts/tests/adventure-recovery.cjs
+
 say "React production build"
 (
   cd frontend

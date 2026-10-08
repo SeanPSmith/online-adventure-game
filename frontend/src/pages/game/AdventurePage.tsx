@@ -208,6 +208,8 @@ export function AdventurePage() {
         : "READY";
 
   const choicesBlocked =
+    !connected ||
+    live.status !== "ready" ||
     choiceLocked ||
     lockPending ||
     Boolean(live.game?.turn_pending) ||
@@ -326,11 +328,15 @@ export function AdventurePage() {
     }
   }, [live.error, choiceLocked]);
 
+  useEffect(() => {
+    if (live.status !== "ready") setLockPending(false);
+  }, [live.status]);
+
   function submitChat(event: FormEvent) {
     event.preventDefault();
 
     const clean = chatText.trim();
-    if (!clean) return;
+    if (!clean || !connected || live.status !== "ready") return;
 
     live.sendChat(clean);
     setChatText("");
@@ -422,6 +428,18 @@ export function AdventurePage() {
 
   return (
     <>
+      {live.status !== "ready" ? (
+        <div className="system-notice adventure-restore-failure" role="status" aria-live="polite">
+          <strong>{connected ? "RESTORING ADVENTURE" : "CONNECTION INTERRUPTED"}</strong>
+          <span>{live.error || "Waiting for your saved room and current turn. Actions unlock when restoration finishes."}</span>
+          <div className="button-row">
+            <button className="button" type="button" onClick={live.restore} disabled={live.status === "resuming"}>
+              RECONNECT / RESTORE
+            </button>
+            <Link className="button" to="/game/adventures">MY ADVENTURES</Link>
+          </div>
+        </div>
+      ) : null}
       <div className="adventure-layout">
         <section className="story-pane panel" ref={storyPaneRef}>
           <div className="scene-art">
@@ -507,7 +525,7 @@ ${scene.body.slice(0, 260)}`}
                 <button
                   className="button button-quiet"
                   type="button"
-                  disabled={Boolean(live.playerId && live.game.wrap_up_votes.includes(live.playerId))}
+                  disabled={!connected || live.status !== "ready" || Boolean(live.playerId && live.game.wrap_up_votes.includes(live.playerId))}
                   onClick={live.requestWrapUp}
                 >
                   {live.playerId && live.game.wrap_up_votes.includes(live.playerId)
@@ -554,7 +572,7 @@ ${scene.body.slice(0, 260)}`}
                 <button
                   className="button button-primary adventure-get-started"
                   type="button"
-                  disabled={!live.game?.can_begin_adventure}
+                  disabled={!connected || live.status !== "ready" || !live.game?.can_begin_adventure}
                   onClick={live.startAdventure}
                 >
                   {live.game?.can_begin_adventure ? "GET STARTED" : "WAITING FOR PARTY"}

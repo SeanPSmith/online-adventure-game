@@ -1082,3 +1082,28 @@ Staging logs confirmed `psycopg.errors.IndeterminateDatatype: could not determin
 The history query now conditionally appends the fixed `player.character_id = ?` predicate only when a character ID is supplied. User and character values remain bound parameters, and the user ownership predicate always applies. Account-level history continues to return all owned Heroes' completed stories with existing deduplication. No schema migration or record modification is required.
 
 Validation: 324 Python tests passed. Five new regression cases cover the SQL emitted through the PostgreSQL adapter (including absent, empty, and quoted character IDs), owner isolation, Hero filtering, and account-level library results. The adapter tests use a recording connection; a live PostgreSQL instance was unavailable locally. Staging verification after release: open a Hero sheet and My Adventures, and confirm their history requests return HTTP 200.
+
+
+## Pass 47 — Adventure reconnect and action recovery (2026-10-08)
+
+Baseline: Pass 46 plus the PostgreSQL Hero-history hotfix. Previous documentation is preserved verbatim.
+
+### Player behavior
+
+An interrupted adventure retains its last received scene and shows a live recovery notice with Reconnect / Restore and My Adventures controls. Restoration requires both the matching Hero's resume acknowledgement and a current room game snapshot before actions unlock. A partial acknowledgement no longer disables the twelve-second restore watchdog. Timeout allows a manual restore attempt; repeated clicks while a restore is pending do not emit duplicate resume requests. Connection failures explain how to retry or sign in again.
+
+Disconnect immediately revokes the client action gate. Choice submission, generation retry, adventure start, wrap-up, QTE response, intermission score and chat are rejected locally while disconnected or awaiting restoration, so these actions do not enter Socket.IO's offline send queue. Create, join, solo conversion, leave and abandon similarly require a connected socket. Requests already sent before a disconnect remain subject to existing server behavior; this is not a new end-to-end acknowledgement or exactly-once protocol.
+
+Reconnect clears transient choice/countdown/writing presentation and restores authoritative readiness from the server. Local choice lock-pending state clears when recovery starts. The selected local choice and unsent chat draft remain available. Automatic reconnect continues using the existing socket policy; manual recovery reopens a disconnected socket or resumes the currently selected room. No automatic Director retry or paid model call is added.
+
+### Verification
+
+Complete project checks passed: 324 Python tests, eight deterministic reconnect tests exercising the real TypeScript hook with React/socket/timer adapters, legacy JavaScript syntax, React TypeScript/production build, and AWS CDK TypeScript build. The reconnect tests are now included in scripts/check-project.sh. They cover offline emission prevention, partial/reordered restore, wrong Hero/room responses, disconnect preservation, timeout/retry, handler cleanup and retryable-error gating. The test harness uses Node's built-in TypeScript stripping API (supported by the project's Node >=22.22 requirement), which can print an experimental-feature warning.
+
+No live cloud disconnect test or new browser visual QA was performed. Existing dependency deprecation and bundle-size warnings remain. No backend/schema changes or deployment occurred in this pass.
+
+Staging smoke: enter First Light, interrupt networking, verify the recovery notice and blocked actions, restore networking and confirm the saved turn resumes. Repeat during a locked choice and pending Director turn; verify no choice or paid retry is automatically resent. Check manual recovery after a restore timeout and after session expiry.
+
+```bash
+./scripts/release-staging.sh "Pass 47: adventure reconnect recovery and offline action guards"
+```

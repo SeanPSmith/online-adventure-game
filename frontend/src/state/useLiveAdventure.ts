@@ -62,6 +62,7 @@ export interface LiveAdventureState {
   submitIntermissionScore: (turnNumber: number, gameId: string, score: number) => void;
   sendChat: (text: string) => void;
   sync: () => void;
+  restore: () => void;
   clearError: () => void;
   clearRetryableError: () => void;
   dismissMicroEventResolution: () => void;
@@ -90,6 +91,14 @@ export function useLiveAdventure(
   const [error, setError] = useState("");
   const [retryableError, setRetryableError] = useState<ServerErrorPayload | null>(null);
 
+  const readyRef = useRef(false);
+  const restoreRef = useRef<() => void>(() => undefined);
+  const restore = useCallback(() => restoreRef.current(), []);
+  const canSend = useCallback(() => {
+    if (getGameSocket().connected && readyRef.current) return true;
+    setError("Wait for the adventure to reconnect and restore before sending an action.");
+    return false;
+  }, []);
   const identityRef = useRef("");
   const lastGameTurnRef = useRef<number | null>(null);
 
@@ -105,6 +114,7 @@ export function useLiveAdventure(
   }, [normalizedRoomCode]);
 
   useEffect(() => {
+    readyRef.current = false;
     if (!normalizedRoomCode || !normalizedCharacterId) {
       setStatus("waiting");
       return;
@@ -131,6 +141,9 @@ export function useLiveAdventure(
     const socket = getGameSocket();
     const identity = `${normalizedRoomCode}:${normalizedCharacterId}`;
     identityRef.current = identity;
+    let resumeConfirmed = false;
+    let snapshotReceived = false;
+    let restoring = false;
     let resumeWatchdog: ReturnType<typeof setTimeout> | null = null;
 
     const clearResumeWatchdog = () => {
@@ -143,10 +156,26 @@ export function useLiveAdventure(
     const matchesRoom = (candidate?: string | null) =>
       !candidate || candidate.trim().toUpperCase() === normalizedRoomCode;
 
+    const finishRestore = () => {
+      if (!resumeConfirmed || !snapshotReceived) return;
+      clearResumeWatchdog();
+      restoring = false;
+      readyRef.current = true;
+      setStatus("ready");
+      setError("");
+    };
+
     const resume = () => {
-      if (identityRef.current !== identity) return;
+      if (identityRef.current !== identity || !socket.connected || restoring) return;
+      restoring = true;
+      readyRef.current = false;
+      resumeConfirmed = false;
+      snapshotReceived = false;
 
       clearResumeWatchdog();
+      setChoiceAccepted(null);
+      setTurnLockCountdown(null);
+      setStoryAdvancing(null);
       setStatus("resuming");
       setError("");
       setRetryableError(null);
@@ -162,6 +191,8 @@ export function useLiveAdventure(
       resumeWatchdog = setTimeout(() => {
         if (identityRef.current !== identity) return;
 
+        restoring = false;
+        readyRef.current = false;
         setStatus("error");
         setError(
           "The adventure server did not finish restoring this room. Return to the Adventure Hall to recover or abandon it.",
@@ -169,15 +200,33 @@ export function useLiveAdventure(
       }, 12000);
     };
 
-    const onResumeSuccess = (payload: ResumeSuccessPayload) => {
-      if (!matchesRoom(payload?.room?.code)) return;
-
+    const onDisconnect = () => {
       clearResumeWatchdog();
+      restoring = false;
+      readyRef.current = false;
+      resumeConfirmed = false;
+      snapshotReceived = false;
+      setStatus("waiting");
+      setError("Connection lost. Your last received scene remains visible while we reconnect.");
+    };
+    const onConnectError = () => {
+      onDisconnect();
+      setStatus("error");
+      setError("Unable to connect. Check your connection, then try restoring again. If your session expired, sign in again.");
+    };
+    restoreRef.current = () => {
+      if (socket.connected) resume();
+      else socket.connect();
+    };
+
+    const onResumeSuccess = (payload: ResumeSuccessPayload) => {
+      if (!matchesRoom(payload?.room?.code) || payload.character_id !== normalizedCharacterId) return;
+
+      resumeConfirmed = true;
       setRoom(payload.room);
       setPlayerId(payload.player_id);
       setFinale(payload.completed ? payload.finale ?? null : null);
-      setStatus("ready");
-      setError("");
+      finishRestore();
     };
 
     const onRoomState = (payload: RoomState) => {
@@ -188,7 +237,7 @@ export function useLiveAdventure(
     const onGameState = (payload: GameState) => {
       if (!matchesRoom(payload?.room_code)) return;
 
-      clearResumeWatchdog();
+      snapshotReceived = true;
 
       if (
         lastGameTurnRef.current !== null &&
@@ -218,7 +267,7 @@ export function useLiveAdventure(
         );
       }
 
-      setStatus("ready");
+      finishRestore();
     };
 
     const onChatHistory = (payload: { room_code: string; messages: ChatMessage[] }) => {
@@ -299,6 +348,7 @@ export function useLiveAdventure(
     const onRoomError = (payload: ServerErrorPayload) => {
       if (!matchesRoom(payload?.room_code)) return;
       clearResumeWatchdog();
+      restoring = false;
       setError(String(payload?.message ?? "The thread slipped."));
       setStatus((current) => current === "resuming" ? "error" : current);
     };
@@ -308,7 +358,7 @@ export function useLiveAdventure(
 
       if (payload?.retryable) {
         setRetryableError(payload);
-        setStatus("ready");
+        if (readyRef.current) setStatus("ready");
         return;
       }
 
@@ -322,6 +372,8 @@ export function useLiveAdventure(
     };
 
     socket.on("connect", resume);
+    socket.on("disconnect", onDisconnect);
+    socket.on("connect_error", onConnectError);
     socket.on("resume_success", onResumeSuccess);
     socket.on("room_state", onRoomState);
     socket.on("game_state", onGameState);
@@ -344,9 +396,13 @@ export function useLiveAdventure(
 
     return () => {
       identityRef.current = "";
+      readyRef.current = false;
+      restoreRef.current = () => undefined;
       clearResumeWatchdog();
 
       socket.off("connect", resume);
+      socket.off("disconnect", onDisconnect);
+      socket.off("connect_error", onConnectError);
       socket.off("resume_success", onResumeSuccess);
       socket.off("room_state", onRoomState);
       socket.off("game_state", onGameState);
@@ -368,6 +424,7 @@ export function useLiveAdventure(
   }, [normalizedRoomCode, normalizedCharacterId]);
 
   const submitChoice = useCallback((choiceId: string) => {
+    if (!canSend()) return;
     const clean = choiceId.trim();
     if (!clean) return;
 
@@ -375,9 +432,10 @@ export function useLiveAdventure(
     getGameSocket().emit("submit_choice", {
       choice_id: clean,
     });
-  }, []);
+  }, [canSend]);
 
   const retryPendingTurn = useCallback(() => {
+    if (!canSend()) return;
     if (!normalizedRoomCode) return;
 
     setRetryableError(null);
@@ -386,25 +444,28 @@ export function useLiveAdventure(
     getGameSocket().emit("retry_pending_turn", {
       room_code: normalizedRoomCode,
     });
-  }, [normalizedRoomCode]);
+  }, [normalizedRoomCode, canSend]);
 
   const startAdventure = useCallback(() => {
+    if (!canSend()) return;
     if (!normalizedRoomCode) return;
     setError("");
     getGameSocket().emit("start_adventure", {
       room_code: normalizedRoomCode,
     });
-  }, [normalizedRoomCode]);
+  }, [normalizedRoomCode, canSend]);
 
   const requestWrapUp = useCallback(() => {
+    if (!canSend()) return;
     if (!normalizedRoomCode) return;
 
     getGameSocket().emit("request_wrap_up", {
       room_code: normalizedRoomCode,
     });
-  }, [normalizedRoomCode]);
+  }, [normalizedRoomCode, canSend]);
 
   const submitMicroEventChoice = useCallback((optionId: string) => {
+    if (!canSend()) return;
     if (!normalizedRoomCode) return;
 
     const clean = optionId.trim();
@@ -414,13 +475,14 @@ export function useLiveAdventure(
       room_code: normalizedRoomCode,
       option_id: clean,
     });
-  }, [normalizedRoomCode]);
+  }, [normalizedRoomCode, canSend]);
 
   const submitIntermissionScore = useCallback((
     turnNumber: number,
     gameId: string,
     score: number,
   ) => {
+    if (!canSend()) return;
     if (!normalizedRoomCode) return;
 
     const cleanGameId = gameId.trim();
@@ -432,9 +494,10 @@ export function useLiveAdventure(
       game_id: cleanGameId,
       score: Math.max(0, Math.min(999, Math.round(score))),
     });
-  }, [normalizedRoomCode]);
+  }, [normalizedRoomCode, canSend]);
 
   const sendChat = useCallback((text: string) => {
+    if (!canSend()) return;
     const clean = text.trim();
 
     if (!clean || clean.length > 500) return;
@@ -442,7 +505,7 @@ export function useLiveAdventure(
     getGameSocket().emit("send_chat", {
       text: clean,
     });
-  }, []);
+  }, [canSend]);
 
   const clearError = useCallback(() => setError(""), []);
   const clearRetryableError = useCallback(() => setRetryableError(null), []);
@@ -472,6 +535,7 @@ export function useLiveAdventure(
     submitIntermissionScore,
     sendChat,
     sync,
+    restore,
     clearError,
     clearRetryableError,
     dismissMicroEventResolution,

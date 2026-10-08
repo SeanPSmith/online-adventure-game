@@ -75,7 +75,14 @@ export function GameSocketProvider({ children }: { children: ReactNode }) {
       setLatestError("");
     };
 
-    const onDisconnect = () => setConnected(false);
+    const onDisconnect = () => {
+      setConnected(false);
+      setDirectoryReady(false);
+    };
+    const onConnectError = () => {
+      onDisconnect();
+      setLatestError("Unable to connect to the adventure server. Check your connection or sign in again.");
+    };
 
     const onCatalog = (payload: { adventures: AdventureCatalogItem[] }) => {
       setCatalog(Array.isArray(payload?.adventures) ? payload.adventures : []);
@@ -118,6 +125,7 @@ export function GameSocketProvider({ children }: { children: ReactNode }) {
 
     socket.on("connect", onConnect);
     socket.on("disconnect", onDisconnect);
+    socket.on("connect_error", onConnectError);
     socket.on("adventure_catalog", onCatalog);
     socket.on("adventure_list", onAdventureList);
     socket.on("room_joined", onRoomJoined);
@@ -136,6 +144,7 @@ export function GameSocketProvider({ children }: { children: ReactNode }) {
     return () => {
       socket.off("connect", onConnect);
       socket.off("disconnect", onDisconnect);
+      socket.off("connect_error", onConnectError);
       socket.off("adventure_catalog", onCatalog);
       socket.off("adventure_list", onAdventureList);
       socket.off("room_joined", onRoomJoined);
@@ -157,6 +166,10 @@ export function GameSocketProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const createRoom = useCallback((characterId: string, adventureId: string, playMode: "solo" | "coop" = "coop") => {
+    if (!getGameSocket().connected) {
+      setLatestError("Reconnect before sending this action. Nothing was queued.");
+      return;
+    }
     setLatestError("");
     getGameSocket().emit("create_room", {
       character_id: characterId,
@@ -166,6 +179,10 @@ export function GameSocketProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const joinRoom = useCallback((characterId: string, roomCode: string) => {
+    if (!getGameSocket().connected) {
+      setLatestError("Reconnect before sending this action. Nothing was queued.");
+      return;
+    }
     setLatestError("");
     getGameSocket().emit("join_room", {
       character_id: characterId,
@@ -174,6 +191,10 @@ export function GameSocketProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const startSolo = useCallback((roomCode: string) => {
+    if (!getGameSocket().connected) {
+      setLatestError("Reconnect before sending this action. Nothing was queued.");
+      return;
+    }
     setLatestError("");
     getGameSocket().emit("start_solo", {
       room_code: roomCode.trim().toUpperCase(),
@@ -181,6 +202,10 @@ export function GameSocketProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const leaveAdventure = useCallback((roomCode: string, characterId: string) => {
+    if (!getGameSocket().connected) {
+      setLatestError("Reconnect before sending this action. Nothing was queued.");
+      return;
+    }
     setLatestError("");
     getGameSocket().emit("leave_adventure", {
       room_code: roomCode.trim().toUpperCase(),
@@ -189,6 +214,10 @@ export function GameSocketProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const abandonAdventure = useCallback((roomCode: string) => {
+    if (!getGameSocket().connected) {
+      setLatestError("Reconnect before sending this action. Nothing was queued.");
+      return;
+    }
     setLatestError("");
     getGameSocket().emit("abandon_adventure", {
       room_code: roomCode.trim().toUpperCase(),

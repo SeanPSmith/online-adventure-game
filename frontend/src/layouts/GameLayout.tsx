@@ -10,6 +10,7 @@ export function GameLayout() {
 
   return (
     <div className={`site-shell game-site-shell ${isAdventureMode ? "is-adventure-mode" : ""}`}>
+      <a className="skip-link" href="#main-content">SKIP TO CONTENT</a>
       <header className={`site-header game-header ${isAdventureMode ? "is-adventure-header" : ""}`}>
         <Link className="brand" to="/game">
           <span className="brand-mark">T2</span>
@@ -44,7 +45,7 @@ export function GameLayout() {
         </div>
       </header>
 
-      <main className="game-main">
+      <main id="main-content" tabIndex={-1} className="game-main">
         <Outlet />
       </main>
     </div>

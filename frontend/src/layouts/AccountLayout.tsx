@@ -10,6 +10,7 @@ export function AccountLayout() {
 
   return (
     <div className="site-shell">
+      <a className="skip-link" href="#main-content">SKIP TO CONTENT</a>
       <header className="site-header">
         <Link className="brand" to="/game">
           <span className="brand-mark">T2</span>
@@ -23,7 +24,7 @@ export function AccountLayout() {
           <Link to={returnToGame}>RETURN TO GAME</Link>
         </nav>
       </header>
-      <main className="account-main">
+      <main id="main-content" tabIndex={-1} className="account-main">
         <Outlet />
       </main>
     </div>

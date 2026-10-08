@@ -20,6 +20,7 @@ export function PublicLayout() {
 
   return (
     <div className="site-shell public-shell">
+      <a className="skip-link" href="#main-content">SKIP TO CONTENT</a>
       <header className="site-header public-header">
         <Link className="brand" to="/" aria-label="Tales of Two home">
           <span className="brand-mark" aria-hidden="true">T2</span>
@@ -60,7 +61,7 @@ export function PublicLayout() {
         </nav>
       </header>
 
-      <main className="public-main">
+      <main id="main-content" tabIndex={-1} className="public-main">
         <Outlet />
       </main>
 

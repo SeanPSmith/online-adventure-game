@@ -815,10 +815,18 @@ class SQLiteStateStore:
         character_id: str | None,
     ) -> list[dict]:
 
+        # Each PostgreSQL bind parameter needs its own type context. An
+        # independent `? IS NULL` cannot infer text from a later placeholder.
+        character_filter = ""
+        parameters = (user_id,)
+        if character_id is not None:
+            character_filter = " AND player.character_id = ?"
+            parameters += (character_id,)
+
         with self._connect() as connection:
 
             rows = connection.execute(
-                """
+                f"""
                 SELECT
                     history.history_id,
                     history.room_code,
@@ -842,15 +850,11 @@ class SQLiteStateStore:
                     = history.history_id
 
                 WHERE player.user_id = ?
-                  AND (? IS NULL OR player.character_id = ?)
+                  {character_filter}
 
                 ORDER BY history.completed_at DESC
                 """,
-                (
-                    user_id,
-                    character_id,
-                    character_id,
-                ),
+                parameters,
             ).fetchall()
 
 

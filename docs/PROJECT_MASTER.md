@@ -1073,3 +1073,12 @@ Apply the full replacement Pass 46 overlay after Pass 45 and its copy-test corre
 ```bash
 ./scripts/release-staging.sh "Pass 46: playtest operations dashboard, AI pause, account controls, and audited room termination"
 ```
+
+
+## Pass 46 hotfix — PostgreSQL Hero story history (2026-10-08)
+
+Staging logs confirmed `psycopg.errors.IndeterminateDatatype: could not determine data type of parameter $2` in `_list_completed_adventures_sync`. Hero detail and creation-rules requests returned HTTP 200; completed-story requests and My Adventures failed with HTTP 500. The optional character condition used an independent untyped `? IS NULL` bind. SQLite accepted this query, so the prior SQLite regression suite did not catch the PostgreSQL failure.
+
+The history query now conditionally appends the fixed `player.character_id = ?` predicate only when a character ID is supplied. User and character values remain bound parameters, and the user ownership predicate always applies. Account-level history continues to return all owned Heroes' completed stories with existing deduplication. No schema migration or record modification is required.
+
+Validation: 324 Python tests passed. Five new regression cases cover the SQL emitted through the PostgreSQL adapter (including absent, empty, and quoted character IDs), owner isolation, Hero filtering, and account-level library results. The adapter tests use a recording connection; a live PostgreSQL instance was unavailable locally. Staging verification after release: open a Hero sheet and My Adventures, and confirm their history requests return HTTP 200.

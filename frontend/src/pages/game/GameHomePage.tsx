@@ -75,6 +75,7 @@ export function GameHomePage() {
   const [catalogSearch, setCatalogSearch] = useState("");
   const [selectedTag, setSelectedTag] = useState("ALL");
   const [pendingAdventure, setPendingAdventure] = useState<AdventureCatalogItem | null>(null);
+  const [pendingPlayMode, setPendingPlayMode] = useState<"solo" | "coop">("solo");
   const [pendingJourneyExit, setPendingJourneyExit] = useState<{
     adventure: AdventureListItem;
     mode: "leave" | "abandon";
@@ -203,6 +204,7 @@ export function GameHomePage() {
 
   function inspectAdventure(adventure: AdventureCatalogItem) {
     if (!selectedHeroId) return;
+    setPendingPlayMode("solo");
     setPendingAdventure(adventure);
   }
 
@@ -211,7 +213,7 @@ export function GameHomePage() {
 
     const adventureId = pendingAdventure.adventure_id;
     setPendingAdventure(null);
-    createRoom(selectedHeroId, adventureId);
+    createRoom(selectedHeroId, adventureId, pendingPlayMode);
   }
 
   function joinExistingRoom() {
@@ -582,6 +584,28 @@ export function GameHomePage() {
             <div className="adventure-synopsis-body">
               <p>{generatedSynopsis(pendingAdventure)}</p>
 
+              <div className="synopsis-play-mode" role="group" aria-label="Choose adventure party mode">
+                <span className="eyebrow">HOW DO YOU WANT TO PLAY?</span>
+                <div className="button-row">
+                  <button
+                    className={`button ${pendingPlayMode === "solo" ? "button-primary" : ""}`}
+                    type="button"
+                    aria-pressed={pendingPlayMode === "solo"}
+                    onClick={() => setPendingPlayMode("solo")}
+                  >
+                    SOLO
+                  </button>
+                  <button
+                    className={`button ${pendingPlayMode === "coop" ? "button-primary" : ""}`}
+                    type="button"
+                    aria-pressed={pendingPlayMode === "coop"}
+                    onClick={() => setPendingPlayMode("coop")}
+                  >
+                    WITH A FRIEND
+                  </button>
+                </div>
+              </div>
+
               <div className="synopsis-meta-grid">
                 <div>
                   <span>HERO</span>
@@ -589,7 +613,7 @@ export function GameHomePage() {
                 </div>
                 <div>
                   <span>MODE</span>
-                  <strong>CO-OP ROOM</strong>
+                  <strong>{pendingPlayMode === "solo" ? "SOLO" : "CO-OP / 2 HEROES"}</strong>
                 </div>
                 <div>
                   <span>TAGS</span>
@@ -602,8 +626,9 @@ export function GameHomePage() {
               </div>
 
               <div className="system-notice synopsis-party-note">
-                THE FIRST STORY PAGE IS ALREADY PREPARED. ASSEMBLE THE PARTY OR SWITCH TO SOLO,
-                THEN THE HOST PRESSES GET STARTED AND TURN ONE OPENS IMMEDIATELY.
+                {pendingPlayMode === "solo"
+                  ? "YOU'LL ENTER A SOLO LOBBY. PRESS GET STARTED TO BEGIN IMMEDIATELY."
+                  : "YOU'LL ENTER A TWO-HERO LOBBY. INVITE YOUR FRIEND, THEN PRESS GET STARTED WHEN BOTH HEROES ARE ONLINE."}
               </div>
             </div>
 

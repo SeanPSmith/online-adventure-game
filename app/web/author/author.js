@@ -2477,7 +2477,9 @@ async function updateGeneratedStatus(
                 "APPROVED — reload the game lobby and it will appear as a generated adventure."
             );
         } else if (action === "retire") {
-            showToast("GENERATED ADVENTURE RETIRED_");
+            showToast(
+                "GENERATED ADVENTURE RETIRED — refresh the Adventure Hall to update its catalog."
+            );
         } else {
             showToast("GENERATED ADVENTURE REJECTED_");
         }
@@ -3349,7 +3351,7 @@ async function toggleArchive() {
             kicker: archived ? "ARCHIVE SOURCE" : "RESTORE SOURCE",
             title: archived ? "Archive this source?" : "Restore this source?",
             message: archived
-                ? "It will leave the normal library view but remain available under Archived."
+                ? "This hides the World/Brief source in the library, but does NOT remove approved generated stories from the player catalog. RETIRE each old approved seed separately under Generated Seeds."
                 : "It will return to the normal library view.",
             confirmLabel: archived ? "ARCHIVE" : "RESTORE",
             danger: archived,

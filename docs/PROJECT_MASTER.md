@@ -4,7 +4,7 @@
 > Update or rewrite the relevant sections in this file as the product changes; do not create another numbered changelog copy.
 
 **Last consolidated:** 2026-10-08  
-**Current local baseline:** Pass 50 (feature-organized regression suite), built on Pass 49  
+**Current local baseline:** Pass 51 (explicit solo/co-op catalog launch), built on Pass 50  
 **Public site:** `https://onlinetextadventure.com`  
 **Primary release command:** `./scripts/release-staging.sh "Describe the release"`
 
@@ -597,7 +597,7 @@ A Brief can then feature that same World NPC and add adventure-only instructions
 
 Generated adventures persist a player synopsis produced by a **dedicated lightweight AI copy pass every time**. The synopsis is one or two short literary paragraphs that infer the adventure from safe planning data rather than quoting/cleaning the Brief. It must read like novel jacket copy: atmospheric and inviting, without listing locations, NPC dossiers, lore entries, objectives, tags, hidden truths, finale plans, mechanics, forms, or design notes. If that optional copy pass fails, the validated seed synopsis remains the fallback so generation itself is not blocked.
 
-Retired seeds are hidden from new player discovery while existing rooms using them remain recoverable.
+Retired seeds are hidden from new player discovery while existing rooms using them remain recoverable. **Publishing a newer World or Brief version, or archiving an older source document, does not unpublish previously approved generated seeds.** Playable seeds retain their approved runtime identity and content until an Author explicitly selects **RETIRE** in that Brief’s Generated Seeds panel. After retirement, refresh the Adventure Hall to request an updated catalog; active runs remain recoverable. Archived Briefs can be opened using the Author library’s Archived filter to retire seeds sourced from them.
 
 ---
 
@@ -759,6 +759,8 @@ The authenticated home is organized around:
 3. Your Heroes.
 4. Searchable Adventure Library.
 5. Secondary System tools.
+
+The normal Adventure Library synopsis has an explicit **Solo / With a Friend** selector, defaulting to Solo. Selecting Solo creates a one-Hero room ready for **Get Started**; choosing With a Friend creates a two-Hero party lobby requiring both Heroes online. The player should never unknowingly enter a two-Hero waiting lobby just by choosing a story. Existing co-op lobbies still have a pre-start **Start Solo** conversion; existing unfinished runs are resumed or abandoned rather than resetting accounts or Heroes.
 
 Auxiliary routes are grouped rather than presented as equally important flat navigation.
 
@@ -986,6 +988,7 @@ This is intentionally short. Historical numbered changelog files remain archive 
 - **Pass 48 — Mobile / Keyboard / Shared Dialogs:** mobile controls, visible focus and skip navigation, accessible modal focus/escape behavior.
 - **Pass 49 — Lazy Route Delivery:** React Router route-level page splitting, accessible navigation-loading notice, and explicit recovery from failed chunk downloads; no API or database changes.
 - **Pass 50 — Regression Suite Organization:** feature-oriented Python test packages and descriptive module names, centralized project-root handling, safe one-time deletion of old paths, and suite documentation; no product runtime or database changes.
+- **Pass 51 — Solo Story Launch & Catalog Clarity:** normal story catalog now explicitly selects Solo (default) or With a Friend before room creation, and Author archiving warns that approved generated seeds require separate retirement; no database changes.
 
 
 ## 21. Documentation Policy

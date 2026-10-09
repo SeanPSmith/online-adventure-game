@@ -564,6 +564,20 @@ def room_can_start_solo(
     return not bool(getattr(session, "started", True)) and not session.completed
 
 
+def opening_scene_ready(session) -> bool:
+    """A lobby may open only when an actual playable opening is available.
+
+    Approved generated seeds already ship with opening prose and choices; this
+    check does not invoke the Story Director or spend tokens. It also protects
+    against a malformed/retired seed creating a lobby that can never play.
+    """
+    try:
+        scene = session.scene
+        return bool(str(scene.body or "").strip()) and bool(scene.choices)
+    except (AttributeError, AssertionError, KeyError, ValueError):
+        return False
+
+
 def room_can_begin_adventure(
     room,
     session,
@@ -571,7 +585,7 @@ def room_can_begin_adventure(
     if room is None or session is None or session.completed or bool(getattr(session, "started", True)):
         return False
 
-    if not room.has_required_party:
+    if not room.has_required_party or not opening_scene_ready(session):
         return False
 
     online_players = [
@@ -715,6 +729,13 @@ def build_game_state(
                 room,
                 session,
             ),
+
+        "opening_ready": opening_scene_ready(session),
+
+        "adventure_synopsis": (
+            str(session.adventure.metadata.get("player_synopsis") or "").strip()
+            or session.adventure.description
+        ),
 
         "adventure_id":
             session.adventure_id,

@@ -199,6 +199,9 @@ export function AdventurePage() {
     theater.phase === "none",
   );
 
+  const openingReady = Boolean(live.game?.opening_ready && scene?.body?.trim() && scene.choices.length > 0);
+  const canBeginAdventure = Boolean(live.game?.can_begin_adventure && openingReady);
+
   const directorState = live.game?.director_request_active
     ? "WRITING"
     : live.game?.director_retry_required
@@ -552,14 +555,25 @@ ${scene.body.slice(0, 260)}`}
           {!live.game?.started ? (
             <article className="story-copy adventure-lobby-stage">
               <div className="story-heading-row">
-                <span className="eyebrow">PARTY ASSEMBLY</span>
-                <span className="story-turn-marker">TURN 01 PREPARED</span>
+                <span className="eyebrow">BEFORE THE FIRST PAGE</span>
+                <span className="story-turn-marker">CHAPTER I // THE BEGINNING</span>
               </div>
-              <h1>THE STORY IS READY.</h1>
-              <p>
-                Your story is ready. Playing solo? Press Get Started to begin. Playing with a friend?
-                Invite them or share your room code, wait for their Hero to join, then the host presses Get Started.
-              </p>
+              <h1>{live.game?.adventure_title ?? matchingAdventure?.adventure_title ?? "A NEW TALE AWAITS"}</h1>
+              <section className="adventure-lobby-synopsis" aria-label="Adventure synopsis">
+                <span className="eyebrow">THE TALE AHEAD</span>
+                <p>{live.game?.adventure_synopsis || "A new road opens before your Hero. Every choice will shape the tale that follows."}</p>
+              </section>
+              <div className={`adventure-opening-status ${openingReady ? "is-ready" : ""}`} role="status" aria-live="polite">
+                <strong>{openingReady ? "THE FIRST CHAPTER IS READY" : "PREPARING THE FIRST CHAPTER_"}</strong>
+                <span>{openingReady
+                  ? "The opening scene awaits. Begin when your party is assembled."
+                  : "The opening page is not yet available. Please remain in the hall."}</span>
+              </div>
+              {live.room?.play_mode === "coop" ? (
+                <p className="muted-copy">Invite your companion, then begin when both Heroes have arrived.</p>
+              ) : (
+                <p className="muted-copy">A solitary road is yours to take whenever you are ready.</p>
+              )}
               <div className="adventure-lobby-roster">
                 {readiness.map((player) => (
                   <div className={`adventure-lobby-player ${player.online ? "is-ready" : ""}`} key={player.player_id}>
@@ -572,13 +586,13 @@ ${scene.body.slice(0, 260)}`}
                 <button
                   className="button button-primary adventure-get-started"
                   type="button"
-                  disabled={!connected || live.status !== "ready" || !live.game?.can_begin_adventure}
+                  disabled={!connected || live.status !== "ready" || !canBeginAdventure}
                   onClick={live.startAdventure}
                 >
-                  {live.game?.can_begin_adventure ? "GET STARTED" : "WAITING FOR PARTY"}
+                  {!openingReady ? "PREPARING CHAPTER_" : canBeginAdventure ? "GET STARTED" : "AWAITING YOUR PARTY"}
                 </button>
               ) : (
-                <div className="system-notice">HOST WILL START WHEN THE PARTY IS READY.</div>
+                <div className="system-notice">THE HOST WILL OPEN THE FIRST CHAPTER WHEN THE PARTY IS READY.</div>
               )}
             </article>
           ) : (

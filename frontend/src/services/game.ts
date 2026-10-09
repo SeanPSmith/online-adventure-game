@@ -378,6 +378,8 @@ export interface GameState {
   started: boolean;
   can_start_solo: boolean;
   can_begin_adventure: boolean;
+  opening_ready: boolean;
+  adventure_synopsis: string;
   adventure_id: string;
   adventure_title: string;
   turn_number: number;

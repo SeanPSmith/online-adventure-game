@@ -4,7 +4,7 @@
 > Update or rewrite the relevant sections in this file as the product changes; do not create another numbered changelog copy.
 
 **Last consolidated:** 2026-10-08  
-**Current local baseline:** Pass 51 (explicit solo/co-op catalog launch), built on Pass 50  
+**Current local baseline:** Pass 52 (staged adventure opening and immersive recovery copy), built on Pass 51  
 **Public site:** `https://onlinetextadventure.com`  
 **Primary release command:** `./scripts/release-staging.sh "Describe the release"`
 
@@ -114,6 +114,14 @@ Docker Desktop is not required on the development Mac.
 ### React frontend loading (Pass 49)
 
 The React router keeps the minimal shared public/game/account shells, authentication gate, route-error boundary, and not-found handler in the entry module. Public, Hero, Adventure, Library, Arcade, Author, Admin, and Account pages use React Router's native `route.lazy` dynamic imports and are fetched only when navigated to. Repeated uses of the Rulebook route reuse the same module chunk. `RootLayout` announces pending route transitions without taking over or clearing the current screen. Failed dynamic-import/chunk requests show a recoverable route error with an explicit reload button (for example, when an older browser tab references chunks replaced by a new deployment). This changes bundle loading and presentation only; it does not affect backend routes, auth entitlements, game state, or story generation. The release pipeline continues to build and upload Vite's generated assets as a unit; a lazy chunk must never be deployed without its matching entry and manifest assets.
+
+### Pass 52 — Adventure lobby and immersive recovery copy
+
+The first chapter is authored at seed-approval time, **not** requested from OpenAI when a player enters the lobby. The backend exposes `opening_ready` (nonempty opening prose and at least one available choice) plus `adventure_synopsis` (published player synopsis, falling back to adventure description). Room start is gated on both opening readiness and the correct number of online Heroes. The lobby stages the synopsis and party roster, then enables **GET STARTED** only when the opening is ready and the host can begin. This requires no new user accounts, data migration, background tasks, or model tokens.
+
+`useTurnTheater` must never infer that a story turn has been locked merely because the pre-start `readiness` snapshot marks an online Hero as ready: `game.started` gates all intermission, countdown, receipt, and retry presentation. A new lobby cannot enter the intermission theater. Resume logic for *started* rooms is unchanged.
+
+Public player-facing lost-route and route-error copy uses the adventure/chronicle voice, with explicit reload and Adventure Hall recovery actions. Technical error details remain out of the rendered error boundary; use logs/telemetry for diagnosis. `docs/COPY_VOICE_GUIDE.md` records the next sitewide pass; player clarity and security take priority over fantasy metaphors.
 
 ### Important cost/scale note
 
@@ -989,6 +997,7 @@ This is intentionally short. Historical numbered changelog files remain archive 
 - **Pass 49 — Lazy Route Delivery:** React Router route-level page splitting, accessible navigation-loading notice, and explicit recovery from failed chunk downloads; no API or database changes.
 - **Pass 50 — Regression Suite Organization:** feature-oriented Python test packages and descriptive module names, centralized project-root handling, safe one-time deletion of old paths, and suite documentation; no product runtime or database changes.
 - **Pass 51 — Solo Story Launch & Catalog Clarity:** normal story catalog now explicitly selects Solo (default) or With a Friend before room creation, and Author archiving warns that approved generated seeds require separate retirement; no database changes.
+- **Pass 52 — Lobby Chapter Staging & Immersive Recovery:** fixed pre-start presence wrongly launching intermission theater; staged published synopsis and validated opening chapter, protected Get Started at server and client, and revised 404/route-error player copy. Added copy voice audit and launch regressions; no DB migration or additional model calls.
 
 
 ## 21. Documentation Policy

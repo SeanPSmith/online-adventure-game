@@ -79,8 +79,8 @@ export function TurnTheater({
             <div className="ascii-hourglass" aria-hidden="true">
               <span>[\\]</span><span>[|]</span><span>[/]</span><span>[-]</span>
             </div>
-            <h2>THE DIRECTOR IS WORKING BEHIND THE CURTAIN_</h2>
-            <p>RECOVERING THE INTERMISSION TABLE_</p>
+            <h2>THE NEXT CHAPTER IS TAKING SHAPE_</h2>
+            <p>THE STORY DIRECTOR IS WRITING WHAT HAPPENS NEXT_</p>
           </>
         ) : null}
 

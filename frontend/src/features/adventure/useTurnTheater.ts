@@ -246,8 +246,24 @@ export function useTurnTheater({
     };
   }, [clearLockTimer, clearReadyTimer, clearReadyFallback]);
 
+  // The backend reports online players as `ready` in the lobby. Those are
+  // party-presence flags, NOT submitted choices. Never start turn theater
+  // until the host has explicitly begun the adventure.
   useEffect(() => {
-    if (!lockCountdown) return;
+    if (!game?.started) {
+      clearLockTimer();
+      clearReadyTimer();
+      clearReadyFallback();
+      pendingReceiptRef.current = null;
+      rememberIntermission(null);
+      setActiveReceipt(null);
+      setCountdownValue(0);
+      setPhase("none");
+    }
+  }, [game?.started, clearLockTimer, clearReadyTimer, clearReadyFallback, rememberIntermission]);
+
+  useEffect(() => {
+    if (!game?.started || !lockCountdown) return;
     if (lockCountdown.room_code !== roomCode) return;
 
     const signalKey = `${lockCountdown.turn_number}:${lockCountdown.duration_seconds}`;
@@ -255,10 +271,10 @@ export function useTurnTheater({
 
     lastLockSignalRef.current = signalKey;
     beginLockCountdown(lockCountdown.duration_seconds);
-  }, [lockCountdown, roomCode, beginLockCountdown]);
+  }, [lockCountdown, roomCode, game?.started, beginLockCountdown]);
 
   useEffect(() => {
-    if (!storyAdvancing || storyAdvancing.room_code !== roomCode) return;
+    if (!game?.started || !storyAdvancing || storyAdvancing.room_code !== roomCode) return;
 
     rememberIntermission({
       ...storyAdvancing,
@@ -268,10 +284,10 @@ export function useTurnTheater({
     if (phase !== "lock-countdown" && phase !== "story-ready" && phase !== "resolution") {
       setPhase("intermission");
     }
-  }, [storyAdvancing, roomCode, phase, rememberIntermission]);
+  }, [storyAdvancing, roomCode, game?.started, phase, rememberIntermission]);
 
   useEffect(() => {
-    if (!game) return;
+    if (!game?.started) return;
 
     if (game.pending_intermission) {
       rememberIntermission({
@@ -308,7 +324,7 @@ export function useTurnTheater({
   }, [game, phase, beginLockCountdown, rememberIntermission]);
 
   useEffect(() => {
-    if (!turnReceipt || turnReceipt.room_code !== roomCode) return;
+    if (!game?.started || !turnReceipt || turnReceipt.room_code !== roomCode) return;
 
     const key = receiptKey(turnReceipt);
     if (!key) return;
@@ -345,6 +361,7 @@ export function useTurnTheater({
     }
   }, [
     turnReceipt,
+    game?.started,
     roomCode,
     characterId,
     phase,
@@ -356,7 +373,7 @@ export function useTurnTheater({
   ]);
 
   useEffect(() => {
-    if (!lastTurn || lastTurn.room_code !== roomCode) return;
+    if (!game?.started || !lastTurn || lastTurn.room_code !== roomCode) return;
 
     const key = receiptKey(lastTurn);
     if (!key) return;
@@ -400,6 +417,7 @@ export function useTurnTheater({
     );
   }, [
     lastTurn,
+    game?.started,
     roomCode,
     characterId,
     game?.turn_pending,
@@ -414,7 +432,7 @@ export function useTurnTheater({
   ]);
 
   useEffect(() => {
-    if (!game?.director_retry_required && !retryableError) return;
+    if (!game?.started || (!game.director_retry_required && !retryableError)) return;
     if (activeReceipt || phase === "resolution" || phase === "story-ready") return;
 
     clearLockTimer();
@@ -423,6 +441,7 @@ export function useTurnTheater({
     setPhase("retry");
   }, [
     game?.director_retry_required,
+    game?.started,
     retryableError,
     activeReceipt,
     phase,

@@ -3,8 +3,8 @@
 > **Canonical project document.** This file replaces the old append-only changelog workflow.
 > Update or rewrite the relevant sections in this file as the product changes; do not create another numbered changelog copy.
 
-**Last consolidated:** 2026-10-07  
-**Current local baseline:** through Pass 44 (My Adventures / Resume / Player Library)  
+**Last consolidated:** 2026-10-08  
+**Current local baseline:** Pass 50 (feature-organized regression suite), built on Pass 49  
 **Public site:** `https://onlinetextadventure.com`  
 **Primary release command:** `./scripts/release-staging.sh "Describe the release"`
 
@@ -110,6 +110,10 @@ Docker Desktop is not required on the development Mac.
 - PostgreSQL is the durable cloud persistence layer.
 - CloudFront is the public front door for static React, REST API traffic, and Socket.IO/WebSocket traffic.
 - `onlinetextadventure.com` and `www.onlinetextadventure.com` terminate TLS at CloudFront using ACM.
+
+### React frontend loading (Pass 49)
+
+The React router keeps the minimal shared public/game/account shells, authentication gate, route-error boundary, and not-found handler in the entry module. Public, Hero, Adventure, Library, Arcade, Author, Admin, and Account pages use React Router's native `route.lazy` dynamic imports and are fetched only when navigated to. Repeated uses of the Rulebook route reuse the same module chunk. `RootLayout` announces pending route transitions without taking over or clearing the current screen. Failed dynamic-import/chunk requests show a recoverable route error with an explicit reload button (for example, when an older browser tab references chunks replaced by a new deployment). This changes bundle loading and presentation only; it does not affect backend routes, auth entitlements, game state, or story generation. The release pipeline continues to build and upload Vite's generated assets as a unit; a lazy chunk must never be deployed without its matching entry and manifest assets.
 
 ### Important cost/scale note
 
@@ -879,6 +883,15 @@ The review package should exclude dependencies, builds, caches, secrets, databas
 
 ## 17. Testing / Safety Expectations
 
+The Python regression suite lives under feature-owned directories in `tests/`,
+with its inventory and commands in `tests/README.md`. Pass 50 renamed and
+relocated the 53 existing modules without intentionally deleting any tests;
+`tests/support.py` centralizes the project root for source-contract checks.
+`./scripts/check-project.sh` continues to run `python3 -m pytest tests -q`
+before the frontend and infrastructure build gates. The one-time
+`scripts/apply-pass50-test-layout.sh` cleanup removes only the old root-level
+test copies, once all replacement paths are present.
+
 Every meaningful implementation pass should preserve these principles:
 
 - run the focused/full regression suite before release;
@@ -911,6 +924,7 @@ Every meaningful implementation pass should preserve these principles:
 ### Product / gameplay
 
 - continue real co-op playtesting and fix flow defects before adding unnecessary mechanics;
+- verify all Pass 49 lazy deep links and page-transition/loading recovery behavior across desktop/mobile, including a previously open tab after a staging deployment;
 - improve story-generation latency/telemetry without reducing narrative quality;
 - continue UI hierarchy/readability refinement based on actual sessions;
 - tune progression, Talents, DC scaling, and XP from real Hero builds;
@@ -966,6 +980,13 @@ This is intentionally short. Historical numbered changelog files remain archive 
 ---
 
 - **Pass 44 — My Adventures / Resume / Player Library:** clean frontend installs now explicitly include `@types/node`; adds the authenticated account library and Active/Completed/Abandoned shelves, existing resume/recovery links, readable Chronicle receipts, search, saved dates, and durable abandonment archives.
+- **Pass 45 — First-Run Guide + Starter Adventure:** account-aware onboarding, balanced Hero creation, and a three-turn First Light test flow.
+- **Pass 46 — Playtest Operations + PostgreSQL Hero-history Hotfix:** Admin run and cost visibility, account/room operations, and typed-query PostgreSQL history fix.
+- **Pass 47 — Adventure Reconnect Recovery:** restoration gate and offline-action guard for interrupted rooms.
+- **Pass 48 — Mobile / Keyboard / Shared Dialogs:** mobile controls, visible focus and skip navigation, accessible modal focus/escape behavior.
+- **Pass 49 — Lazy Route Delivery:** React Router route-level page splitting, accessible navigation-loading notice, and explicit recovery from failed chunk downloads; no API or database changes.
+- **Pass 50 — Regression Suite Organization:** feature-oriented Python test packages and descriptive module names, centralized project-root handling, safe one-time deletion of old paths, and suite documentation; no product runtime or database changes.
+
 
 ## 21. Documentation Policy
 

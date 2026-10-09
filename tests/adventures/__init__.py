@@ -1,0 +1,1 @@
+"""Adventures regression tests."""

@@ -39,6 +39,10 @@ def test_pending_intermission_snapshot_restores_submitted_players_after_reload()
 def test_turn_pending_reconstructs_waiting_intermission_without_socket_event() -> None:
     theater = read("frontend/src/features/adventure/useTurnTheater.ts")
 
-    assert "if (game.pending_intermission)" in theater
-    assert "if (\n      game.turn_pending" in theater
-    assert 'setPhase("intermission")' in theater
+    assert "game.pending_intermission" in theater
+    assert "submitted_player_ids: game.pending_intermission.submitted_player_ids ?? []" in theater
+    assert "if (game.turn_pending)" in theater
+    assert 'transition("intermission")' in theater
+    # The Arcade cannot start until the player has seen and acknowledged dice.
+    assert "arcadeAvailable" in theater
+    assert "acknowledgedRef.current" in theater

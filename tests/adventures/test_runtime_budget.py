@@ -90,10 +90,12 @@ def test_preliminary_receipt_has_stable_resolved_turn_identity() -> None:
     main = read("app/main.py")
     session = read("app/game/session.py")
     theater = read("frontend/src/features/adventure/useTurnTheater.ts")
+    flow = read("frontend/src/features/adventure/turnFlow.ts")
     assert '"resolved_turn_number": resolved_turn_number' in main
     assert '"resolved_turn_number":\n                resolved_turn' in session
-    assert 'receipt.resolved_turn_number ?? receipt.turn_number' in theater
-    assert 'turnReceipt.preliminary ? "resolution" : "story-ready"' in theater
+    assert 'receipt.resolved_turn_number ?? receipt.turn_number' in flow
+    assert 'mergeTurnReceipt(current, incoming)' in theater
+    assert 'transition("resolution")' in theater
 
 
 def test_story_state_context_window_is_bounded() -> None:
@@ -115,6 +117,7 @@ def test_story_state_context_window_is_bounded() -> None:
 
 def test_acknowledged_early_receipt_releases_intermission_when_story_commits() -> None:
     theater = read("frontend/src/features/adventure/useTurnTheater.ts")
-    assert "The player already read the early dice/result receipt" in theater
-    assert "rememberIntermission(null);" in theater
-    assert 'setPhase("none");' in theater
+    assert "An acknowledged early receipt never comes back" in theater
+    assert "acknowledgedRef.current === key" in theater
+    assert "finishTurnPresentation();" in theater
+    assert 'transition("story-ready")' in theater

@@ -257,6 +257,11 @@ export function useLiveAdventure(
         setLastTurn(payload.last_turn_result);
       }
 
+      // A reconnect during generation recovers the same frozen dice facts.
+      if (payload.pending_turn_receipt) {
+        setTurnReceipt(payload.pending_turn_receipt);
+      }
+
       if (payload.last_intermission_result) {
         setIntermissionResult(payload.last_intermission_result);
       }

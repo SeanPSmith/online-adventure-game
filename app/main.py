@@ -755,6 +755,24 @@ def build_game_state(
         "last_resolution":
             session.last_resolution,
 
+        "last_turn_result": (
+            {"room_code": room_code, **session.last_turn_result}
+            if isinstance(session.last_turn_result, dict) else None
+        ),
+
+        # Reconnect during the Director call restores *frozen* server dice,
+        # never generates a second roll or mistakes party presence for a turn.
+        "pending_turn_receipt": (
+            {
+                "room_code": room_code,
+                **session.pending_turn_facts,
+                "resolved_turn_number": session.turn_number,
+                "preliminary": True,
+            }
+            if session.started and isinstance(session.pending_turn_facts, dict)
+            else None
+        ),
+
         "turn_history":
             public_turn_history(session),
 
@@ -4383,6 +4401,13 @@ async def finalize_resolved_turn(
                 resolved_turn_number=resolved_turn_number,
             )
 
+        # Persist the complete turn receipt with its original server rolls,
+        # progression and narration BEFORE broadcasting the next chapter.
+        session.last_turn_result = {
+            **result,
+            "resolved_turn_number": resolved_turn_number,
+        }
+
         _director_active_rooms.discard(
             room.code
         )
@@ -4408,9 +4433,9 @@ async def finalize_resolved_turn(
             )
 
         turn_payload = {
-            "room_code":
-                room.code,
+            "room_code": room.code,
             **result,
+            "resolved_turn_number": resolved_turn_number,
         }
 
         if session.completed:

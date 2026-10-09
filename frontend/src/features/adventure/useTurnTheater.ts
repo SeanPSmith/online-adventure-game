@@ -6,6 +6,7 @@ import type {
   TurnLockCountdownPayload,
   TurnResolvedPayload,
 } from "../../services/game";
+import { latestTurnReceipt, mergeTurnReceipt, receiptKey } from "./turnFlow";
 
 export type TurnTheaterPhase =
   | "none"
@@ -15,42 +16,23 @@ export type TurnTheaterPhase =
   | "resolution"
   | "retry";
 
-function receiptKey(receipt: TurnResolvedPayload | null) {
-  if (!receipt) return "";
-
-  return [
-    receipt.room_code,
-    receipt.resolved_turn_number ?? receipt.turn_number ?? "?",
-    receipt.previous_scene_id ?? "?",
-  ].join(":");
-}
-
 function acknowledgementStorageKey(roomCode: string, characterId: string) {
   return `tot:turn-receipt:${roomCode}:${characterId}`;
 }
 
 function readAcknowledgedReceipt(roomCode: string, characterId: string) {
   try {
-    return sessionStorage.getItem(
-      acknowledgementStorageKey(roomCode, characterId),
-    ) ?? "";
+    return sessionStorage.getItem(acknowledgementStorageKey(roomCode, characterId)) ?? "";
   } catch {
     return "";
   }
 }
 
-function writeAcknowledgedReceipt(
-  roomCode: string,
-  characterId: string,
-  key: string,
-) {
+function writeAcknowledgedReceipt(roomCode: string, characterId: string, key: string) {
   try {
-    sessionStorage.setItem(
-      acknowledgementStorageKey(roomCode, characterId),
-      key,
-    );
+    sessionStorage.setItem(acknowledgementStorageKey(roomCode, characterId), key);
   } catch {
-    // Presentation recovery should never block the game if storage is denied.
+    // Storage permissions must never strand gameplay.
   }
 }
 
@@ -59,21 +41,15 @@ export interface TurnTheaterState {
   countdownValue: number;
   activeReceipt: TurnResolvedPayload | null;
   activeIntermission: StoryAdvancingPayload | null;
+  arcadeAvailable: boolean;
   retryMessage: string;
   finishIntermissionStoryReady: () => void;
   acknowledgeResolution: () => void;
 }
 
 export function useTurnTheater({
-  roomCode,
-  characterId,
-  game,
-  lockCountdown,
-  storyAdvancing,
-  turnReceipt,
-  lastTurn,
-  retryableError,
-  error,
+  roomCode, characterId, game, lockCountdown, storyAdvancing,
+  turnReceipt, lastTurn, retryableError, error,
 }: {
   roomCode: string;
   characterId: string;
@@ -89,400 +65,236 @@ export function useTurnTheater({
   const [countdownValue, setCountdownValue] = useState(0);
   const [activeReceipt, setActiveReceipt] = useState<TurnResolvedPayload | null>(null);
   const [activeIntermission, setActiveIntermission] = useState<StoryAdvancingPayload | null>(null);
-
+  const phaseRef = useRef<TurnTheaterPhase>("none");
+  const receiptRef = useRef<TurnResolvedPayload | null>(null);
+  const intermissionRef = useRef<StoryAdvancingPayload | null>(null);
+  const pendingReceiptRef = useRef<TurnResolvedPayload | null>(null);
+  const lastLockSignalRef = useRef("");
   const lockTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const readyTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const readyFallbackRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const pendingReceiptRef = useRef<TurnResolvedPayload | null>(null);
-  const activeIntermissionRef = useRef<StoryAdvancingPayload | null>(null);
-  const lastLockSignalRef = useRef("");
+  const acknowledgedRef = useRef("");
+  const latestGameRef = useRef<GameState | null>(game);
+  latestGameRef.current = game;
 
-  const retryMessage = useMemo(
-    () =>
-      retryableError?.message
-      || (game?.director_retry_required ? error : "")
-      || "The Story Director paused before finishing this turn.",
-    [retryableError, game?.director_retry_required, error],
-  );
+  const retryMessage = useMemo(() => retryableError?.message
+    || (game?.director_retry_required ? error : "")
+    || "The Story Director paused before finishing this turn.",
+  [retryableError, game?.director_retry_required, error]);
 
-  const clearLockTimer = useCallback(() => {
-    if (lockTimerRef.current !== null) {
-      clearInterval(lockTimerRef.current);
-      lockTimerRef.current = null;
-    }
+  const transition = useCallback((next: TurnTheaterPhase) => {
+    phaseRef.current = next;
+    setPhase(next);
   }, []);
 
-  const clearReadyTimer = useCallback(() => {
-    if (readyTimerRef.current !== null) {
-      clearInterval(readyTimerRef.current);
-      readyTimerRef.current = null;
-    }
+  const showReceipt = useCallback((next: TurnResolvedPayload | null) => {
+    receiptRef.current = next;
+    setActiveReceipt(next);
   }, []);
 
-  const clearReadyFallback = useCallback(() => {
-    if (readyFallbackRef.current !== null) {
-      clearTimeout(readyFallbackRef.current);
-      readyFallbackRef.current = null;
-    }
+  const rememberIntermission = useCallback((next: StoryAdvancingPayload | null) => {
+    intermissionRef.current = next;
+    setActiveIntermission(next);
   }, []);
 
-  const rememberIntermission = useCallback((payload: StoryAdvancingPayload | null) => {
-    activeIntermissionRef.current = payload;
-    setActiveIntermission(payload);
+  const clearTimers = useCallback(() => {
+    if (lockTimerRef.current !== null) clearInterval(lockTimerRef.current);
+    if (readyTimerRef.current !== null) clearInterval(readyTimerRef.current);
+    lockTimerRef.current = null;
+    readyTimerRef.current = null;
   }, []);
+
+  const finishTurnPresentation = useCallback(() => {
+    clearTimers();
+    pendingReceiptRef.current = null;
+    showReceipt(null);
+    rememberIntermission(null);
+    setCountdownValue(0);
+    transition("none");
+  }, [clearTimers, showReceipt, rememberIntermission, transition]);
 
   const finishIntermissionStoryReady = useCallback(() => {
-    clearLockTimer();
-    clearReadyTimer();
-    clearReadyFallback();
-    setCountdownValue(0);
-    setPhase("resolution");
-  }, [clearLockTimer, clearReadyTimer, clearReadyFallback]);
+    // The dice were already displayed BEFORE the Arcade. Never show them again.
+    finishTurnPresentation();
+  }, [finishTurnPresentation]);
 
-  const beginStoryReady = useCallback((
-    receipt: TurnResolvedPayload,
-    preserveIntermission: boolean,
-  ) => {
-    clearLockTimer();
-    clearReadyTimer();
-    clearReadyFallback();
-    pendingReceiptRef.current = null;
-    setActiveReceipt(receipt);
-    setPhase("story-ready");
-    setCountdownValue(3);
-
+  const beginStoryReady = useCallback(() => {
+    if (phaseRef.current === "story-ready") return;
+    clearTimers();
+    transition("story-ready");
     const started = performance.now();
     const durationMs = 3000;
-
     const tick = () => {
-      const elapsed = performance.now() - started;
-      const remaining = Math.max(0, durationMs - elapsed);
+      const remaining = Math.max(0, durationMs - (performance.now() - started));
       setCountdownValue(Math.ceil(remaining / 1000));
-
       if (remaining <= 0) {
-        clearReadyTimer();
-        setCountdownValue(0);
-
-        if (preserveIntermission) {
-          // The React intermission runtime submits the final score before it
-          // releases the resolution theater. This safety valve prevents a UI
-          // exception from trapping the room forever.
-          readyFallbackRef.current = setTimeout(() => {
-            readyFallbackRef.current = null;
-            setPhase("resolution");
-          }, 1200);
-          return;
-        }
-
-        setPhase("resolution");
+        clearTimers();
+        // Arcade component completes its score submission before releasing the overlay.
+        // A plain writing intermission has no arcade runtime to call us back.
+        if (!intermissionRef.current) finishTurnPresentation();
       }
     };
-
     tick();
     readyTimerRef.current = setInterval(tick, 80);
-  }, [clearLockTimer, clearReadyTimer, clearReadyFallback]);
+  }, [clearTimers, transition, finishTurnPresentation]);
 
   const beginLockCountdown = useCallback((seconds: number) => {
-    clearLockTimer();
-    clearReadyTimer();
-    clearReadyFallback();
-    setPhase("lock-countdown");
-
-    const durationMs = Math.max(1, seconds) * 1000;
+    clearTimers();
+    transition("lock-countdown");
     const started = performance.now();
-
+    const durationMs = Math.max(1, seconds) * 1000;
     const tick = () => {
-      const elapsed = performance.now() - started;
-      const remaining = Math.max(0, durationMs - elapsed);
+      const remaining = Math.max(0, durationMs - (performance.now() - started));
       setCountdownValue(Math.ceil(remaining / 1000));
-
-      if (remaining <= 0) {
-        clearLockTimer();
-        setCountdownValue(0);
-
-        const queuedReceipt = pendingReceiptRef.current;
-        if (queuedReceipt) {
-          pendingReceiptRef.current = null;
-          setActiveReceipt(queuedReceipt);
-          if (queuedReceipt.preliminary) {
-            // Dice/results are already known. Show them immediately while the
-            // Story Director keeps writing the next scene in parallel.
-            setPhase("resolution");
-          } else {
-            beginStoryReady(
-              queuedReceipt,
-              Boolean(activeIntermissionRef.current),
-            );
-          }
-          return;
-        }
-
-        setPhase("intermission");
+      if (remaining > 0) return;
+      clearTimers();
+      setCountdownValue(0);
+      const receipt = pendingReceiptRef.current;
+      pendingReceiptRef.current = null;
+      if (receipt && readAcknowledgedReceipt(roomCode, characterId) !== receiptKey(receipt)) {
+        showReceipt(receipt);
+        transition("resolution");
+      } else if (latestGameRef.current?.director_retry_required) {
+        transition("retry");
+      } else if (latestGameRef.current?.turn_pending || intermissionRef.current) {
+        transition("intermission");
+      } else {
+        transition("none");
       }
     };
-
     tick();
     lockTimerRef.current = setInterval(tick, 80);
-  }, [beginStoryReady, clearLockTimer, clearReadyTimer, clearReadyFallback]);
+  }, [clearTimers, transition, roomCode, characterId, showReceipt]);
 
   useEffect(() => {
-    clearLockTimer();
-    clearReadyTimer();
-    clearReadyFallback();
-    pendingReceiptRef.current = null;
-    activeIntermissionRef.current = null;
+    acknowledgedRef.current = readAcknowledgedReceipt(roomCode, characterId);
     lastLockSignalRef.current = "";
-    setPhase("none");
-    setCountdownValue(0);
-    setActiveReceipt(null);
-    setActiveIntermission(null);
-  }, [roomCode, characterId, clearLockTimer, clearReadyTimer, clearReadyFallback]);
+    finishTurnPresentation();
+  }, [roomCode, characterId, finishTurnPresentation]);
+
+  useEffect(() => () => clearTimers(), [clearTimers]);
 
   useEffect(() => {
-    return () => {
-      clearLockTimer();
-      clearReadyTimer();
-      clearReadyFallback();
-    };
-  }, [clearLockTimer, clearReadyTimer, clearReadyFallback]);
-
-  // The backend reports online players as `ready` in the lobby. Those are
-  // party-presence flags, NOT submitted choices. Never start turn theater
-  // until the host has explicitly begun the adventure.
-  useEffect(() => {
-    if (!game?.started) {
-      clearLockTimer();
-      clearReadyTimer();
-      clearReadyFallback();
-      pendingReceiptRef.current = null;
-      rememberIntermission(null);
-      setActiveReceipt(null);
-      setCountdownValue(0);
-      setPhase("none");
+    if (game?.started) return;
+    if (phaseRef.current !== "none" || receiptRef.current || intermissionRef.current) {
+      finishTurnPresentation();
     }
-  }, [game?.started, clearLockTimer, clearReadyTimer, clearReadyFallback, rememberIntermission]);
+  }, [game?.started, finishTurnPresentation]);
 
   useEffect(() => {
-    if (!game?.started || !lockCountdown) return;
-    if (lockCountdown.room_code !== roomCode) return;
+    if (!game?.started || !lockCountdown || lockCountdown.room_code !== roomCode) return;
+    if (lockCountdown.turn_number !== game.turn_number) return;
+    const key = `${roomCode}:${lockCountdown.turn_number}:${lockCountdown.duration_seconds}`;
+    if (lastLockSignalRef.current === key) return;
+    lastLockSignalRef.current = key;
+    if (phaseRef.current === "none") beginLockCountdown(lockCountdown.duration_seconds);
+  }, [lockCountdown, roomCode, game?.started, game?.turn_number, beginLockCountdown]);
 
-    const signalKey = `${lockCountdown.turn_number}:${lockCountdown.duration_seconds}`;
-    if (lastLockSignalRef.current === signalKey) return;
-
-    lastLockSignalRef.current = signalKey;
-    beginLockCountdown(lockCountdown.duration_seconds);
-  }, [lockCountdown, roomCode, game?.started, beginLockCountdown]);
+  useEffect(() => {
+    if (!game?.started || !game.pending_intermission) return;
+    rememberIntermission({
+      room_code: game.room_code,
+      turn_number: game.turn_number,
+      game_id: game.pending_intermission.game_id,
+      play_mode: game.pending_intermission.play_mode,
+      intermission_stats: game.pending_intermission.intermission_stats,
+      submitted_player_ids: game.pending_intermission.submitted_player_ids ?? [],
+    });
+  }, [game?.started, game?.pending_intermission, game?.turn_number, game?.room_code, rememberIntermission]);
 
   useEffect(() => {
     if (!game?.started || !storyAdvancing || storyAdvancing.room_code !== roomCode) return;
-
-    rememberIntermission({
-      ...storyAdvancing,
+    if (storyAdvancing.turn_number !== game.turn_number || !game.turn_pending) return;
+    rememberIntermission({ ...storyAdvancing,
       submitted_player_ids: storyAdvancing.submitted_player_ids ?? [],
     });
+  }, [storyAdvancing, roomCode, game?.started, game?.turn_number, game?.turn_pending, rememberIntermission]);
 
-    if (phase !== "lock-countdown" && phase !== "story-ready" && phase !== "resolution") {
-      setPhase("intermission");
-    }
-  }, [storyAdvancing, roomCode, game?.started, phase, rememberIntermission]);
-
+  // A single pipeline reconciles the preliminary event, final socket event and
+  // durable room snapshot. Previously two effects raced and replayed the receipt.
   useEffect(() => {
     if (!game?.started) return;
+    const incoming = latestTurnReceipt(roomCode, game.turn_number, game.turn_pending,
+      [turnReceipt, lastTurn, game.last_turn_result]);
+    if (!incoming) return;
+    const key = receiptKey(incoming);
+    const alreadyRead = acknowledgedRef.current === key
+      || readAcknowledgedReceipt(roomCode, characterId) === key;
+    const current = receiptRef.current;
 
-    if (game.pending_intermission) {
-      rememberIntermission({
-        room_code: game.room_code,
-        turn_number: game.turn_number,
-        game_id: game.pending_intermission.game_id,
-        play_mode: game.pending_intermission.play_mode,
-        intermission_stats: game.pending_intermission.intermission_stats,
-        submitted_player_ids: game.pending_intermission.submitted_player_ids ?? [],
-      });
-    }
-
-    if (
-      game.turn_pending &&
-      phase !== "lock-countdown" &&
-      phase !== "story-ready" &&
-      phase !== "resolution" &&
-      !game.director_retry_required
-    ) {
-      setPhase("intermission");
-    }
-
-    const required = Math.max(1, game.required_players || 1);
-    const locked = game.readiness.filter((player) => player.ready).length;
-
-    if (
-      !game.turn_pending &&
-      locked >= required &&
-      phase === "none" &&
-      !game.director_retry_required
-    ) {
-      beginLockCountdown(3);
-    }
-  }, [game, phase, beginLockCountdown, rememberIntermission]);
-
-  useEffect(() => {
-    if (!game?.started || !turnReceipt || turnReceipt.room_code !== roomCode) return;
-
-    const key = receiptKey(turnReceipt);
-    if (!key) return;
-
-    const acknowledged = readAcknowledgedReceipt(roomCode, characterId);
-    if (acknowledged === key) return;
-
-    if (phase === "lock-countdown") {
-      pendingReceiptRef.current = turnReceipt;
+    if (current && receiptKey(current) === key) {
+      showReceipt(mergeTurnReceipt(current, incoming));
+      if (alreadyRead && !incoming.preliminary && phaseRef.current === "intermission") {
+        beginStoryReady();
+      }
       return;
     }
 
-    if (activeReceipt && receiptKey(activeReceipt) === key) {
-      // Upgrade the preliminary receipt in place when the final committed turn
-      // arrives; never replay the dice animation for the same resolved turn.
-      setActiveReceipt(turnReceipt);
+    if (alreadyRead) {
+      // An acknowledged early receipt never comes back when the final event
+      // arrives, even if the socket event and snapshot are reordered.
+      if (!incoming.preliminary && phaseRef.current === "intermission") {
+        beginStoryReady();
+      }
+      // Snapshots always carry the last completed receipt. Seeing it again
+      // must NEVER cancel a new countdown or interrupt a later story turn.
       return;
     }
 
-    clearLockTimer();
-    clearReadyTimer();
-    clearReadyFallback();
-    pendingReceiptRef.current = null;
-    setActiveReceipt(turnReceipt);
+    if (phaseRef.current === "lock-countdown") {
+      pendingReceiptRef.current = incoming;
+      return;
+    }
+    clearTimers();
+    showReceipt(incoming);
     setCountdownValue(0);
-    setPhase(turnReceipt.preliminary ? "resolution" : "story-ready");
+    transition("resolution");
+  }, [game?.started, game?.turn_number, game?.turn_pending, game?.last_turn_result,
+    turnReceipt, lastTurn, roomCode, characterId, showReceipt, clearTimers,
+    transition, beginStoryReady, finishTurnPresentation]);
 
-    if (!turnReceipt.preliminary) {
-      // Restored/final receipts keep the familiar short reveal cadence.
-      beginStoryReady(
-        turnReceipt,
-        phase === "intermission" || Boolean(activeIntermissionRef.current),
-      );
-    }
-  }, [
-    turnReceipt,
-    game?.started,
-    roomCode,
-    characterId,
-    phase,
-    activeReceipt,
-    beginStoryReady,
-    clearLockTimer,
-    clearReadyTimer,
-    clearReadyFallback,
-  ]);
-
+  // Reconstruct missed writing events after reconnect; never infer a countdown
+  // from party-presence flags. Only the server's actual lock signal can do that.
   useEffect(() => {
-    if (!game?.started || !lastTurn || lastTurn.room_code !== roomCode) return;
-
-    const key = receiptKey(lastTurn);
-    if (!key) return;
-
-    const acknowledged = readAcknowledgedReceipt(roomCode, characterId);
-    if (acknowledged === key) {
-      // The player already read the early dice/result receipt. Once the final
-      // story commit arrives, release any remaining arcade/intermission shell
-      // instead of replaying the same receipt.
-      clearLockTimer();
-      clearReadyTimer();
-      clearReadyFallback();
-      rememberIntermission(null);
-      setActiveReceipt(null);
-      setCountdownValue(0);
-      setPhase("none");
-      return;
+    if (!game?.started) return;
+    if (game.director_retry_required) {
+      if (phaseRef.current === "none" || phaseRef.current === "intermission") {
+        clearTimers();
+        transition("retry");
+      }
+    } else if (game.turn_pending) {
+      if (phaseRef.current === "none") transition("intermission");
+    } else if (phaseRef.current === "retry") {
+      transition("none");
     }
-
-    const durableKey = receiptKey(game?.last_turn_result ?? null);
-    const isFreshEventReceipt = Boolean(durableKey && durableKey !== key) || !durableKey;
-
-    if (game?.turn_pending && activeReceipt === null && !isFreshEventReceipt) {
-      pendingReceiptRef.current = null;
-      return;
-    }
-
-    if (phase === "lock-countdown") {
-      pendingReceiptRef.current = lastTurn;
-      return;
-    }
-
-    if (activeReceipt && receiptKey(activeReceipt) === key) {
-      setActiveReceipt(lastTurn);
-      return;
-    }
-
-    beginStoryReady(
-      lastTurn,
-      phase === "intermission" || Boolean(activeIntermissionRef.current),
-    );
-  }, [
-    lastTurn,
-    game?.started,
-    roomCode,
-    characterId,
-    game?.turn_pending,
-    game?.last_turn_result,
-    phase,
-    activeReceipt,
-    beginStoryReady,
-    clearLockTimer,
-    clearReadyTimer,
-    clearReadyFallback,
-    rememberIntermission,
-  ]);
-
-  useEffect(() => {
-    if (!game?.started || (!game.director_retry_required && !retryableError)) return;
-    if (activeReceipt || phase === "resolution" || phase === "story-ready") return;
-
-    clearLockTimer();
-    clearReadyTimer();
-    clearReadyFallback();
-    setPhase("retry");
-  }, [
-    game?.director_retry_required,
-    game?.started,
-    retryableError,
-    activeReceipt,
-    phase,
-    clearLockTimer,
-    clearReadyTimer,
-    clearReadyFallback,
-  ]);
+  }, [game?.started, game?.turn_pending, game?.director_retry_required, clearTimers, transition]);
 
   const acknowledgeResolution = useCallback(() => {
-    if (activeReceipt) {
-      const key = receiptKey(activeReceipt);
+    const receipt = receiptRef.current;
+    if (receipt) {
+      const key = receiptKey(receipt);
       if (key) {
+        acknowledgedRef.current = key;
         writeAcknowledgedReceipt(roomCode, characterId, key);
       }
     }
+    showReceipt(null);
+    const currentGame = latestGameRef.current;
+    if (currentGame?.director_retry_required) {
+      transition("retry");
+    } else if (currentGame?.turn_pending && receipt?.preliminary !== false) {
+      transition("intermission");
+    } else {
+      finishTurnPresentation();
+    }
+  }, [roomCode, characterId, showReceipt, transition, finishTurnPresentation]);
 
-    clearLockTimer();
-    clearReadyTimer();
-    clearReadyFallback();
-    pendingReceiptRef.current = null;
-    rememberIntermission(null);
-    setActiveReceipt(null);
-    setCountdownValue(0);
-    setPhase("none");
-  }, [
-    activeReceipt,
-    roomCode,
-    characterId,
-    clearLockTimer,
-    clearReadyTimer,
-    clearReadyFallback,
-    rememberIntermission,
-  ]);
+  const arcadeAvailable = Boolean(activeIntermission && (
+    phase === "story-ready"
+    || (game?.turn_pending && acknowledgedRef.current === `${roomCode}:${game.turn_number}`)
+  ));
 
   return {
-    phase,
-    countdownValue,
-    activeReceipt,
-    activeIntermission,
-    retryMessage,
-    finishIntermissionStoryReady,
-    acknowledgeResolution,
+    phase, countdownValue, activeReceipt, activeIntermission, arcadeAvailable,
+    retryMessage, finishIntermissionStoryReady, acknowledgeResolution,
   };
 }

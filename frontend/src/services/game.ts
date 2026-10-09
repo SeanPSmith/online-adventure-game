@@ -389,6 +389,7 @@ export interface GameState {
   last_resolution: string | null;
   turn_history: TurnHistoryEntry[];
   last_turn_result: TurnResolvedPayload | null;
+  pending_turn_receipt: TurnResolvedPayload | null;
   director_complete: boolean;
   ai_directed: boolean;
   minimum_turns: number | null;

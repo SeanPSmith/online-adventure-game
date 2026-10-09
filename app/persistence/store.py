@@ -333,6 +333,9 @@ class SQLiteStateStore:
                         game_session.turn_archive
                     ),
 
+                "last_turn_result":
+                    game_session.last_turn_result,
+
                 "director_min_turns":
                     game_session.director_min_turns,
 

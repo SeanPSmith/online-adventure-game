@@ -52,6 +52,7 @@ from app.game.micro_events import (
     MAX_MICRO_EVENT_HISTORY,
     apply_micro_event_outcome_effect,
     build_micro_event,
+    has_authored_scene_qte,
     public_micro_event,
     resolve_micro_event,
     should_schedule_micro_event,
@@ -220,6 +221,9 @@ class GameSession:
 
 
     last_resolution: str | None = None
+
+    # Last fully committed server receipt, for reconnect-safe one-time reveals.
+    last_turn_result: dict[str, Any] | None = None
 
     # AI-directed runtime state.
     dynamic_scene: dict[
@@ -1063,6 +1067,12 @@ class GameSessionManager:
                     "last_resolution"
                 ),
 
+            last_turn_result=(
+                deepcopy(data["last_turn_result"])
+                if isinstance(data.get("last_turn_result"), dict)
+                else None
+            ),
+
             dynamic_scene=
                 (
                     dict(
@@ -1438,6 +1448,7 @@ class GameSessionManager:
         *,
         resolved_turn_number: int,
         authored_event: dict | None = None,
+        require_authored: bool = False,
     ) -> dict | None:
 
         session = self.get_or_create(room_code)
@@ -1445,6 +1456,7 @@ class GameSessionManager:
         if (
             not session.is_ai_directed
             or session.pending_micro_event is not None
+            or (require_authored and not has_authored_scene_qte(authored_event))
             or not should_schedule_micro_event(
                 resolved_turn_number=resolved_turn_number,
                 completed=session.completed,
@@ -2816,6 +2828,7 @@ class GameSessionManager:
                     if isinstance(director_output.get("quick_event"), dict)
                     else None
                 ),
+                require_authored=True,
             )
 
 

@@ -60,9 +60,14 @@ SERVER AUTHORITY
 - Never invent a die roll or override a supplied outcome.
 - Never directly mutate HP, stats, inventory, or flags.
 - Do not claim a mechanical success/failure that was not supplied by TURN FACTS.
-- runtime.recent_micro_events contains lightweight player reactions that happened
-  between full story nodes. Treat those reactions as established narrative facts
-  and callbacks you may honor, but never invent extra mechanics from them.
+- runtime.recent_micro_events contains ONLY the fictional outcome of a reaction
+  that occurred inside the CURRENT playable scene, before the locked choices.
+  Treat it as a settled change to the physical situation. Integrate any important
+  consequence naturally near the START of the next scene, or into its immediate
+  stakes. Do not paste or recap the reaction at the END of scene_body, append an
+  epilogue/score report, or repeat the UI's right/wrong result. The choices must
+  follow from the UPDATED physical situation, not the situation before the QTE.
+  Never invent or paraphrase its mechanics, modifiers, or correctness labels.
 - runtime.players[].character.bio is player-authored Hero canon. Use it as
   characterization/background when relevant, but do not dump it back verbatim or
   invent contradictions to it.
@@ -306,13 +311,24 @@ QUICK EVENT / QTE AUTHORING
 - runtime.quick_event_requested is server-owned cadence. If false, quick_event
   MUST be null. If true and this turn is not completed, author exactly one QTE
   that grows directly out of scene_body. If completed=true, quick_event MUST be null.
-- The QTE grows from the SAME fictional situation, but its GAME MECHANICS are a
-  completely separate UI layer. scene_body contains only ordinary novel prose and
-  the concrete cue/hazard/opportunity. It MUST NOT mention a QTE, quick reaction,
-  timer, countdown, odds, correct/right/wrong answer, option labels, success/failure
-  effects, buffs, nerfs, or tell the reader that a reaction prompt is coming.
-- Never paste the QTE prompt or any QTE option label into scene_body. The prose ends
-  naturally at the dangerous/opportune moment; the client presents the QTE afterward.
+- The QTE MUST interrupt the SAME physical problem the Heroes will address in
+  the immediately following main choice menu. It is NOT an unrelated sting after
+  the scene has already finished, nor a disconnected postscript after the plot.
+- Build this beat IN ORDER: (1) establish place, stakes and a concrete new hazard
+  in scene_body; (2) end scene_body at the precise moment a reflex matters;
+  (3) author the QTE to resolve that specific reflex; (4) offer main choices that
+  are plausible immediately AFTER either QTE success or failure. Each choice
+  must respond to the same location/problem/people established by the scene and
+  QTE, rather than introducing an unrelated new task. The QTE may change footing,
+  position, leverage or readiness, but cannot prematurely resolve the whole
+  central conflict or invalidate the choice menu on either outcome.
+- success_text and failure_text must say specifically where the Hero ends up or
+  what changed, and leave the SAME subsequent decision open. They should naturally
+  lead the reader into the main choices instead of sounding like a story ending.
+- QTE GAME MECHANICS are a separate UI layer. scene_body contains only novel prose
+  and the cue/hazard. It MUST NOT mention a QTE, quick reaction, timer, countdown,
+  odds, correct/right/wrong answer, option labels, success/failure effects, buffs,
+  nerfs, or announce the prompt. Never paste QTE options into scene_body.
 - Supply 2 or 3 plausible options. Exactly ONE is correct. With no story insight,
   that yields a 50% baseline for two options or ~33% for three. The attentive
   reader should often be able to improve those odds from details in the scene.
@@ -863,6 +879,36 @@ def _compact_story_state_context(story_state: dict[str, Any]) -> dict[str, Any]:
         compact[key] = items
 
     return compact
+
+
+def _current_qte_consequences(
+    history: list[dict[str, Any]],
+    current_turn: int,
+) -> list[dict[str, Any]]:
+    """Only the reaction in the scene being resolved can affect this turn.
+
+    Full QTE receipts contain option labels, scoring tags and mechanical effects.
+    Sending those receipts back to the LLM encourages a disconnected QTE recap
+    instead of scene continuity. The persistent receipts remain untouched.
+    """
+    relevant_turn = current_turn - 1
+    for item in reversed(history):
+        if not isinstance(item, dict):
+            continue
+        if int(item.get("created_from_turn", 0) or 0) != relevant_turn:
+            continue
+        outcomes = [
+            {
+                "hero": str(outcome.get("player_name", ""))[:80],
+                "fictional_consequence": str(outcome.get("result", ""))[:320],
+            }
+            for outcome in item.get("outcomes", [])[:2]
+            if isinstance(outcome, dict) and outcome.get("result")
+        ]
+        if outcomes:
+            return [{"reactions": outcomes}]
+        return []
+    return []
 
 
 class OpenAIRuntimeDirector:
@@ -1579,11 +1625,9 @@ class OpenAIRuntimeDirector:
                     compact_history,
 
                 "recent_micro_events":
-                    list(
-                        session.micro_event_history
-                    )[
-                        -2:
-                    ],
+                    _current_qte_consequences(
+                        list(session.micro_event_history), current_turn
+                    ),
 
                 "recent_pressure_levels": [
                     entry.get(

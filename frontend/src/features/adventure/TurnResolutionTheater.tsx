@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { receiptKey } from "./turnFlow";
 import type {
   HeroProgressionUpdate,
   TurnResolvedPayload,
@@ -89,7 +90,7 @@ function AnimatedResultCard({
     setSettled(complete);
     setRolling(active && Boolean(result.check));
     setDisplayRoll(result.check ? (complete ? result.check.roll : "?") : "—");
-  }, [result, complete, active]);
+  }, [result.check?.roll, result.check?.total, complete, active]);
 
   useEffect(() => {
     if (!active || complete) return;
@@ -116,7 +117,8 @@ function AnimatedResultCard({
         return;
       }
 
-      setDisplayRoll(Math.floor(Math.random() * 20) + 1);
+      // No invented D20 values: only the committed server roll is ever shown.
+      setDisplayRoll("?");
       const delay = 45 + frame * 8;
       frame += 1;
       frameTimer = setTimeout(nextFrame, delay);
@@ -129,7 +131,7 @@ function AnimatedResultCard({
       if (frameTimer) clearTimeout(frameTimer);
       if (finishTimer) clearTimeout(finishTimer);
     };
-  }, [active, complete, result, onDone]);
+  }, [active, complete, result.check?.roll, result.check?.total, result.check?.critical, onDone]);
 
   const outcomeClass = result.check?.outcome.replaceAll("_", "-") ?? "no-check";
 
@@ -217,14 +219,15 @@ export function TurnResolutionTheater({
   receipt: TurnResolvedPayload;
   onContinue: () => void;
 }) {
-  const results = useMemo(() => receipt.results ?? [], [receipt]);
+  const results = receipt.results ?? [];
+  const turnIdentity = receiptKey(receipt);
   const [activeIndex, setActiveIndex] = useState(0);
   const [finished, setFinished] = useState(results.length === 0);
 
   useEffect(() => {
     setActiveIndex(0);
     setFinished(results.length === 0);
-  }, [receipt, results.length]);
+  }, [turnIdentity, results.length]);
 
   const currentResult = results[activeIndex] ?? null;
   const criticalNow = Boolean(currentResult?.check?.critical && !finished);

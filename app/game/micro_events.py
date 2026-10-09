@@ -305,6 +305,23 @@ def _normalize_authored_event(raw: Any) -> dict[str, Any] | None:
     }
 
 
+def has_authored_scene_qte(raw: Any) -> bool:
+    """A runtime QTE must actually come from the authored scene beat.
+
+    The generic deterministic fallback remains for old helper callers, but
+    live Director commits should skip an invalid/missing authored reaction
+    rather than spawn a disconnected prompt after unrelated scene prose.
+    """
+    normalized = _normalize_authored_event(raw)
+    return bool(
+        normalized
+        and normalized.get("story_context")
+        and normalized.get("prompt")
+        and normalized.get("success_text")
+        and normalized.get("failure_text")
+    )
+
+
 def build_micro_event(
     *,
     room_code: str,

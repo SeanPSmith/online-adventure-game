@@ -31,6 +31,12 @@ node --check app/web/adventure_ui.js
 say "Adventure reconnect regressions"
 node --test scripts/tests/adventure-recovery.cjs
 
+say "Lazy route and page-load recovery regressions"
+node --test scripts/tests/route-loading.cjs
+
+say "Adventure turn presentation regressions"
+node --test scripts/tests/turn-flow.cjs
+
 say "React production build"
 (
   cd frontend

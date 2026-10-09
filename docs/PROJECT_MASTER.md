@@ -3,8 +3,8 @@
 > **Canonical project document.** This file replaces the old append-only changelog workflow.
 > Update or rewrite the relevant sections in this file as the product changes; do not create another numbered changelog copy.
 
-**Last consolidated:** 2026-10-08  
-**Current local baseline:** Pass 52 (staged adventure opening and immersive recovery copy), built on Pass 51  
+**Last consolidated:** 2026-10-09  
+**Current local baseline:** Pass 53 (authoritative turn-receipt sequencing, single dice reveal, intermission/reconnect reconciliation), built on Pass 52  
 **Public site:** `https://onlinetextadventure.com`  
 **Primary release command:** `./scripts/release-staging.sh "Describe the release"`
 
@@ -119,9 +119,17 @@ The React router keeps the minimal shared public/game/account shells, authentica
 
 The first chapter is authored at seed-approval time, **not** requested from OpenAI when a player enters the lobby. The backend exposes `opening_ready` (nonempty opening prose and at least one available choice) plus `adventure_synopsis` (published player synopsis, falling back to adventure description). Room start is gated on both opening readiness and the correct number of online Heroes. The lobby stages the synopsis and party roster, then enables **GET STARTED** only when the opening is ready and the host can begin. This requires no new user accounts, data migration, background tasks, or model tokens.
 
-`useTurnTheater` must never infer that a story turn has been locked merely because the pre-start `readiness` snapshot marks an online Hero as ready: `game.started` gates all intermission, countdown, receipt, and retry presentation. A new lobby cannot enter the intermission theater. Resume logic for *started* rooms is unchanged.
+`useTurnTheater` must never infer that a story turn has been locked merely because the pre-start `readiness` snapshot marks an online Hero as ready: `game.started` gates all intermission, countdown, receipt, and retry presentation. A new lobby cannot enter the intermission theater. Started-room restoration now replays the durable server receipt as needed and never rerolls dice.
 
 Public player-facing lost-route and route-error copy uses the adventure/chronicle voice, with explicit reload and Adventure Hall recovery actions. Technical error details remain out of the rendered error boundary; use logs/telemetry for diagnosis. `docs/COPY_VOICE_GUIDE.md` records the next sitewide pass; player clarity and security take priority over fantasy metaphors.
+
+### Pass 53 — Deterministic turn presentation and reconnect recovery
+
+The **server owns all d20 rolls, choice outcomes, and turn identity**. Each committed turn has a stable `resolved_turn_number` across the early `turn_receipt_ready` signal and final `turn_resolved` signal. React deduplicates both against the durable `last_turn_result` in `game_state` and uses the first authoritative dice/choice receipt without rerolling or restarting its animation when the Director returns new prose. `pending_turn_receipt` reconstructs the frozen TurnFacts on reconnect while generation is ongoing; both latest completed receipt and pending receipt survive session snapshots. No database migration is required.
+
+For an ordinary choice the presentation order is **choice lock → server countdown → single dice/outcome reveal → optional Arcade only while the Director is still writing → short next-chapter reveal**. If the Director commits before the dice are finished, the player moves directly to the next chapter instead of re-entering Arcade or replaying results. The Arcade is gated until the turn's dice receipt has been acknowledged. A resumed pre-start room still shows its synopsis/GET STARTED rather than implying a turn was already resolved. Retry uses frozen TurnFacts and does not change the dice.
+
+Regression protection: `node --test scripts/tests/turn-flow.cjs` simulates socket event reordering and timing with a deterministic hook scheduler; Python receipt tests check snapshot and restored-turn semantics. The default `scripts/check-project.sh` includes the Node turn-flow tests.
 
 ### Important cost/scale note
 
@@ -196,10 +204,10 @@ Losing browser storage must never destroy authoritative adventure progress.
 2. Players select and lock choices.
 3. Python freezes authoritative TurnFacts and rolls/check inputs.
 4. A low-cost recap request and the next-scene Story Director request launch in parallel.
-5. As soon as the cheap recap is available, the dice/result receipt may be shown **before** the next scene finishes writing. If the player clears the receipt first, the arcade/intermission masks only the remaining story-writing tail.
+5. As soon as the early recap is available, show a **single** authoritative dice/result receipt for the resolved turn. The final Director response may enrich narrative/progression but cannot change already-displayed dice. Once the player acknowledges the receipt, the Arcade may occupy any remaining generation time; it never appears first and cannot replay the receipt.
 6. The Story Director writes the **new** playable beat rather than re-narrating the previous roll. It may use at most a 1-2 sentence causal bridge before moving forward.
 7. Generated output is validated and committed.
-8. New scene/choices arrive and the story viewport returns to the top.
+8. A short chapter-ready handoff clears the theater exactly once; new scene/choices appear without a second dice presentation, and the story viewport returns to the top.
 9. Resolved turns remain available in the compact in-room Turn History carousel with prior choices, checks/outcomes, and recap text.
 
 ### Director failure recovery
@@ -424,6 +432,8 @@ Current behavior:
 - after selection, the QTE shows right/wrong reaction feedback, the temporary effect earned/applied, the correct response, and then waits for the player to explicitly continue the story.
 
 The design goal is that a quick event should feel like a sudden playable sentence in the current scene, not a disconnected reflex mini-game.
+
+Pass 53 QTE continuity follow-up: the Director must lead from scene hazard to reaction to a choice menu that remains physically sensible whether the Hero succeeds or fails. The reaction outcome is displayed as a separate consequence directly before the main choices (not appended to the AI's story prose), and only the most recent relevant fictional QTE consequences—not correctness tags, option lists, or modifier bookkeeping—are passed into the **next** Director turn. The Director must incorporate those facts at the start of the next beat or into its stakes, never as an unrelated QTE recap at the end. This is a prompt/choice-alignment improvement, not an outcome-specific re-generation of main choices, and costs no additional model request. Live Director commits now skip a QTE if the model omitted or malformed the authored beat rather than falling back to a generic, context-free reaction; the legacy fallback remains available to older utility callers.
 
 ---
 
@@ -998,6 +1008,7 @@ This is intentionally short. Historical numbered changelog files remain archive 
 - **Pass 50 — Regression Suite Organization:** feature-oriented Python test packages and descriptive module names, centralized project-root handling, safe one-time deletion of old paths, and suite documentation; no product runtime or database changes.
 - **Pass 51 — Solo Story Launch & Catalog Clarity:** normal story catalog now explicitly selects Solo (default) or With a Friend before room creation, and Author archiving warns that approved generated seeds require separate retirement; no database changes.
 - **Pass 52 — Lobby Chapter Staging & Immersive Recovery:** fixed pre-start presence wrongly launching intermission theater; staged published synopsis and validated opening chapter, protected Get Started at server and client, and revised 404/route-error player copy. Added copy voice audit and launch regressions; no DB migration or additional model calls.
+- **Pass 53 — Single Receipt / Turn Flow Stability:** preserved server-authoritative dice across early/final socket events, stopped dice/theater replays, only enables Arcade after outcome acknowledgement, reconciles pending/final receipts through room snapshots and reconnect, and added deterministic turn-order regression checks; no schema migration.
 
 
 ## 21. Documentation Policy

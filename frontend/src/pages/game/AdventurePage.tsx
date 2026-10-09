@@ -199,6 +199,23 @@ export function AdventurePage() {
     theater.phase === "none",
   );
 
+  // A quick-event outcome belongs to the scene it interrupted, not a later
+  // chapter. Keep it adjacent to the next choice menu, even after reconnect.
+  const currentReaction = (live.game?.micro_event_history ?? [])
+    .slice()
+    .reverse()
+    .find((item) => Number(item.created_from_turn) === turnNumber - 1);
+  const reactionOutcomes = Array.isArray(currentReaction?.outcomes)
+    ? currentReaction.outcomes
+    : [];
+  const localReaction = reactionOutcomes.find(
+    (item): item is { player_id: string; result: string; success: boolean } =>
+      typeof item === "object" && item !== null &&
+      "player_id" in item && item.player_id === live.playerId &&
+      "result" in item && typeof item.result === "string" &&
+      "success" in item && typeof item.success === "boolean",
+  );
+
   const openingReady = Boolean(live.game?.opening_ready && scene?.body?.trim() && scene.choices.length > 0);
   const canBeginAdventure = Boolean(live.game?.can_begin_adventure && openingReady);
 
@@ -607,7 +624,7 @@ ${scene.body.slice(0, 260)}`}
                 <StoryReveal
                   sceneId={scene.id}
                   text={scene.body}
-                  enabled={storyPreferences.wordReveal}
+                  enabled={storyPreferences.wordReveal && theater.phase === "none"}
                 />
               ) : (
                 <>
@@ -729,6 +746,14 @@ ${scene.body.slice(0, 260)}`}
                       : "NOTHING IS CANON YET"}
                 </span>
               </header>
+
+              {localReaction && !live.game?.pending_micro_event ? (
+                <section className="qte-choice-consequence" aria-label="Your reaction's consequence">
+                  <span className="eyebrow">THE MOMENT AFTER YOUR REACTION</span>
+                  <p>{localReaction.result}</p>
+                  <small>These are the paths now open to you.</small>
+                </section>
+              ) : null}
 
               <div className="choice-grid">
                 {(scene?.choices ?? []).map((choice, index) => {

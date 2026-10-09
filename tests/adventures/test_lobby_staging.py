@@ -46,10 +46,10 @@ def test_server_enforces_opening_scene_readiness(monkeypatch) -> None:
 
 def test_turn_theater_never_treats_lobby_presence_as_locked_choices() -> None:
     source = (PROJECT_ROOT / "frontend/src/features/adventure/useTurnTheater.ts").read_text()
-    assert "if (!game?.started || !lockCountdown) return;" in source
+    assert "if (!game?.started || !lockCountdown || lockCountdown.room_code !== roomCode) return;" in source
     assert "if (!game?.started || !storyAdvancing" in source
     assert "if (!game?.started) return;" in source
-    assert "if (!game?.started || !turnReceipt" in source
+    assert "const incoming = latestTurnReceipt(" in source
 
 
 def test_lobby_displays_synopsis_and_only_enables_playable_openings() -> None:

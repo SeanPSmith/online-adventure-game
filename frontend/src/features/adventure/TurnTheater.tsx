@@ -42,7 +42,7 @@ export function TurnTheater({
   }
 
   const intermissionVisible = Boolean(
-    theater.activeIntermission &&
+    theater.activeIntermission && theater.arcadeAvailable &&
     (theater.phase === "intermission" || theater.phase === "story-ready"),
   );
 

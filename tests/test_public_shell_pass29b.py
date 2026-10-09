@@ -40,7 +40,15 @@ def test_rulebook_is_available_in_public_shell() -> None:
     router = read("frontend/src/router.tsx")
     public_block = router.split('element: <PublicLayout />', 1)[1].split('element: <RequireAuth />', 1)[0]
 
-    assert '{ path: "rulebook", element: <RulebookPage /> }' in public_block
+    # Pass 49 moved the Rulebook to a lazy route. Verify the anonymous/public
+    # branch still resolves the actual Rulebook page (not just a matching URL).
+    public_rulebook_routes = [
+        line.strip() for line in public_block.splitlines() if 'path: "rulebook"' in line
+    ]
+    assert len(public_rulebook_routes) == 1
+    assert 'lazy:' in public_rulebook_routes[0]
+    assert 'import("./pages/game/RulebookPage")' in public_rulebook_routes[0]
+    assert '.RulebookPage' in public_rulebook_routes[0]
 
 
 def test_auth_pages_share_intentional_public_shell_language() -> None:

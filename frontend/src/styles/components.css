@@ -8621,3 +8621,27 @@ textarea:focus {
 .onboarding-steps p { line-height: 1.5; }
 .onboarding-steps .button { white-space: normal; }
 @media (max-width: 800px) { .onboarding-steps { grid-template-columns: 1fr; } }
+
+/* PASS 49: lightweight, non-blocking feedback while a route chunk loads. */
+.route-transition-status {
+  position: fixed;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  left: max(12px, env(safe-area-inset-left));
+  z-index: 100;
+  max-width: calc(100vw - 24px);
+  padding: 8px 12px;
+  border: 1px solid var(--green-line-dim);
+  background: var(--bg-deep);
+  color: var(--green);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  pointer-events: none;
+}
+
+.route-error-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}

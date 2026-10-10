@@ -125,6 +125,16 @@ def test_react_launch_ui_uses_get_started_and_no_browser_native_controls() -> No
     assert 'onChange={value => setAudioPreference({ narrationVoice: value })}' in settings
 
 
+def test_adventure_host_narrator_voice_has_a_real_import() -> None:
+    # Protect the production TypeScript build, not the visual label.
+    page = read("frontend/src/pages/game/AdventurePage.tsx")
+    service = read("frontend/src/services/storyNarrator.ts")
+    assert "export function setAdventureNarratorVoice(" in service
+    assert "setAdventureNarratorVoice(live.game?.narrator_voice ?? null)" in page
+    narrator_import = page.split('from "../../services/storyNarrator"')[0].rsplit("import {", 1)[-1]
+    assert "setAdventureNarratorVoice," in narrator_import
+
+
 def test_synopsis_always_gets_distinct_literary_ai_copy_pass() -> None:
     provider = read("app/generation/openai_provider.py")
 

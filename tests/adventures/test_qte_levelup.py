@@ -163,8 +163,9 @@ def test_pass31_frontend_surfaces_qte_stakes_and_level_up_modal() -> None:
 
     assert "1 RIGHT ANSWER IN" in qte
     assert 'key === "3"' in qte
-    assert "RIGHT REACTION" in qte
-    assert "WRONG REACTION" in qte
+    assert "GOOD REACTION" in qte
+    assert "DANGEROUS REACTION" in qte
+    assert "NEUTRAL REACTION" in qte
     assert "NEXT ROUND" in qte
     assert "qte-stakes" in qte
     assert "HERO ADVANCEMENT // CONGRATULATIONS" in level
@@ -182,5 +183,5 @@ def test_pass31_director_prompt_demands_grounded_novel_like_prose_and_scene_qtes
     assert "Mystery is allowed. Confusing prose is not." in director
     assert "annex handler" in director
     assert "runtime.quick_event_requested" in director
-    assert "Exactly ONE is correct" in director
+    assert "Set correct_option_id to the FIRST authored option ID" in director
     assert "duration_turns=1" in director

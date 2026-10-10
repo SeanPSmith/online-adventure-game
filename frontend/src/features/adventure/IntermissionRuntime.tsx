@@ -160,6 +160,19 @@ export function IntermissionRuntime({
 
   const compactActionHud = ["action", "racing", "movement"].includes(arcadeGame.category);
 
+  // Do not sneak an unpublished fallback cabinet into an empty live catalog.
+  // The Director may keep writing, but no Arcade game is publicly available.
+  if (payload.game_id === "intermission_wait") {
+    return (
+      <div className="intermission-runtime" role="status" aria-live="polite">
+        <span className="eyebrow">THE NEXT CHAPTER IS TAKING SHAPE</span>
+        <h2>{storyReady ? "THE STORY IS READY" : "THE CHRONICLE IS BEING WRITTEN"}</h2>
+        <p>No Arcade cabinets are currently published.</p>
+        <strong>{storyReady ? `${Math.max(0, storyReadySeconds)}s` : `WRITING // ${elapsedSeconds.toFixed(1)}s`}</strong>
+      </div>
+    );
+  }
+
   return (
     <div className={`intermission-runtime ${compactActionHud ? "is-action-game" : ""}`}>
       <header className="intermission-runtime-header">

@@ -8696,3 +8696,20 @@ textarea:focus {
 .qte-choice-consequence small {
   color: var(--muted);
 }
+
+/* Pass 54 — fatal consequences and visible reward ledger */
+.theater-reward-ledger { display: flex; flex-wrap: wrap; gap: .35rem .85rem; font-size: .8rem; opacity: .92; margin: .4rem 0 .6rem; }
+.theater-reward-ledger small { flex-basis: 100%; opacity: .7; }
+.theater-health-reason { margin: .5rem 0; padding: .45rem .6rem; border-left: 3px solid currentColor; display: grid; gap: .3rem; }
+.theater-health-reason span { font-size: .85rem; }
+.theater-fallen { padding: 1.2rem; border: 2px solid currentColor; text-align: center; }
+.theater-fallen h2 { font-size: clamp(1.3rem, 4vw, 2.2rem); }
+.hero-death-backdrop { position: fixed; inset: 0; z-index: 1500; background: rgba(7, 4, 10, .96); display: grid; place-items: center; padding: 1rem; overflow-y: auto; }
+.hero-death-window { width: min(100%, 600px); display: grid; justify-items: center; gap: 1rem; padding: clamp(1.2rem, 4vw, 2.5rem); border: 3px double currentColor; text-align: center; background: var(--surface, #15101b); }
+.hero-death-window pre { font-size: 1.1rem; line-height: 1.1; }
+.hero-death-window h2 { font-size: clamp(1.6rem, 5vw, 2.5rem); }
+.hero-death-health { font-size: 1.6rem; }
+.hero-death-causes { border-block: 1px solid currentColor; width: 100%; padding: .7rem 0; }
+.hero-death-causes p { font-size: .85rem; }
+.qte-neutral-note { font-size: .8rem; opacity: .85; align-self: center; }
+.qte-resolution-callout.is-neutral { border-color: var(--text-muted, #aaa); }

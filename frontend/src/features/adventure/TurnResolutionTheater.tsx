@@ -172,9 +172,18 @@ function ProgressionSummary({ update }: { update: HeroProgressionUpdate }) {
     <article className="theater-progression-card">
       <div className="eyebrow">HERO CONSEQUENCES</div>
       <div className="theater-progression-line">
-        <span>XP</span>
+        <span>XP EARNED</span>
         <strong>+{update.xp_gained}</strong>
       </div>
+      {update.xp_breakdown && Object.keys(update.xp_breakdown).length > 0 ? (
+        <div className="theater-reward-ledger">
+          <span>RISK: {String(update.xp_breakdown.risk_level ?? "STANDARD").toUpperCase()}</span>
+          <span>BASE: {String(update.xp_breakdown.base_xp ?? "—")} XP</span>
+          <span>LEVEL ×{String(update.xp_breakdown.level_multiplier ?? 1)}</span>
+          <span>RESULT ×{String(update.xp_breakdown.outcome_multiplier ?? 1)}</span>
+          <small>Risk, Hero level and roll outcome determine the final award.</small>
+        </div>
+      ) : null}
 
       {update.health_change !== 0 ? (
         <div className={`theater-progression-line ${update.health_change < 0 ? "is-damage" : "is-heal"}`}>
@@ -203,9 +212,17 @@ function ProgressionSummary({ update }: { update: HeroProgressionUpdate }) {
         </div>
       ))}
 
+      {(update.health_events ?? []).filter((event) => Number(event.health_delta ?? 0) !== 0).map((event, index) => (
+        <div className="theater-health-reason" key={`${String(event.event_key ?? "hp")}:${index}`}>
+          <strong>{Number(event.health_delta ?? 0) < 0 ? "WOUND" : "RECOVERY"}: {signed(Number(event.health_delta ?? 0))} HP</strong>
+          <span>{String(event.description ?? "Story consequence")}</span>
+        </div>
+      ))}
       {update.died_this_turn ? (
-        <div className="theater-fallen">
-          THE HERO HAS FALLEN.
+        <div className="theater-fallen" role="alert">
+          <h2>THE HERO HAS FALLEN.</h2>
+          <p>Your last HP is gone. {String(update.death_record?.cause ?? "Your wounds proved mortal.")}</p>
+          <strong>0 / {update.max_health} HP — YOUR JOURNEY HAS ENDED.</strong>
         </div>
       ) : null}
     </article>

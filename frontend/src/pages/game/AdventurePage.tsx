@@ -11,6 +11,7 @@ import { RoomInviteButton } from "../../components/game/RoomInviteButton";
 import { ShareMomentButton } from "../../components/game/ShareMomentButton";
 import { ChoiceInspector } from "../../features/adventure/ChoiceInspector";
 import { LevelUpModal } from "../../features/adventure/LevelUpModal";
+import { HeroDeathModal } from "../../features/adventure/HeroDeathModal";
 import { QuickEventModal } from "../../features/adventure/QuickEventModal";
 import { TurnTheater } from "../../features/adventure/TurnTheater";
 import { StoryReveal } from "../../features/adventure/StoryReveal";
@@ -122,6 +123,7 @@ export function AdventurePage() {
   const [selectedChoiceId, setSelectedChoiceId] = useState("");
   const [lockPending, setLockPending] = useState(false);
   const [dismissedLevelUpKey, setDismissedLevelUpKey] = useState("");
+  const [dismissedDeathKey, setDismissedDeathKey] = useState("");
   const [storyPreferences, setStoryPreferences] = useState<StoryDisplayPreferences>(() =>
     readStoryDisplayPreferences(),
   );
@@ -168,8 +170,13 @@ export function AdventurePage() {
     [characterId, live.lastTurn],
   );
 
-  const lastLocalProgression = characterId
-    ? live.lastTurn?.hero_progression?.[characterId] ?? null
+  // Progression is keyed by PLAYER ID on the server, not Character ID.
+  // The old Character ID lookup silently hid death and level-up notices.
+  const lastLocalProgression = live.lastTurn?.hero_progression
+    ? (live.playerId ? live.lastTurn.hero_progression[live.playerId] : null)
+      ?? Object.values(live.lastTurn.hero_progression).find(
+        (update) => update.character_id === characterId,
+      ) ?? null
     : null;
 
   const inspectedResult = useMemo(
@@ -180,8 +187,10 @@ export function AdventurePage() {
     [inspectedCharacterId, live.lastTurn],
   );
 
-  const inspectedProgression = inspectedCharacterId
-    ? live.lastTurn?.hero_progression?.[inspectedCharacterId] ?? null
+  const inspectedProgression = inspectedCharacterId && live.lastTurn?.hero_progression
+    ? Object.values(live.lastTurn.hero_progression).find(
+        (update) => update.character_id === inspectedCharacterId,
+      ) ?? null
     : null;
 
   const levelUpKey = lastLocalProgression?.leveled_up
@@ -193,9 +202,16 @@ export function AdventurePage() {
       ].join(":")
     : "";
 
+  const deathKey = lastLocalProgression?.died_this_turn
+    ? `${normalizedRoomCode}:${live.lastTurn?.resolved_turn_number ?? turnNumber}:${characterId}:fallen`
+    : "";
+  const showDeath = Boolean(
+    deathKey && dismissedDeathKey !== deathKey && theater.phase === "none",
+  );
   const showLevelUp = Boolean(
     levelUpKey &&
     dismissedLevelUpKey !== levelUpKey &&
+    !lastLocalProgression?.died_this_turn &&
     theater.phase === "none",
   );
 
@@ -1154,6 +1170,14 @@ ${scene.body.slice(0, 260)}`}
         </aside>
       </div>
 
+      {showDeath && lastLocalProgression ? (
+        <HeroDeathModal
+          heroName={hero?.name ?? localRoomPlayer?.name ?? "Hero"}
+          update={lastLocalProgression}
+          onContinue={() => setDismissedDeathKey(deathKey)}
+        />
+      ) : null}
+
       {showLevelUp && lastLocalProgression ? (
         <LevelUpModal
           heroName={hero?.name ?? localRoomPlayer?.name ?? "Hero"}
@@ -1164,12 +1188,12 @@ ${scene.body.slice(0, 260)}`}
 
       <QuickEventModal
         event={
-          theater.phase === "none" && !showLevelUp
+          theater.phase === "none" && !showLevelUp && !showDeath
             ? live.game?.pending_micro_event ?? null
             : null
         }
         resolution={
-          theater.phase === "none" && !showLevelUp
+          theater.phase === "none" && !showLevelUp && !showDeath
             ? live.microEventResolution
             : null
         }

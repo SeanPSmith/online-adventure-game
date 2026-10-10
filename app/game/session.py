@@ -1,4 +1,5 @@
 from __future__ import annotations
+from hashlib import sha256
 
 from copy import (
     deepcopy,
@@ -341,6 +342,10 @@ class GameSession:
     # Intermission mini-game stats are adventure-scoped for now.
     # These are intentionally isolated so they can later be promoted
     # into account/achievement stats without affecting RPG mechanics.
+    # Selected cabinet remains fixed even if an administrator publishes or
+    # retires games while a story turn is being written. Persist across reconnects.
+    intermission_game_selections: dict[str, str] = field(default_factory=dict)
+
     intermission_scores: dict[
         str,
         dict[
@@ -1370,6 +1375,11 @@ class GameSessionManager:
                     )
                     or ""
                 ),
+
+            intermission_game_selections=(
+                {str(k): str(v) for k, v in data.get("intermission_game_selections", {}).items()}
+                if isinstance(data.get("intermission_game_selections"), dict) else {}
+            ),
 
             intermission_scores=
                 (
@@ -3268,6 +3278,41 @@ class GameSessionManager:
         ]
 
 
+    def select_intermission_game(
+        self,
+        room_code: str,
+        turn_number: int,
+        published_game_ids: tuple[str, ...] | list[str] | None = None,
+    ) -> str:
+        """Pin one published cabinet per turn; never reroll on reconnect.
+
+        Old sessions without this field retain their original legacy slot only
+        when no publication catalog is available. The server ID is the actual
+        cabinet ID, rather than one of the six historic aliases.
+        """
+        session = self.get_or_create(room_code)
+        turn_key = str(max(1, int(turn_number)))
+        pinned = str(session.intermission_game_selections.get(turn_key) or "")
+        if pinned:
+            return pinned
+        pool = tuple(sorted({str(x) for x in (published_game_ids or ()) if str(x)}))
+        if not pool:
+            # Explicitly empty publication means the administrator pulled all
+            # cabinets. Only absent catalog data may use the old six slots.
+            chosen = (
+                self.intermission_game_id(turn_number)
+                if published_game_ids is None else "intermission_wait"
+            )
+        else:
+            # Deterministic per-room offset with a full tour through all
+            # published cabinets before repeating. Never use Python's hash(),
+            # which changes between processes.
+            offset = int(sha256(room_code.encode("utf-8")).hexdigest()[:8], 16)
+            chosen = pool[(offset + max(1, int(turn_number)) - 1) % len(pool)]
+        session.intermission_game_selections[turn_key] = chosen
+        return chosen
+
+
     def intermission_stats(
         self,
         room_code: str,
@@ -3333,9 +3378,8 @@ class GameSessionManager:
         )
 
         expected_game = (
-            self.intermission_game_id(
-                turn_number
-            )
+            session.intermission_game_selections.get(str(turn_number))
+            or self.intermission_game_id(turn_number)
         )
 
 

@@ -4,7 +4,7 @@
 > Update or rewrite the relevant sections in this file as the product changes; do not create another numbered changelog copy.
 
 **Last consolidated:** 2026-10-09  
-**Current local baseline:** Pass 53 (authoritative turn-receipt sequencing, single dice reveal, intermission/reconnect reconciliation), built on Pass 52  
+**Current local baseline:** Pass 54 (fatal outcome narration and death acknowledgment, visible XP/HP causes, three-way QTE variety, published-cabinet intermission selection), built on Pass 53  
 **Public site:** `https://onlinetextadventure.com`  
 **Primary release command:** `./scripts/release-staging.sh "Describe the release"`
 
@@ -28,6 +28,16 @@ The product combines:
 The visual language is intentionally terminal/IRC/VGA-inspired: strong compartment borders, chunky mono typography, segmented RPG meters, deliberately retro arcade graphics, and modern input/UX behavior. Pass 35 formalizes a semantic two-accent hierarchy: muted terminal blue owns structural chassis, panel headers, page bands, section dividers, and informational chrome; phosphor green is reserved for live state, actions, selection, scores, meters, success, and other changing gameplay signals. Amber/red remain exceptional warning/failure colors rather than general decoration.
 
 ---
+
+### Gameplay integrity refinements (Pass 54)
+
+- Server reconciles post-generation fatal HP events with the final story, overrides contradictory happy epilogues and closes the solo adventure. The death notification and HP cause are visible; a local progression lookup now uses player ID instead of character ID.
+- The dice-result receipt shows XP awarded and calculation inputs (risk, base, Hero level multiplier, roll outcome multiplier), plus each health consequence. HP is still applied from authored consequence severity by the server, so a successful roll is **not** immunity to injury; the Director must narrate the wound.
+- Director QTEs are short three-way BEST/NEUTRAL/BAD choices, shuffled by a stable event seed. Neutral causes no boon/bane; older two-way archived QTEs remain compatible. QTE continuity still uses the Pass 53 scene interruption rules, with static next choices that work after either outcome (not independently generated branches).
+- Intermission now rotates over the **published Arcade catalog** and records the chosen cabinet per turn for stable reconnects. Prior six-slot game IDs remain accepted for older saved runs.
+- Scene pacing now prioritizes meaningful goal advancement over repeated mundane micro-actions.
+- **Future plan only:** `docs/WEB_AUDIO_SFX_ROADMAP.md` defines the independent Pass 55 browser audio/SFX implementation.
+
 
 ## 2. Current Product Surfaces
 

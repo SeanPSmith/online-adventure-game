@@ -53,6 +53,8 @@ from app.arcade.routes import (
     router as arcade_router,
 )
 
+from app.game.fatal_outcome import reconcile_fatal_outcome
+
 from app.arcade.store import (
     arcade_publication_store,
 )
@@ -841,8 +843,10 @@ def build_game_state(
             (
                 {
                     "game_id":
-                        game_sessions.intermission_game_id(
-                            session.turn_number
+                        game_sessions.select_intermission_game(
+                            room_code,
+                            session.turn_number,
+                            arcade_publication_store.live_game_ids(),
                         ),
 
                     "play_mode":
@@ -4149,6 +4153,14 @@ async def finalize_resolved_turn(
                 room.code
             )
 
+            # Pin the published Arcade cabinet BEFORE the first snapshot is
+            # persisted; a reconnect or service restart must not reroll it.
+            game_sessions.select_intermission_game(
+                room.code,
+                session.turn_number,
+                arcade_publication_store.live_game_ids(),
+            )
+
             await persist_room_state(
                 room.code
             )
@@ -4167,8 +4179,10 @@ async def finalize_resolved_turn(
                         session.turn_number,
 
                     "game_id":
-                        game_sessions.intermission_game_id(
-                            session.turn_number
+                        game_sessions.select_intermission_game(
+                            room.code,
+                            session.turn_number,
+                            arcade_publication_store.live_game_ids(),
                         ),
 
                     "play_mode":
@@ -4389,11 +4403,13 @@ async def finalize_resolved_turn(
             if bool(getattr(character, "is_alive", character.health > 0))
             and int(character.health or 0) > 0
         ]
-        if not living_after_turn:
-            session.completed = True
-            session.ending_label = "THE HEROES HAVE FALLEN" if len(room.players) > 1 else "THE HERO HAS FALLEN"
-            result["completed"] = True
-            result["ending_label"] = session.ending_label
+        reconcile_fatal_outcome(
+            room=room,
+            session=session,
+            progression_updates=progression_updates,
+            result=result,
+            living_after_turn=bool(living_after_turn),
+        )
 
         if not session.completed:
             game_sessions.maybe_schedule_micro_event(

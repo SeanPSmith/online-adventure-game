@@ -373,6 +373,8 @@ class SQLiteStateStore:
                 "ending_label":
                     game_session.ending_label,
 
+                "intermission_game_selections": dict(game_session.intermission_game_selections),
+
                 "intermission_scores":
                     dict(
                         game_session.intermission_scores

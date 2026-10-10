@@ -228,7 +228,9 @@ export function QuickEventModal({
           <span>
             {showingResolution
               ? "QUICK EVENT // RESULT"
-              : `QUICK EVENT // 1 RIGHT ANSWER IN ${oddsDenominator}`}
+              : activeEvent.options.length === 3
+                ? "QUICK EVENT // BEST · NEUTRAL · DANGEROUS"
+                : `QUICK EVENT // 1 RIGHT ANSWER IN ${oddsDenominator}`}
           </span>
           {!showingResolution ? (
             <strong className={`qte-clock is-${timerState}`}>
@@ -293,16 +295,19 @@ export function QuickEventModal({
                 <small>{effectLine(activeEvent.success_effect)}</small>
               </div>
               <div className="is-nerf">
-                <span>WRONG / TIMEOUT</span>
+                <span>BAD / TIMEOUT</span>
                 <strong>{activeEvent.failure_effect?.name ?? "TEMPORARY SETBACK"}</strong>
                 <small>{effectLine(activeEvent.failure_effect)}</small>
               </div>
+              {activeEvent.options.length === 3 ? (
+                <div className="qte-neutral-note">NEUTRAL // NO MODIFIER</div>
+              ) : null}
             </div>
           ) : null}
 
           {showingResolution && localOutcome ? (
-            <div className={`qte-resolution-callout ${localOutcome.success ? "is-success" : "is-failure"}`}>
-              <span>{localOutcome.success ? "RIGHT REACTION" : "WRONG REACTION"}</span>
+            <div className={`qte-resolution-callout ${localOutcome.success ? "is-success" : localOutcome.tag === "qte_neutral" ? "is-neutral" : "is-failure"}`}>
+              <span>{localOutcome.success ? "GOOD REACTION" : localOutcome.tag === "qte_neutral" ? "NEUTRAL REACTION" : "DANGEROUS REACTION"}</span>
               <strong>{localOutcome.option_label || "NO REACTION"}</strong>
               <p>{localOutcome.result}</p>
               {localOutcome.effect ? (
@@ -326,7 +331,7 @@ export function QuickEventModal({
                 <div key={`${outcome.player_id}:${outcome.option_id}`}>
                   <strong>{outcome.player_name}</strong>
                   <span>
-                    {outcome.success ? "RIGHT" : "WRONG"} // {outcome.option_label}
+                    {outcome.success ? "GOOD" : outcome.tag === "qte_neutral" ? "NEUTRAL" : "BAD"} // {outcome.option_label}
                   </span>
                 </div>
               ))}
@@ -360,7 +365,7 @@ export function QuickEventModal({
 
         <footer className="qte-status">
           {showingResolution
-            ? "REACTION RESOLVED // MODIFIER ACTIVE FOR NEXT ROUND_"
+            ? "REACTION RESOLVED // YOUR NEXT CHOICE AWAITS_"
             : timedOut
               ? "TIME // REACTION MISSED // RESOLVING_"
               : alreadyAnswered

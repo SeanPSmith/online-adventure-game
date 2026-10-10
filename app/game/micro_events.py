@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from hashlib import sha256
+from random import Random
 from time import time
 from typing import Any
 
@@ -275,8 +276,8 @@ def _normalize_authored_event(raw: Any) -> dict[str, Any] | None:
         if option_id in seen_ids:
             return None
         seen_ids.add(option_id)
-        label = _clip(item.get("label"), 70)
-        description = _clip(item.get("description"), 220)
+        label = _clip(item.get("label"), 38)
+        description = _clip(item.get("description"), 90)
         if not label or not description:
             return None
         options.append({
@@ -290,10 +291,15 @@ def _normalize_authored_event(raw: Any) -> dict[str, Any] | None:
         return None
 
     return {
+        # For new three-way QTEs Director authors BEST, NEUTRAL, BAD in
+        # schema order. Two-way historical events keep their binary semantics.
+        "neutral_option_id": (
+            options[1]["id"] if len(options) == 3 else None
+        ),
         "story_context": _clip(raw.get("story_context"), 240),
         "kind": _clean_text(raw.get("kind")) or "quick_reaction",
         "title": _clip(raw.get("title"), 80) or "QUICK REACTION",
-        "prompt": _clip(raw.get("prompt"), 420),
+        "prompt": _clip(raw.get("prompt"), 160),
         "options": options,
         "correct_option_id": correct_option_id,
         "success_text": _clip(raw.get("success_text"), 320)
@@ -319,6 +325,8 @@ def has_authored_scene_qte(raw: Any) -> bool:
         and normalized.get("prompt")
         and normalized.get("success_text")
         and normalized.get("failure_text")
+        and len(normalized.get("options", [])) == 3
+        and normalized.get("correct_option_id") == normalized["options"][0]["id"]
     )
 
 
@@ -363,6 +371,11 @@ def build_micro_event(
         f"{normalized['prompt']}|{normalized['correct_option_id']}"
     ).encode("utf-8")
     event_id = f"micro_{resolved_turn_number}_{sha256(seed).hexdigest()[:8]}"
+    # Shuffle after capturing the correct/neutral IDs. Use an event-seeded RNG
+    # so every client/reconnect sees exactly the same order.
+    options = list(normalized.get("options", []))
+    Random(int(sha256(seed).hexdigest()[:16], 16)).shuffle(options)
+    normalized["options"] = options
     created_at_ms = int(time() * 1000)
 
     # expires_at_ms remains only for backward compatibility with older clients.
@@ -505,18 +518,28 @@ def resolve_micro_event(*, event: dict[str, Any], response_names: dict[str, str]
             continue
 
         success = bool(correct_option_id and option_id == correct_option_id)
+        neutral = bool(
+            not success and len(options_by_id) == 3
+            and option_id == str(event.get("neutral_option_id", ""))
+        )
         outcomes.append({
             "player_id": str(player_id),
             "player_name": player_name,
             "option_id": option_id,
             "option_label": _clean_text(option.get("label")),
-            "result": _clean_text(
-                event.get("success_text" if success else "failure_text")
+            "result": (
+                f"{_clean_text(option.get('description'))} "
+                "You stay safe, but gain no ground."
+                if neutral else _clean_text(
+                    event.get("success_text" if success else "failure_text")
+                )
             ),
-            "tag": "qte_success" if success else "qte_failure",
+            "tag": "qte_neutral" if neutral else ("qte_success" if success else "qte_failure"),
             "success": success,
-            "effect": deepcopy(
-                event.get("success_effect" if success else "failure_effect", {})
+            "effect": (
+                {} if neutral else deepcopy(
+                    event.get("success_effect" if success else "failure_effect", {})
+                )
             ),
             "effect_applied": False,
         })
@@ -525,7 +548,7 @@ def resolve_micro_event(*, event: dict[str, Any], response_names: dict[str, str]
         joined = " ".join(
             (
                 f"{item['player_name']} chose {item['option_label']} — "
-                f"{'RIGHT' if item['success'] else 'WRONG'}. {item['result']}"
+                f"{'RIGHT' if item['success'] else 'NEUTRAL' if item['tag'] == 'qte_neutral' else 'WRONG'}. {item['result']}"
             )
             for item in outcomes
         )

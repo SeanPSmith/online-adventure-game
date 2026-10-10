@@ -348,7 +348,9 @@ export function arcadeGameById(gameId: string) {
 }
 
 export function liveArcadeGameForServerSlot(serverGameId: string) {
-  const cabinetId = LIVE_SLOT_TO_CABINET[serverGameId] ?? "outlier";
+  const cabinetId = BY_ID.has(serverGameId)
+    ? serverGameId
+    : LIVE_SLOT_TO_CABINET[serverGameId] ?? "outlier";
   return arcadeGameById(cabinetId);
 }
 

@@ -329,9 +329,18 @@ QUICK EVENT / QTE AUTHORING
   and the cue/hazard. It MUST NOT mention a QTE, quick reaction, timer, countdown,
   odds, correct/right/wrong answer, option labels, success/failure effects, buffs,
   nerfs, or announce the prompt. Never paste QTE options into scene_body.
-- Supply 2 or 3 plausible options. Exactly ONE is correct. With no story insight,
-  that yields a 50% baseline for two options or ~33% for three. The attentive
-  reader should often be able to improve those odds from details in the scene.
+- Supply EXACTLY THREE short, immediately distinguishable responses. Put them
+  in this schema order: (1) BEST, (2) NEUTRAL (safe enough, but loses an
+  opportunity), (3) BAD (a plausible mistake given the hazard). The server
+  reshuffles their player-visible order each time; never write ABC/123 clues.
+  Each option label: 2-5 words; description: one terse clause, <=75 characters.
+  A timed decision cannot ask players to read three paragraphs. A careful
+  reader should identify the best response from tangible hazard details.
+  NEUTRAL is not secretly WRONG: no positive or negative status modifier.
+  BAD is convincingly dangerous, not nonsensical or a joke.
+- Set correct_option_id to the FIRST authored option ID (best response).
+  Server assigns the SECOND option the neutral role and the THIRD the bad role,
+  then shuffles presentation before players see it.
 - correct_option_id is committed on the server BEFORE any player answers and is
   never exposed to the client while the QTE is live. Do not make correctness a
   matter of taste; there must be a concrete reason one response is best in this
@@ -412,6 +421,9 @@ STRUCTURED STORY STATE
   not to an arbitrary desire to punish a failed roll. LOW/MODERATE danger will
   usually justify -1 or -2 when injury is warranted; HIGH may justify -2/-3;
   SEVERE -3/-4; EXTREME may justify -5.
+- A successful check can still have a physical cost ONLY if the narration
+  explicitly shows the injury and the Hero's success remains meaningful.
+  Never silently subtract HP for unrelated or already-resolved threats.
 - Use HP injury only when the fiction contains a real bodily hazard: attack,
   fall, burn, poison, crushing force, exposure, etc. Failed social or
   investigative checks should usually cost trust, time, leverage, position,
@@ -517,6 +529,19 @@ STORY PACING
   climax/resolution, you MAY complete before target_turns.
 - Do not rush merely because the target is approaching.
 - Do not stall merely to reach the target.
+- Each resolved turn must move the ADVENTURE, not just the Hero's hands. A mundane
+  preparation (lighting a campfire, opening a door, gathering tools, crossing
+  a room) happens as part of ONE turn or inside the next scene; never stretch
+  it across many choices. Cut ahead past routine setup, travel, repetition and
+  idle conversation unless a new threat or irreversible decision intervenes.
+- In each scene, establish tangible progress: new location, elapsed time,
+  decisive revelation, changed relationship, escalating opponent, completed
+  objective, or a significant cost. At least every TWO turns, advance the main
+  goal or significantly redirect it. Do not repeat the prior question with
+  lightly rephrased answers.
+- Prefer scene-scale decisions (whom to trust, which route, what to risk,
+  whether to confront/retreat) over micro-actions (strike match, inspect twig).
+  Successful low-stakes routine actions should be summarized in narrative.
 - completed=false requires 3 to 6 active choices normally; a rare seventh
   choice is allowed when justified.
 - completed=true requires choices=[] and a satisfying consequence/epilogue.

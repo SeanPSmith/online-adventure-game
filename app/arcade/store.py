@@ -55,6 +55,14 @@ class ArcadePublication:
 class ArcadePublicationStore:
     def __init__(self, database_path: Path = DATABASE_PATH) -> None:
         self.database_path = database_path
+        # Maintained after DB initialization/updates; room snapshots are built
+        # synchronously and cannot await a catalog request.
+        self._live_ids: tuple[str, ...] = tuple(
+            key for key, live in DEFAULT_ARCADE_PUBLICATION.items() if live
+        )
+
+    def live_game_ids(self) -> tuple[str, ...]:
+        return self._live_ids
 
     def _connect(self) -> DatabaseConnection:
         return connect_database(self.database_path)
@@ -86,6 +94,17 @@ class ArcadePublicationStore:
                     (game_id, int(is_live), "system-default", now),
                 )
             connection.commit()
+        self._refresh_live_ids_sync()
+
+    def _refresh_live_ids_sync(self) -> None:
+        with self._connect() as connection:
+            rows = connection.execute(
+                "SELECT game_id FROM arcade_publication WHERE is_live = 1 ORDER BY game_id"
+            ).fetchall()
+        self._live_ids = tuple(
+            str(row["game_id"]) for row in rows
+            if str(row["game_id"]) in DEFAULT_ARCADE_PUBLICATION
+        )
 
     async def list_publication(self) -> list[ArcadePublication]:
         return await asyncio.to_thread(self._list_publication_sync)
@@ -129,6 +148,7 @@ class ArcadePublicationStore:
                 (game_id, int(is_live), updated_by, now),
             )
             connection.commit()
+        self._refresh_live_ids_sync()
         return ArcadePublication(game_id, is_live, updated_by, now)
 
 

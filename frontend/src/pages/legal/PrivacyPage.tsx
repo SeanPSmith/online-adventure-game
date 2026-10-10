@@ -4,7 +4,7 @@ import { Panel } from "../../components/ui/Panel";
 export function PrivacyPage() {
   return (
     <article className="legal-page public-legal-page">
-      <PageTitle eyebrow="LEGAL // LAST UPDATED OCTOBER 4, 2026" title="PRIVACY" />
+      <PageTitle eyebrow="LEGAL // LAST UPDATED OCTOBER 9, 2026" title="PRIVACY" />
 
       <div className="legal-copy-grid">
         <Panel title="WHAT THE GAME KEEPS">
@@ -20,6 +20,34 @@ export function PrivacyPage() {
             Story generation can use the Hero, adventure, choices, mechanical results, and
             other story context needed to produce the next scene. Do not put information in a
             Hero Bio or story input that you would not want processed as part of gameplay.
+          </p>
+        </Panel>
+
+        <Panel title="STORY TIME // OPTIONAL ON-DEVICE NARRATION">
+          <p>
+            Story Time is optional. If you choose to enable it, your browser downloads
+            the voice model and supporting files from a third-party model host. This
+            initial download is approximately 350 MB and may be cached on your device.
+            Your browser may download the files again if its cache is cleared.
+          </p>
+          <p>
+            Story Time turns visible chapter and choice text into audio locally on your
+            device. The passage being narrated is not sent to a separate speech server.
+            Download hosts can receive technical request information such as your IP
+            address when your browser retrieves the model files. Narration does not
+            request microphone access or record your voice. Story generation itself
+            still uses the AI processing described above.
+          </p>
+          <p>
+            You can disable Story Time in your audio settings at any point. Disabling
+            it stops narration; it does not necessarily delete model files that your
+            browser has cached. Clear site data using your browser controls to remove
+            downloaded model files and local narration preferences.
+          </p>
+          <p>
+            <a href="/legal/story-time-third-party-notices.txt" target="_blank" rel="noopener noreferrer">
+              Story Time technology and open-source license notices
+            </a>
           </p>
         </Panel>
 

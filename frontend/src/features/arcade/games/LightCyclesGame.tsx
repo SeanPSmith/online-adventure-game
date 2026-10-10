@@ -56,7 +56,7 @@ export function LightCyclesGame({ score, onScoreChange, storyReady }: ArcadeGame
   const [message, setMessage] = useState("DO NOT CROSS THE LIGHT // THE MACHINE WILL TRY_");
   const swipeStartRef = useRef<SwipePoint | null>(null);
   const roundPausedRef = useRef(false);
-  const roundResetTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
+  const roundResetTimerRef = useRef<number | null>(null);
   const aiStepsSinceTurnRef = useRef(8);
   const coarsePointer = typeof window !== "undefined"
     && window.matchMedia?.("(pointer: coarse)").matches;

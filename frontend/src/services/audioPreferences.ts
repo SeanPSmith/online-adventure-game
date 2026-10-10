@@ -5,6 +5,7 @@ export interface AudioPreferences {
   effectsVolume: number;
   arcadeVolume: number;
   narrationEnabled: boolean;
+  storyTimeApproved: boolean;
   narrationAutoPlay: boolean;
   narrationAutoChoices: boolean;
   narrationVoice: string;
@@ -20,6 +21,7 @@ export const DEFAULT_AUDIO_PREFERENCES: Readonly<AudioPreferences> = {
   effectsVolume: 65,
   arcadeVolume: 55,
   narrationEnabled: false,
+  storyTimeApproved: false,
   narrationAutoPlay: false,
   narrationAutoChoices: false,
   narrationVoice: "af_heart",
@@ -47,7 +49,8 @@ export function normalizeAudioPreferences(value: Partial<AudioPreferences> = {})
     masterVolume: percent(value.masterVolume, DEFAULT_AUDIO_PREFERENCES.masterVolume),
     effectsVolume: percent(value.effectsVolume, DEFAULT_AUDIO_PREFERENCES.effectsVolume),
     arcadeVolume: percent(value.arcadeVolume, DEFAULT_AUDIO_PREFERENCES.arcadeVolume),
-    narrationEnabled: typeof value.narrationEnabled === "boolean" ? value.narrationEnabled : false,
+    storyTimeApproved: value.storyTimeApproved === true,
+    narrationEnabled: value.storyTimeApproved === true && value.narrationEnabled === true,
     narrationAutoPlay: typeof value.narrationAutoPlay === "boolean" ? value.narrationAutoPlay : false,
     narrationAutoChoices: typeof value.narrationAutoChoices === "boolean" ? value.narrationAutoChoices : false,
     narrationVoice: KOKORO_VOICES.some(v => v.value === value.narrationVoice) ? value.narrationVoice! : "af_heart",

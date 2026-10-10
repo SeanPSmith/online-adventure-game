@@ -7,6 +7,8 @@ import {
 } from "react";
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router";
 import { Panel } from "../../components/ui/Panel";
+import { StoryTimeConsentCopy } from "../../components/ui/StoryTimeConsentCopy";
+import { observeStoryTime, prepareStoryTime, stopStoryTimeEngine, type StoryTimeState } from "../../services/storyTimeEngine";
 import { RoomInviteButton } from "../../components/game/RoomInviteButton";
 import { ShareMomentButton } from "../../components/game/ShareMomentButton";
 import { ChoiceInspector } from "../../features/adventure/ChoiceInspector";
@@ -140,7 +142,8 @@ export function AdventurePage() {
   const [audioPreferences, setAudioPreferences] = useState<AudioPreferences>(() => readAudioPreferences());
   const [narration, setNarration] = useState<NarrationState>({ phase: "idle", label: "", error: "" });
   const lastAutoNarration = useRef("");
-  const [narratorAvailable, setNarratorAvailable] = useState<boolean | null>(null);
+  const [storyTime, setStoryTime] = useState<StoryTimeState>({ phase: "idle", percent: null, message: "" });
+  const narratorAvailable = storyTime.phase === "ready";
   const [historyIndex, setHistoryIndex] = useState(0);
   const storyPaneRef = useRef<HTMLElement | null>(null);
 
@@ -302,14 +305,36 @@ export function AdventurePage() {
 
   useEffect(() => observeNarration(setNarration), []);
   useEffect(() => () => stopNarration(), []);
+  useEffect(() => observeStoryTime(setStoryTime), []);
   useEffect(() => {
-    let active = true;
-    void fetch("/api/narration/status", { credentials: "include" })
-      .then(response => response.ok ? response.json() as Promise<{available: boolean}> : Promise.reject())
-      .then(result => { if (active) setNarratorAvailable(result.available); })
-      .catch(() => { if (active) setNarratorAvailable(false); });
-    return () => { active = false; };
-  }, []);
+    if (audioPreferences.narrationEnabled && audioPreferences.storyTimeApproved) void prepareStoryTime().catch(() => {});
+  }, [audioPreferences.narrationEnabled, audioPreferences.storyTimeApproved]);
+
+  function toggleStoryTime() {
+    if (audioPreferences.narrationEnabled) {
+      setAudioPreferences(writeAudioPreferences({ narrationEnabled: false }));
+      stopNarration();
+      stopStoryTimeEngine();
+      return;
+    }
+    if (audioPreferences.storyTimeApproved) {
+      setAudioPreferences(writeAudioPreferences({ narrationEnabled: true }));
+      void prepareStoryTime().catch(() => {});
+      return;
+    }
+    openModal({
+      title: "STORY TIME // YOUR PERSONAL NARRATOR",
+      body: <StoryTimeConsentCopy />,
+      actions: <div className="button-row modal-action-row">
+        <button className="button" type="button" onClick={closeModal}>NOT NOW</button>
+        <button className="button button-primary" type="button" onClick={() => {
+          closeModal();
+          setAudioPreferences(writeAudioPreferences({ storyTimeApproved: true, narrationEnabled: true }));
+          void prepareStoryTime().catch(() => {});
+        }}>DOWNLOAD &amp; ENABLE</button>
+      </div>,
+    });
+  }
 
   // Never let the previous chapter speak over the next chapter or a reaction event.
   useEffect(() => { stopNarration(); }, [normalizedRoomCode, scene?.id, turnNumber]);
@@ -632,7 +657,7 @@ export function AdventurePage() {
               <button className="button button-quiet" type="button"
                 aria-label={audioPreferences.effectsEnabled ? "Mute sound effects" : "Enable sound effects"}
                 aria-pressed={audioPreferences.effectsEnabled}
-                title="Sound effects only — narration controls arrive in Pass 56"
+                title="Sound effects only — Story Time is controlled separately"
                 onClick={() => {
                   const next = writeAudioPreferences({ effectsEnabled: !audioPreferences.effectsEnabled });
                   setAudioPreferences(next);
@@ -750,15 +775,11 @@ ${scene.body.slice(0, 260)}`}
                 <span className="story-turn-marker">TURN {String(turnNumber).padStart(2, "0")}</span>
               </div>
               <h1>{scene?.title ?? "PICKING UP THE THREAD_"}</h1>
-              <div className="adventure-narration-controls" aria-label="Optional Kokoro story narration">
+              <div className="adventure-narration-controls" aria-label="Optional Story Time chapter narration">
                 <button className="button button-quiet" type="button"
                   aria-pressed={audioPreferences.narrationEnabled}
-                  onClick={() => {
-                    const next = writeAudioPreferences({ narrationEnabled: !audioPreferences.narrationEnabled });
-                    setAudioPreferences(next);
-                    if (!next.narrationEnabled) stopNarration();
-                  }}>
-                  {audioPreferences.narrationEnabled ? "NARRATION ON" : "NARRATION OFF"}
+                  onClick={toggleStoryTime}>
+                  {audioPreferences.narrationEnabled ? "STORY TIME ON" : "STORY TIME OFF"}
                 </button>
                 {audioPreferences.narrationEnabled ? (
                   <>
@@ -779,8 +800,9 @@ ${scene.body.slice(0, 260)}`}
                   </>
                 ) : null}
                 <small role="status" aria-live="polite">
-                  {audioPreferences.narrationEnabled && narratorAvailable === false
-                    ? "NARRATOR UNAVAILABLE // SERVICE NOT CONFIGURED"
+                  {audioPreferences.narrationEnabled && !narratorAvailable
+                    ? storyTime.phase === "error" ? `STORY TIME ERROR // ${storyTime.message}` :
+                      `PREPARING STORY TIME // ${storyTime.percent === null ? "PLEASE WAIT" : `${storyTime.percent}% OF CURRENT FILE`}`
                     : narration.phase === "error" ? narration.error
                     : narration.phase === "loading" ? `PREPARING VOICE // ${narration.label}`
                     : narration.phase === "playing" ? `READING // ${narration.label}`

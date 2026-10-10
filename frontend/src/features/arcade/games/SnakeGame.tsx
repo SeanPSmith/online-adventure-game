@@ -57,7 +57,7 @@ export function SnakeGame({ score, onScoreChange, storyReady }: ArcadeGameProps)
   const [length, setLength] = useState(snakeRef.current.length);
   const [message, setMessage] = useState("EAT THE BLOCK // DO NOT EAT YOURSELF_");
   const swipeStartRef = useRef<SwipePoint | null>(null);
-  const resetTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
+  const resetTimerRef = useRef<number | null>(null);
   const pausedUntilRef = useRef(0);
   const coarsePointer = typeof window !== "undefined"
     && window.matchMedia?.("(pointer: coarse)").matches;

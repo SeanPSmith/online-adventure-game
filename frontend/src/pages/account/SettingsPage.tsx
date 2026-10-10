@@ -4,7 +4,10 @@ import {
   type AudioPreferences,
 } from "../../services/audioPreferences";
 import { activateAudioFromGesture, playSound } from "../../services/audioDirector";
-import { adjustNarrationVolume, stopNarration } from "../../services/storyNarrator";
+import { adjustNarrationVolume, playNarration, stopNarration } from "../../services/storyNarrator";
+import { observeStoryTime, prepareStoryTime, stopStoryTimeEngine, type StoryTimeState } from "../../services/storyTimeEngine";
+import { StoryTimeConsentCopy } from "../../components/ui/StoryTimeConsentCopy";
+import { useModal } from "../../state/ModalContext";
 import { PageTitle } from "../../components/ui/PageTitle";
 import { Panel } from "../../components/ui/Panel";
 import { TerminalSelect } from "../../components/ui/TerminalSelect";
@@ -52,7 +55,8 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
     readStoryDisplayPreferences(),
   );
   const [audio, setAudio] = useState<AudioPreferences>(() => readAudioPreferences());
-  const [narratorAvailable, setNarratorAvailable] = useState<boolean | null>(null);
+  const { openModal, closeModal } = useModal();
+  const [storyTime, setStoryTime] = useState<StoryTimeState>({ phase: "idle", percent: null, message: "" });
 
   useEffect(() => {
     const onChange = () => setAudio(readAudioPreferences());
@@ -71,14 +75,30 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
     }
   }
 
+  useEffect(() => observeStoryTime(setStoryTime), []);
   useEffect(() => {
-    let active = true;
-    void fetch("/api/narration/status", { credentials: "include" })
-      .then(response => response.ok ? response.json() as Promise<{available: boolean}> : Promise.reject())
-      .then(result => { if (active) setNarratorAvailable(result.available); })
-      .catch(() => { if (active) setNarratorAvailable(false); });
-    return () => { active = false; };
-  }, []);
+    if (audio.narrationEnabled && audio.storyTimeApproved) void prepareStoryTime().catch(() => {});
+  }, [audio.narrationEnabled, audio.storyTimeApproved]);
+
+  function requestStoryTime() {
+    if (audio.storyTimeApproved) {
+      setAudioPreference({ narrationEnabled: true });
+      void prepareStoryTime().catch(() => {});
+      return;
+    }
+    openModal({
+      title: "STORY TIME // BRING YOUR NARRATOR HOME",
+      body: <StoryTimeConsentCopy />,
+      actions: <div className="button-row modal-action-row">
+        <button className="button" type="button" onClick={closeModal}>NOT NOW</button>
+        <button className="button button-primary" type="button" onClick={() => {
+          closeModal();
+          setAudioPreference({ storyTimeApproved: true, narrationEnabled: true });
+          void prepareStoryTime().catch(() => {});
+        }}>DOWNLOAD &amp; ENABLE</button>
+      </div>,
+    });
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -443,7 +463,7 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
         </div>
       </Panel>
 
-      <Panel title="KOKORO // THE STORYTELLER">
+      <Panel title="STORY TIME // YOUR STORYTELLER">
         <div className="notification-settings-grid">
           <div className="notification-setting-row">
             <div>
@@ -453,12 +473,20 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
             </div>
             <label className="terminal-toggle">
               <input type="checkbox" checked={audio.narrationEnabled}
-                onChange={event => setAudioPreference({ narrationEnabled: event.target.checked })} />
+                onChange={event => { if (event.target.checked) requestStoryTime(); else { setAudioPreference({ narrationEnabled: false }); stopStoryTimeEngine(); } }} />
               <span>{audio.narrationEnabled ? "ON" : "OFF"}</span>
             </label>
           </div>
-          {narratorAvailable === false ? (
-            <div className="system-notice" role="status">THE STORYTELLER IS NOT CONNECTED YET. The site administrator must configure the Kokoro narration service before playback is available.</div>
+          {audio.narrationEnabled ? (
+            <div className="system-notice story-time-status" role="status" aria-live="polite">
+              {storyTime.phase === "ready" ? "STORY TIME IS READY // THE NARRATOR LIVES ON THIS DEVICE" :
+                storyTime.phase === "downloading" ? `${storyTime.message}${storyTime.percent === null ? "" : ` // ${storyTime.percent}% OF CURRENT FILE`}` :
+                storyTime.phase === "error" ? `STORY TIME NEEDS HELP // ${storyTime.message}` : "WAITING TO PREPARE YOUR STORYTELLER"}
+              {storyTime.phase === "downloading" && storyTime.percent !== null ?
+                <progress max="100" value={storyTime.percent} aria-label="Current Story Time download file progress" /> : null}
+              {storyTime.phase === "error" ? <button className="button" type="button"
+                onClick={() => void prepareStoryTime().catch(() => {})}>RETRY DOWNLOAD</button> : null}
+            </div>
           ) : null}
           <div className="notification-setting-row">
             <div><strong>AUTO-READ NEW CHAPTERS</strong><p>Begin reading a newly revealed chapter automatically when your browser permits audio.</p></div>
@@ -490,7 +518,15 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
             <input type="range" min="0" max="100" step="5" disabled={!audio.narrationEnabled}
               value={audio.narrationVolume} onChange={event => setAudioPreference({ narrationVolume: Number(event.target.value) })} />
           </label>
-          <p className="muted-copy">Play/pause, chapter replay, and individual choice speakers are available inside an adventure. Narration and SFX are controlled independently.</p>
+          <div className="button-row">
+            <button className="button" type="button" disabled={!audio.narrationEnabled || storyTime.phase !== "ready"}
+              onClick={() => void playNarration([{ text: "Welcome to Story Time. Your next adventure awaits.", kind: "story", label: "VOICE PREVIEW" }])}>
+              TEST STORY TIME
+            </button>
+            <button className="button" type="button" disabled={storyTime.phase !== "ready"}
+              onClick={stopNarration}>STOP READING</button>
+          </div>
+          <p className="muted-copy">Story Time downloads the full-quality voice model to this device only after your permission. Playback and choice speakers are available inside adventures; nothing records your voice.</p>
         </div>
       </Panel>
 

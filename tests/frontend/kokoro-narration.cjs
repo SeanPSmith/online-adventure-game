@@ -41,13 +41,14 @@ function load(relative, deps={}) {
   return exposed;
 }
 const prefs=load('frontend/src/services/audioPreferences.ts');
-const narrator=load('frontend/src/services/storyNarrator.ts',{'./audioPreferences':prefs});
+const narrator=load('frontend/src/services/storyNarrator.ts',{'./audioPreferences':prefs,'./storyTimeEngine':{synthesizeStoryTimeSpeech:async()=> {requests++; return {size:12,type:'audio/wav'};}}});
 
 test('narration, auto-read and voice input all default OFF',()=> {
   const value=prefs.readAudioPreferences();
   assert.equal(value.narrationEnabled,false);
   assert.equal(value.narrationAutoPlay,false);
   assert.equal(value.narrationAutoChoices,false);
+  assert.equal(value.storyTimeApproved,false);
   assert.equal('microphone' in value,false);
 });
 
@@ -82,7 +83,7 @@ test('silent until enabled and cache reuses narration across playback',async()=>
   const item={text:'The tower watches.',kind:'story',label:'CHAPTER'};
   await narrator.playNarration([item]);
   assert.equal(requests,0);
-  prefs.writeAudioPreferences({narrationEnabled:true});
+  prefs.writeAudioPreferences({storyTimeApproved:true,narrationEnabled:true});
   await narrator.playNarration([item]);
   assert.equal(requests,1);
   await narrator.playNarration([item]);

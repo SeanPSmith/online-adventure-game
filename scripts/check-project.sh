@@ -43,6 +43,9 @@ node --test tests/frontend/audio-sfx.cjs
 say "Kokoro narration browser regression checks"
 node --test tests/frontend/kokoro-narration.cjs
 
+say "Story Time local inference regression checks"
+node --test tests/frontend/story-time-browser.cjs
+
 say "React production build"
 (
   cd frontend

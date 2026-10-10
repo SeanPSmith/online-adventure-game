@@ -1,3 +1,7 @@
+> **Historical Pass 56 option — NOT required for the current Story Time player experience.**
+> Pass 57 moved narration into each player's browser after a one-time download. See [`STORY_TIME_LOCAL_DEPLOYMENT.md`](STORY_TIME_LOCAL_DEPLOYMENT.md).
+> These instructions remain only for future hosted narration experiments.
+
 # Pass 56 — Kokoro narration deployment and testing
 
 **Status:** Game/backend code is implemented. The Kokoro model server is **not** deployed by the normal release script. Until configured, Account → Preferences correctly reports that narration is unavailable, and story reading controls are disabled. No speech-to-text, microphone, or voice input exists.

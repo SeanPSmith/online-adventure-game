@@ -1,5 +1,6 @@
 /** Kokoro speech playback. No microphone, speech recognition, or voice recording. */
 import { readAudioPreferences } from "./audioPreferences";
+import { synthesizeStoryTimeSpeech } from "./storyTimeEngine";
 
 export type NarrationPhase = "idle" | "loading" | "playing" | "paused" | "error";
 export interface NarrationState { phase: NarrationPhase; label: string; error: string; }
@@ -99,18 +100,10 @@ async function fetchSpeech(item: NarrationItem, signal: AbortSignal): Promise<st
     return old;
   }
   const prefs = readAudioPreferences();
-  const response = await fetch("/api/narration/speech", {
-    method: "POST", credentials: "include", signal,
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text: item.text, kind: item.kind, voice: prefs.narrationVoice, speed: prefs.narrationSpeed }),
-  });
-  if (!response.ok) {
-    let reason = "The narrator could not prepare this passage.";
-    try { const body = await response.json() as { detail?: string }; reason = body.detail || reason; } catch { /* graceful fallback */ }
-    throw new Error(reason);
-  }
-  const blob = await response.blob();
-  if (!blob.size || !blob.type.startsWith("audio/")) throw new Error("Narration returned an invalid audio file.");
+  const blob = await synthesizeStoryTimeSpeech({
+    text: item.text, voice: prefs.narrationVoice, speed: prefs.narrationSpeed,
+  }, signal);
+  if (!blob.size || !blob.type.startsWith("audio/")) throw new Error("Story Time returned invalid audio.");
   const url = URL.createObjectURL(blob);
   cache.set(key, url);
   while (cache.size > CACHE_LIMIT) {
@@ -125,7 +118,7 @@ async function fetchSpeech(item: NarrationItem, signal: AbortSignal): Promise<st
 
 export async function playNarration(items: NarrationItem[]): Promise<void> {
   stopNarration();
-  if (!items.length || !readAudioPreferences().narrationEnabled) return;
+  if (!items.length || !readAudioPreferences().narrationEnabled || !readAudioPreferences().storyTimeApproved) return;
   const identity = sequence;
   const controller = new AbortController();
   pending = controller;

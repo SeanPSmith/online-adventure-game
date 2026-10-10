@@ -6,11 +6,10 @@ import type {
   TurnLockCountdownPayload,
   TurnResolvedPayload,
 } from "../../services/game";
-import { latestTurnReceipt, mergeTurnReceipt, receiptKey } from "./turnFlow";
+import { latestTurnReceipt, mergeTurnReceipt, receiptKey, resolvedTurnNumber } from "./turnFlow";
 
 export type TurnTheaterPhase =
   | "none"
-  | "lock-countdown"
   | "intermission"
   | "story-ready"
   | "resolution"
@@ -42,11 +41,17 @@ export interface TurnTheaterState {
   activeReceipt: TurnResolvedPayload | null;
   activeIntermission: StoryAdvancingPayload | null;
   arcadeAvailable: boolean;
+  chapterReleased: boolean;
   retryMessage: string;
   finishIntermissionStoryReady: () => void;
   acknowledgeResolution: () => void;
 }
 
+/**
+ * Server: choice -> frozen Python dice -> Director generates with those facts.
+ * Browser: choice -> intermission -> close Arcade -> show frozen dice -> chapter.
+ * A PRELIMINARY receipt is internal information, NEVER a signal to show dice.
+ */
 export function useTurnTheater({
   roomCode, characterId, game, lockCountdown, storyAdvancing,
   turnReceipt, lastTurn, retryableError, error,
@@ -69,8 +74,8 @@ export function useTurnTheater({
   const receiptRef = useRef<TurnResolvedPayload | null>(null);
   const intermissionRef = useRef<StoryAdvancingPayload | null>(null);
   const pendingReceiptRef = useRef<TurnResolvedPayload | null>(null);
+  const readyReceiptRef = useRef<TurnResolvedPayload | null>(null);
   const lastLockSignalRef = useRef("");
-  const lockTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const readyTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const acknowledgedRef = useRef("");
   const latestGameRef = useRef<GameState | null>(game);
@@ -96,30 +101,37 @@ export function useTurnTheater({
     setActiveIntermission(next);
   }, []);
 
-  const clearTimers = useCallback(() => {
-    if (lockTimerRef.current !== null) clearInterval(lockTimerRef.current);
+  const clearTimer = useCallback(() => {
     if (readyTimerRef.current !== null) clearInterval(readyTimerRef.current);
-    lockTimerRef.current = null;
     readyTimerRef.current = null;
   }, []);
 
   const finishTurnPresentation = useCallback(() => {
-    clearTimers();
+    clearTimer();
     pendingReceiptRef.current = null;
+    readyReceiptRef.current = null;
     showReceipt(null);
     rememberIntermission(null);
     setCountdownValue(0);
     transition("none");
-  }, [clearTimers, showReceipt, rememberIntermission, transition]);
+  }, [clearTimer, showReceipt, rememberIntermission, transition]);
 
   const finishIntermissionStoryReady = useCallback(() => {
-    // The dice were already displayed BEFORE the Arcade. Never show them again.
-    finishTurnPresentation();
-  }, [finishTurnPresentation]);
+    // Intermission closes FIRST. The committed dice appear NEXT, and the
+    // freshly authored chapter is revealed only after the dice are acknowledged.
+    if (phaseRef.current !== "story-ready") return;
+    const final = readyReceiptRef.current;
+    clearTimer();
+    rememberIntermission(null);
+    if (!final || final.preliminary) return; // Never display unfinished results.
+    readyReceiptRef.current = null;
+    showReceipt(final);
+    transition("resolution");
+  }, [clearTimer, rememberIntermission, showReceipt, transition]);
 
   const beginStoryReady = useCallback(() => {
-    if (phaseRef.current === "story-ready") return;
-    clearTimers();
+    if (phaseRef.current !== "intermission" || !readyReceiptRef.current) return;
+    clearTimer();
     transition("story-ready");
     const started = performance.now();
     const durationMs = 3000;
@@ -127,43 +139,15 @@ export function useTurnTheater({
       const remaining = Math.max(0, durationMs - (performance.now() - started));
       setCountdownValue(Math.ceil(remaining / 1000));
       if (remaining <= 0) {
-        clearTimers();
-        // Arcade component completes its score submission before releasing the overlay.
-        // A plain writing intermission has no arcade runtime to call us back.
-        if (!intermissionRef.current) finishTurnPresentation();
+        clearTimer();
+        // Let IntermissionRuntime submit its final score and close its UI.
+        // If no Arcade is available, this stage still closes before dice.
+        if (!intermissionRef.current) finishIntermissionStoryReady();
       }
     };
     tick();
     readyTimerRef.current = setInterval(tick, 80);
-  }, [clearTimers, transition, finishTurnPresentation]);
-
-  const beginLockCountdown = useCallback((seconds: number) => {
-    clearTimers();
-    transition("lock-countdown");
-    const started = performance.now();
-    const durationMs = Math.max(1, seconds) * 1000;
-    const tick = () => {
-      const remaining = Math.max(0, durationMs - (performance.now() - started));
-      setCountdownValue(Math.ceil(remaining / 1000));
-      if (remaining > 0) return;
-      clearTimers();
-      setCountdownValue(0);
-      const receipt = pendingReceiptRef.current;
-      pendingReceiptRef.current = null;
-      if (receipt && readAcknowledgedReceipt(roomCode, characterId) !== receiptKey(receipt)) {
-        showReceipt(receipt);
-        transition("resolution");
-      } else if (latestGameRef.current?.director_retry_required) {
-        transition("retry");
-      } else if (latestGameRef.current?.turn_pending || intermissionRef.current) {
-        transition("intermission");
-      } else {
-        transition("none");
-      }
-    };
-    tick();
-    lockTimerRef.current = setInterval(tick, 80);
-  }, [clearTimers, transition, roomCode, characterId, showReceipt]);
+  }, [clearTimer, transition, finishIntermissionStoryReady]);
 
   useEffect(() => {
     acknowledgedRef.current = readAcknowledgedReceipt(roomCode, characterId);
@@ -171,7 +155,7 @@ export function useTurnTheater({
     finishTurnPresentation();
   }, [roomCode, characterId, finishTurnPresentation]);
 
-  useEffect(() => () => clearTimers(), [clearTimers]);
+  useEffect(() => () => clearTimer(), [clearTimer]);
 
   useEffect(() => {
     if (game?.started) return;
@@ -180,14 +164,16 @@ export function useTurnTheater({
     }
   }, [game?.started, finishTurnPresentation]);
 
+  // The lock event is a notification that BOTH choices are committed, not a
+  // reason to reveal or animate a die. Go straight to the writing intermission.
   useEffect(() => {
     if (!game?.started || !lockCountdown || lockCountdown.room_code !== roomCode) return;
     if (lockCountdown.turn_number !== game.turn_number) return;
-    const key = `${roomCode}:${lockCountdown.turn_number}:${lockCountdown.duration_seconds}`;
+    const key = `${roomCode}:${lockCountdown.turn_number}`;
     if (lastLockSignalRef.current === key) return;
     lastLockSignalRef.current = key;
-    if (phaseRef.current === "none") beginLockCountdown(lockCountdown.duration_seconds);
-  }, [lockCountdown, roomCode, game?.started, game?.turn_number, beginLockCountdown]);
+    if (phaseRef.current === "none") transition("intermission");
+  }, [lockCountdown, roomCode, game?.started, game?.turn_number, transition]);
 
   useEffect(() => {
     if (!game?.started || !game.pending_intermission) return;
@@ -209,8 +195,6 @@ export function useTurnTheater({
     });
   }, [storyAdvancing, roomCode, game?.started, game?.turn_number, game?.turn_pending, rememberIntermission]);
 
-  // A single pipeline reconciles the preliminary event, final socket event and
-  // durable room snapshot. Previously two effects raced and replayed the receipt.
   useEffect(() => {
     if (!game?.started) return;
     const incoming = latestTurnReceipt(roomCode, game.turn_number, game.turn_pending,
@@ -219,82 +203,96 @@ export function useTurnTheater({
     const key = receiptKey(incoming);
     const alreadyRead = acknowledgedRef.current === key
       || readAcknowledgedReceipt(roomCode, characterId) === key;
-    const current = receiptRef.current;
+    if (alreadyRead) return; // Stale snapshots never interrupt later turns.
 
-    if (current && receiptKey(current) === key) {
-      showReceipt(mergeTurnReceipt(current, incoming));
-      if (alreadyRead && !incoming.preliminary && phaseRef.current === "intermission") {
+    // Save the first authoritative dice, but DO NOT display them during writing.
+    if (incoming.preliminary) {
+      const current = pendingReceiptRef.current;
+      if (!current || receiptKey(current) !== key) pendingReceiptRef.current = incoming;
+      return;
+    }
+
+    const frozen = pendingReceiptRef.current;
+    const committed = frozen && receiptKey(frozen) === key
+      ? mergeTurnReceipt(frozen, incoming) : incoming;
+    pendingReceiptRef.current = null;
+
+    if (receiptRef.current && receiptKey(receiptRef.current) === key) {
+      showReceipt(mergeTurnReceipt(receiptRef.current, committed));
+      return;
+    }
+
+    // An AI turn must finish and commit the authored scene before showing dice.
+    // The next chapter remains behind the overlay until the player continues.
+    const hadIntermission = Boolean(intermissionRef.current)
+      || phaseRef.current === "intermission" || phaseRef.current === "story-ready";
+    if (hadIntermission) {
+      readyReceiptRef.current = committed;
+      if (!game.turn_pending && game.turn_number > resolvedTurnNumber(committed)) {
         beginStoryReady();
       }
       return;
     }
 
-    if (alreadyRead) {
-      // An acknowledged early receipt never comes back when the final event
-      // arrives, even if the socket event and snapshot are reordered.
-      if (!incoming.preliminary && phaseRef.current === "intermission") {
-        beginStoryReady();
-      }
-      // Snapshots always carry the last completed receipt. Seeing it again
-      // must NEVER cancel a new countdown or interrupt a later story turn.
-      return;
+    // Static/tutorial turns, and reconnect after a fully committed result,
+    // have no running Arcade to close. Present the same durable dice once.
+    if (!game.turn_pending && game.turn_number > resolvedTurnNumber(committed)) {
+      clearTimer();
+      showReceipt(committed);
+      transition("resolution");
+    } else {
+      readyReceiptRef.current = committed;
     }
-
-    if (phaseRef.current === "lock-countdown") {
-      pendingReceiptRef.current = incoming;
-      return;
-    }
-    clearTimers();
-    showReceipt(incoming);
-    setCountdownValue(0);
-    transition("resolution");
   }, [game?.started, game?.turn_number, game?.turn_pending, game?.last_turn_result,
-    turnReceipt, lastTurn, roomCode, characterId, showReceipt, clearTimers,
-    transition, beginStoryReady, finishTurnPresentation]);
+    turnReceipt, lastTurn, roomCode, characterId, showReceipt, clearTimer,
+    transition, beginStoryReady]);
 
-  // Reconstruct missed writing events after reconnect; never infer a countdown
-  // from party-presence flags. Only the server's actual lock signal can do that.
+  // On reconnect, reconstruct a pending Arcade and never treat lobby readiness
+  // as a player choice. Retry does not re-roll the saved Python results.
   useEffect(() => {
     if (!game?.started) return;
     if (game.director_retry_required) {
       if (phaseRef.current === "none" || phaseRef.current === "intermission") {
-        clearTimers();
+        clearTimer();
         transition("retry");
       }
     } else if (game.turn_pending) {
       if (phaseRef.current === "none") transition("intermission");
     } else if (phaseRef.current === "retry") {
-      transition("none");
+      if (readyReceiptRef.current) {
+        showReceipt(readyReceiptRef.current);
+        readyReceiptRef.current = null;
+        transition("resolution");
+      } else transition("none");
     }
-  }, [game?.started, game?.turn_pending, game?.director_retry_required, clearTimers, transition]);
+  }, [game?.started, game?.turn_pending, game?.director_retry_required, clearTimer, showReceipt, transition]);
 
   const acknowledgeResolution = useCallback(() => {
     const receipt = receiptRef.current;
-    if (receipt) {
-      const key = receiptKey(receipt);
-      if (key) {
-        acknowledgedRef.current = key;
-        writeAcknowledgedReceipt(roomCode, characterId, key);
-      }
+    if (!receipt || receipt.preliminary) return;
+    const key = receiptKey(receipt);
+    if (key) {
+      acknowledgedRef.current = key;
+      writeAcknowledgedReceipt(roomCode, characterId, key);
     }
-    showReceipt(null);
-    const currentGame = latestGameRef.current;
-    if (currentGame?.director_retry_required) {
-      transition("retry");
-    } else if (currentGame?.turn_pending && receipt?.preliminary !== false) {
-      transition("intermission");
-    } else {
-      finishTurnPresentation();
-    }
-  }, [roomCode, characterId, showReceipt, transition, finishTurnPresentation]);
+    finishTurnPresentation();
+  }, [roomCode, characterId, finishTurnPresentation]);
 
   const arcadeAvailable = Boolean(activeIntermission && (
-    phase === "story-ready"
-    || (game?.turn_pending && acknowledgedRef.current === `${roomCode}:${game.turn_number}`)
+    phase === "intermission" || phase === "story-ready"
   ));
 
+  // A game_state snapshot can contain the NEXT scene before effects process
+  // its final receipt. Keep that prose sealed even for the intervening render.
+  const lastCommitted = game?.last_turn_result;
+  const chapterReleased = phase === "none" && !game?.turn_pending && (
+    !lastCommitted || readAcknowledgedReceipt(roomCode, characterId) === receiptKey({
+      ...lastCommitted, room_code: roomCode,
+    })
+  );
+
   return {
-    phase, countdownValue, activeReceipt, activeIntermission, arcadeAvailable,
+    phase, countdownValue, activeReceipt, activeIntermission, arcadeAvailable, chapterReleased,
     retryMessage, finishIntermissionStoryReady, acknowledgeResolution,
   };
 }

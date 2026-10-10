@@ -132,59 +132,112 @@ const result = (number, preliminary = true, turn = 1) => ({
 });
 const arcade = turn => ({room_code:'SOLO1',turn_number:turn,game_id:'rune_catch',play_mode:'solo',intermission_stats:[],submitted_player_ids:[]});
 
-// Test both pure identity and the entire hook's timers/acknowledgements.
-test('final receipts retain the first server dice and use a stable resolved turn', () => {
+// The server resolves and freezes dice BEFORE the Director writes, but the
+// audience sees: choice -> writing Arcade -> committed dice -> new chapter.
+test('turn identity is stable while the Director completes the story', () => {
   const early = result(17), final = result(5,false);
   assert.equal(flow.receiptKey(early), flow.receiptKey(final));
   const merged = flow.mergeTurnReceipt(early, final);
-  assert.equal(merged.results[0].check.roll,17);
-  assert.equal(merged.resolution,'Committed narration');
+  assert.equal(merged.results[0].check.roll, 17);
+  assert.equal(merged.resolution, 'Committed narration');
   assert.equal(merged.preliminary,false);
-  assert.equal(flow.latestTurnReceipt('SOLO1',2,false,[early,final]), final);
-  assert.equal(flow.latestTurnReceipt('SOLO1',2,true,[early,final]), null);
 });
 
-test('lobby presence cannot trigger turn countdown or arcade', () => {
-  const h = harness(); h.render();
+test('lobby presence never launches dice or Arcade', () => {
+  const h=harness(); h.render();
   h.update({game:h.game({started:false}),lockCountdown:{room_code:'SOLO1',turn_number:1,duration_seconds:3}});
   assert.equal(h.output().phase,'none');
 });
 
-test('countdown -> one dice reveal -> arcade -> new scene, no second dice reveal', () => {
-  const h = harness(); h.render();
-  h.update({game:h.game({pending:false}),lockCountdown:{room_code:'SOLO1',turn_number:1,duration_seconds:3}});
-  assert.equal(h.output().phase,'lock-countdown');
+test('choice -> intermission -> final dice -> next chapter; no preliminary reveal', () => {
+  const h=harness(); h.render();
+  h.update({game:h.game(),lockCountdown:{room_code:'SOLO1',turn_number:1,duration_seconds:3}});
+  assert.equal(h.output().phase,'intermission');
   h.update({game:h.game({pending:true,intermission:arcade(1)}),turnReceipt:result(17)});
-  assert.equal(h.output().phase,'lock-countdown');
+  assert.equal(h.output().phase,'intermission');
+  assert.equal(h.output().activeReceipt,null);
+  assert.equal(h.output().chapterReleased,false);
+  assert.equal(h.output().arcadeAvailable,true);
   h.advance(3100);
-  assert.equal(h.output().phase,'resolution');
-  assert.equal(h.output().activeReceipt.results[0].check.roll,17);
-  h.acknowledge(); assert.equal(h.output().phase,'intermission');
-  const final = result(17,false);
-  h.update({turnReceipt:final,lastTurn:final,game:h.game({turn:2,final})});
+  assert.equal(h.output().phase,'intermission');
+  const final=result(17,false);
+  h.update({game:h.game({turn:2,final}),turnReceipt:final,lastTurn:final});
   assert.equal(h.output().phase,'story-ready');
-  h.advance(3100); h.endArcade();
+  assert.equal(h.output().activeReceipt,null);
+  assert.equal(h.output().chapterReleased,false);
+  h.advance(3100);
+  h.endArcade();
+  assert.equal(h.output().phase,'resolution');
+  assert.equal(h.output().activeIntermission,null);
+  assert.equal(h.output().activeReceipt.results[0].check.roll,17);
+  assert.equal(h.output().chapterReleased,false);
+  assert.equal(h.output().activeReceipt.resolution,'Committed narration');
+  h.acknowledge();
   assert.equal(h.output().phase,'none');
-  h.update({game:h.game({turn:2,final})});
+  assert.equal(h.output().chapterReleased,true);
+  h.update({game:h.game({turn:2,final}),lastTurn:final});
   assert.equal(h.output().phase,'none');
 });
 
-test('an intermission cannot launch its game before the receipt is acknowledged', () => {
-  const h = harness(); h.render();
+test('Arcade available immediately while writing; rolls hidden until committed', () => {
+  const h=harness(); h.render();
   h.update({game:h.game({pending:true,intermission:arcade(1)})});
   assert.equal(h.output().phase,'intermission');
-  assert.equal(h.output().arcadeAvailable,false);
+  assert.equal(h.output().arcadeAvailable,true);
   h.update({turnReceipt:result(12)});
-  assert.equal(h.output().phase,'resolution');
-  assert.equal(h.output().arcadeAvailable,false);
-  h.acknowledge();
   assert.equal(h.output().phase,'intermission');
+  assert.equal(h.output().activeReceipt,null);
   assert.equal(h.output().arcadeAvailable,true);
 });
 
-test('reconnect can present a durable committed roll, not an old story turn', () => {
-  const h = harness(); h.render();
-  const final = result(16,false,2);
+test('fast Director completion does not skip Arcade closing before dice', () => {
+  const h=harness(); h.render();
+  h.update({game:h.game({pending:true,intermission:arcade(1)}),turnReceipt:result(19)});
+  const final=result(4,false);
+  h.update({game:h.game({turn:2,final}),turnReceipt:final,lastTurn:final});
+  assert.equal(h.output().phase,'story-ready');
+  assert.equal(h.output().activeReceipt,null);
+  // An arbitrary completion signal must not skip the closing transition.
+  h.endArcade();
+  assert.equal(h.output().phase,'resolution');
+  assert.equal(h.output().activeIntermission,null);
+  assert.equal(h.output().activeReceipt.results[0].check.roll,19);
+  h.acknowledge();
+  assert.equal(h.output().phase,'none');
+});
+
+test('final arrives before game snapshot; wait for committed next scene', () => {
+  const h=harness(); h.render();
+  h.update({game:h.game({pending:true,intermission:arcade(1)}),turnReceipt:result(15)});
+  const final=result(15,false);
+  h.update({turnReceipt:final,lastTurn:final});
+  assert.equal(h.output().phase,'intermission');
+  assert.equal(h.output().activeReceipt,null);
+  h.update({game:h.game({turn:2,final})});
+  assert.equal(h.output().phase,'story-ready');
+  h.advance(3200); h.endArcade();
+  assert.equal(h.output().phase,'resolution');
+  assert.equal(h.output().activeReceipt.results[0].check.roll,15);
+});
+
+test('refresh mid-Director generation reconstructs Arcade without exposing dice', () => {
+  const h=harness(); h.render();
+  h.update({game:h.game({pending:true,intermission:arcade(1)}),turnReceipt:result(14)});
+  assert.equal(h.output().phase,'intermission');
+  assert.equal(h.output().activeReceipt,null);
+  const final=result(14,false);
+  h.update({game:h.game({turn:2,final}),lastTurn:final});
+  assert.equal(h.output().phase,'story-ready');
+  h.advance(3100); h.endArcade();
+  assert.equal(h.output().phase,'resolution');
+  h.acknowledge();
+  h.update({game:h.game({turn:2,final}),lastTurn:final});
+  assert.equal(h.output().phase,'none');
+});
+
+test('refresh after commit replays durable final result once, never rerolls', () => {
+  const h=harness(); h.render();
+  const final=result(16,false,2);
   h.update({game:h.game({turn:3,final})});
   assert.equal(h.output().phase,'resolution');
   assert.equal(h.output().activeReceipt.results[0].check.roll,16);
@@ -193,51 +246,26 @@ test('reconnect can present a durable committed roll, not an old story turn', ()
   assert.equal(h.output().phase,'none');
 });
 
-test('committed result while dice are visible never rerolls or interrupts the reveal', () => {
-  const h = harness(); h.render();
-  h.update({game:h.game({pending:true,intermission:arcade(1)}),turnReceipt:result(19)});
-  assert.equal(h.output().phase,'resolution');
-  const changedNarration = result(3,false);
-  h.update({turnReceipt:changedNarration,lastTurn:changedNarration,game:h.game({turn:2,final:changedNarration})});
-  assert.equal(h.output().phase,'resolution');
-  assert.equal(h.output().activeReceipt.results[0].check.roll,19);
-  h.acknowledge(); assert.equal(h.output().phase,'none');
-});
-
-test('refresh during Director generation restores frozen dice; acknowledged finals do not replay', () => {
-  const h = harness(); h.render();
-  h.update({game:h.game({pending:true,intermission:arcade(1)}),turnReceipt:result(15)});
-  assert.equal(h.output().phase,'resolution');
-  h.acknowledge(); assert.equal(h.output().phase,'intermission');
-  const final = result(15,false);
-  h.update({game:h.game({turn:2,final}),lastTurn:final});
-  assert.equal(h.output().phase,'story-ready');
-  h.advance(3200);h.endArcade();
-  assert.equal(h.output().phase,'none');
-  // The current snapshot and durable receipt may be resent for reconnect.
-  h.update({game:h.game({turn:2,final}),lastTurn:result(15,false)});
-  assert.equal(h.output().phase,'none');
-});
-
-test('a Director retry after the receipt does not reroll or erase it', () => {
-  const h = harness(); h.render();
-  h.update({game:h.game({pending:true}),turnReceipt:result(14)});
-  assert.equal(h.output().phase,'resolution');
+test('a Director retry preserves pending dice but never reveals unfinished outcome', () => {
+  const h=harness(); h.render();
+  h.update({game:h.game({pending:true,intermission:arcade(1)}),turnReceipt:result(14)});
+  assert.equal(h.output().phase,'intermission');
   h.update({game:h.game({pending:true,retry:true})});
-  assert.equal(h.output().phase,'resolution');
-  h.acknowledge(); assert.equal(h.output().phase,'retry');
+  assert.equal(h.output().phase,'retry');
+  assert.equal(h.output().activeReceipt,null);
+  h.update({game:h.game({pending:true,intermission:arcade(1)}),turnReceipt:result(14)});
+  assert.equal(h.output().phase,'retry');
+  const final=result(14,false);
+  h.update({game:h.game({turn:2,final}),turnReceipt:final,lastTurn:final});
+  // Retrying a failed generation still uses the frozen receipt.
+  assert.equal(h.output().activeReceipt?.results[0].check.roll ?? 14,14);
 });
 
-
-test('static opening resolves once without launching Arcade or restarting dice', () => {
-  const h = harness(); h.render();
+test('static tutorial result appears once, without a synthetic Arcade game', () => {
+  const h=harness(); h.render();
   h.update({game:h.game({started:false})});
-  assert.equal(h.output().phase,'none');
-  h.update({game:h.game({turn:1}),lockCountdown:{room_code:'SOLO1',turn_number:1,duration_seconds:3}});
-  assert.equal(h.output().phase,'lock-countdown');
-  const committed = result(11,false);
+  const committed=result(11,false);
   h.update({game:h.game({turn:2,final:committed}),turnReceipt:committed,lastTurn:committed});
-  h.advance(3100);
   assert.equal(h.output().phase,'resolution');
   assert.equal(h.output().activeReceipt.results[0].check.roll,11);
   h.acknowledge();
@@ -245,18 +273,35 @@ test('static opening resolves once without launching Arcade or restarting dice',
   assert.equal(h.output().activeIntermission,null);
 });
 
-test('repeated previous-turn snapshot cannot cancel the next countdown', () => {
-  const h = harness(); h.render();
-  const previous = result(12,false);
+test('stale previous-turn result cannot cancel the next writing intermission', () => {
+  const h=harness(); h.render();
+  const previous=result(12,false);
   h.update({game:h.game({turn:2,final:previous}),lastTurn:previous});
   assert.equal(h.output().phase,'resolution');
-  h.acknowledge();
-  assert.equal(h.output().phase,'none');
+  h.acknowledge(); assert.equal(h.output().phase,'none');
   h.update({game:h.game({turn:2,final:previous}),lockCountdown:{room_code:'SOLO1',turn_number:2,duration_seconds:3}});
-  assert.equal(h.output().phase,'lock-countdown');
-  const duplicate = result(12,false);
-  h.update({game:h.game({turn:2,final:duplicate}),lastTurn:duplicate});
-  assert.equal(h.output().phase,'lock-countdown');
-  h.advance(3100);
-  assert.equal(h.output().phase,'none');
+  assert.equal(h.output().phase,'intermission');
+  h.update({game:h.game({turn:2,pending:true,intermission:arcade(2),final:previous}),lastTurn:result(12,false)});
+  assert.equal(h.output().phase,'intermission');
+  assert.equal(h.output().activeReceipt,null);
+  assert.equal(h.output().arcadeAvailable,true);
+});
+
+test('snapshot of newer turn cannot cause a second roll reveal', () => {
+  const h=harness(); h.render();
+  const first=result(12,false);
+  h.update({game:h.game({turn:2,final:first})});
+  assert.equal(h.output().phase,'resolution');
+  h.acknowledge();
+  h.update({game:h.game({turn:2,pending:true,intermission:arcade(2),final:first})});
+  const second=result(9,true,2);
+  h.update({turnReceipt:second});
+  assert.equal(h.output().phase,'intermission');
+  assert.equal(h.output().activeReceipt,null);
+  const finalSecond=result(9,false,2);
+  h.update({game:h.game({turn:3,final:finalSecond}),lastTurn:finalSecond,turnReceipt:finalSecond});
+  assert.equal(h.output().phase,'story-ready');
+  h.advance(3100); h.endArcade();
+  assert.equal(h.output().phase,'resolution');
+  assert.equal(h.output().activeReceipt.results[0].check.roll,9);
 });

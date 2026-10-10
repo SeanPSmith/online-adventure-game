@@ -627,8 +627,8 @@ export function GameHomePage() {
 
               <div className="system-notice synopsis-party-note">
                 {pendingPlayMode === "solo"
-                  ? "YOU'LL ENTER A SOLO LOBBY. PRESS GET STARTED TO BEGIN IMMEDIATELY."
-                  : "YOU'LL ENTER A TWO-HERO LOBBY. INVITE YOUR FRIEND, THEN PRESS GET STARTED WHEN BOTH HEROES ARE ONLINE."}
+                  ? "YOU'LL ENTER A SOLO LOBBY. PRESS BEGIN ADVENTURE TO BEGIN IMMEDIATELY."
+                  : "YOU'LL ENTER A TWO-HERO LOBBY. INVITE YOUR FRIEND, THEN PRESS BEGIN ADVENTURE WHEN BOTH HEROES ARE ONLINE."}
               </div>
             </div>
 

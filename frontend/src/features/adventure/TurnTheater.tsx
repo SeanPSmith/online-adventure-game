@@ -65,14 +65,6 @@ export function TurnTheater({
   return (
     <div className={`turn-theater-overlay is-${theater.phase}`} role="status" aria-live="polite">
       <div className="turn-theater-stage">
-        {theater.phase === "lock-countdown" ? (
-          <>
-            <span className="eyebrow">CHOICES LOCKED</span>
-            <pre className="turn-theater-countdown">{asciiCountdown(theater.countdownValue)}</pre>
-            <strong>THE STORY IS ABOUT TO MOVE_</strong>
-          </>
-        ) : null}
-
         {theater.phase === "intermission" ? (
           <>
             <span className="eyebrow">THE STORY TURNS</span>

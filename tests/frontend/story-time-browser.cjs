@@ -1,164 +1,64 @@
-"use strict";
-const { test } = require("node:test");
-const assert = require("node:assert/strict");
-const fs = require("node:fs");
-const path = require("node:path");
-const vm = require("node:vm");
-const { stripTypeScriptTypes } = require("node:module");
-const root = path.resolve(__dirname, "../..");
-const read = file => fs.readFileSync(path.join(root, file), "utf8");
-function load(file, deps, globals = {}) {
-  const source = read(file);
-  const names = [...source.matchAll(/export (?:async )?(?:function|const) (\w+)/g)].map(match => match[1]);
-  const output = stripTypeScriptTypes(source)
-    .replace(/import \{([\s\S]*?)\} from "([^"\n]+)";/g, 'const {$1} = require("$2");')
-    .replace(/import\.meta\.url/g, '"file:///story-time"')
-    .replace(/export (?=(?:async )?(?:function|const) )/g, "")
-    + "\n" + names.map(name => `exports.${name}=${name};`).join("\n");
+'use strict';
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
+const { stripTypeScriptTypes } = require('node:module');
+const root = path.resolve(__dirname, '../..');
+const read = name => fs.readFileSync(path.join(root,name),'utf8');
+function loadEngine(fetch, enabled = true) {
+  const source=stripTypeScriptTypes(read('frontend/src/services/storyTimeEngine.ts'))
+   .replace('import.meta.env.VITE_API_BASE','""')
+   .replace(/import \{ ([^}]+) \} from "([^"]+)";/g, 'const {$1} = require("$2");')
+   .replace(/export (?=(?:async )?(?:function|const|type|interface) )/g,'');
   const exports = {};
-  vm.runInNewContext(output, { exports, require: name => deps[name], ...globals }, { filename: file });
+  const output=source+'\nexports.prepareStoryTime=prepareStoryTime; exports.synthesizeStoryTimeSpeech=synthesizeStoryTimeSpeech; exports.stopStoryTimeEngine=stopStoryTimeEngine; exports.observeStoryTime=observeStoryTime;';
+  vm.runInNewContext(output,{ exports, require: () => ({readAudioPreferences:()=>({narrationEnabled:enabled})}),fetch,Set,Promise,Error,Object,AbortController,DOMException,console });
   return exports;
 }
-
-// Simulated Web Worker: tests consent, pending requests, progress and failures
-// without downloading weights or requiring a GPU in CI.
-let launched = 0;
-let active = null;
-class FakeWorker {
-  constructor() { launched++; active = this; this.onmessage = null; this.onerror = null; }
-  postMessage(data) { this.last = data; }
-  emit(data) { this.onmessage({ data }); }
-  terminate() { this.terminated = true; }
-}
-let approved = false;
-const engine = load("frontend/src/services/storyTimeEngine.ts", {
-  "./audioPreferences": { readAudioPreferences: () => ({ storyTimeApproved: approved }) },
-}, { Worker: FakeWorker, URL, Map, Set, Promise, Error, DOMException, AbortController, console });
-
-test("Story Time refuses any model download before the player consents", async () => {
-  await assert.rejects(() => engine.prepareStoryTime(), /approve the model download/i);
-  assert.equal(launched, 0);
+test('Story Time browser never downloads or initializes a local model',()=>{
+  const source=read('frontend/src/services/storyTimeEngine.ts');
+  const settings=read('frontend/src/pages/account/SettingsPage.tsx');
+  const pkg=JSON.parse(read('frontend/package.json'));
+  assert.doesNotMatch(source,/new Worker|from_pretrained|onnx-community|kokoro-js/);
+  assert.doesNotMatch(settings,/DOWNLOAD &amp; ENABLE|DOWNLOAD STORY TIME MODEL/);
+  assert.equal(Object.prototype.hasOwnProperty.call(pkg.dependencies,'kokoro-js'),false);
 });
-
-test("consent starts one worker and reports progress before ready", async () => {
-  approved = true;
-  const events = [];
-  const unsubscribe = engine.observeStoryTime(state => events.push(state));
-  const a = engine.prepareStoryTime();
-  const b = engine.prepareStoryTime();
-  assert.equal(launched, 1);
-  assert.equal(active.last.type, "init");
-  active.emit({ type: "progress", status: "progress", percent: 40, file: "onnx/model.onnx" });
-  assert.equal(events.at(-1).percent, 40);
-  active.emit({ type: "ready" });
-  await Promise.all([a, b]);
-  assert.equal(events.at(-1).phase, "ready");
-  unsubscribe();
+test('narration status is checked with credentials and defaults unavailable', async()=>{
+  const engine=loadEngine(async()=>({ok:true,json:async()=>({available:false})}));
+  await assert.rejects(()=>engine.prepareStoryTime(),/resting/i);
+  const seen=[];engine.observeStoryTime(s=>seen.push(s));
+  assert.equal(seen.at(-1).phase,'error');
 });
-
-test("audio is generated inside worker and can be interrupted", async () => {
-  const abort = new AbortController();
-  const pending = engine.synthesizeStoryTimeSpeech({ text: "Story words.", voice: "af_heart", speed: 1 }, abort.signal);
-  await new Promise(resolve => setImmediate(resolve));
-  assert.equal(active.last.type, "speak");
-  assert.equal(active.last.text, "Story words.");
-  active.emit({ type: "audio", id: active.last.id, blob: { type: "audio/wav", size: 21 } });
-  assert.equal((await pending).size, 21);
-  const cancelled = new AbortController();
-  cancelled.abort();
-  await assert.rejects(() => engine.synthesizeStoryTimeSpeech({ text: "No.", voice: "af_heart", speed: 1 }, cancelled.signal), /interrupted/i);
+test('disabled narration cannot wake hosted service',async()=>{
+  let requests=0; const engine=loadEngine(async()=>{requests++;return {ok:true,json:async()=>({available:true})};},false);
+  await assert.rejects(()=>engine.prepareStoryTime(),/Enable Story Time/i);
+  assert.equal(requests,0);
 });
-
-test("failed model load shows an error and can be retried", async () => {
-  active.emit({ type: "error", message: "Insufficient memory" });
-  const states = [];
-  engine.observeStoryTime(state => states.push(state));
-  assert.match(states.at(-1).message, /memory/i);
-  const boot = engine.prepareStoryTime();
-  assert.equal(launched, 2);
-  active.emit({ type: "ready" });
-  await boot;
+test('narration requests authenticated audio but no microphone',async()=>{
+  let count=0;
+  const engine=loadEngine(async (_url,opts)=>{
+    count++;
+    return opts && opts.method === "POST" ? {ok:true,blob:async()=>({type:'audio/mpeg',size:22})} : {ok:true,json:async()=>({available:true})};
+  });
+  const blob=await engine.synthesizeStoryTimeSpeech({text:'A story',voice:'af_heart',speed:1},new AbortController().signal);
+  assert.equal(blob.size,22);
+  assert.equal(count,2);
+  assert.doesNotMatch(read('frontend/src/services/storyTimeEngine.ts'),/getUserMedia|SpeechRecognition/);
 });
-
-test("disabling Story Time cancels a pending download and allows later restart", async () => {
-  engine.stopStoryTimeEngine(); // Prior tests leave the model ready.
-  const boot = engine.prepareStoryTime();
-  const running = active;
-  engine.stopStoryTimeEngine();
-  await assert.rejects(() => boot, /switched off/i);
-  assert.equal(running.terminated, true);
-  assert.ok(launched >= 3);
-  const next = engine.prepareStoryTime();
-  active.emit({ type: "ready" });
-  await next;
+test('one host-selected narrator voice travels with the room and is used for playback',()=>{
+  const game=read('frontend/src/state/GameSocketContext.tsx');
+  const page=read('frontend/src/pages/game/AdventurePage.tsx');
+  const backend=read('app/main.py');
+  assert.match(game,/narration_voice: readAudioPreferences\(\)\.narrationVoice/);
+  assert.match(page,/setAdventureNarratorVoice\(live\.game\?\.narrator_voice/);
+  assert.match(backend,/session\.narrator_voice/);
 });
-
-test("browser worker uses fp32 locally, with no speech server or microphone", () => {
-  const worker = read("frontend/src/services/storyTimeWorker.ts");
-  const narrator = read("frontend/src/services/storyNarrator.ts");
-  const settings = read("frontend/src/pages/account/SettingsPage.tsx");
-  assert.match(worker, /dtype: "fp32"/);
-  assert.match(worker, /device.*webgpu/);
-  assert.match(worker, /generated\.toBlob\(\)/);
-  assert.doesNotMatch(narrator, /\/api\/narration\/speech/);
-  assert.match(settings, /StoryTimeConsentCopy/);
-  assert.match(settings, /DOWNLOAD &amp; ENABLE/);
-  assert.doesNotMatch([worker, narrator, settings].join("\n"), /getUserMedia|SpeechRecognition/);
-});
-
-
-test("Story Time branding, transparent privacy and third-party license notice", () => {
-  const privacy = read("frontend/src/pages/legal/PrivacyPage.tsx");
-  const consent = read("frontend/src/components/ui/StoryTimeConsentCopy.tsx");
-  const settings = read("frontend/src/pages/account/SettingsPage.tsx");
-  const notice = read("frontend/public/legal/story-time-third-party-notices.txt");
-  assert.match(settings, /STORY TIME \/\/ YOUR STORYTELLER/);
-  assert.doesNotMatch(settings, /KOKORO \/\/ THE STORYTELLER/);
-  assert.match(privacy, /third-party model host/);
-  assert.match(privacy, /speech server/);
-  assert.match(consent, /DOWNLOAD &amp; ENABLE/);
-  assert.match(consent, /open-source notices/i);
-  assert.match(notice, /Apache License/);
-  assert.match(notice, /Kokoro 82M/);
-  assert.ok(notice.length > 11000, "include complete Apache 2.0 license, not just a link");
-});
-
-
-test("Story Time worker validates voice IDs before invoking the narrator", async () => {
-  const worker = read("frontend/src/services/storyTimeWorker.ts");
-  // Run the real worker message handler against an in-memory model stand-in.
-  // Invalid messages must never bypass the supported-voice allowlist.
-  const compiled = stripTypeScriptTypes(worker).replace(
-    /import \{ ([^}]+) \} from "([^"]+)";/g,
-    (_all, symbols, moduleName) => `const { ${symbols} } = require(${JSON.stringify(moduleName)});`,
-  );
-  const seen = [];
-  const events = [];
-  const sandbox = {
-    require(name) {
-      if (name === "kokoro-js") return {
-        KokoroTTS: { from_pretrained: async () => ({
-          generate: async (_text, options) => {
-            seen.push(options.voice);
-            return { toBlob: () => ({ size: 10 }) };
-          },
-        }) },
-      };
-      if (name === "./audioPreferences") return {
-        KOKORO_VOICES: [{ value: "af_heart" }, { value: "bm_george" }],
-      };
-      throw Error(`Unexpected worker import: ${name}`);
-    },
-    self: {
-      addEventListener(_event, callback) { events.push(callback); },
-      postMessage() {},
-    },
-    Promise, Error, String, console,
-  };
-  vm.runInNewContext(compiled, sandbox, { filename: "storyTimeWorker.ts" });
-  assert.equal(events.length, 1);
-  events[0]({ data: { type: "speak", id: 1, text: "A chapter", voice: "not_a_voice", speed: 1 } });
-  events[0]({ data: { type: "speak", id: 2, text: "A choice", voice: "bm_george", speed: 1 } });
-  await new Promise(resolve => setImmediate(resolve));
-  assert.deepEqual(seen, ["af_heart", "bm_george"]);
+test('hosted narration privacy and license notices remain available',()=>{
+  const privacy=read('frontend/src/pages/legal/PrivacyPage.tsx');
+  const notice=read('frontend/public/legal/story-time-third-party-notices.txt');
+  assert.match(privacy,/hosted speech-generation/);
+  assert.doesNotMatch(privacy,/350 MB|locally on your/);
+  assert.match(notice,/Apache License/);
 });

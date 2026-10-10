@@ -6,8 +6,6 @@ import {
 import { activateAudioFromGesture, playSound } from "../../services/audioDirector";
 import { adjustNarrationVolume, playNarration, stopNarration } from "../../services/storyNarrator";
 import { observeStoryTime, prepareStoryTime, stopStoryTimeEngine, type StoryTimeState } from "../../services/storyTimeEngine";
-import { StoryTimeConsentCopy } from "../../components/ui/StoryTimeConsentCopy";
-import { useModal } from "../../state/ModalContext";
 import { PageTitle } from "../../components/ui/PageTitle";
 import { Panel } from "../../components/ui/Panel";
 import { TerminalSelect } from "../../components/ui/TerminalSelect";
@@ -55,7 +53,6 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
     readStoryDisplayPreferences(),
   );
   const [audio, setAudio] = useState<AudioPreferences>(() => readAudioPreferences());
-  const { openModal, closeModal } = useModal();
   const [storyTime, setStoryTime] = useState<StoryTimeState>({ phase: "idle", percent: null, message: "" });
 
   useEffect(() => {
@@ -81,23 +78,8 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
   }, [audio.narrationEnabled, audio.storyTimeApproved]);
 
   function requestStoryTime() {
-    if (audio.storyTimeApproved) {
-      setAudioPreference({ narrationEnabled: true });
-      void prepareStoryTime().catch(() => {});
-      return;
-    }
-    openModal({
-      title: "STORY TIME // BRING YOUR NARRATOR HOME",
-      body: <StoryTimeConsentCopy />,
-      actions: <div className="button-row modal-action-row">
-        <button className="button" type="button" onClick={closeModal}>NOT NOW</button>
-        <button className="button button-primary" type="button" onClick={() => {
-          closeModal();
-          setAudioPreference({ storyTimeApproved: true, narrationEnabled: true });
-          void prepareStoryTime().catch(() => {});
-        }}>DOWNLOAD &amp; ENABLE</button>
-      </div>,
-    });
+    setAudioPreference({ storyTimeApproved: true, narrationEnabled: true });
+    void prepareStoryTime().catch(() => {});
   }
 
   useEffect(() => {
@@ -468,8 +450,8 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
           <div className="notification-setting-row">
             <div>
               <strong>ENABLE STORY NARRATION</strong>
-              <p>Hear the generated chapter and choices read aloud. No microphone or voice input.</p>
-              <small>OFF BY DEFAULT // PERSONAL TO THIS BROWSER</small>
+              <p>Hear the generated chapter and choices read aloud. Narration is prepared by an optional hosted Story Time service. No microphone or voice input.</p>
+              <small>OFF BY DEFAULT // YOUR PLAYBACK SETTINGS ARE PERSONAL</small>
             </div>
             <label className="terminal-toggle">
               <input type="checkbox" checked={audio.narrationEnabled}
@@ -479,13 +461,11 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
           </div>
           {audio.narrationEnabled ? (
             <div className="system-notice story-time-status" role="status" aria-live="polite">
-              {storyTime.phase === "ready" ? "STORY TIME IS READY // THE NARRATOR LIVES ON THIS DEVICE" :
-                storyTime.phase === "downloading" ? `${storyTime.message}${storyTime.percent === null ? "" : ` // ${storyTime.percent}% OF CURRENT FILE`}` :
-                storyTime.phase === "error" ? `STORY TIME NEEDS HELP // ${storyTime.message}` : "WAITING TO PREPARE YOUR STORYTELLER"}
-              {storyTime.phase === "downloading" && storyTime.percent !== null ?
-                <progress max="100" value={storyTime.percent} aria-label="Current Story Time download file progress" /> : null}
+              {storyTime.phase === "ready" ? "STORY TIME IS READY // YOUR STORYTELLER IS CONNECTED" :
+                storyTime.phase === "downloading" ? storyTime.message :
+                storyTime.phase === "error" ? `STORY TIME NEEDS HELP // ${storyTime.message}` : "YOUR STORYTELLER IS RESTING OR NOT CONNECTED"}
               {storyTime.phase === "error" ? <button className="button" type="button"
-                onClick={() => void prepareStoryTime().catch(() => {})}>RETRY DOWNLOAD</button> : null}
+                onClick={() => void prepareStoryTime().catch(() => {})}>RETRY CONNECTION</button> : null}
             </div>
           ) : null}
           <div className="notification-setting-row">
@@ -526,7 +506,7 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
             <button className="button" type="button" disabled={storyTime.phase !== "ready"}
               onClick={stopNarration}>STOP READING</button>
           </div>
-          <p className="muted-copy">Story Time downloads the full-quality voice model to this device only after your permission. Playback and choice speakers are available inside adventures; nothing records your voice.</p>
+          <p className="muted-copy">Story Time uses optional hosted narration. There is no voice-model download, microphone, or speech-to-text. A host selects the voice used by everyone in that adventure; playback settings stay yours.</p>
         </div>
       </Panel>
 

@@ -1,4 +1,4 @@
-"""Server authority and recoverability of the result shown before the Arcade."""
+"""Server authority and recoverability of dice revealed after the Arcade."""
 
 from copy import deepcopy
 
@@ -52,3 +52,6 @@ def test_scene_reveal_waits_for_turn_theater_to_release_it() -> None:
     assert '!(audioPreferences.narrationEnabled && audioPreferences.narrationAutoPlay)' in page
     assert "Math.random()" not in result
     assert "[turnIdentity, results.length]" in result
+    assert 'theater.chapterReleased && scene?.body' in page
+    assert 'theater.chapterReleased ? scene?.choices ?? [] : []' in page
+    assert 'theater.chapterReleased && live.game?.last_resolution' in page

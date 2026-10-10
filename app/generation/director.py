@@ -1325,6 +1325,7 @@ class OpenAIRuntimeDirector:
             Any,
         ],
         recap_task: asyncio.Task | None = None,
+        opening_mode: bool = False,
     ) -> dict[
         str,
         Any,
@@ -1528,11 +1529,27 @@ class OpenAIRuntimeDirector:
             list(session.director_history)
         )
 
-        quick_event_requested = should_schedule_micro_event(
+        quick_event_requested = (not opening_mode) and should_schedule_micro_event(
             resolved_turn_number=current_turn,
             completed=False,
             wrap_up_active=wrap_up_active,
         )
+
+        if opening_mode:
+            may_complete = False
+            must_complete = False
+            story_phase = "OPENING"
+            director_instructions += (
+                "\nFIRST CHAPTER MODE: The host has JUST pressed BEGIN ADVENTURE. "
+                "Write Chapter One as a fully playable opening with 3-6 meaningful "
+                "action choices and normal server-resolved checks. There are NO "
+                "locked actions, dice outcomes, previous scene, QTE, intermission, "
+                "or earlier player turns. Establish the premise, Heroes, and an "
+                "immediate consequential situation; move the plot forward. "
+                "Ignore any pre-authored opening_scene in the seed. "
+                "Return completed=false, quick_event=null, and a blank "
+                "resolution_narration. Do not invent results or prior history.\n"
+            )
 
         # Runtime does not need the player-facing synopsis or the entire
         # pre-generated Turn 1 payload on every subsequent request. Keep only
@@ -1628,13 +1645,14 @@ class OpenAIRuntimeDirector:
 
                 "current_scene": {
                     "id":
-                        session.scene.id,
+                        ("pending_chapter_one" if opening_mode else session.scene.id),
 
                     "title":
-                        session.scene.title,
+                        ("SYNOPSIS" if opening_mode else session.scene.title),
 
                     "body":
-                        str(session.scene.body or "")[:1800],
+                        (str(seed.get("player_synopsis") or seed.get("premise") or "")[:1800]
+                         if opening_mode else str(session.scene.body or "")[:1800]),
                 },
 
                 # Structured state is the primary continuity store. The prose
@@ -1702,7 +1720,7 @@ class OpenAIRuntimeDirector:
                 ],
 
                 "turn_facts":
-                    turn_facts,
+                    ({} if opening_mode else turn_facts),
             },
         }
 
@@ -2278,6 +2296,9 @@ class OpenAIRuntimeDirector:
                 f"elapsed={time.perf_counter() - repair_started:.2f}s"
             )
 
+
+        if opening_mode and (draft.completed or draft.quick_event is not None):
+            raise DirectorError("The first chapter must be playable and cannot contain a QTE or finale.")
 
         freshness_issues = _freshness_violations(
             draft,

@@ -23,30 +23,23 @@ export function PrivacyPage() {
           </p>
         </Panel>
 
-        <Panel title="STORY TIME // OPTIONAL ON-DEVICE NARRATION">
+        <Panel title="STORY TIME // OPTIONAL HOSTED NARRATION">
           <p>
-            Story Time is optional. If you choose to enable it, your browser downloads
-            the voice model and supporting files from a third-party model host. This
-            initial download is approximately 350 MB and may be cached on your device.
-            Your browser may download the files again if its cache is cleared.
+            Story Time is optional and off by default. When enabled, the passage you choose
+            to hear (chapter text or a choice) is sent to our hosted speech-generation
+            service to produce audio. The voice is selected by the adventure host, while
+            each player independently controls their own playback and volume.
           </p>
           <p>
-            Story Time turns visible chapter and choice text into audio locally on your
-            device. The passage being narrated is not sent to a separate speech server.
-            Download hosts can receive technical request information such as your IP
-            address when your browser retrieves the model files. Narration does not
-            request microphone access or record your voice. Story generation itself
-            still uses the AI processing described above.
-          </p>
-          <p>
-            You can disable Story Time in your audio settings at any point. Disabling
-            it stops narration; it does not necessarily delete model files that your
-            browser has cached. Clear site data using your browser controls to remove
-            downloaded model files and local narration preferences.
+            Story Time does not download a speech model onto your device and does not
+            request microphone access, record your voice, or recognize spoken commands.
+            The game may cache generated audio to avoid repeat processing; audio and
+            service diagnostics may be stored temporarily for operation and security.
+            You can disable narration any time in your audio preferences.
           </p>
           <p>
             <a href="/legal/story-time-third-party-notices.txt" target="_blank" rel="noopener noreferrer">
-              Story Time technology and open-source license notices
+              Open-source software notices
             </a>
           </p>
         </Panel>

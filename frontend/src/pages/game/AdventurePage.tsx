@@ -7,7 +7,6 @@ import {
 } from "react";
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router";
 import { Panel } from "../../components/ui/Panel";
-import { StoryTimeConsentCopy } from "../../components/ui/StoryTimeConsentCopy";
 import { observeStoryTime, prepareStoryTime, stopStoryTimeEngine, type StoryTimeState } from "../../services/storyTimeEngine";
 import { RoomInviteButton } from "../../components/game/RoomInviteButton";
 import { ShareMomentButton } from "../../components/game/ShareMomentButton";
@@ -29,6 +28,7 @@ import { activateAudioFromGesture, playSound } from "../../services/audioDirecto
 import {
   adjustNarrationVolume, choiceNarrationItems, observeNarration,
   pauseNarration, playNarration, resumeNarration, sceneNarrationItems, stopNarration,
+  setAdventureNarratorVoice,
   type NarrationState,
 } from "../../services/storyNarrator";
 import { readStoryDisplayPreferences, type StoryDisplayPreferences } from "../../services/storyPreferences";
@@ -223,13 +223,13 @@ export function AdventurePage() {
     ? `${normalizedRoomCode}:${live.lastTurn?.resolved_turn_number ?? turnNumber}:${characterId}:fallen`
     : "";
   const showDeath = Boolean(
-    deathKey && dismissedDeathKey !== deathKey && theater.phase === "none",
+    deathKey && dismissedDeathKey !== deathKey && theater.chapterReleased,
   );
   const showLevelUp = Boolean(
     levelUpKey &&
     dismissedLevelUpKey !== levelUpKey &&
     !lastLocalProgression?.died_this_turn &&
-    theater.phase === "none",
+    theater.chapterReleased,
   );
 
   // A quick-event outcome belongs to the scene it interrupted, not a later
@@ -249,8 +249,8 @@ export function AdventurePage() {
       "success" in item && typeof item.success === "boolean",
   );
 
-  const openingReady = Boolean(live.game?.opening_ready && scene?.body?.trim() && scene.choices.length > 0);
-  const canBeginAdventure = Boolean(live.game?.can_begin_adventure && openingReady);
+  const openingReady = Boolean(live.game?.opening_ready);
+  const canBeginAdventure = Boolean(live.game?.can_begin_adventure);
 
   const directorState = live.game?.director_request_active
     ? "WRITING"
@@ -269,7 +269,8 @@ export function AdventurePage() {
     Boolean(live.game?.director_request_active) ||
     Boolean(live.game?.director_retry_required) ||
     Boolean(live.game?.pending_micro_event) ||
-    theater.phase !== "none";
+    theater.phase !== "none" ||
+    !theater.chapterReleased;
 
   useEffect(() => {
     if (turnHistory.length === 0) {
@@ -317,34 +318,25 @@ export function AdventurePage() {
       stopStoryTimeEngine();
       return;
     }
-    if (audioPreferences.storyTimeApproved) {
-      setAudioPreferences(writeAudioPreferences({ narrationEnabled: true }));
-      void prepareStoryTime().catch(() => {});
-      return;
-    }
-    openModal({
-      title: "STORY TIME // YOUR PERSONAL NARRATOR",
-      body: <StoryTimeConsentCopy />,
-      actions: <div className="button-row modal-action-row">
-        <button className="button" type="button" onClick={closeModal}>NOT NOW</button>
-        <button className="button button-primary" type="button" onClick={() => {
-          closeModal();
-          setAudioPreferences(writeAudioPreferences({ storyTimeApproved: true, narrationEnabled: true }));
-          void prepareStoryTime().catch(() => {});
-        }}>DOWNLOAD &amp; ENABLE</button>
-      </div>,
-    });
+    setAudioPreferences(writeAudioPreferences({ storyTimeApproved: true, narrationEnabled: true }));
+    void prepareStoryTime().catch(() => {});
   }
+
+  // One shared voice is fixed when the host creates the room. Playback remains independent.
+  useEffect(() => {
+    setAdventureNarratorVoice(live.game?.narrator_voice ?? null);
+    return () => setAdventureNarratorVoice(null);
+  }, [live.game?.narrator_voice]);
 
   // Never let the previous chapter speak over the next chapter or a reaction event.
   useEffect(() => { stopNarration(); }, [normalizedRoomCode, scene?.id, turnNumber]);
   useEffect(() => { adjustNarrationVolume(); }, [audioPreferences.narrationVolume]);
   useEffect(() => {
-    if (!audioPreferences.narrationEnabled || theater.phase !== "none" ||
+    if (!audioPreferences.narrationEnabled || !theater.chapterReleased ||
         !live.game?.started || live.game?.pending_micro_event || choiceLocked || showDeath || showLevelUp) {
       stopNarration();
     }
-  }, [audioPreferences.narrationEnabled, theater.phase, live.game?.started,
+  }, [audioPreferences.narrationEnabled, theater.chapterReleased, live.game?.started,
       live.game?.pending_micro_event, choiceLocked, showDeath, showLevelUp]);
 
   // Mark each scene before attempting auto-play, so reconnects and repeated
@@ -352,7 +344,7 @@ export function AdventurePage() {
   useEffect(() => {
     if (!audioPreferences.narrationEnabled || !audioPreferences.narrationAutoPlay ||
         narratorAvailable !== true || !live.game?.started || !scene?.body ||
-        theater.phase !== "none" || live.game?.pending_micro_event ||
+        !theater.chapterReleased || live.game?.pending_micro_event ||
         choiceLocked || showDeath || showLevelUp || live.status !== "ready") return;
     const key = `tot:spoken:${normalizedRoomCode}:${turnNumber}:${scene.id}`;
     if (lastAutoNarration.current === key) return;
@@ -365,15 +357,15 @@ export function AdventurePage() {
   }, [audioPreferences.narrationEnabled, audioPreferences.narrationAutoPlay,
       audioPreferences.narrationAutoChoices, narratorAvailable, live.game?.started,
       live.game?.pending_micro_event, live.status, scene?.id, scene?.body,
-      theater.phase, choiceLocked, showDeath, showLevelUp, normalizedRoomCode, turnNumber]);
+      theater.chapterReleased, choiceLocked, showDeath, showLevelUp, normalizedRoomCode, turnNumber]);
 
   function narrateChapter() {
-    if (!audioPreferences.narrationEnabled || !scene?.body) return;
+    if (!audioPreferences.narrationEnabled || !theater.chapterReleased || !scene?.body) return;
     void playNarration(sceneNarrationItems(scene.body, scene.choices, audioPreferences.narrationAutoChoices));
   }
 
   function narrateChoices() {
-    if (!audioPreferences.narrationEnabled) return;
+    if (!audioPreferences.narrationEnabled || !theater.chapterReleased) return;
     void playNarration(choiceNarrationItems(scene?.choices ?? []));
   }
 
@@ -391,10 +383,10 @@ export function AdventurePage() {
   }, [audioPreferences.effectsEnabled]);
 
   useEffect(() => {
-    if (live.game?.started && scene?.id && theater.phase === "none") {
+    if (live.game?.started && scene?.id && theater.chapterReleased) {
       playSound("chapter", `chapter:${normalizedRoomCode}:${turnNumber}:${scene.id}`);
     }
-  }, [live.game?.started, scene?.id, theater.phase, normalizedRoomCode, turnNumber]);
+  }, [live.game?.started, scene?.id, theater.chapterReleased, normalizedRoomCode, turnNumber]);
 
   useEffect(() => {
     if (showDeath) playSound("death", `death:${deathKey}`);
@@ -605,7 +597,7 @@ export function AdventurePage() {
       <div className="adventure-layout">
         <section className="story-pane panel" ref={storyPaneRef}>
           <div className="scene-art">
-            <pre>{scene?.ascii_art?.trim() || "SETTING THE STAGE_"}</pre>
+            <pre>{theater.chapterReleased ? (scene?.ascii_art?.trim() || "SETTING THE STAGE_") : "THE NEXT CHAPTER IS SEALED_"}</pre>
           </div>
 
           <div className="scene-meta">
@@ -677,7 +669,7 @@ export function AdventurePage() {
                 />
               ) : null}
 
-              {scene?.body ? (
+              {theater.chapterReleased && scene?.body ? (
                 <ShareMomentButton
                   title={`${scene.title} — Tales of Two`}
                   text={`${live.game?.adventure_title ?? "Tales of Two"} // ${scene.title}
@@ -718,7 +710,7 @@ ${scene.body.slice(0, 260)}`}
             </div>
           </section>
 
-          {live.game?.last_resolution ? (
+          {theater.chapterReleased && live.game?.last_resolution ? (
             <section className="previous-resolution">
               <span className="eyebrow">PREVIOUS TURN // WHAT JUST HAPPENED</span>
               <p>{live.game.last_resolution}</p>
@@ -737,10 +729,10 @@ ${scene.body.slice(0, 260)}`}
                 <p>{live.game?.adventure_synopsis || "A new road opens before your Hero. Every choice will shape the tale that follows."}</p>
               </section>
               <div className={`adventure-opening-status ${openingReady ? "is-ready" : ""}`} role="status" aria-live="polite">
-                <strong>{openingReady ? "THE FIRST CHAPTER IS READY" : "PREPARING THE FIRST CHAPTER_"}</strong>
-                <span>{openingReady
-                  ? "The opening scene awaits. Begin when your party is assembled."
-                  : "The opening page is not yet available. Please remain in the hall."}</span>
+                <strong>{live.game?.chapter_preparing ? "THE STORY DIRECTOR IS WRITING CHAPTER ONE_" : "YOUR ADVENTURE AWAITS"}</strong>
+                <span>{live.game?.chapter_preparing
+                  ? "Chapter One is being created. The adventure will begin automatically when it is ready."
+                  : "Assemble your party, then begin your first chapter."}</span>
               </div>
               {live.room?.play_mode === "coop" ? (
                 <p className="muted-copy">Invite your companion, then begin when both Heroes have arrived.</p>
@@ -762,10 +754,10 @@ ${scene.body.slice(0, 260)}`}
                   disabled={!connected || live.status !== "ready" || !canBeginAdventure}
                   onClick={live.startAdventure}
                 >
-                  {!openingReady ? "PREPARING CHAPTER_" : canBeginAdventure ? "GET STARTED" : "AWAITING YOUR PARTY"}
+                  {live.game?.chapter_preparing ? "PREPARING CHAPTER ONE_" : canBeginAdventure ? "BEGIN ADVENTURE" : "AWAITING YOUR PARTY"}
                 </button>
               ) : (
-                <div className="system-notice">THE HOST WILL OPEN THE FIRST CHAPTER WHEN THE PARTY IS READY.</div>
+                <div className="system-notice">THE HOST WILL BEGIN THE ADVENTURE WHEN THE PARTY IS READY.</div>
               )}
             </article>
           ) : (
@@ -774,7 +766,7 @@ ${scene.body.slice(0, 260)}`}
                 <span className="eyebrow">CURRENT SCENE</span>
                 <span className="story-turn-marker">TURN {String(turnNumber).padStart(2, "0")}</span>
               </div>
-              <h1>{scene?.title ?? "PICKING UP THE THREAD_"}</h1>
+              <h1>{theater.chapterReleased ? (scene?.title ?? "PICKING UP THE THREAD_") : "THE NEXT CHAPTER IS SEALED_"}</h1>
               <div className="adventure-narration-controls" aria-label="Optional Story Time chapter narration">
                 <button className="button button-quiet" type="button"
                   aria-pressed={audioPreferences.narrationEnabled}
@@ -784,10 +776,10 @@ ${scene.body.slice(0, 260)}`}
                 {audioPreferences.narrationEnabled ? (
                   <>
                     <button className="button button-quiet" type="button"
-                      disabled={!scene?.body || narratorAvailable !== true || theater.phase !== "none" || Boolean(live.game?.pending_micro_event) || showDeath}
+                      disabled={!scene?.body || narratorAvailable !== true || !theater.chapterReleased || Boolean(live.game?.pending_micro_event) || showDeath}
                       onClick={narrateChapter}>READ CHAPTER</button>
                     <button className="button button-quiet" type="button"
-                      disabled={!scene?.choices.length || narratorAvailable !== true || theater.phase !== "none" || Boolean(live.game?.pending_micro_event) || choiceLocked || showDeath}
+                      disabled={!scene?.choices.length || narratorAvailable !== true || !theater.chapterReleased || Boolean(live.game?.pending_micro_event) || choiceLocked || showDeath}
                       onClick={narrateChoices}>READ CHOICES</button>
                     {narration.phase === "playing" ? (
                       <button className="button button-quiet" type="button" onClick={pauseNarration}>PAUSE</button>
@@ -802,7 +794,7 @@ ${scene.body.slice(0, 260)}`}
                 <small role="status" aria-live="polite">
                   {audioPreferences.narrationEnabled && !narratorAvailable
                     ? storyTime.phase === "error" ? `STORY TIME ERROR // ${storyTime.message}` :
-                      `PREPARING STORY TIME // ${storyTime.percent === null ? "PLEASE WAIT" : `${storyTime.percent}% OF CURRENT FILE`}`
+                      "CONNECTING TO STORY TIME_"
                     : narration.phase === "error" ? narration.error
                     : narration.phase === "loading" ? `PREPARING VOICE // ${narration.label}`
                     : narration.phase === "playing" ? `READING // ${narration.label}`
@@ -810,7 +802,7 @@ ${scene.body.slice(0, 260)}`}
                 </small>
               </div>
 
-              {scene?.body ? (
+              {theater.chapterReleased && scene?.body ? (
                 <StoryReveal
                   sceneId={scene.id}
                   text={scene.body}
@@ -839,7 +831,7 @@ ${scene.body.slice(0, 260)}`}
             </article>
           )}
 
-          {live.game?.started && live.finale ? (
+          {live.game?.started && theater.chapterReleased && live.finale ? (
             <section className="finale-inline journey-finale-summary">
               <header className="finale-summary-header">
                 <div>
@@ -937,7 +929,7 @@ ${scene.body.slice(0, 260)}`}
                 </span>
               </header>
 
-              {localReaction && !live.game?.pending_micro_event ? (
+              {theater.chapterReleased && localReaction && !live.game?.pending_micro_event ? (
                 <section className="qte-choice-consequence" aria-label="Your reaction's consequence">
                   <span className="eyebrow">THE MOMENT AFTER YOUR REACTION</span>
                   <p>{localReaction.result}</p>
@@ -946,7 +938,7 @@ ${scene.body.slice(0, 260)}`}
               ) : null}
 
               <div className="choice-grid">
-                {(scene?.choices ?? []).map((choice, index) => {
+                {(theater.chapterReleased ? scene?.choices ?? [] : []).map((choice, index) => {
                   const selected = choice.id === selectedChoiceId;
                   const locked = selected && choiceLocked;
                   const challenge = choice.check?.challenge_tier?.toUpperCase() ?? null;
@@ -989,7 +981,7 @@ ${scene.body.slice(0, 260)}`}
 
                       {audioPreferences.narrationEnabled ? (
                         <button className="choice-narrate-button" type="button"
-                          disabled={narratorAvailable !== true || theater.phase !== "none" || Boolean(live.game?.pending_micro_event) || choiceLocked || showDeath}
+                          disabled={narratorAvailable !== true || !theater.chapterReleased || Boolean(live.game?.pending_micro_event) || choiceLocked || showDeath}
                           aria-label={`Read choice ${index + 1} aloud`}
                           title="Listen to this choice without selecting it"
                           onClick={() => { void playNarration([{ text: `Option ${index + 1}. ${choice.label}`, label: `CHOICE ${index + 1}`, kind: "choice" }]); }}>

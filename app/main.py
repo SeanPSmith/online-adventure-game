@@ -218,6 +218,7 @@ _turn_resolution_locks: dict[
 # in-memory: after a process restart any persisted pending TurnFacts are
 # considered retryable rather than pretending a vanished request is active.
 _director_active_rooms: set[str] = set()
+_opening_active_rooms: set[str] = set()
 
 
 # Keep the actual outbound Director task by room as well as the lightweight
@@ -389,6 +390,7 @@ async def lifespan(
     _turn_resolution_locks.clear()
 
     _director_active_rooms.clear()
+    _opening_active_rooms.clear()
 
     _director_tasks.clear()
 
@@ -565,18 +567,12 @@ def room_can_start_solo(
         return False
 
 
-    # Lobby state is explicit now. Opening prose/choices may already exist, but
-    # they are not playable until GET STARTED flips this persisted flag.
+    # Before BEGIN ADVENTURE, reveal the synopsis only, never seed opening prose.
     return not bool(getattr(session, "started", True)) and not session.completed
 
 
 def opening_scene_ready(session) -> bool:
-    """A lobby may open only when an actual playable opening is available.
-
-    Approved generated seeds already ship with opening prose and choices; this
-    check does not invoke the Story Director or spend tokens. It also protects
-    against a malformed/retired seed creating a lobby that can never play.
-    """
+    """Whether an actual playable chapter has been committed to the session."""
     try:
         scene = session.scene
         return bool(str(scene.body or "").strip()) and bool(scene.choices)
@@ -591,7 +587,9 @@ def room_can_begin_adventure(
     if room is None or session is None or session.completed or bool(getattr(session, "started", True)):
         return False
 
-    if not room.has_required_party or not opening_scene_ready(session):
+    if not room.has_required_party or (session.starting and room.code in _opening_active_rooms):
+        return False
+    if not session.is_ai_directed and not opening_scene_ready(session):
         return False
 
     online_players = [
@@ -724,6 +722,9 @@ def build_game_state(
         "started":
             bool(session.started),
 
+        "chapter_preparing": bool(session.starting and room.code in _opening_active_rooms),
+        "narrator_voice": session.narrator_voice,
+
         "can_start_solo":
             room_can_start_solo(
                 room,
@@ -736,7 +737,7 @@ def build_game_state(
                 session,
             ),
 
-        "opening_ready": opening_scene_ready(session),
+        "opening_ready": bool(session.started and opening_scene_ready(session)),
 
         "adventure_synopsis": (
             str(session.adventure.metadata.get("player_synopsis") or "").strip()
@@ -753,7 +754,10 @@ def build_game_state(
             session.turn_number,
 
         "scene":
-            session.scene.public_data(),
+            (session.scene.public_data() if session.started else {
+                "id": "pending_chapter_one", "title": "", "body": "",
+                "ascii_art": "", "choices": [],
+            }),
 
         "readiness":
             readiness,
@@ -2612,6 +2616,9 @@ async def create_room(
                 adventure_id,
         )
     )
+    from app.narration.routes import VOICES
+    proposed_voice = str(data.get("narration_voice") or "af_heart")
+    session.narrator_voice = proposed_voice if proposed_voice in VOICES else "af_heart"
 
 
     if data.get("play_mode") == "solo":
@@ -3664,20 +3671,68 @@ async def start_adventure(
         )
         return
 
-    session.started = True
+    if session.is_ai_directed:
+        # Set the sentinel before the first await: duplicate clicks, other
+        # socket connections, and subsequent snapshots cannot launch another call.
+        session.starting = True
+        _opening_active_rooms.add(room.code)
+        await persist_room_state(room.code)
+        await broadcast_game_state(room.code)
+        try:
+            characters = await load_turn_characters(room)
+            host = next(member for member in room.players.values() if member.is_host)
+            generated_id = session.adventure.metadata.get("generated_adventure_id")
+            completed_recap = asyncio.get_running_loop().create_future()
+            completed_recap.set_result({
+                "resolution_narration": "",
+                "meta": {"provider": "not_applicable", "usage": {}},
+            })
+            async with asyncio.timeout(105):
+                with ai_usage_scope(
+                    user_id=host.user_id, room_code=room.code,
+                    adventure_id=session.adventure_id,
+                    generated_adventure_id=str(generated_id) if generated_id else None,
+                    surface="live_adventure",
+                ):
+                    output = await runtime_director.advance(
+                        session=session, room=room,
+                        characters_by_player_id=characters,
+                        turn_facts={"results": [], "resolution": ""},
+                        opening_mode=True,
+                        recap_task=completed_recap,
+                    )
+            if rooms.room_by_code(room.code) is not room or game_sessions.get(room.code) is not session:
+                return  # The room was abandoned while the Director was writing.
+            game_sessions.commit_director_opening(
+                room.code, director_output=output,
+                characters_by_player_id=characters,
+            )
+        except Exception as exc:
+            session.starting = False
+            _opening_active_rooms.discard(room.code)
+            await persist_room_state(room.code)
+            await broadcast_game_state(room.code)
+            print(f"[OPENING GENERATION ERROR] room={room.code} type={type(exc).__name__}: {exc}")
+            await sio.emit("room_error", {
+                "room_code": room.code,
+                "message": "The Story Director could not open Chapter One. Please try BEGIN ADVENTURE again.",
+            }, room=room.code)
+            return
+        finally:
+            _opening_active_rooms.discard(room.code)
+    else:
+        # Built-in static tutorials retain their existing authored opening.
+        session.started = True
+
     session.submissions.clear()
     await persist_room_state(room.code)
-
     await sio.emit(
         "adventure_started",
         {"room_code": room.code, "turn_number": session.turn_number},
         room=room.code,
     )
     await broadcast_game_state(room.code)
-    await refresh_adventure_lists(
-        member.user_id
-        for member in room.players.values()
-    )
+    await refresh_adventure_lists(member.user_id for member in room.players.values())
 
 
 # =========================================================
@@ -4710,7 +4765,7 @@ async def submit_choice(
             "game_error",
             {
                 "room_code": room.code,
-                "message": "The adventure has not started yet. Wait for the host to press GET STARTED.",
+                "message": "The adventure has not started yet. Wait for the host to press BEGIN ADVENTURE.",
             },
             to=sid,
         )

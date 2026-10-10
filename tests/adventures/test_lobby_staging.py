@@ -36,7 +36,7 @@ def test_server_enforces_opening_scene_readiness(monkeypatch) -> None:
     assert main.opening_scene_ready(session)
     assert main.room_can_begin_adventure(room, session)
 
-    # An incomplete opening must not enable Get Started or allow start_adventure.
+    # The static tutorial still needs its opening; AI rooms generate theirs after Begin.
     monkeypatch.setattr(main, "opening_scene_ready", lambda _session: False)
     assert not main.room_can_begin_adventure(room, session)
 

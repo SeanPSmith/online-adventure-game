@@ -101,7 +101,7 @@ def test_launch_state_is_persisted_and_choices_cannot_start_the_room() -> None:
     assert "async def start_adventure(" in main
     assert "room_can_begin_adventure" in main
     assert "Only the host can start the adventure." in main
-    assert "The adventure has not started yet. Wait for the host to press GET STARTED." in main
+    assert "The adventure has not started yet. Wait for the host to press BEGIN ADVENTURE." in main
 
 
 def test_react_launch_ui_uses_get_started_and_no_browser_native_controls() -> None:
@@ -111,7 +111,7 @@ def test_react_launch_ui_uses_get_started_and_no_browser_native_controls() -> No
         for path in FRONTEND.rglob("*.tsx")
     )
 
-    assert '"GET STARTED"' in page
+    assert '"BEGIN ADVENTURE"' in page
     assert "live.startAdventure" in page
     assert "confirmSoloStart" in page
     assert "window.confirm" not in react_source

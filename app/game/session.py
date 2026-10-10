@@ -201,6 +201,8 @@ class GameSession:
     # pre-start state until the host presses GET STARTED; restored legacy rooms
     # without this field are treated as already started for compatibility.
     started: bool = False
+    starting: bool = False
+    narrator_voice: str = "af_heart"
 
 
     # player_id -> choice_id
@@ -1049,6 +1051,8 @@ class GameSessionManager:
                     )
                 ),
 
+            starting=bool(data.get("starting", False)),
+            narrator_voice=str(data.get("narrator_voice") or "af_heart"),
             started=
                 (
                     bool(data.get("started"))
@@ -3242,6 +3246,37 @@ class GameSessionManager:
                 session.ending_label,
         }
 
+
+    def commit_director_opening(self, room_code: str, *, director_output: dict, characters_by_player_id: dict | None = None) -> None:
+        """Reuse canonical choice validation/scaling without creating a free turn."""
+        session = self.get_or_create(room_code)
+        if session.started or session.dynamic_scene is not None:
+            raise ValueError("The opening chapter has already been committed.")
+        if not session.is_ai_directed or not session.starting:
+            raise ValueError("Opening generation was not requested.")
+        if director_output.get("completed") or director_output.get("quick_event"):
+            raise ValueError("An opening cannot finish the adventure or stage a QTE.")
+        session.turn_number = 0
+        try:
+            self.commit_director_turn(
+                room_code,
+                turn_facts={"results": [], "resolution": ""},
+                director_output=director_output,
+                characters_by_player_id=characters_by_player_id,
+            )
+        except Exception:
+            session.turn_number = 1
+            raise
+        # Turn zero is authoring setup, not a choice, dice roll or Chronicle entry.
+        session.director_history.clear()
+        session.turn_archive.clear()
+        session.last_resolution = None
+        session.last_turn_result = None
+        session.pending_turn_facts = None
+        session.pending_micro_event = None
+        session.turn_number = 1
+        session.started = True
+        session.starting = False
 
     # =====================================================
     # INTERMISSION MINI-GAMES

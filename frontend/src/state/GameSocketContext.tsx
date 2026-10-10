@@ -1,3 +1,4 @@
+import { readAudioPreferences } from "../services/audioPreferences";
 import {
   createContext,
   useCallback,
@@ -172,6 +173,7 @@ export function GameSocketProvider({ children }: { children: ReactNode }) {
     }
     setLatestError("");
     getGameSocket().emit("create_room", {
+      narration_voice: readAudioPreferences().narrationVoice,
       character_id: characterId,
       adventure_id: adventureId,
       play_mode: playMode,

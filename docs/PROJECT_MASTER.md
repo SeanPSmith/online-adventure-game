@@ -3,12 +3,20 @@
 > **Canonical project document.** This file replaces the old append-only changelog workflow.
 > Update or rewrite the relevant sections in this file as the product changes; do not create another numbered changelog copy.
 
-**Last consolidated:** 2026-10-09  
-**Current local baseline:** Pass 57 (optional browser-local Story Time narration; full-quality model downloaded with consent), building on Pass 56 controls, Pass 55 SFX and Pass 54 gameplay integrity  
+**Last consolidated:** 2026-10-10  
+**Current local baseline:** Pass 58A revised (hosted Story Time client, Chapter One on BEGIN ADVENTURE, corrected choice → intermission → committed dice → chapter presentation). No EC2 provisioned.
 **Public site:** `https://onlinetextadventure.com`  
 **Primary release command:** `./scripts/release-staging.sh "Describe the release"`
 
 ---
+
+
+### Pass 58A — Hosted Story Time and first chapter generation
+- **New AI adventures:** synopsis + online Hero roster first. Host presses **BEGIN ADVENTURE**; only then does the runtime Director generate and validate Chapter One, with normal checked choices. There is no free opening choice, first dice roll, or intermission before Chapter One. Snapshots hide seed opening content until the actual chapter is committed. One active generation per room, with retry after failed generation or a backend restart. Pre-existing started adventures are not rewritten. Built-in static tutorials retain their authored openings.
+- **Voice:** one host-selected narrator voice captured when the room is created and persisted with session state. Co-op participants share the voice; each retains playback toggles, volume and speed preferences. Browser never runs Kokoro inference or downloads model files. Existing authenticated `/api/narration/status` and `/api/narration/speech` endpoints remain inactive until `KOKORO_BASE_URL` is configured.
+- **Safety:** Story Time must not delay choices, rolls, intermissions or chapter reveals. Story generation does not depend on the narrator. Hosted service wake/sleep, spending quotas, persistent shared cache and word-level synchronized reveal are **NOT** part of this stage; reserve them for Pass 58B/C after a CPU benchmark. No EC2 infrastructure change is included here.
+- **Install:** extract patch, run `bash scripts/prepare-pass58-story-time.sh` to remove `kokoro-js`, update `frontend/package-lock.json`, and test the production build, then use the normal release script. No change to the game database schema; launch flags and narrator voice live in the persisted room snapshot JSON.
+
 
 ## 1. Product Summary
 
@@ -124,15 +132,23 @@ Docker Desktop is not required on the development Mac.
 - CloudFront is the public front door for static React, REST API traffic, and Socket.IO/WebSocket traffic.
 - `onlinetextadventure.com` and `www.onlinetextadventure.com` terminate TLS at CloudFront using ACM.
 
+### Corrected game loop — Pass 58A turn-order follow-up
+
+**Authoritative processing:** when all required players lock their actions, Python resolves and **freezes** the d20 checks, then immediately passes those immutable TurnFacts to the Story Director. The Director writes the consequent next scene before anyone sees the dice. The cheap preliminary `turn_receipt_ready` event is bookkeeping/recovery only; it must never open the dice presentation or release a chapter. After the AI turn commits and HP/XP/death outcomes reconcile, the durable final `turn_resolved` receipt carries the reveal.
+
+**Player presentation:** **choice lock → Arcade/intermission while the Director writes → intermission closes → exactly one committed dice/check and HP/XP outcome display → player continues → new chapter text reveal and optional Story Time → new choices**. An intermission that starts or ends very quickly must not reverse that order. Reconnect restores the frozen facts while pending and the final receipt after commit; retries do not reroll. A received next-scene snapshot must not reveal title, text, art, choices, recap, death/finale, or trigger narration while intermission/dice are still pending. The chapter unlocks after acknowledgement. Static/tutorial results without an AI intermission still display the one committed roll.
+
+**Adventure opening (new AI adventures only):** synopsis + party readiness → host BEGIN ADVENTURE → generate Chapter One → reveal Chapter One. There is no free-choice/dice/Arcade introductory turn. Narration never controls any turn transitions.
+
 ### React frontend loading (Pass 49)
 
 The React router keeps the minimal shared public/game/account shells, authentication gate, route-error boundary, and not-found handler in the entry module. Public, Hero, Adventure, Library, Arcade, Author, Admin, and Account pages use React Router's native `route.lazy` dynamic imports and are fetched only when navigated to. Repeated uses of the Rulebook route reuse the same module chunk. `RootLayout` announces pending route transitions without taking over or clearing the current screen. Failed dynamic-import/chunk requests show a recoverable route error with an explicit reload button (for example, when an older browser tab references chunks replaced by a new deployment). This changes bundle loading and presentation only; it does not affect backend routes, auth entitlements, game state, or story generation. The release pipeline continues to build and upload Vite's generated assets as a unit; a lazy chunk must never be deployed without its matching entry and manifest assets.
 
 ### Pass 52 — Adventure lobby and immersive recovery copy
 
-The first chapter is authored at seed-approval time, **not** requested from OpenAI when a player enters the lobby. The backend exposes `opening_ready` (nonempty opening prose and at least one available choice) plus `adventure_synopsis` (published player synopsis, falling back to adventure description). Room start is gated on both opening readiness and the correct number of online Heroes. The lobby stages the synopsis and party roster, then enables **GET STARTED** only when the opening is ready and the host can begin. This requires no new user accounts, data migration, background tasks, or model tokens.
+Historical Pass 52 behavior (superseded by Pass 58A) staged the opening at seed-approval time. The backend exposes `opening_ready` (nonempty opening prose and at least one available choice) plus `adventure_synopsis` (published player synopsis, falling back to adventure description). The host can start once the required number of Heroes are ready; Chapter One is generated after start, and the initial lobby is not a gameplay turn. The current lobby stages only synopsis and party roster, then enables **BEGIN ADVENTURE** for the host; this triggers the AI Director to generate Chapter One. This requires no new accounts or data migration, but **does** spend a Director generation request for Chapter One.
 
-`useTurnTheater` must never infer that a story turn has been locked merely because the pre-start `readiness` snapshot marks an online Hero as ready: `game.started` gates all intermission, countdown, receipt, and retry presentation. A new lobby cannot enter the intermission theater. Started-room restoration now replays the durable server receipt as needed and never rerolls dice.
+`useTurnTheater` must never infer that a story turn has been locked merely because the pre-start `readiness` snapshot marks an online Hero as ready: `game.started` gates all intermission, receipt, and retry presentation. A new lobby cannot enter the intermission theater. Started-room restoration now replays the durable server receipt as needed and never rerolls dice.
 
 Public player-facing lost-route and route-error copy uses the adventure/chronicle voice, with explicit reload and Adventure Hall recovery actions. Technical error details remain out of the rendered error boundary; use logs/telemetry for diagnosis. `docs/COPY_VOICE_GUIDE.md` records the next sitewide pass; player clarity and security take priority over fantasy metaphors.
 
@@ -140,7 +156,7 @@ Public player-facing lost-route and route-error copy uses the adventure/chronicl
 
 The **server owns all d20 rolls, choice outcomes, and turn identity**. Each committed turn has a stable `resolved_turn_number` across the early `turn_receipt_ready` signal and final `turn_resolved` signal. React deduplicates both against the durable `last_turn_result` in `game_state` and uses the first authoritative dice/choice receipt without rerolling or restarting its animation when the Director returns new prose. `pending_turn_receipt` reconstructs the frozen TurnFacts on reconnect while generation is ongoing; both latest completed receipt and pending receipt survive session snapshots. No database migration is required.
 
-For an ordinary choice the presentation order is **choice lock → server countdown → single dice/outcome reveal → optional Arcade only while the Director is still writing → short next-chapter reveal**. If the Director commits before the dice are finished, the player moves directly to the next chapter instead of re-entering Arcade or replaying results. The Arcade is gated until the turn's dice receipt has been acknowledged. A resumed pre-start room still shows its synopsis/GET STARTED rather than implying a turn was already resolved. Retry uses frozen TurnFacts and does not change the dice.
+Historical Pass 53 behavior (superseded by the corrected Pass 58A turn order) showed dice before the Arcade; this is no longer the player flow. If the Director commits quickly, the Arcade still closes before the dice are presented; acknowledging the receipt is what releases the next chapter. The dice receipt is now gated until the Arcade has closed and the new chapter is committed. A resumed pre-start room shows its synopsis/BEGIN ADVENTURE rather than implying a turn was already resolved. Retry uses frozen TurnFacts and does not change the dice.
 
 Regression protection: `node --test scripts/tests/turn-flow.cjs` simulates socket event reordering and timing with a deterministic hook scheduler; Python receipt tests check snapshot and restored-turn semantics. The default `scripts/check-project.sh` includes the Node turn-flow tests.
 
@@ -258,9 +274,9 @@ The governing readability rule is: **mystery is allowed; confusing prose is not.
 
 Director latency is masked and bounded rather than allowed to grow with the chronicle:
 
-- **Turn 1 is pre-generated with the approved seed**, including its title, novel-like body, and 3-6 real actions, so GET STARTED never waits on a runtime model call;
+- **Chapter One is generated after BEGIN ADVENTURE**; no dice or Arcade plays during initial generation;
 - generation begins as soon as authoritative turn facts are frozen for subsequent turns;
-- the inexpensive recap narrator (economy model / low reasoning) reads the frozen TurnFacts and can surface the dice/result receipt while the main Story Director is still writing;
+- the inexpensive recap narrator (economy model / low reasoning) reads the frozen TurnFacts while the Director is writing, but its early receipt is hidden until the next scene has committed;
 - normal story turns keep the strong story model but use **low reasoning**; medium reasoning is reserved for Finale Window / Wrap-Up / Finale beats;
 - routine turns are capped around a 4.8k provider output budget and high-stakes closing beats around 5.6k rather than increasing toward 9-10k as the run gets longer;
 - runtime seed context excludes the player synopsis and the already-consumed pre-generated opening; potential-finale planning is withheld until convergence;
@@ -269,7 +285,7 @@ Director latency is masked and bounded rather than allowed to grow with the chro
 - JSON input is compact-serialized rather than pretty-printed;
 - repair work uses the economy model with low reasoning instead of spending another full story-model pass;
 - choice/opening freshness remains validated/logged but **does not trigger a second full-turn regeneration**. Playability beats stylistic perfection;
-- dice/result presentation and arcade intermissions mask whatever generation time remains.
+- the Arcade masks Director generation; once the chapter is committed, Arcade closes, then the frozen dice/results display, then the chapter reveals.
 
 ### Output reliability
 

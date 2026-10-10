@@ -94,7 +94,11 @@ def test_preliminary_receipt_has_stable_resolved_turn_identity() -> None:
     assert '"resolved_turn_number": resolved_turn_number' in main
     assert '"resolved_turn_number":\n                resolved_turn' in session
     assert 'receipt.resolved_turn_number ?? receipt.turn_number' in flow
-    assert 'mergeTurnReceipt(current, incoming)' in theater
+    # Frozen Python dice are retained internally, then merged with the final
+    # committed result; preliminary receipts are never shown during the Arcade.
+    assert 'mergeTurnReceipt(frozen, incoming)' in theater
+    assert 'if (incoming.preliminary)' in theater
+    assert 'readyReceiptRef.current = committed;' in theater
     assert 'transition("resolution")' in theater
 
 
@@ -115,9 +119,12 @@ def test_story_state_context_window_is_bounded() -> None:
     assert len(compact["recent_consequences"]) == 6
 
 
-def test_acknowledged_early_receipt_releases_intermission_when_story_commits() -> None:
+def test_committed_receipt_waits_for_arcade_close_before_revealing_dice() -> None:
     theater = read("frontend/src/features/adventure/useTurnTheater.ts")
-    assert "An acknowledged early receipt never comes back" in theater
-    assert "acknowledgedRef.current === key" in theater
-    assert "finishTurnPresentation();" in theater
+    assert 'if (alreadyRead) return;' in theater
+    assert 'if (!final || final.preliminary) return;' in theater
+    assert 'rememberIntermission(null);' in theater
+    assert 'showReceipt(final);' in theater
+    assert 'transition("resolution")' in theater
     assert 'transition("story-ready")' in theater
+    assert 'chapterReleased' in theater

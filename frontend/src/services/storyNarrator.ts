@@ -10,6 +10,10 @@ const state: NarrationState = { phase: "idle", label: "", error: "" };
 const subscribers = new Set<(value: NarrationState) => void>();
 const cache = new Map<string, string>();
 const CACHE_LIMIT = 24;
+let adventureVoice: string | null = null;
+export function setAdventureNarratorVoice(voice: string | null) {
+  adventureVoice = voice;
+}
 let audio: HTMLAudioElement | null = null;
 let sequence = 0;
 let pending: AbortController | null = null;
@@ -31,7 +35,11 @@ function player(): HTMLAudioElement {
 }
 
 export function adjustNarrationVolume() {
-  if (audio) audio.volume = readAudioPreferences().narrationVolume / 100;
+  if (audio) {
+    const prefs = readAudioPreferences();
+    audio.volume = prefs.narrationVolume / 100;
+    audio.playbackRate = prefs.narrationSpeed;
+  }
 }
 
 export function stopNarration() {
@@ -88,7 +96,7 @@ export function splitPassage(text: string, maxLength = 1300): string[] {
 
 function keyFor(item: NarrationItem): string {
   const prefs = readAudioPreferences();
-  return JSON.stringify([item.text, prefs.narrationVoice, prefs.narrationSpeed]);
+  return JSON.stringify([item.text, adventureVoice ?? prefs.narrationVoice]);
 }
 
 async function fetchSpeech(item: NarrationItem, signal: AbortSignal): Promise<string> {
@@ -101,7 +109,7 @@ async function fetchSpeech(item: NarrationItem, signal: AbortSignal): Promise<st
   }
   const prefs = readAudioPreferences();
   const blob = await synthesizeStoryTimeSpeech({
-    text: item.text, voice: prefs.narrationVoice, speed: prefs.narrationSpeed,
+    text: item.text, voice: adventureVoice ?? prefs.narrationVoice, speed: 1,
   }, signal);
   if (!blob.size || !blob.type.startsWith("audio/")) throw new Error("Story Time returned invalid audio.");
   const url = URL.createObjectURL(blob);

@@ -299,6 +299,9 @@ class SQLiteStateStore:
                 "started":
                     bool(game_session.started),
 
+                "starting": bool(game_session.starting),
+                "narrator_voice": game_session.narrator_voice,
+
                 "submissions":
                     dict(
                         game_session.submissions

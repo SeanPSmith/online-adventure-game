@@ -7,7 +7,7 @@ import {
 } from "react";
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router";
 import { Panel } from "../../components/ui/Panel";
-import { observeStoryTime, prepareStoryTime, stopStoryTimeEngine, type StoryTimeState } from "../../services/storyTimeEngine";
+import { observeStoryTime, prepareStoryTime, stopStoryTimeEngine, keepStoryTimeAlive, type StoryTimeState } from "../../services/storyTimeEngine";
 import { RoomInviteButton } from "../../components/game/RoomInviteButton";
 import { ShareMomentButton } from "../../components/game/ShareMomentButton";
 import { ChoiceInspector } from "../../features/adventure/ChoiceInspector";
@@ -308,8 +308,18 @@ export function AdventurePage() {
   useEffect(() => () => stopNarration(), []);
   useEffect(() => observeStoryTime(setStoryTime), []);
   useEffect(() => {
-    if (audioPreferences.narrationEnabled && audioPreferences.storyTimeApproved) void prepareStoryTime().catch(() => {});
-  }, [audioPreferences.narrationEnabled, audioPreferences.storyTimeApproved]);
+    if (audioPreferences.narrationEnabled && audioPreferences.storyTimeApproved && live.game?.started) {
+      void prepareStoryTime().catch(() => {});
+    }
+  }, [audioPreferences.narrationEnabled, audioPreferences.storyTimeApproved, live.game?.started]);
+
+  useEffect(() => {
+    if (!audioPreferences.narrationEnabled || !audioPreferences.storyTimeApproved ||
+        !live.game?.started || live.status !== "ready") return;
+    void keepStoryTimeAlive();
+    const interval = window.setInterval(() => { void keepStoryTimeAlive(); }, 240_000);
+    return () => window.clearInterval(interval);
+  }, [audioPreferences.narrationEnabled, audioPreferences.storyTimeApproved, live.game?.started, live.status]);
 
   function toggleStoryTime() {
     if (audioPreferences.narrationEnabled) {

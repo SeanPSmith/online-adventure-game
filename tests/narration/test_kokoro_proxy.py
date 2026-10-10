@@ -16,6 +16,10 @@ def reset_proxy(monkeypatch):
     routes._calls.clear()
     routes._cache_bytes = 0
     monkeypatch.delenv("KOKORO_BASE_URL", raising=False)
+    monkeypatch.delenv("KOKORO_CACHE_BUCKET", raising=False)
+    monkeypatch.delenv("KOKORO_INSTANCE_ID", raising=False)
+    monkeypatch.delenv("KOKORO_ACTIVITY_TABLE", raising=False)
+    monkeypatch.setattr(routes.hosting, "healthy", lambda endpoint: True)
 
 
 def run_speech(**kw):

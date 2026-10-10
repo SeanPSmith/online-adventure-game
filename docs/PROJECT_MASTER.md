@@ -4,7 +4,7 @@
 > Update or rewrite the relevant sections in this file as the product changes; do not create another numbered changelog copy.
 
 **Last consolidated:** 2026-10-10  
-**Current local baseline:** Pass 58A revised (hosted Story Time client, Chapter One on BEGIN ADVENTURE, corrected choice → intermission → committed dice → chapter presentation). No EC2 provisioned.
+**Current local baseline:** Pass 58B source changes drafted (opt-in private EC2 Story Time, AWS wake/idle-stop orchestration, durable audio cache). AWS resources are NOT deployed by the source ZIP; deploy only via `scripts/aws/deploy-story-time-staging.sh --deploy` after explicit cost review. The Pass 58A turn order and opening contract remain authoritative.
 **Public site:** `https://onlinetextadventure.com`  
 **Primary release command:** `./scripts/release-staging.sh "Describe the release"`
 
@@ -17,6 +17,17 @@
 - **Safety:** Story Time must not delay choices, rolls, intermissions or chapter reveals. Story generation does not depend on the narrator. Hosted service wake/sleep, spending quotas, persistent shared cache and word-level synchronized reveal are **NOT** part of this stage; reserve them for Pass 58B/C after a CPU benchmark. No EC2 infrastructure change is included here.
 - **Build hotfix:** `AdventurePage.tsx` explicitly imports `setAdventureNarratorVoice` from the shared narration service; the launch regression checks that the call and import stay paired. No game-state or AWS change.
 - **Install:** extract patch, run `bash scripts/prepare-pass58-story-time.sh` to remove `kokoro-js`, update `frontend/package-lock.json`, and test the production build, then use the normal release script. No change to the game database schema; launch flags and narrator voice live in the persisted room snapshot JSON.
+
+
+
+### Pass 58B — On-demand Story Time hosting (optional AWS deployment)
+- One shared **t3a.medium EC2** in the existing staging VPC with private-only TCP/8880 (source: existing backend security group), Session Manager, Docker CPU Kokoro image and persistent encrypted 30 GiB EBS. No SSH ingress and no public speech endpoint. Outbound image pulls use the existing no-NAT public subnet.
+- A DynamoDB lease record and a five-minute Lambda watchdog enforce **30-minute inactivity stop** and an **approximate 60-hours/month runtime allowance**. **These are safeguards, not a guaranteed dollar cap**; EBS, S3, IPv4, transfers and AWS billing remain variable. Create a separate AWS Budget alert manually.
+- **Cold starts are on demand**: opening Settings or checking readiness does not start EC2; only uncached speech requests do. S3-cached MP3s remain available when EC2 sleeps. A voice-enabled active adventure sends periodic keepalive while connected. The optional browser speech request asynchronously retries during startup, without delaying choices, intermission, dice, story or other gameplay.
+- Server caches normalized speech by model version + text + **host adventure voice** and synthesizes at a single shared baseline speed; each player can adjust playback volume/rate locally. No browser inference and no third-party model downloads on player devices. S3 has a private 30-day expiration policy. Audio/text sent from the authenticated backend to the EC2 service inside the VPC.
+- The narrator CDK stack is **not enabled on ordinary staging releases**. Provision only via the explicit checked, double-confirmation `scripts/aws/deploy-story-time-staging.sh --deploy` command, then deploy the backend CDK configuration. Runbook: `docs/STORY_TIME_EC2_RUNBOOK.md`. The instance is billable immediately after creation and should be manually stopped following its first health test.
+- **Not implemented yet:** word-level speech timestamp cache, synchronized voice-to-progressive-text reveal, and the Admin Narrator Lab (Pass 58C). Real t3a.medium inference speed and two-phone co-op narration remain **unverified** until AWS is deployed and benchmarked.
+- Canonical sequence unchanged: synopsis → ready → BEGIN ADVENTURE → AI-generated Chapter One; then choice → intermission while Python freezes dice/Director writes → close intermission → committed dice/outcome → next chapter reveal. No narration can unlock future chapter text or trigger a game turn.
 
 
 ## 1. Product Summary

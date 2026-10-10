@@ -6,6 +6,8 @@ import * as elbv2 from "aws-cdk-lib/aws-elasticloadbalancingv2";
 import * as logs from "aws-cdk-lib/aws-logs";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as rds from "aws-cdk-lib/aws-rds";
+import * as s3 from "aws-cdk-lib/aws-s3";
+import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
 import { Construct } from "constructs";
 import { resourcePrefix } from "./naming";
@@ -31,6 +33,9 @@ export interface BackendStackProps extends cdk.StackProps {
   readonly notificationSmsEnabled: boolean;
   readonly vapidContact: string;
   readonly kokoroBaseUrl: string;
+  readonly narratorInstance?: ec2.IInstance;
+  readonly narratorActivityTable?: dynamodb.ITable;
+  readonly narratorCacheBucket?: s3.IBucket;
 }
 
 export class BackendStack extends cdk.Stack {
@@ -85,6 +90,9 @@ export class BackendStack extends cdk.Stack {
         TOT_PUBLIC_BASE_URL: props.notificationPublicBaseUrl,
         TOT_VAPID_CONTACT: props.vapidContact,
         KOKORO_BASE_URL: props.kokoroBaseUrl,
+        KOKORO_INSTANCE_ID: props.narratorInstance?.instanceId ?? "",
+        KOKORO_ACTIVITY_TABLE: props.narratorActivityTable?.tableName ?? "",
+        KOKORO_CACHE_BUCKET: props.narratorCacheBucket?.bucketName ?? "",
       },
       secrets: {
         DB_USER: ecs.Secret.fromSecretsManager(props.databaseSecret, "username"),
@@ -107,6 +115,21 @@ export class BackendStack extends cdk.Stack {
       containerPort: 8000,
       protocol: ecs.Protocol.TCP,
     });
+
+    if (props.narratorInstance && props.narratorActivityTable && props.narratorCacheBucket) {
+      taskDefinition.taskRole.addToPrincipalPolicy(new iam.PolicyStatement({
+        actions: ["ec2:StartInstances", "ec2:DescribeInstances"],
+        resources: [this.formatArn({
+          service: "ec2", resource: "instance", resourceName: props.narratorInstance.instanceId,
+        })],
+      }));
+      // EC2 DescribeInstances only supports resource="*" in IAM.
+      taskDefinition.taskRole.addToPrincipalPolicy(new iam.PolicyStatement({
+        actions: ["ec2:DescribeInstances"], resources: ["*"],
+      }));
+      props.narratorActivityTable.grantReadWriteData(taskDefinition.taskRole);
+      props.narratorCacheBucket.grantReadWrite(taskDefinition.taskRole);
+    }
 
     if (props.notificationSmsEnabled) {
       taskDefinition.taskRole.addToPrincipalPolicy(

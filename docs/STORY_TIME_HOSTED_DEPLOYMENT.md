@@ -11,3 +11,5 @@ This pass does not create or start an EC2 instance. The existing backend speech 
 **Privacy:** Narrated passages are sent to the authenticated game backend and its private speech service. Players do not download models. No microphone or voice input. Narration is optional and must never gate game-state progression.
 
 **Later infrastructure design (not deployed here):** private VPC CPU EC2 service, controlled access from backend SG, workload queue and shared cache, active-session wake/sleep with monthly runtime quota, budget alarms, word-level audio timestamps and sync with StoryReveal after intermission. Benchmark latency, memory and EBS/network costs before purchasing.
+
+**Pass 58B update:** See `docs/STORY_TIME_EC2_RUNBOOK.md` for the optional private on-demand EC2 narrator, S3 cache, automatic idle stop, monthly runtime allowance, and explicit AWS provisioning workflow. Pass 58C will implement speech-timed text reveal.

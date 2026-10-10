@@ -5,6 +5,7 @@ import { BuildStack } from "../lib/build-stack";
 import { DataStack } from "../lib/data-stack";
 import { FrontendStack } from "../lib/frontend-stack";
 import { NetworkStack } from "../lib/network-stack";
+import { NarratorStack } from "../lib/narrator-stack";
 import { stagingConfig } from "../config/staging";
 
 const app = new cdk.App();
@@ -50,6 +51,14 @@ if (config.enableDataStack) {
   data.addDependency(network);
 }
 
+// Deliberately opt-in: a normal game release MUST NOT create billable compute.
+const narrator = process.env.TOT_ENABLE_NARRATOR_STACK === "1"
+  ? new NarratorStack(app, "AdventurePlatformNarrator-staging", {
+      ...common, vpc: network.vpc, backendSecurityGroup: network.backendSecurityGroup,
+    })
+  : undefined;
+if (narrator) narrator.addDependency(network);
+
 let backend: BackendStack | undefined;
 if (config.enableBackendStack) {
   if (!data) {
@@ -78,12 +87,16 @@ if (config.enableBackendStack) {
       notificationPublicBaseUrl: config.notificationPublicBaseUrl,
       notificationSmsEnabled: config.notificationSmsEnabled,
       vapidContact: config.vapidContact,
-      kokoroBaseUrl: config.kokoroBaseUrl,
+      kokoroBaseUrl: narrator ? `http://${narrator.instance.instancePrivateIp}:8880` : config.kokoroBaseUrl,
+      narratorInstance: narrator?.instance,
+      narratorActivityTable: narrator?.activityTable,
+      narratorCacheBucket: narrator?.audioBucket,
     },
   );
   backend.addDependency(network);
   backend.addDependency(build);
   backend.addDependency(data);
+  if (narrator) backend.addDependency(narrator);
 }
 
 if (config.enableFrontendStack) {

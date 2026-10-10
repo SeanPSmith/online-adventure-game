@@ -62,3 +62,34 @@ test('hosted narration privacy and license notices remain available',()=>{
   assert.doesNotMatch(privacy,/350 MB|locally on your/);
   assert.match(notice,/Apache License/);
 });
+test('sleeping narrator status does not download a model or start EC2',async()=>{
+  let count=0;
+  const engine=loadEngine(async (_url,opts)=>{
+    count++;
+    assert.equal(opts?.method,undefined);
+    return {ok:true,json:async()=>({available:true,state:'sleeping'})};
+  });
+  await engine.prepareStoryTime();
+  assert.equal(count,1);
+});
+test('browser retries 503 while server wakes, but game controls remain independent',async()=>{
+  let posts=0;
+  const original=global.setTimeout;
+  // Tiny explicit harness to verify the asynchronous retry without sleeping 6s.
+  const source=stripTypeScriptTypes(read('frontend/src/services/storyTimeEngine.ts'))
+    .replace('import.meta.env.VITE_API_BASE','""')
+    .replace(/import \{ ([^}]+) \} from "([^"]+)";/g, 'const {$1} = require("$2");')
+    .replace(/export (?=(?:async )?(?:function|const|type|interface) )/g,'');
+  const exports={};
+  vm.runInNewContext(source+'\nexports.synthesizeStoryTimeSpeech=synthesizeStoryTimeSpeech;',{
+    exports,require:()=>({readAudioPreferences:()=>({narrationEnabled:true})}),
+    fetch:async (_url,opts)=>opts?.method==='POST'
+      ? (++posts===1?{ok:false,status:503}:{ok:true,blob:async()=>({size:21,type:'audio/mpeg'})})
+      : {ok:true,json:async()=>({available:true,state:'sleeping'})},
+    Set,Promise,Error,Object,AbortController,DOMException,console,
+    setTimeout:fn=>{Promise.resolve().then(fn); return 1;}, clearTimeout:()=>{},
+  });
+  const blob=await exports.synthesizeStoryTimeSpeech({text:'A story',voice:'af_heart',speed:1},new AbortController().signal);
+  assert.equal(blob.size,21);
+  assert.equal(posts,2);
+});

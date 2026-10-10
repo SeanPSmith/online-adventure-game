@@ -10,7 +10,7 @@
 - `tests/frontend/audio-sfx.cjs` exercises mute/unlock/preferences, event-ID deduplication, zero-volume/background cases and all cue definitions; `scripts/check-project.sh` executes it in the normal release gate.
 - **Limits:** The effects are synthesized/retro rather than sampled cinematic assets; Arcade cabinet-specific audio is a later refinement. The test harness validates behavior without playing through mobile browsers; perform a manual iOS Safari, Android Chrome and desktop browser listen test before public rollout.
 
-## Pass 56 — Kokoro TTS narration (NOT implemented)
+## Pass 56 — Kokoro TTS narration (application code implemented; model service not provisioned)
 
 This is **text-to-speech only**. There must be **no** speech-to-text, voice input, microphone capture or push-to-talk anywhere in the feature.
 
@@ -27,3 +27,11 @@ This is **text-to-speech only**. There must be **no** speech-to-text, voice inpu
 - No duplicate sounds after reconnect, delayed receipts, or returning to an already resolved turn.
 - Preserve keyboard/assistive navigation and all visual gameplay feedback; audio never communicates vital information exclusively.
 - Avoid sudden loud audio or overlapping looping sounds. SFX and narration must have independent mute and volume controls once narration ships.
+
+### Pass 56 delivery status
+
+- Audio proxy and UI delivered in application code, with a private Kokoro-FastAPI service URL set at deploy-time. Not yet end-to-end verified against a live Kokoro server or on mobile browsers.
+- The client buffers each chapter in chunks (max 1,300 characters); the backend rejects requests over 1,800 characters, unknown voices, and abuse. The server uses memory-only bounded caching, no persisted user speech/audio, and authenticated cookies. Browser audio URLs are reused within the tab session.
+- Continuous listening reads the new chapter and optionally each choice, then stops for a **normal button/tap** choice. Auto-read can be blocked by a browser until an actual user gesture; manual READ CHAPTER remains available.
+- This pass does **not** provision Kokoro inference compute. Before enabling staging narration, follow `docs/KOKORO_DEPLOYMENT.md` and verify `/api/narration/status` reports `available: true` when logged in.
+- Narrator preferences remain browser-local like SFX settings; account-synchronized preferences and shared cache (e.g., S3) are potential future enhancements.

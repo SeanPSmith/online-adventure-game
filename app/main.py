@@ -53,6 +53,8 @@ from app.arcade.routes import (
     router as arcade_router,
 )
 
+from app.narration.routes import router as narration_router
+
 from app.game.fatal_outcome import reconcile_fatal_outcome
 
 from app.arcade.store import (
@@ -442,6 +444,8 @@ fastapi_app.include_router(
 fastapi_app.include_router(
     arcade_router
 )
+
+fastapi_app.include_router(narration_router)
 
 
 fastapi_app.include_router(

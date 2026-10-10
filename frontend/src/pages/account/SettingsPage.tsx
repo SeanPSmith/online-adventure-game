@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  readAudioPreferences, writeAudioPreferences, AUDIO_PREFERENCES_CHANGED,
+  readAudioPreferences, writeAudioPreferences, AUDIO_PREFERENCES_CHANGED, KOKORO_VOICES,
   type AudioPreferences,
 } from "../../services/audioPreferences";
 import { activateAudioFromGesture, playSound } from "../../services/audioDirector";
+import { adjustNarrationVolume, stopNarration } from "../../services/storyNarrator";
 import { PageTitle } from "../../components/ui/PageTitle";
 import { Panel } from "../../components/ui/Panel";
+import { TerminalSelect } from "../../components/ui/TerminalSelect";
 import {
   browserNotificationSupport,
   disableWebPush,
@@ -50,6 +52,7 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
     readStoryDisplayPreferences(),
   );
   const [audio, setAudio] = useState<AudioPreferences>(() => readAudioPreferences());
+  const [narratorAvailable, setNarratorAvailable] = useState<boolean | null>(null);
 
   useEffect(() => {
     const onChange = () => setAudio(readAudioPreferences());
@@ -60,11 +63,22 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
   function setAudioPreference(next: Partial<AudioPreferences>) {
     const saved = writeAudioPreferences(next);
     setAudio(saved);
+    if (!saved.narrationEnabled) stopNarration();
+    adjustNarrationVolume();
     if (saved.effectsEnabled) {
       activateAudioFromGesture();
       playSound("ui");
     }
   }
+
+  useEffect(() => {
+    let active = true;
+    void fetch("/api/narration/status", { credentials: "include" })
+      .then(response => response.ok ? response.json() as Promise<{available: boolean}> : Promise.reject())
+      .then(result => { if (active) setNarratorAvailable(result.available); })
+      .catch(() => { if (active) setNarratorAvailable(false); });
+    return () => { active = false; };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -425,7 +439,58 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
               TEST YOUR SOUND
             </button>
           </div>
-          <p className="muted-copy">Kokoro story and choice narration will be a separate optional feature in Pass 56. No microphone or voice input is required.</p>
+          <p className="muted-copy">Sound effects are separate from narration. Turning one off never mutes the other.</p>
+        </div>
+      </Panel>
+
+      <Panel title="KOKORO // THE STORYTELLER">
+        <div className="notification-settings-grid">
+          <div className="notification-setting-row">
+            <div>
+              <strong>ENABLE STORY NARRATION</strong>
+              <p>Hear the generated chapter and choices read aloud. No microphone or voice input.</p>
+              <small>OFF BY DEFAULT // PERSONAL TO THIS BROWSER</small>
+            </div>
+            <label className="terminal-toggle">
+              <input type="checkbox" checked={audio.narrationEnabled}
+                onChange={event => setAudioPreference({ narrationEnabled: event.target.checked })} />
+              <span>{audio.narrationEnabled ? "ON" : "OFF"}</span>
+            </label>
+          </div>
+          {narratorAvailable === false ? (
+            <div className="system-notice" role="status">THE STORYTELLER IS NOT CONNECTED YET. The site administrator must configure the Kokoro narration service before playback is available.</div>
+          ) : null}
+          <div className="notification-setting-row">
+            <div><strong>AUTO-READ NEW CHAPTERS</strong><p>Begin reading a newly revealed chapter automatically when your browser permits audio.</p></div>
+            <label className="terminal-toggle"><input type="checkbox" checked={audio.narrationAutoPlay} disabled={!audio.narrationEnabled}
+              onChange={event => setAudioPreference({ narrationAutoPlay: event.target.checked })} />
+              <span>{audio.narrationAutoPlay ? "ON" : "OFF"}</span></label>
+          </div>
+          <div className="notification-setting-row">
+            <div><strong>READ CHOICES AFTER CHAPTER</strong><p>Once narration finishes, read each choice aloud in order. Listening never selects a choice.</p></div>
+            <label className="terminal-toggle"><input type="checkbox" checked={audio.narrationAutoChoices} disabled={!audio.narrationEnabled}
+              onChange={event => setAudioPreference({ narrationAutoChoices: event.target.checked })} />
+              <span>{audio.narrationAutoChoices ? "ON" : "OFF"}</span></label>
+          </div>
+          <div className="audio-setting-slider">
+            <span><strong>NARRATOR VOICE</strong></span>
+            <TerminalSelect
+              ariaLabel="Narrator voice"
+              value={audio.narrationVoice}
+              disabled={!audio.narrationEnabled}
+              options={[...KOKORO_VOICES]}
+              onChange={value => setAudioPreference({ narrationVoice: value })}
+            />
+          </div>
+          <label className="audio-setting-slider"><span><strong>SPEAKING SPEED</strong><span>{audio.narrationSpeed.toFixed(2)}×</span></span>
+            <input type="range" min="0.75" max="1.5" step="0.05" disabled={!audio.narrationEnabled}
+              value={audio.narrationSpeed} onChange={event => setAudioPreference({ narrationSpeed: Number(event.target.value) })} />
+          </label>
+          <label className="audio-setting-slider"><span><strong>NARRATION VOLUME</strong><span>{audio.narrationVolume}%</span></span>
+            <input type="range" min="0" max="100" step="5" disabled={!audio.narrationEnabled}
+              value={audio.narrationVolume} onChange={event => setAudioPreference({ narrationVolume: Number(event.target.value) })} />
+          </label>
+          <p className="muted-copy">Play/pause, chapter replay, and individual choice speakers are available inside an adventure. Narration and SFX are controlled independently.</p>
         </div>
       </Panel>
 

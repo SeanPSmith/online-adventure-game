@@ -1,9 +1,15 @@
-/** Browser-local audio preferences. Narration is a separate, future Kokoro service. */
+/** Browser-local SFX and Kokoro narration preferences (independent toggles). */
 export interface AudioPreferences {
   effectsEnabled: boolean;
   masterVolume: number;
   effectsVolume: number;
   arcadeVolume: number;
+  narrationEnabled: boolean;
+  narrationAutoPlay: boolean;
+  narrationAutoChoices: boolean;
+  narrationVoice: string;
+  narrationSpeed: number;
+  narrationVolume: number;
 }
 
 export const AUDIO_PREFERENCES_CHANGED = "tot:audio-preferences-changed";
@@ -13,12 +19,26 @@ export const DEFAULT_AUDIO_PREFERENCES: Readonly<AudioPreferences> = {
   masterVolume: 80,
   effectsVolume: 65,
   arcadeVolume: 55,
+  narrationEnabled: false,
+  narrationAutoPlay: false,
+  narrationAutoChoices: false,
+  narrationVoice: "af_heart",
+  narrationSpeed: 1,
+  narrationVolume: 80,
 };
 
 function percent(value: unknown, fallback: number): number {
   const n = typeof value === "number" ? value : Number.NaN;
   return Number.isFinite(n) ? Math.max(0, Math.min(100, Math.round(n))) : fallback;
 }
+
+export const KOKORO_VOICES = [
+  { value: "af_heart", label: "Heart — warm" },
+  { value: "af_bella", label: "Bella — expressive" },
+  { value: "af_sky", label: "Sky — bright" },
+  { value: "am_michael", label: "Michael — grounded" },
+  { value: "bm_george", label: "George — British" },
+] as const;
 
 export function normalizeAudioPreferences(value: Partial<AudioPreferences> = {}): AudioPreferences {
   return {
@@ -27,6 +47,13 @@ export function normalizeAudioPreferences(value: Partial<AudioPreferences> = {})
     masterVolume: percent(value.masterVolume, DEFAULT_AUDIO_PREFERENCES.masterVolume),
     effectsVolume: percent(value.effectsVolume, DEFAULT_AUDIO_PREFERENCES.effectsVolume),
     arcadeVolume: percent(value.arcadeVolume, DEFAULT_AUDIO_PREFERENCES.arcadeVolume),
+    narrationEnabled: typeof value.narrationEnabled === "boolean" ? value.narrationEnabled : false,
+    narrationAutoPlay: typeof value.narrationAutoPlay === "boolean" ? value.narrationAutoPlay : false,
+    narrationAutoChoices: typeof value.narrationAutoChoices === "boolean" ? value.narrationAutoChoices : false,
+    narrationVoice: KOKORO_VOICES.some(v => v.value === value.narrationVoice) ? value.narrationVoice! : "af_heart",
+    narrationSpeed: typeof value.narrationSpeed === "number" && Number.isFinite(value.narrationSpeed)
+      ? Math.max(0.75, Math.min(1.5, value.narrationSpeed)) : 1,
+    narrationVolume: percent(value.narrationVolume, 80),
   };
 }
 

@@ -40,6 +40,9 @@ node --test scripts/tests/turn-flow.cjs
 say "Audio/SFX browser regression checks"
 node --test tests/frontend/audio-sfx.cjs
 
+say "Kokoro narration browser regression checks"
+node --test tests/frontend/kokoro-narration.cjs
+
 say "React production build"
 (
   cd frontend

@@ -30,6 +30,7 @@ export interface BackendStackProps extends cdk.StackProps {
   readonly notificationPublicBaseUrl: string;
   readonly notificationSmsEnabled: boolean;
   readonly vapidContact: string;
+  readonly kokoroBaseUrl: string;
 }
 
 export class BackendStack extends cdk.Stack {
@@ -83,6 +84,7 @@ export class BackendStack extends cdk.Stack {
         TOT_NOTIFICATION_EMAIL_FROM: props.notificationEmailFrom,
         TOT_PUBLIC_BASE_URL: props.notificationPublicBaseUrl,
         TOT_VAPID_CONTACT: props.vapidContact,
+        KOKORO_BASE_URL: props.kokoroBaseUrl,
       },
       secrets: {
         DB_USER: ecs.Secret.fromSecretsManager(props.databaseSecret, "username"),

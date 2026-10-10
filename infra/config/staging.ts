@@ -15,6 +15,7 @@ export interface StagingConfig {
   readonly notificationPublicBaseUrl: string;
   readonly notificationSmsEnabled: boolean;
   readonly vapidContact: string;
+  readonly kokoroBaseUrl: string;
 }
 
 export const stagingConfig: StagingConfig = {
@@ -51,4 +52,7 @@ export const stagingConfig: StagingConfig = {
   notificationPublicBaseUrl: process.env.TOT_PUBLIC_BASE_URL?.trim() ?? "",
   notificationSmsEnabled: true,
   vapidContact: process.env.TOT_VAPID_CONTACT?.trim() ?? "mailto:push@example.com",
+  // Optional PRIVATE Kokoro inference endpoint. Requires explicit infrastructure
+  // deployment; a normal source-only release does not change ECS env vars.
+  kokoroBaseUrl: process.env.TOT_KOKORO_BASE_URL?.trim() ?? "",
 };

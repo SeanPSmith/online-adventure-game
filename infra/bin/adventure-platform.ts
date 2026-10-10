@@ -78,6 +78,7 @@ if (config.enableBackendStack) {
       notificationPublicBaseUrl: config.notificationPublicBaseUrl,
       notificationSmsEnabled: config.notificationSmsEnabled,
       vapidContact: config.vapidContact,
+      kokoroBaseUrl: config.kokoroBaseUrl,
     },
   );
   backend.addDependency(network);

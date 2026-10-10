@@ -46,6 +46,9 @@ def test_pending_and_final_receipts_are_wired_to_durable_game_state() -> None:
 def test_scene_reveal_waits_for_turn_theater_to_release_it() -> None:
     page = (PROJECT_ROOT / "frontend/src/pages/game/AdventurePage.tsx").read_text()
     result = (PROJECT_ROOT / "frontend/src/features/adventure/TurnResolutionTheater.tsx").read_text()
-    assert 'enabled={storyPreferences.wordReveal && theater.phase === "none"}' in page
+    # The turn theater owns scene release. Auto-narration additionally turns
+    # off word reveal so players don't listen while the prose animates.
+    assert 'enabled={storyPreferences.wordReveal && theater.phase === "none"' in page
+    assert '!(audioPreferences.narrationEnabled && audioPreferences.narrationAutoPlay)' in page
     assert "Math.random()" not in result
     assert "[turnIdentity, results.length]" in result

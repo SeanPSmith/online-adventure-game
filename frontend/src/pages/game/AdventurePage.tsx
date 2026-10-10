@@ -24,6 +24,11 @@ import {
   type AudioPreferences,
 } from "../../services/audioPreferences";
 import { activateAudioFromGesture, playSound } from "../../services/audioDirector";
+import {
+  adjustNarrationVolume, choiceNarrationItems, observeNarration,
+  pauseNarration, playNarration, resumeNarration, sceneNarrationItems, stopNarration,
+  type NarrationState,
+} from "../../services/storyNarrator";
 import { readStoryDisplayPreferences, type StoryDisplayPreferences } from "../../services/storyPreferences";
 import { useGameSocket } from "../../state/GameSocketContext";
 import { useLiveAdventure } from "../../state/useLiveAdventure";
@@ -133,6 +138,9 @@ export function AdventurePage() {
     readStoryDisplayPreferences(),
   );
   const [audioPreferences, setAudioPreferences] = useState<AudioPreferences>(() => readAudioPreferences());
+  const [narration, setNarration] = useState<NarrationState>({ phase: "idle", label: "", error: "" });
+  const lastAutoNarration = useRef("");
+  const [narratorAvailable, setNarratorAvailable] = useState<boolean | null>(null);
   const [historyIndex, setHistoryIndex] = useState(0);
   const storyPaneRef = useRef<HTMLElement | null>(null);
 
@@ -291,6 +299,58 @@ export function AdventurePage() {
     window.addEventListener(AUDIO_PREFERENCES_CHANGED, syncAudio);
     return () => window.removeEventListener(AUDIO_PREFERENCES_CHANGED, syncAudio);
   }, []);
+
+  useEffect(() => observeNarration(setNarration), []);
+  useEffect(() => () => stopNarration(), []);
+  useEffect(() => {
+    let active = true;
+    void fetch("/api/narration/status", { credentials: "include" })
+      .then(response => response.ok ? response.json() as Promise<{available: boolean}> : Promise.reject())
+      .then(result => { if (active) setNarratorAvailable(result.available); })
+      .catch(() => { if (active) setNarratorAvailable(false); });
+    return () => { active = false; };
+  }, []);
+
+  // Never let the previous chapter speak over the next chapter or a reaction event.
+  useEffect(() => { stopNarration(); }, [normalizedRoomCode, scene?.id, turnNumber]);
+  useEffect(() => { adjustNarrationVolume(); }, [audioPreferences.narrationVolume]);
+  useEffect(() => {
+    if (!audioPreferences.narrationEnabled || theater.phase !== "none" ||
+        !live.game?.started || live.game?.pending_micro_event || choiceLocked || showDeath || showLevelUp) {
+      stopNarration();
+    }
+  }, [audioPreferences.narrationEnabled, theater.phase, live.game?.started,
+      live.game?.pending_micro_event, choiceLocked, showDeath, showLevelUp]);
+
+  // Mark each scene before attempting auto-play, so reconnects and repeated
+  // Socket.IO snapshots never re-read old narration. Manual READ always works.
+  useEffect(() => {
+    if (!audioPreferences.narrationEnabled || !audioPreferences.narrationAutoPlay ||
+        narratorAvailable !== true || !live.game?.started || !scene?.body ||
+        theater.phase !== "none" || live.game?.pending_micro_event ||
+        choiceLocked || showDeath || showLevelUp || live.status !== "ready") return;
+    const key = `tot:spoken:${normalizedRoomCode}:${turnNumber}:${scene.id}`;
+    if (lastAutoNarration.current === key) return;
+    lastAutoNarration.current = key;
+    try {
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, "1");
+    } catch { /* Session storage is optional; in-memory identity below still applies. */ }
+    void playNarration(sceneNarrationItems(scene.body, scene.choices, audioPreferences.narrationAutoChoices));
+  }, [audioPreferences.narrationEnabled, audioPreferences.narrationAutoPlay,
+      audioPreferences.narrationAutoChoices, narratorAvailable, live.game?.started,
+      live.game?.pending_micro_event, live.status, scene?.id, scene?.body,
+      theater.phase, choiceLocked, showDeath, showLevelUp, normalizedRoomCode, turnNumber]);
+
+  function narrateChapter() {
+    if (!audioPreferences.narrationEnabled || !scene?.body) return;
+    void playNarration(sceneNarrationItems(scene.body, scene.choices, audioPreferences.narrationAutoChoices));
+  }
+
+  function narrateChoices() {
+    if (!audioPreferences.narrationEnabled) return;
+    void playNarration(choiceNarrationItems(scene?.choices ?? []));
+  }
 
   // A browser may suspend its audio engine on reload. Resume only from a real
   // user interaction, never on load or in response to a socket snapshot.
@@ -690,12 +750,49 @@ ${scene.body.slice(0, 260)}`}
                 <span className="story-turn-marker">TURN {String(turnNumber).padStart(2, "0")}</span>
               </div>
               <h1>{scene?.title ?? "PICKING UP THE THREAD_"}</h1>
+              <div className="adventure-narration-controls" aria-label="Optional Kokoro story narration">
+                <button className="button button-quiet" type="button"
+                  aria-pressed={audioPreferences.narrationEnabled}
+                  onClick={() => {
+                    const next = writeAudioPreferences({ narrationEnabled: !audioPreferences.narrationEnabled });
+                    setAudioPreferences(next);
+                    if (!next.narrationEnabled) stopNarration();
+                  }}>
+                  {audioPreferences.narrationEnabled ? "NARRATION ON" : "NARRATION OFF"}
+                </button>
+                {audioPreferences.narrationEnabled ? (
+                  <>
+                    <button className="button button-quiet" type="button"
+                      disabled={!scene?.body || narratorAvailable !== true || theater.phase !== "none" || Boolean(live.game?.pending_micro_event) || showDeath}
+                      onClick={narrateChapter}>READ CHAPTER</button>
+                    <button className="button button-quiet" type="button"
+                      disabled={!scene?.choices.length || narratorAvailable !== true || theater.phase !== "none" || Boolean(live.game?.pending_micro_event) || choiceLocked || showDeath}
+                      onClick={narrateChoices}>READ CHOICES</button>
+                    {narration.phase === "playing" ? (
+                      <button className="button button-quiet" type="button" onClick={pauseNarration}>PAUSE</button>
+                    ) : narration.phase === "paused" ? (
+                      <button className="button button-quiet" type="button" onClick={() => { void resumeNarration(); }}>RESUME</button>
+                    ) : null}
+                    {narration.phase !== "idle" ? (
+                      <button className="button button-quiet" type="button" onClick={stopNarration}>STOP</button>
+                    ) : null}
+                  </>
+                ) : null}
+                <small role="status" aria-live="polite">
+                  {audioPreferences.narrationEnabled && narratorAvailable === false
+                    ? "NARRATOR UNAVAILABLE // SERVICE NOT CONFIGURED"
+                    : narration.phase === "error" ? narration.error
+                    : narration.phase === "loading" ? `PREPARING VOICE // ${narration.label}`
+                    : narration.phase === "playing" ? `READING // ${narration.label}`
+                    : narration.phase === "paused" ? "NARRATION PAUSED" : ""}
+                </small>
+              </div>
 
               {scene?.body ? (
                 <StoryReveal
                   sceneId={scene.id}
                   text={scene.body}
-                  enabled={storyPreferences.wordReveal && theater.phase === "none"}
+                  enabled={storyPreferences.wordReveal && theater.phase === "none" && !(audioPreferences.narrationEnabled && audioPreferences.narrationAutoPlay)}
                 />
               ) : (
                 <>
@@ -868,6 +965,15 @@ ${scene.body.slice(0, 260)}`}
                         </span>
                       </button>
 
+                      {audioPreferences.narrationEnabled ? (
+                        <button className="choice-narrate-button" type="button"
+                          disabled={narratorAvailable !== true || theater.phase !== "none" || Boolean(live.game?.pending_micro_event) || choiceLocked || showDeath}
+                          aria-label={`Read choice ${index + 1} aloud`}
+                          title="Listen to this choice without selecting it"
+                          onClick={() => { void playNarration([{ text: `Option ${index + 1}. ${choice.label}`, label: `CHOICE ${index + 1}`, kind: "choice" }]); }}>
+                          LISTEN
+                        </button>
+                      ) : null}
                       <button
                         className="choice-info-button"
                         type="button"

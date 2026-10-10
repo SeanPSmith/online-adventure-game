@@ -8733,3 +8733,14 @@ textarea:focus {
 .audio-setting-slider small { color: var(--text-dim); font-size: 10px; }
 .audio-setting-slider input[type="range"] { width: 100%; accent-color: var(--green); cursor: pointer; }
 .audio-setting-slider input[type="range"]:disabled { opacity: .45; cursor: not-allowed; }
+
+/* Pass 56: Kokoro narration — concise toolbar, accessible per-choice speakers. */
+.adventure-narration-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 10px 0 16px; }
+.adventure-narration-controls .button { min-height: 30px; padding: 5px 9px; font-size: 10px; }
+.adventure-narration-controls small { flex-basis: 100%; font-size: 10px; color: var(--text-dim); }
+.choice-narrate-button { align-self: center; flex-shrink: 0; margin-left: 4px; padding: 9px 7px;
+  border: 1px solid var(--border); color: var(--green); background: transparent; cursor: pointer; font-size: 10px; }
+.choice-narrate-button:hover:not(:disabled), .choice-narrate-button:focus-visible:not(:disabled) {
+  border-color: var(--green); background: var(--panel); }
+.choice-narrate-button:disabled { opacity: .4; cursor: not-allowed; }
+@media (max-width: 600px) { .adventure-narration-controls .button { flex: 0 1 auto; } }

@@ -115,8 +115,14 @@ def test_react_launch_ui_uses_get_started_and_no_browser_native_controls() -> No
     assert "live.startAdventure" in page
     assert "confirmSoloStart" in page
     assert "window.confirm" not in react_source
+    # The voice selector must follow the same custom, themed control contract.
+    # Native <select> widgets diverge from the adventure UI on mobile/desktop.
     assert "<select" not in react_source
     assert "TerminalSelect" in read("frontend/src/pages/game/GameHomePage.tsx")
+    settings = read("frontend/src/pages/account/SettingsPage.tsx")
+    assert 'ariaLabel="Narrator voice"' in settings
+    assert 'options={[...KOKORO_VOICES]}' in settings
+    assert 'onChange={value => setAudioPreference({ narrationVoice: value })}' in settings
 
 
 def test_synopsis_always_gets_distinct_literary_ai_copy_pass() -> None:

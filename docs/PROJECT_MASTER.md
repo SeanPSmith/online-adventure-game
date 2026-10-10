@@ -4,7 +4,7 @@
 > Update or rewrite the relevant sections in this file as the product changes; do not create another numbered changelog copy.
 
 **Last consolidated:** 2026-10-09  
-**Current local baseline:** Pass 55 (browser SFX and persistent per-browser audio preferences), building on Pass 54 gameplay integrity  
+**Current local baseline:** Pass 56 (optional Kokoro narration integration and controls), building on Pass 55 SFX and Pass 54 gameplay integrity  
 **Public site:** `https://onlinetextadventure.com`  
 **Primary release command:** `./scripts/release-staging.sh "Describe the release"`
 
@@ -37,7 +37,7 @@ The visual language is intentionally terminal/IRC/VGA-inspired: strong compartme
 - Intermission now rotates over the **published Arcade catalog** and records the chosen cabinet per turn for stable reconnects. Prior six-slot game IDs remain accepted for older saved runs.
 - Scene pacing now prioritizes meaningful goal advancement over repeated mundane micro-actions.
 - **Pass 55 implemented:** `frontend/src/services/audioDirector.ts` provides compact oscillator-only Web Audio cues, and `frontend/src/services/audioPreferences.ts` persists opt-in sound and master/story/Arcade volume **per browser**. Account → Preferences and the adventure toolbar expose controls; turns, dice, QTEs, level-ups, death, Arcade entry and chapter transitions use stable event keys to avoid repeat playback during socket recovery. Browser gesture activation is required. Tests run through `tests/frontend/audio-sfx.cjs` in `scripts/check-project.sh`.
-- **Pass 56 planned, not implemented:** Kokoro TTS narration of story text and individual/all choices, with per-player reading options and persistent narrator settings. **No speech-to-text or microphones.** See `docs/WEB_AUDIO_SFX_ROADMAP.md`.
+- **Pass 56 implemented in application code:** Authenticated `/api/narration/status` and `/api/narration/speech` proxy to a separate private Kokoro inference service configured via `KOKORO_BASE_URL`. In Account → Preferences, narration is opt-in and independent of SFX, with auto-read, optional read-choices-after-story, voice, speed and volume. In-story controls provide read chapter, read all choices, individual choice playback, pause/resume/stop and quick narration toggle. Audio stops on scene change, choice lock, QTE, death or turn theater; scene keys prevent reconnect replays. Browser and backend have bounded ephemeral audio caches; story text is chunked before synthesis. No microphone, speech recognition, or voice input. **Staging TTS will report unavailable until its Kokoro service and ECS environment variable are separately provisioned**; source deploy alone does not provision models. Settings persist locally per browser (not account-synced). See `docs/KOKORO_DEPLOYMENT.md`.
 
 
 ## 2. Current Product Surfaces
@@ -1162,3 +1162,18 @@ Staging smoke: enter First Light, interrupt networking, verify the recovery noti
 ```bash
 ./scripts/release-staging.sh "Pass 47: adventure reconnect recovery and offline action guards"
 ```
+
+
+## Pass 56 hotfix — Narrator selector and launch regressions (2026-10-09)
+
+Fixed the Kokoro narrator voice selection to use the shared `TerminalSelect`
+component rather than a browser-native `<select>`. This preserves the existing
+sitewide terminal-style selector contract and avoids native form styling.
+
+Updated the launch regression to explicitly cover the Kokoro voice selector.
+Updated the scene-reveal regression to recognize the intentional suppression
+of word-by-word reveal while auto-narration is enabled, while still requiring
+that turn theater release the scene first. Neither gameplay timing nor Kokoro
+backend behavior is changed by this hotfix.
+
+Release: `./scripts/release-staging.sh "Pass 56 hotfix: align Kokoro voice selector and story-reveal regression checks"`

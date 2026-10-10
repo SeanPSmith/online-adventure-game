@@ -8713,3 +8713,23 @@ textarea:focus {
 .hero-death-causes p { font-size: .85rem; }
 .qte-neutral-note { font-size: .8rem; opacity: .85; align-self: center; }
 .qte-resolution-callout.is-neutral { border-color: var(--text-muted, #aaa); }
+
+/* Pass 55: accessible, compact audio preferences; no external font/assets. */
+.audio-setting-slider {
+  border: 1px solid var(--green-line);
+  display: grid;
+  gap: 7px;
+  padding: 12px 14px;
+  color: var(--text);
+}
+.audio-setting-slider > span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 11px;
+}
+.audio-setting-slider strong { color: var(--green); letter-spacing: .05em; }
+.audio-setting-slider small { color: var(--text-dim); font-size: 10px; }
+.audio-setting-slider input[type="range"] { width: 100%; accent-color: var(--green); cursor: pointer; }
+.audio-setting-slider input[type="range"]:disabled { opacity: .45; cursor: not-allowed; }

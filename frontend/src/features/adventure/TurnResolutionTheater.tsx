@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { receiptKey } from "./turnFlow";
+import { playSound } from "../../services/audioDirector";
 import type {
   HeroProgressionUpdate,
   TurnResolvedPayload,
@@ -76,11 +77,13 @@ function AnimatedResultCard({
   active,
   complete,
   onDone,
+  soundId,
 }: {
   result: TurnResult;
   active: boolean;
   complete: boolean;
   onDone: () => void;
+  soundId: string;
 }) {
   const [rolling, setRolling] = useState(active && Boolean(result.check));
   const [displayRoll, setDisplayRoll] = useState<number | string>(result.check ? "?" : "—");
@@ -94,6 +97,7 @@ function AnimatedResultCard({
 
   useEffect(() => {
     if (!active || complete) return;
+    if (result.check) playSound("dice-roll", `${soundId}:rolling`);
 
     if (!result.check) {
       setSettled(true);
@@ -113,6 +117,11 @@ function AnimatedResultCard({
         setDisplayRoll(result.check?.roll ?? "?");
         setRolling(false);
         setSettled(true);
+        const outcome = result.check?.outcome ?? "";
+        const cue = outcome.includes("critical_failure") ? "critical-fail"
+          : outcome.includes("critical_success") ? "critical"
+          : outcome.includes("failure") ? "failure" : "success";
+        playSound(cue, `${soundId}:settled`);
         finishTimer = setTimeout(onDone, result.check?.critical ? 900 : 600);
         return;
       }
@@ -131,7 +140,7 @@ function AnimatedResultCard({
       if (frameTimer) clearTimeout(frameTimer);
       if (finishTimer) clearTimeout(finishTimer);
     };
-  }, [active, complete, result.check?.roll, result.check?.total, result.check?.critical, onDone]);
+  }, [active, complete, result.check?.roll, result.check?.total, result.check?.critical, result.check?.outcome, soundId, onDone]);
 
   const outcomeClass = result.check?.outcome.replaceAll("_", "-") ?? "no-check";
 
@@ -246,6 +255,16 @@ export function TurnResolutionTheater({
     setFinished(results.length === 0);
   }, [turnIdentity, results.length]);
 
+  useEffect(() => {
+    if (!finished) return;
+    const updates = Object.values(receipt.hero_progression ?? {});
+    const id = receiptKey(receipt);
+    if (updates.some((update) => update.xp_gained > 0)) playSound("xp", `${id}:xp`);
+    if (updates.some((update) => update.health_change < 0 && !update.died_this_turn)) {
+      playSound("injury", `${id}:injury`);
+    }
+  }, [finished, receipt]);
+
   const currentResult = results[activeIndex] ?? null;
   const criticalNow = Boolean(currentResult?.check?.critical && !finished);
 
@@ -284,6 +303,7 @@ export function TurnResolutionTheater({
               active={index === activeIndex && !finished}
               complete={index < activeIndex || finished}
               onDone={finishCurrent}
+              soundId={`${turnIdentity}:${result.player_id}:${result.choice_id}`}
               key={`${result.player_id}:${result.choice_id}`}
             />
           );

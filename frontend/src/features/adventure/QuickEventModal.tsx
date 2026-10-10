@@ -4,6 +4,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { playSound } from "../../services/audioDirector";
 import type { QuickEvent, QuickEventEffect } from "../../services/game";
 
 interface QuickEventModalProps {
@@ -52,6 +53,20 @@ export function QuickEventModal({
       ? timer.remainingMs
       : durationMs
     : 0;
+
+  useEffect(() => {
+    if (event?.id) playSound("qte-start", `qte:${event.id}:start`);
+  }, [event?.id]);
+
+  useEffect(() => {
+    if (!resolution?.id || !playerId) return;
+    const outcome = (resolution.outcomes ?? []).find((entry) => entry.player_id === playerId);
+    if (!outcome) return;
+    // Neutral reactions have no benefit or penalty.
+    const type = String(outcome.tag ?? "").toLowerCase();
+    const cue = type.includes("neutral") ? "qte-neutral" : outcome.success ? "qte-success" : "qte-fail";
+    playSound(cue, `qte:${resolution.id}:${playerId}:result`);
+  }, [resolution?.id, resolution?.outcomes, playerId]);
 
   useEffect(() => {
     setSubmitting(false);

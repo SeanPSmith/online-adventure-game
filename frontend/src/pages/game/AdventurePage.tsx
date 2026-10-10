@@ -19,6 +19,11 @@ import { useTurnTheater } from "../../features/adventure/useTurnTheater";
 import { getCharacter, type Character } from "../../services/characters";
 import type { PartyHeroSnapshot, SceneChoice } from "../../services/game";
 import { rememberGameRoute } from "../../services/gameRouteMemory";
+import {
+  readAudioPreferences, writeAudioPreferences, AUDIO_PREFERENCES_CHANGED,
+  type AudioPreferences,
+} from "../../services/audioPreferences";
+import { activateAudioFromGesture, playSound } from "../../services/audioDirector";
 import { readStoryDisplayPreferences, type StoryDisplayPreferences } from "../../services/storyPreferences";
 import { useGameSocket } from "../../state/GameSocketContext";
 import { useLiveAdventure } from "../../state/useLiveAdventure";
@@ -127,6 +132,7 @@ export function AdventurePage() {
   const [storyPreferences, setStoryPreferences] = useState<StoryDisplayPreferences>(() =>
     readStoryDisplayPreferences(),
   );
+  const [audioPreferences, setAudioPreferences] = useState<AudioPreferences>(() => readAudioPreferences());
   const [historyIndex, setHistoryIndex] = useState(0);
   const storyPaneRef = useRef<HTMLElement | null>(null);
 
@@ -281,6 +287,39 @@ export function AdventurePage() {
   }, []);
 
   useEffect(() => {
+    const syncAudio = () => setAudioPreferences(readAudioPreferences());
+    window.addEventListener(AUDIO_PREFERENCES_CHANGED, syncAudio);
+    return () => window.removeEventListener(AUDIO_PREFERENCES_CHANGED, syncAudio);
+  }, []);
+
+  // A browser may suspend its audio engine on reload. Resume only from a real
+  // user interaction, never on load or in response to a socket snapshot.
+  useEffect(() => {
+    if (!audioPreferences.effectsEnabled) return;
+    const unlock = () => { activateAudioFromGesture(); };
+    window.addEventListener("pointerdown", unlock, { capture: true });
+    window.addEventListener("keydown", unlock, { capture: true });
+    return () => {
+      window.removeEventListener("pointerdown", unlock, true);
+      window.removeEventListener("keydown", unlock, true);
+    };
+  }, [audioPreferences.effectsEnabled]);
+
+  useEffect(() => {
+    if (live.game?.started && scene?.id && theater.phase === "none") {
+      playSound("chapter", `chapter:${normalizedRoomCode}:${turnNumber}:${scene.id}`);
+    }
+  }, [live.game?.started, scene?.id, theater.phase, normalizedRoomCode, turnNumber]);
+
+  useEffect(() => {
+    if (showDeath) playSound("death", `death:${deathKey}`);
+  }, [showDeath, deathKey]);
+
+  useEffect(() => {
+    if (showLevelUp) playSound("level-up", `level:${levelUpKey}`);
+  }, [showLevelUp, levelUpKey]);
+
+  useEffect(() => {
     // A new Director scene should always begin at the top of the story pane.
     // The turn theater/intermission can leave desktop and mobile users scrolled
     // near the choices from the previous turn, which makes fresh prose appear
@@ -388,6 +427,7 @@ export function AdventurePage() {
 
   function selectChoice(choice: SceneChoice) {
     if (choicesBlocked) return;
+    playSound("ui");
 
     setSelectedChoiceId(choice.id);
 
@@ -438,6 +478,7 @@ export function AdventurePage() {
 
   function lockChoice() {
     if (!selectedChoiceId || choicesBlocked) return;
+    playSound("lock", `lock:${normalizedRoomCode}:${turnNumber}:${characterId}`);
 
     setLockPending(true);
     live.clearError();
@@ -528,6 +569,20 @@ export function AdventurePage() {
             </div>
 
             <div className="adventure-session-actions">
+              <button className="button button-quiet" type="button"
+                aria-label={audioPreferences.effectsEnabled ? "Mute sound effects" : "Enable sound effects"}
+                aria-pressed={audioPreferences.effectsEnabled}
+                title="Sound effects only — narration controls arrive in Pass 56"
+                onClick={() => {
+                  const next = writeAudioPreferences({ effectsEnabled: !audioPreferences.effectsEnabled });
+                  setAudioPreferences(next);
+                  if (next.effectsEnabled) {
+                    activateAudioFromGesture();
+                    playSound("ui");
+                  }
+                }}>
+                {audioPreferences.effectsEnabled ? "SFX ON // MUTE" : "SFX OFF // ENABLE"}
+              </button>
               {live.room?.play_mode === "coop" && localRoomPlayer?.is_host && live.room.player_count < live.room.max_players ? (
                 <RoomInviteButton
                   roomCode={normalizedRoomCode}

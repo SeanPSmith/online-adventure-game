@@ -1,3 +1,4 @@
+import { playSound } from "../../services/audioDirector";
 import {
   useCallback,
   useEffect,
@@ -45,6 +46,9 @@ export function IntermissionRuntime({
   onStoryReadyComplete: () => void;
 }) {
   const identity = `${payload.room_code}:${payload.turn_number}:${payload.game_id}`;
+  useEffect(() => {
+    if (payload.game_id !== "intermission_wait") playSound("arcade", `arcade:${identity}:entry`);
+  }, [identity, payload.game_id]);
   const serverSubmitted = Boolean(
     playerId &&
     payload.submitted_player_ids?.includes(playerId),

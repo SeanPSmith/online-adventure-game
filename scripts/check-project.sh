@@ -37,6 +37,9 @@ node --test scripts/tests/route-loading.cjs
 say "Adventure turn presentation regressions"
 node --test scripts/tests/turn-flow.cjs
 
+say "Audio/SFX browser regression checks"
+node --test tests/frontend/audio-sfx.cjs
+
 say "React production build"
 (
   cd frontend

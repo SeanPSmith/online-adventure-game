@@ -4,7 +4,7 @@
 > Update or rewrite the relevant sections in this file as the product changes; do not create another numbered changelog copy.
 
 **Last consolidated:** 2026-10-09  
-**Current local baseline:** Pass 54 (fatal outcome narration and death acknowledgment, visible XP/HP causes, three-way QTE variety, published-cabinet intermission selection), built on Pass 53  
+**Current local baseline:** Pass 55 (browser SFX and persistent per-browser audio preferences), building on Pass 54 gameplay integrity  
 **Public site:** `https://onlinetextadventure.com`  
 **Primary release command:** `./scripts/release-staging.sh "Describe the release"`
 
@@ -36,7 +36,8 @@ The visual language is intentionally terminal/IRC/VGA-inspired: strong compartme
 - Director QTEs are short three-way BEST/NEUTRAL/BAD choices, shuffled by a stable event seed. Neutral causes no boon/bane; older two-way archived QTEs remain compatible. QTE continuity still uses the Pass 53 scene interruption rules, with static next choices that work after either outcome (not independently generated branches).
 - Intermission now rotates over the **published Arcade catalog** and records the chosen cabinet per turn for stable reconnects. Prior six-slot game IDs remain accepted for older saved runs.
 - Scene pacing now prioritizes meaningful goal advancement over repeated mundane micro-actions.
-- **Future plan only:** `docs/WEB_AUDIO_SFX_ROADMAP.md` defines the independent Pass 55 browser audio/SFX implementation.
+- **Pass 55 implemented:** `frontend/src/services/audioDirector.ts` provides compact oscillator-only Web Audio cues, and `frontend/src/services/audioPreferences.ts` persists opt-in sound and master/story/Arcade volume **per browser**. Account → Preferences and the adventure toolbar expose controls; turns, dice, QTEs, level-ups, death, Arcade entry and chapter transitions use stable event keys to avoid repeat playback during socket recovery. Browser gesture activation is required. Tests run through `tests/frontend/audio-sfx.cjs` in `scripts/check-project.sh`.
+- **Pass 56 planned, not implemented:** Kokoro TTS narration of story text and individual/all choices, with per-player reading options and persistent narrator settings. **No speech-to-text or microphones.** See `docs/WEB_AUDIO_SFX_ROADMAP.md`.
 
 
 ## 2. Current Product Surfaces

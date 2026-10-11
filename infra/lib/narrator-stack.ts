@@ -40,7 +40,9 @@ export class NarratorStack extends cdk.Stack {
     const userData = ec2.UserData.forLinux();
     userData.addCommands(
       "set -euxo pipefail",
-      "dnf install -y docker curl",
+      // Amazon Linux 2023 ships curl-minimal. Installing full curl alongside it
+      // causes dnf to fail before Docker can be configured (cloud-init scripts-user).
+      "dnf install -y docker",
       "systemctl enable --now docker",
       // Pin digest in production after benchmark/acceptance; do not add a host bind mount
       // that would shadow the image's already-baked model files.
@@ -77,6 +79,7 @@ export class NarratorStack extends cdk.Stack {
     this.activityTable = new dynamodb.Table(this, "ActivityTable", {
       partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      timeToLiveAttribute: "expires_at_epoch",
       removalPolicy: cdk.RemovalPolicy.RETAIN,
     });
 

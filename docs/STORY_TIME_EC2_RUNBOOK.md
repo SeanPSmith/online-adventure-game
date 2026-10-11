@@ -56,6 +56,30 @@ is chargeable, even before Story Time is used. Watch usage.
    sudo tail -100 /var/log/cloud-init-output.log
    ```
 
+   **Amazon Linux 2023 package recovery (first-boot failure):** If `cloud-init`
+   reports `scripts-user` failed and logs mention a `curl-minimal` versus `curl`
+   conflict, the original startup script exited before installing Docker. Do
+   not rerun all cloud-init stages. In Session Manager, recover the existing
+   instance with these commands (the CDK source no longer installs full curl):
+
+   ```bash
+   sudo dnf install -y docker
+   sudo systemctl enable --now docker
+   sudo docker pull ghcr.io/remsky/kokoro-fastapi-cpu:v0.8.0
+   sudo docker rm -f story-time 2>/dev/null || true
+   sudo docker run -d --name story-time --restart unless-stopped \
+     --memory=3g --cpus=2 --pids-limit=512 -p 8880:8880 \
+     -e API_LOG_LEVEL=WARNING ghcr.io/remsky/kokoro-fastapi-cpu:v0.8.0
+   sudo docker ps
+   curl --max-time 30 http://127.0.0.1:8880/v1/audio/voices
+   ```
+
+   A `cloud-init status: error` record from the failed first boot can remain
+   even after the service is repaired. Verify Docker and the voice endpoint
+   directly. Do not redeploy the infrastructure stack merely to update EC2
+   user data; CloudFormation updates can restart the existing instance and
+   user-data scripts generally are not automatically rerun on every boot.
+
    If the container was still pulling at first check, wait. Pin the image to a
    tested digest before wider public access; staging uses the upstream v0.8.0
    CPU release tag. A container crash or missing image requires repair before
@@ -122,3 +146,71 @@ prepares MP3s, browser playback and shared audio caching. **Accurate word-level
 speech timestamps, synchronized progressive text fade, and Admin voice lab are
 Pass 58C work**, after measuring real CPU speech latency and timestamps.
 No claim of completed live EC2 deployment or tested phone inference is made.
+
+## Watchdog hotfix — safe live benchmarking (2026-10-10)
+
+**Problem identified during first manual tests:** direct requests to `127.0.0.1:8880`
+from Session Manager bypass the authenticated Tales of Two backend, so the
+DynamoDB idle heartbeat was not renewed. EC2 correctly stopped after the
+watchdog idle interval, even while the operator was evaluating the narrator.
+
+**Fix:** the backend now acquires a unique, expiring DynamoDB `generation#...`
+lease around every uncached synthesis. Active jobs renew that lease while
+running, and release it on success or error. The watchdog checks for those
+active leases before any stop, including when the approximate monthly quota
+has just expired. Abandoned leases expire automatically; DynamoDB TTL cleans
+up their records. A manual maintenance hold protects direct EC2 testing,
+without bypassing the monthly quota. Voice remains optional and does not
+participate in the game turn state machine.
+
+Deploy the application patch normally first, and update the **existing
+watchdog Lambda only** using the separate hotfix helper. Do **not** redeploy
+the whole narrator CloudFormation stack just to fix the watchdog: changes to
+EC2 user data might interrupt or replace the repaired instance.
+
+```bash
+# Mac, project root: release app changes through the normal staging pipeline.
+./scripts/release-staging.sh "Pass 58B: protect narration jobs and manual tests from idle shutdown"
+
+# Preview target resources (no AWS changes):
+bash scripts/aws/deploy-story-time-watchdog-hotfix.sh
+
+# Explicitly approve updating only the existing Lambda and enabling DDB TTL:
+bash scripts/aws/deploy-story-time-watchdog-hotfix.sh --deploy
+
+# Start the existing EC2 and protect your direct benchmark for 90 minutes:
+bash scripts/aws/story-time-control.sh start 90
+
+# Extend an ongoing manual session before expiry, if needed:
+bash scripts/aws/story-time-control.sh hold 60
+
+# At the end of testing:
+bash scripts/aws/story-time-control.sh stop
+```
+
+The manual hold covers the operator's *direct* curl tests, but does not wake
+EC2 by itself (`hold` versus `start`). It expires after 5–120 minutes, and
+`start` defaults to 90 minutes. `release` removes the hold immediately,
+allowing normal 30-minute idle rules to apply. It does not disable the quota.
+For automatic narration from Tales of Two, no manual hold is necessary.
+
+The Lambda-code helper intentionally does not run CDK, change the EC2 instance,
+or start it. It updates the function directly; the source under
+`infra/narrator/watchdog.py` is also changed for the next ordinary CDK deploy.
+If you later deploy the narrator CloudFormation stack, review `cdk diff` for
+any instance replacement or user-data changes before confirming.
+
+### Measured CPU performance and next test
+
+The initial t3a.medium produced a valid ~103 KB MP3 in **20.4 seconds** and a
+~142.5 KB MP3 in **28.0 seconds**. Idle memory was **1.24 GiB** out of a 3 GiB
+container limit. The available observations don't establish active CPU usage,
+credit throttling, or full-chapter latency. A `t3a.large` offers more RAM but
+still only 2 vCPUs; don't resize solely to increase memory.
+
+Once the maintenance hold is active, use a short sample and capture CPU **while
+it is generating**. Check `CPUCreditBalance` and `CPUSurplusCreditBalance` in
+CloudWatch, and note elapsed seconds and audio duration. If CPU inference is
+still substantially slower than real time, benchmark an optimized ONNX
+implementation or a genuinely faster vCPU family before scaling spend.
+Keep the monthly runtime quota and normal gameplay fallback enabled.

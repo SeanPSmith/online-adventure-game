@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+from contextlib import suppress
 from collections import OrderedDict, defaultdict, deque
 import hashlib
 import json
@@ -208,9 +209,33 @@ async def synthesize_speech(payload: SpeechRequest, user=Depends(require_user)):
             audio = await asyncio.to_thread(_shared_audio, key)
         if audio is None:
             try:
-                audio = await asyncio.to_thread(_read_kokoro, endpoint, text, payload.voice, 1.0)
-            except (HTTPError, URLError, TimeoutError, ValueError, OSError) as exc:
-                raise HTTPException(502, "The narrator could not prepare this passage. Try again.") from exc
+                lease = await asyncio.to_thread(hosting.begin_generation)
+            except Exception as exc:
+                raise HTTPException(503, "The narrator is preparing to retry. Continue reading for now.") from exc
+            async def keep_lease_alive():
+                # A long or streamed generation can run beyond the first lease.
+                # On worker crash, heartbeats stop and the lease expires naturally.
+                while True:
+                    await asyncio.sleep(45)
+                    try:
+                        await asyncio.to_thread(hosting.renew_generation, lease)
+                    except Exception:
+                        # Losing a lease is a health issue, not a reason to break
+                        # the ongoing optional narration response mid-stream.
+                        pass
+
+            renewal = asyncio.create_task(keep_lease_alive()) if lease else None
+            try:
+                try:
+                    audio = await asyncio.to_thread(_read_kokoro, endpoint, text, payload.voice, 1.0)
+                except (HTTPError, URLError, TimeoutError, ValueError, OSError) as exc:
+                    raise HTTPException(502, "The narrator could not prepare this passage. Try again.") from exc
+            finally:
+                if renewal:
+                    renewal.cancel()
+                    with suppress(asyncio.CancelledError):
+                        await renewal
+                await asyncio.to_thread(hosting.finish_generation, lease)
             await asyncio.to_thread(_store_shared_audio, key, audio)
         _save_cache(key, audio)
     return _audio_response(audio)

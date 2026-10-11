@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import os
 import time
+import uuid
 from datetime import datetime, timezone
 from urllib.request import urlopen
 
@@ -67,3 +68,48 @@ def healthy(endpoint: str) -> bool:
             return response.status == 200
     except (OSError, ValueError):
         return False
+
+
+# A live synthesis request must outlive the idle watchdog's last-request clock.
+# _read_kokoro has a 90s HTTP timeout; this 180s lease also covers SDK setup.
+GENERATION_LEASE_SECONDS = 180
+
+
+def begin_generation() -> str | None:
+    """Register an expiring, unique job lease before contacting Kokoro.
+
+    A failed lease acquisition should prevent an optional voice request rather
+    than risk the watchdog stopping EC2 in the middle of synthesis.
+    """
+    if not configured():
+        return None
+    import boto3
+    job_id = "generation#" + uuid.uuid4().hex
+    boto3.resource("dynamodb").Table(os.environ["KOKORO_ACTIVITY_TABLE"]).put_item(
+        Item={"id": job_id, "expires_at_epoch": int(time.time()) + GENERATION_LEASE_SECONDS})
+    return job_id
+
+
+def finish_generation(job_id: str | None) -> None:
+    """Release the completed job. An abandoned job auto-expires."""
+    if not job_id or not configured():
+        return
+    try:
+        import boto3
+        boto3.resource("dynamodb").Table(os.environ["KOKORO_ACTIVITY_TABLE"]).delete_item(
+            Key={"id": job_id})
+    except Exception:
+        # Lease is bounded and will expire; never invalidate generated audio.
+        pass
+
+
+def renew_generation(job_id: str | None) -> None:
+    """Keep a long-running speech request leased while inference is active."""
+    if not job_id or not configured():
+        return
+    import boto3
+    boto3.resource("dynamodb").Table(os.environ["KOKORO_ACTIVITY_TABLE"]).update_item(
+        Key={"id": job_id},
+        UpdateExpression="SET expires_at_epoch = :expires",
+        ConditionExpression="attribute_exists(id)",
+        ExpressionAttributeValues={":expires": int(time.time()) + GENERATION_LEASE_SECONDS})

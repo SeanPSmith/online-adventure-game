@@ -813,7 +813,7 @@ ${scene.body.slice(0, 260)}`}
                     <button className="button button-quiet" type="button"
                       disabled={!scene?.choices.length || narratorAvailable !== true || !theater.chapterReleased || Boolean(live.game?.pending_micro_event) || choiceLocked || showDeath}
                       onClick={narrateChoices}>READ CHOICES</button>
-                    {narration.phase === "playing" ? (
+                    {(narration.phase === "playing" || narration.phase === "loading" || narration.phase === "buffering") ? (
                       <button className="button button-quiet" type="button" onClick={pauseNarration}>PAUSE</button>
                     ) : narration.phase === "paused" ? (
                       <button className="button button-quiet" type="button" onClick={() => { void resumeNarration(); }}>RESUME</button>
@@ -829,6 +829,7 @@ ${scene.body.slice(0, 260)}`}
                       "CONNECTING TO STORY TIME_"
                     : narration.phase === "error" ? narration.error
                     : narration.phase === "loading" ? `PREPARING VOICE // ${narration.label}`
+                    : narration.phase === "buffering" ? `BUFFERING NEXT PASSAGE // ${narration.label}`
                     : narration.phase === "playing" ? `READING // ${narration.label}`
                     : narration.phase === "paused" ? "NARRATION PAUSED" : ""}
                 </small>

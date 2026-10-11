@@ -49,6 +49,9 @@ node --test tests/frontend/story-time-browser.cjs
 say "Story Time playback-speed and cache diagnostics regressions"
 node --test tests/frontend/story-time-playback-speeds.cjs
 
+say "Story Time bounded lookahead, pause and cancellation regressions"
+node --test tests/frontend/story-time-buffered-playback.cjs
+
 say "React production build"
 (
   cd frontend

@@ -1,8 +1,11 @@
-/** Kokoro speech playback. No microphone, speech recognition, or voice recording. */
+/** Hosted Story Time playback: ordered, buffered MP3 chunks; never holds up gameplay.
+ *  This is client-side lookahead, not low-latency PCM streaming from the server.
+ *  Voice quality and server/S3 cache keys are unchanged at all playback rates.
+ */
 import { readAudioPreferences } from "./audioPreferences";
 import { synthesizeStoryTimeSpeech } from "./storyTimeEngine";
 
-export type NarrationPhase = "idle" | "loading" | "playing" | "paused" | "error";
+export type NarrationPhase = "idle" | "loading" | "buffering" | "playing" | "paused" | "error";
 export interface NarrationState { phase: NarrationPhase; label: string; error: string; }
 export interface NarrationItem { text: string; label: string; kind: "story" | "choice"; }
 
@@ -10,13 +13,17 @@ const state: NarrationState = { phase: "idle", label: "", error: "" };
 const subscribers = new Set<(value: NarrationState) => void>();
 const cache = new Map<string, string>();
 const CACHE_LIMIT = 24;
+// Play the current chunk while preparing up to two subsequent chunks.
+// Keep the window bounded: uncontrolled prefetch would overwhelm CPU Kokoro.
+export const NARRATION_LOOKAHEAD = 2;
 let adventureVoice: string | null = null;
-export function setAdventureNarratorVoice(voice: string | null) {
-  adventureVoice = voice;
-}
+export function setAdventureNarratorVoice(voice: string | null) { adventureVoice = voice; }
 let audio: HTMLAudioElement | null = null;
+let activeUrl: string | null = null;
 let sequence = 0;
 let pending: AbortController | null = null;
+let pausedBetweenChunks = false;
+const resumeWaiters = new Set<() => void>();
 
 export function observeNarration(callback: (value: NarrationState) => void): () => void {
   subscribers.add(callback);
@@ -34,11 +41,15 @@ function player(): HTMLAudioElement {
   return audio;
 }
 
+function releasePauseWaiters() {
+  for (const resolve of resumeWaiters) resolve();
+  resumeWaiters.clear();
+}
+
 export function adjustNarrationVolume() {
   if (audio) {
     const prefs = readAudioPreferences();
     audio.volume = prefs.narrationVolume / 100;
-    // Playback remains local to each listener: no new synthesis or cache key per rate.
     audio.playbackRate = prefs.narrationSpeed;
     audio.preservesPitch = true;
   }
@@ -48,6 +59,8 @@ export function stopNarration() {
   ++sequence;
   pending?.abort();
   pending = null;
+  pausedBetweenChunks = false;
+  releasePauseWaiters();
   if (audio) {
     audio.pause();
     audio.onended = null;
@@ -55,22 +68,35 @@ export function stopNarration() {
     audio.removeAttribute("src");
     audio.load();
   }
+  activeUrl = null;
   publish("idle");
 }
 
 export function pauseNarration() {
-  if (state.phase !== "playing" || !audio) return;
-  audio.pause();
-  publish("paused", state.label);
+  if (state.phase === "buffering" || state.phase === "loading") {
+    pausedBetweenChunks = true;
+    publish("paused", state.label);
+  } else if (state.phase === "playing" && audio) {
+    audio.pause();
+    publish("paused", state.label);
+  }
 }
 
 export async function resumeNarration() {
-  if (state.phase !== "paused" || !audio) return;
+  if (state.phase !== "paused") return;
+  if (pausedBetweenChunks) {
+    pausedBetweenChunks = false;
+    publish("buffering", state.label);
+    releasePauseWaiters();
+    return;
+  }
+  if (!audio) return;
+  const identity = sequence;
   try {
     await audio.play();
-    publish("playing", state.label);
+    if (identity === sequence) publish("playing", state.label);
   } catch {
-    publish("error", "", "Browser blocked playback. Press READ to retry.");
+    if (identity === sequence) publish("error", "", "Browser blocked playback. Press READ to retry.");
   }
 }
 
@@ -78,14 +104,14 @@ function cleaned(text: string): string {
   return text.replace(/\*\*|__|`|^#{1,6}\s/gm, "").replace(/\s+/g, " ").trim();
 }
 
-/** Chunk long scenes so every request stays under the server's 1,800 character limit. */
+/** Exact same chunk boundaries as the server's finalized-scene prefetch. */
 export function splitPassage(text: string, maxLength = 280): string[] {
   const value = cleaned(text);
   if (!value) return [];
   const pieces: string[] = [];
   let remaining = value;
   while (remaining.length > maxLength) {
-    let at = remaining.lastIndexOf(". ", maxLength);
+    let at = remaining.lastIndexOf(". ", maxLength - 1);
     if (at < maxLength / 2) at = remaining.lastIndexOf(" ", maxLength);
     if (at < maxLength / 2) at = maxLength;
     else if (remaining.slice(at, at + 2) === ". ") at += 1;
@@ -96,34 +122,50 @@ export function splitPassage(text: string, maxLength = 280): string[] {
   return pieces;
 }
 
-function keyFor(item: NarrationItem): string {
-  const prefs = readAudioPreferences();
-  return JSON.stringify([item.text, adventureVoice ?? prefs.narrationVoice]);
+function keyFor(item: NarrationItem, voice: string): string {
+  return JSON.stringify([item.text, voice]);
 }
 
-async function fetchSpeech(item: NarrationItem, signal: AbortSignal): Promise<string> {
-  const key = keyFor(item);
-  const old = cache.get(key);
-  if (old) {
-    cache.delete(key);
-    cache.set(key, old);
-    return old;
+function rememberAudio(key: string, url: string) {
+  cache.set(key, url);
+  // Never revoke the source of the clip that is currently playing.
+  while (cache.size > CACHE_LIMIT) {
+    const oldest = cache.keys().next().value;
+    if (!oldest) break;
+    if (cache.get(oldest) === activeUrl) {
+      cache.delete(oldest);
+      cache.set(oldest, activeUrl);
+      continue;
+    }
+    const evicted = cache.get(oldest);
+    cache.delete(oldest);
+    if (evicted) URL.revokeObjectURL(evicted);
   }
-  const prefs = readAudioPreferences();
-  const blob = await synthesizeStoryTimeSpeech({
-    text: item.text, voice: adventureVoice ?? prefs.narrationVoice, speed: 1,
-  }, signal);
+}
+
+async function fetchSpeech(item: NarrationItem, voice: string, signal: AbortSignal): Promise<string> {
+  if (signal.aborted) throw new Error("Narration interrupted.");
+  const key = keyFor(item, voice);
+  const cached = cache.get(key);
+  if (cached) {
+    cache.delete(key);
+    cache.set(key, cached);
+    return cached;
+  }
+  const blob = await synthesizeStoryTimeSpeech({ text: item.text, voice, speed: 1 }, signal);
+  if (signal.aborted) throw new Error("Narration interrupted.");
   if (!blob.size || !blob.type.startsWith("audio/")) throw new Error("Story Time returned invalid audio.");
   const url = URL.createObjectURL(blob);
-  cache.set(key, url);
-  while (cache.size > CACHE_LIMIT) {
-    const first = cache.keys().next().value;
-    if (!first) break;
-    const previous = cache.get(first);
-    cache.delete(first);
-    if (previous) URL.revokeObjectURL(previous);
-  }
+  rememberAudio(key, url);
   return url;
+}
+
+type Prepared = { url: string; error?: never } | { error: unknown; url?: never };
+
+async function waitForUnpause(identity: number): Promise<void> {
+  while (identity === sequence && pausedBetweenChunks) {
+    await new Promise<void>(resolve => resumeWaiters.add(resolve));
+  }
 }
 
 export async function playNarration(items: NarrationItem[]): Promise<void> {
@@ -132,39 +174,85 @@ export async function playNarration(items: NarrationItem[]): Promise<void> {
   const identity = sequence;
   const controller = new AbortController();
   pending = controller;
-  for (const item of items) {
-    if (identity !== sequence) return;
-    publish("loading", item.label);
-    try {
-      const url = await fetchSpeech(item, controller.signal);
-      if (identity !== sequence) return;
-      const element = player();
-      element.src = url;
-      adjustNarrationVolume();
-      // Install onended BEFORE calling play(): very short clips can finish
-      // immediately, otherwise the queue could wait forever.
-      const finished = new Promise<void>((resolve, reject) => {
-        element.onended = () => resolve();
-        element.onerror = () => reject(new Error("Audio playback was interrupted."));
-        controller.signal.addEventListener("abort", () => resolve(), { once: true });
-      });
-      await element.play();
-      if (identity !== sequence) return;
-      publish("playing", item.label);
-      await finished;
-      element.onended = null;
-      element.onerror = null;
-    } catch (reason) {
-      if (identity !== sequence) return;
-      publish("error", "", reason instanceof Error ? reason.message : "Narration unavailable.");
-      return;
+  // Freeze the room voice for this entire playback, including prefetched chunks.
+  const voice = adventureVoice ?? readAudioPreferences().narrationVoice;
+  const prepared = new Map<number, Promise<Prepared>>();
+  function fillWindow(index: number) {
+    for (let i = index; i < Math.min(items.length, index + NARRATION_LOOKAHEAD + 1); i++) {
+      if (prepared.has(i)) continue;
+      // A settled result avoids unhandled rejections if a future chunk is
+      // aborted before its turn to play, or if the player leaves the room.
+      const job = fetchSpeech(items[i], voice, controller.signal).then(
+        (url): Prepared => ({ url }),
+        (error): Prepared => ({ error }),
+      );
+      prepared.set(i, job);
     }
   }
-  if (identity === sequence) publish("idle");
+
+  try {
+    fillWindow(0);
+    for (let index = 0; index < items.length; index++) {
+      if (identity !== sequence) return;
+      const item = items[index];
+      if (!pausedBetweenChunks) publish(index === 0 ? "loading" : "buffering", item.label);
+      fillWindow(index);
+      const result = await prepared.get(index)!;
+      if (identity !== sequence) return;
+      prepared.delete(index);
+      if ("error" in result) throw result.error;
+      if (state.phase === "paused") pausedBetweenChunks = true;
+      await waitForUnpause(identity);
+      if (identity !== sequence) return;
+
+      const element = player();
+      activeUrl = result.url!;
+      element.src = activeUrl;
+      adjustNarrationVolume();
+      // Install handlers BEFORE play(). A short cached clip can finish in
+      // the same microtask; never lose its ended notification.
+      let onAbort: (() => void) | null = null;
+      let onEnded: (() => void) | null = null;
+      let onError: (() => void) | null = null;
+      const finished = new Promise<void>((resolve, reject) => {
+        onEnded = () => resolve();
+        onError = () => reject(new Error("Audio playback was interrupted."));
+        element.onended = onEnded;
+        element.onerror = onError;
+        onAbort = () => resolve();
+        controller.signal.addEventListener("abort", onAbort, { once: true });
+      });
+      try {
+        await element.play();
+        if (identity !== sequence) return;
+        if (state.phase !== "paused") publish("playing", item.label);
+        // The next two passages were queued before this clip started.
+        await finished;
+      } finally {
+        // A newer narration may have reused the same <audio> element while
+        // an old play() promise was pending. Never clear its event handlers.
+        if (element.onended === onEnded) element.onended = null;
+        if (element.onerror === onError) element.onerror = null;
+        if (onAbort) controller.signal.removeEventListener("abort", onAbort);
+      }
+      if (identity !== sequence) return;
+      if (state.phase === "paused") pausedBetweenChunks = true;
+    }
+    if (identity === sequence) publish("idle");
+  } catch (reason) {
+    if (identity === sequence) publish("error", "", reason instanceof Error ? reason.message : "Narration unavailable.");
+  } finally {
+    if (identity === sequence) {
+      pending = null;
+      activeUrl = null;
+    }
+  }
 }
 
 export function sceneNarrationItems(body: string, choices: readonly { label: string }[], includeChoices: boolean): NarrationItem[] {
-  const story = splitPassage(body).map((text, index) => ({ text, label: `CHAPTER ${index + 1}`, kind: "story" as const }));
+  const story = splitPassage(body).map((text, index, chunks) => ({
+    text, label: `STORY ${index + 1}/${chunks.length}`, kind: "story" as const,
+  }));
   return includeChoices ? [...story, ...choiceNarrationItems(choices)] : story;
 }
 

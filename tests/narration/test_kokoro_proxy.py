@@ -74,3 +74,36 @@ def test_rate_limited_requests(monkeypatch):
     with pytest.raises(HTTPException) as exc:
         run_speech(text="Hello")
     assert exc.value.status_code == 429
+
+
+def test_cache_diagnostics_distinguish_inference_memory_and_s3(monkeypatch):
+    monkeypatch.setenv("KOKORO_BASE_URL", "https://private.example/v1")
+    calls = []
+    monkeypatch.setattr(routes, "_read_kokoro", lambda *args: calls.append(args) or b"mp3")
+    generated = run_speech(text="The mountain is quiet.", voice="bm_george")
+    assert generated.headers["x-story-time-cache"] == "generated"
+    assert int(generated.headers["x-story-time-inference-ms"]) >= 0
+    cached = run_speech(text="The mountain is quiet.", voice="bm_george")
+    assert cached.headers["x-story-time-cache"] == "memory"
+    assert "x-story-time-inference-ms" not in cached.headers
+    assert int(cached.headers["x-story-time-server-ms"]) >= 0
+    assert len(calls) == 1
+
+    routes._cache.clear()
+    routes._cache_bytes = 0
+    monkeypatch.setattr(routes, "_shared_audio", lambda key: b"mp3")
+    shared = run_speech(text="The mountain is quiet.", voice="bm_george")
+    assert shared.headers["x-story-time-cache"] == "s3"
+    assert len(calls) == 1
+
+
+def test_voice_cache_is_independent_from_browser_playback_speed(monkeypatch):
+    monkeypatch.setenv("KOKORO_BASE_URL", "https://private.example/v1")
+    calls = []
+    monkeypatch.setattr(routes, "_read_kokoro", lambda *args: calls.append(args) or b"mp3")
+    a = run_speech(text="Welcome.", voice="bm_george", speed=0.75)
+    b = run_speech(text="Welcome.", voice="af_bella", speed=1.0)
+    c = run_speech(text="Welcome.", voice="bm_george", speed=1.5)
+    assert [r.headers["x-story-time-cache"] for r in (a, b, c)] == ["generated", "generated", "memory"]
+    assert len(calls) == 2
+    assert all(call[-1] == 1.0 for call in calls)

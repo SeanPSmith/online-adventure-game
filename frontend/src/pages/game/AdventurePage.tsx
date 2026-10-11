@@ -21,7 +21,7 @@ import { getCharacter, type Character } from "../../services/characters";
 import type { PartyHeroSnapshot, SceneChoice } from "../../services/game";
 import { rememberGameRoute } from "../../services/gameRouteMemory";
 import {
-  readAudioPreferences, writeAudioPreferences, AUDIO_PREFERENCES_CHANGED,
+  readAudioPreferences, writeAudioPreferences, AUDIO_PREFERENCES_CHANGED, NARRATION_PLAYBACK_SPEEDS,
   type AudioPreferences,
 } from "../../services/audioPreferences";
 import { activateAudioFromGesture, playSound } from "../../services/audioDirector";
@@ -332,6 +332,12 @@ export function AdventurePage() {
     void prepareStoryTime().catch(() => {});
   }
 
+  function cycleNarrationSpeed() {
+    const at = NARRATION_PLAYBACK_SPEEDS.findIndex(rate => rate === audioPreferences.narrationSpeed);
+    const next = NARRATION_PLAYBACK_SPEEDS[(at + 1) % NARRATION_PLAYBACK_SPEEDS.length];
+    setAudioPreferences(writeAudioPreferences({ narrationSpeed: next }));
+  }
+
   // One shared voice is fixed when the host creates the room. Playback remains independent.
   useEffect(() => {
     setAdventureNarratorVoice(live.game?.narrator_voice ?? null);
@@ -340,7 +346,8 @@ export function AdventurePage() {
 
   // Never let the previous chapter speak over the next chapter or a reaction event.
   useEffect(() => { stopNarration(); }, [normalizedRoomCode, scene?.id, turnNumber]);
-  useEffect(() => { adjustNarrationVolume(); }, [audioPreferences.narrationVolume]);
+  // Update the live audio element immediately when either personal playback setting changes.
+  useEffect(() => { adjustNarrationVolume(); }, [audioPreferences.narrationVolume, audioPreferences.narrationSpeed]);
   useEffect(() => {
     if (!audioPreferences.narrationEnabled || !theater.chapterReleased ||
         !live.game?.started || live.game?.pending_micro_event || choiceLocked || showDeath || showLevelUp) {
@@ -785,6 +792,12 @@ ${scene.body.slice(0, 260)}`}
                 </button>
                 {audioPreferences.narrationEnabled ? (
                   <>
+                    <button className="button button-quiet" type="button"
+                      aria-label={`Change narrator playback speed, currently ${audioPreferences.narrationSpeed} times normal`}
+                      title="Cycle playback speed: 0.5× to 2×"
+                      onClick={cycleNarrationSpeed}>
+                      SPEED {audioPreferences.narrationSpeed}×
+                    </button>
                     <button className="button button-quiet" type="button"
                       disabled={!scene?.body || narratorAvailable !== true || !theater.chapterReleased || Boolean(live.game?.pending_micro_event) || showDeath}
                       onClick={narrateChapter}>READ CHAPTER</button>

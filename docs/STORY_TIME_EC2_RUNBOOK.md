@@ -214,3 +214,31 @@ CloudWatch, and note elapsed seconds and audio duration. If CPU inference is
 still substantially slower than real time, benchmark an optimized ONNX
 implementation or a genuinely faster vCPU family before scaling spend.
 Keep the monthly runtime quota and normal gameplay fallback enabled.
+
+## Pass 59A inference benchmark (existing EC2, no infrastructure changes)
+
+For an apples-to-apples baseline, first run this on the Mac in the Tales of Two project root:
+
+```bash
+bash scripts/aws/story-time-control.sh start 90
+```
+
+From your Mac, run the benchmark through AWS Systems Manager (SSM) without copying files to the instance manually:
+
+```bash
+bash scripts/aws/benchmark-story-time-remote.sh
+```
+
+Alternatively, reconnect with AWS Session Manager, wait until `curl http://127.0.0.1:8880/v1/audio/voices` succeeds, then run **on EC2** after transferring the script:
+
+```bash
+bash benchmark-story-time-ec2.sh
+```
+
+The `scripts/aws/benchmark-story-time-ec2.sh` script lives in the local ZIP/repository, not automatically on the remote instance. The wrapper sends it through SSM Run Command; no public SSH port is needed. The script saves a small CSV and MP3 examples locally on EC2, samples Docker CPU/memory during inference, and never changes the model or AWS instance. `ffprobe` is optional for measuring true audio duration; do not estimate exact real-time factor from MP3 size alone. Gather `CPUCreditBalance` and `CPUSurplusCreditsCharged` in CloudWatch for the benchmark window. Stop EC2 after testing:
+
+```bash
+bash scripts/aws/story-time-control.sh stop
+```
+
+The narrator's HTTP response headers (`X-Story-Time-Cache`, `X-Story-Time-Server-Ms`, `X-Story-Time-Inference-Ms`) independently distinguish S3/memory hits from genuine synthesis. Changing browser playback rate between 0.5× and 2× must never force audio regeneration.

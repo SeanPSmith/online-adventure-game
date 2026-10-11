@@ -3,12 +3,19 @@
 > **Canonical project document.** This file replaces the old append-only changelog workflow.
 > Update or rewrite the relevant sections in this file as the product changes; do not create another numbered changelog copy.
 
-**Last consolidated:** 2026-10-10  
-**Current local baseline:** Pass 58B source changes drafted (opt-in private EC2 Story Time, AWS wake/idle-stop orchestration, durable audio cache). AWS resources are NOT deployed by the source ZIP; deploy only via `scripts/aws/deploy-story-time-staging.sh --deploy` after explicit cost review. The Pass 58A turn order and opening contract remain authoritative.
+**Last consolidated:** 2026-10-11  
+**Current local baseline:** Pass 59A playback-speed constraints, cache-source diagnostics, and a reproducible EC2 inference baseline tool, on top of the deployed Pass 58B on-demand hosted Story Time and watchdog lease hotfix. The real EC2 instance has generated valid MP3 and shared replay is fast, but first-time CPU synthesis has measured 20–28 seconds for short samples. **Pass 59A does not resize EC2, change Docker, or implement chunk streaming/room-aware startup.** The Pass 58A turn order and opening contract remain authoritative.
 **Public site:** `https://onlinetextadventure.com`  
 **Primary release command:** `./scripts/release-staging.sh "Describe the release"`
 
 ---
+
+
+### Pass 59A — Playback constraints and inference diagnostics (no new infrastructure)
+- Players select **only** `0.5×`, `0.75×`, `1×`, `1.25×`, `1.5×`, `1.75×`, `2×`; saved legacy speeds normalize to the nearest allowed step. The Account Settings slider and active adventure SPEED button share the same personal setting. Rate changes affect an already-playing browser audio element with pitch preservation requested; no extra speech synthesis or audio cache-key per playback speed. Host-selected Kokoro voice remains fixed for the room.
+- `POST /api/narration/speech` now emits `X-Story-Time-Cache: memory|s3|generated` and `X-Story-Time-Server-Ms` response headers; newly synthesized audio also emits `X-Story-Time-Inference-Ms`. Backend INFO logs record source, latency, voice ID and byte count **without story text or account IDs**. This diagnoses surprising cache misses without collecting spoken content.
+- From the Mac, `bash scripts/aws/benchmark-story-time-remote.sh` sends `scripts/aws/benchmark-story-time-ec2.sh` through authorized SSM Run Command. On the running narrator EC2 instance, this runs a fixed voice/text workload directly against the warmed Kokoro container, records request latency, optional ffprobe duration, and in-flight Docker resource sampling. Invoke `bash scripts/aws/story-time-control.sh start 90` on a Mac with AWS credentials first to prevent the watchdog from stopping direct tests. The bench does **not** alter EC2, pull images, download models or restart services.
+- **Next (not implemented):** fair, side-by-side quality/speed benchmark of CPU PyTorch, ONNX and GPU variants; early room/lobby wake with expiring active-party leases, generation prefetch on finalized unseen chapters, streamed/chunked playback gated by chapter reveal, concurrent party testing, bounded idle shutdown and runtime budget alerts. Keep existing CPU narrator as working fallback until measurements justify changing it.
 
 
 ### Pass 58A — Hosted Story Time and first chapter generation

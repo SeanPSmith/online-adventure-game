@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  readAudioPreferences, writeAudioPreferences, AUDIO_PREFERENCES_CHANGED, KOKORO_VOICES,
+  readAudioPreferences, writeAudioPreferences, AUDIO_PREFERENCES_CHANGED, KOKORO_VOICES, NARRATION_PLAYBACK_SPEEDS,
   type AudioPreferences,
 } from "../../services/audioPreferences";
 import { activateAudioFromGesture, playSound } from "../../services/audioDirector";
@@ -490,9 +490,14 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
               onChange={value => setAudioPreference({ narrationVoice: value })}
             />
           </div>
-          <label className="audio-setting-slider"><span><strong>SPEAKING SPEED</strong><span>{audio.narrationSpeed.toFixed(2)}×</span></span>
-            <input type="range" min="0.75" max="1.5" step="0.05" disabled={!audio.narrationEnabled}
-              value={audio.narrationSpeed} onChange={event => setAudioPreference({ narrationSpeed: Number(event.target.value) })} />
+          <label className="audio-setting-slider"><span><strong>PLAYBACK SPEED</strong><span>{audio.narrationSpeed}×</span></span>
+            <input type="range" min={NARRATION_PLAYBACK_SPEEDS[0]}
+              max={NARRATION_PLAYBACK_SPEEDS[NARRATION_PLAYBACK_SPEEDS.length - 1]}
+              step="0.25" aria-label="Narration playback speed"
+              aria-valuetext={`${audio.narrationSpeed} times normal speed`}
+              disabled={!audio.narrationEnabled} value={audio.narrationSpeed}
+              onChange={event => setAudioPreference({ narrationSpeed: Number(event.target.value) })} />
+            <small>0.5× · 0.75× · 1× · 1.25× · 1.5× · 1.75× · 2×</small>
           </label>
           <label className="audio-setting-slider"><span><strong>NARRATION VOLUME</strong><span>{audio.narrationVolume}%</span></span>
             <input type="range" min="0" max="100" step="5" disabled={!audio.narrationEnabled}

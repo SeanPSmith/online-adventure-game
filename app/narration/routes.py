@@ -6,6 +6,7 @@ from contextlib import suppress
 from collections import OrderedDict, defaultdict, deque
 import hashlib
 import json
+import logging
 import os
 import re
 import time
@@ -20,6 +21,7 @@ from app.notifications.routes import require_user
 from app.narration import hosting
 
 router = APIRouter(prefix="/api/narration", tags=["narration"])
+logger = logging.getLogger(__name__)
 
 VOICES = ("af_heart", "af_bella", "af_sky", "am_michael", "bm_george")
 MAX_TEXT = 1800
@@ -139,9 +141,21 @@ def _store_shared_audio(key: str, audio: bytes) -> None:
         pass
 
 
-def _audio_response(audio: bytes) -> Response:
-    return Response(content=audio, media_type="audio/mpeg",
-        headers={"Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff"})
+def _audio_response(audio: bytes, *, source: str = "generated", started: float | None = None,
+                    generation_ms: int | None = None, voice: str = "") -> Response:
+    """Expose server/cache latency, never spoken text, account IDs or cache keys."""
+    elapsed = round((time.perf_counter() - started) * 1000) if started is not None else 0
+    headers = {
+        "Cache-Control": "private, no-store",
+        "X-Content-Type-Options": "nosniff",
+        "X-Story-Time-Cache": source,
+        "X-Story-Time-Server-Ms": str(elapsed),
+    }
+    if generation_ms is not None:
+        headers["X-Story-Time-Inference-Ms"] = str(generation_ms)
+    logger.info("story_time_audio cache=%s server_ms=%d inference_ms=%s voice=%s bytes=%d",
+                source, elapsed, generation_ms if generation_ms is not None else "-", voice, len(audio))
+    return Response(content=audio, media_type="audio/mpeg", headers=headers)
 
 
 async def _ensure_awake(*, wake: bool) -> dict:
@@ -178,6 +192,7 @@ async def narration_heartbeat(user=Depends(require_user)):
 
 @router.post("/speech")
 async def synthesize_speech(payload: SpeechRequest, user=Depends(require_user)):
+    started = time.perf_counter()
     endpoint = _endpoint()
     if not endpoint:
         raise HTTPException(503, "The narrator is not connected yet. Please try again later.")
@@ -192,11 +207,11 @@ async def synthesize_speech(payload: SpeechRequest, user=Depends(require_user)):
     audio = _cache.get(key)
     if audio is not None:
         _cache.move_to_end(key)
-        return _audio_response(audio)
+        return _audio_response(audio, source="memory", started=started, voice=payload.voice)
     audio = await asyncio.to_thread(_shared_audio, key)
     if audio is not None:
         _save_cache(key, audio)
-        return _audio_response(audio)
+        return _audio_response(audio, source="s3", started=started, voice=payload.voice)
     host = await _ensure_awake(wake=True)
     if host["state"] in {"unavailable", "budget_exhausted", "unconfigured"}:
         raise HTTPException(503, "The storyteller is not available. Continue reading for now.")
@@ -204,9 +219,15 @@ async def synthesize_speech(payload: SpeechRequest, user=Depends(require_user)):
         raise HTTPException(503, "The storyteller is awakening. Continue reading for now.",
                             headers={"Retry-After": "6"})
     async with _semaphore:
+        cache_source = "generated"
+        inference_ms = None
         audio = _cache.get(key)
+        if audio is not None:
+            cache_source = "memory"
         if audio is None:
             audio = await asyncio.to_thread(_shared_audio, key)
+            if audio is not None:
+                cache_source = "s3"
         if audio is None:
             try:
                 lease = await asyncio.to_thread(hosting.begin_generation)
@@ -227,7 +248,9 @@ async def synthesize_speech(payload: SpeechRequest, user=Depends(require_user)):
             renewal = asyncio.create_task(keep_lease_alive()) if lease else None
             try:
                 try:
+                    inference_started = time.perf_counter()
                     audio = await asyncio.to_thread(_read_kokoro, endpoint, text, payload.voice, 1.0)
+                    inference_ms = round((time.perf_counter() - inference_started) * 1000)
                 except (HTTPError, URLError, TimeoutError, ValueError, OSError) as exc:
                     raise HTTPException(502, "The narrator could not prepare this passage. Try again.") from exc
             finally:
@@ -238,4 +261,5 @@ async def synthesize_speech(payload: SpeechRequest, user=Depends(require_user)):
                 await asyncio.to_thread(hosting.finish_generation, lease)
             await asyncio.to_thread(_store_shared_audio, key, audio)
         _save_cache(key, audio)
-    return _audio_response(audio)
+    return _audio_response(audio, source=cache_source, started=started,
+                           generation_ms=inference_ms, voice=payload.voice)

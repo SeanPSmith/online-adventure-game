@@ -38,7 +38,9 @@ export function adjustNarrationVolume() {
   if (audio) {
     const prefs = readAudioPreferences();
     audio.volume = prefs.narrationVolume / 100;
+    // Playback remains local to each listener: no new synthesis or cache key per rate.
     audio.playbackRate = prefs.narrationSpeed;
+    audio.preservesPitch = true;
   }
 }
 

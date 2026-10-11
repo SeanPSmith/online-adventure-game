@@ -58,7 +58,7 @@ test('narration preferences preserve SFX settings and clamp voice / speed / volu
   assert.equal(value.effectsEnabled,true);
   assert.equal(value.masterVolume,44);
   assert.equal(value.narrationVoice,'af_heart');
-  assert.equal(value.narrationSpeed,1.5);
+  assert.equal(value.narrationSpeed,2);
   assert.equal(value.narrationVolume,0);
 });
 

@@ -1,4 +1,4 @@
-/** Browser-local SFX and Kokoro narration preferences (independent toggles). */
+/** Browser playback preferences for hosted Story Time and independent SFX. */
 export interface AudioPreferences {
   effectsEnabled: boolean;
   masterVolume: number;
@@ -11,6 +11,16 @@ export interface AudioPreferences {
   narrationVoice: string;
   narrationSpeed: number;
   narrationVolume: number;
+}
+
+/** Fixed playback speeds. Never send playback rate to synthesis: one cached file serves all rates. */
+export const NARRATION_PLAYBACK_SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2] as const;
+
+export function normalizeNarrationSpeed(value: unknown): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) return 1;
+  return NARRATION_PLAYBACK_SPEEDS.reduce((nearest, candidate) =>
+    Math.abs(candidate - value) < Math.abs(nearest - value) ? candidate : nearest,
+  1 as number);
 }
 
 export const AUDIO_PREFERENCES_CHANGED = "tot:audio-preferences-changed";
@@ -54,8 +64,7 @@ export function normalizeAudioPreferences(value: Partial<AudioPreferences> = {})
     narrationAutoPlay: typeof value.narrationAutoPlay === "boolean" ? value.narrationAutoPlay : false,
     narrationAutoChoices: typeof value.narrationAutoChoices === "boolean" ? value.narrationAutoChoices : false,
     narrationVoice: KOKORO_VOICES.some(v => v.value === value.narrationVoice) ? value.narrationVoice! : "af_heart",
-    narrationSpeed: typeof value.narrationSpeed === "number" && Number.isFinite(value.narrationSpeed)
-      ? Math.max(0.75, Math.min(1.5, value.narrationSpeed)) : 1,
+    narrationSpeed: normalizeNarrationSpeed(value.narrationSpeed),
     narrationVolume: percent(value.narrationVolume, 80),
   };
 }

@@ -1,0 +1,223 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  Tales of Two isolated, manually approved Kokoro GPU performance pilot.
+  Does not connect to ECS/backend or alter existing CPU narrator.
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: Existing narrator VPC (read from the current CPU EC2 instance)
+  SubnetId:
+    Type: AWS::EC2::Subnet::Id
+    Description: Existing narrator public subnet (outbound image pull; no inbound)
+  InstanceType:
+    Type: String
+    Default: g4dn.xlarge
+    AllowedValues: [g4dn.xlarge, g6.xlarge]
+  GpuAmiId:
+    Type: AWS::EC2::Image::Id
+    Description: AWS ECS-optimized AL2023 GPU AMI from the public SSM parameter
+  HardStopSeconds:
+    Type: Number
+    Default: 7200
+    MinValue: 900
+    MaxValue: 14400
+    Description: Automatic stop after this many seconds of an uninterrupted EC2 run
+Resources:
+  PilotSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: GPU pilot - absolutely no inbound ports, HTTPS egress only
+      VpcId: !Ref VpcId
+      SecurityGroupIngress: []
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Purpose
+          Value: StoryTimeGpuPilot
+  PilotInstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: {Service: ec2.amazonaws.com}
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore
+      Policies:
+        - PolicyName: PilotBenchmarkArtifactsOnly
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: [s3:GetObject]
+                Resource: !Sub '${PilotBucket.Arn}/scripts/*'
+              - Effect: Allow
+                Action: [s3:PutObject]
+                Resource: !Sub '${PilotBucket.Arn}/results/*'
+  PilotInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles: [!Ref PilotInstanceRole]
+  PilotBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault: {SSEAlgorithm: AES256}
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      LifecycleConfiguration:
+        Rules:
+          - Status: Enabled
+            ExpirationInDays: 2
+      Tags:
+        - Key: Purpose
+          Value: StoryTimeGpuPilot
+  PilotBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref PilotBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: RequireTLS
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: [!GetAtt PilotBucket.Arn, !Sub '${PilotBucket.Arn}/*']
+            Condition:
+              Bool: { 'aws:SecureTransport': 'false' }
+  PilotInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref GpuAmiId
+      InstanceType: !Ref InstanceType
+      IamInstanceProfile: !Ref PilotInstanceProfile
+      MetadataOptions:
+        HttpTokens: required
+        HttpEndpoint: enabled
+      NetworkInterfaces:
+        - DeviceIndex: '0'
+          AssociatePublicIpAddress: true
+          DeleteOnTermination: true
+          SubnetId: !Ref SubnetId
+          GroupSet: [!Ref PilotSecurityGroup]
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            VolumeSize: 80
+            VolumeType: gp3
+            Encrypted: true
+            DeleteOnTermination: true
+      Tags:
+        - Key: Name
+          Value: tales-of-two-story-time-gpu-pilot
+        - Key: Purpose
+          Value: StoryTimeGpuPilot
+        - Key: Environment
+          Value: staging
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          set -euxo pipefail
+          exec > >(tee -a /var/log/tot-story-time-gpu-setup.log) 2>&1
+          systemctl enable --now docker
+          systemctl enable --now amazon-ssm-agent || true
+          if ! command -v aws >/dev/null 2>&1; then
+            dnf install -y awscli-2
+          fi
+          nvidia-smi
+          docker pull ghcr.io/remsky/kokoro-fastapi-gpu:v0.9.0-cu126
+          docker rm -f story-time-gpu 2>/dev/null || true
+          docker run -d --name story-time-gpu --restart unless-stopped \
+            --gpus all --shm-size=1g --memory=12g --pids-limit=1024 \
+            -p 127.0.0.1:8880:8880 -e API_LOG_LEVEL=WARNING \
+            ghcr.io/remsky/kokoro-fastapi-gpu:v0.9.0-cu126
+  PilotWatchdogRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: {Service: lambda.amazonaws.com}
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: StopOnlyThisPilotInstance
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: ec2:DescribeInstances
+                Resource: '*'
+              - Effect: Allow
+                Action: ec2:StopInstances
+                Resource: !Sub arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:instance/${PilotInstance}
+  PilotWatchdog:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: python3.12
+      Handler: index.handler
+      Role: !GetAtt PilotWatchdogRole.Arn
+      Timeout: 30
+      Environment:
+        Variables:
+          INSTANCE_ID: !Ref PilotInstance
+          HARD_STOP_SECONDS: !Ref HardStopSeconds
+      Code:
+        ZipFile: |
+          import os
+          from datetime import datetime, timezone
+          import boto3
+
+          ec2 = boto3.client('ec2')
+          def handler(event, context):
+              iid = os.environ['INSTANCE_ID']
+              instance = ec2.describe_instances(InstanceIds=[iid])['Reservations'][0]['Instances'][0]
+              if instance['State']['Name'] != 'running':
+                  return {'status': instance['State']['Name']}
+              # EC2 LaunchTime is updated each time a stopped instance is restarted.
+              age = (datetime.now(timezone.utc) - instance['LaunchTime']).total_seconds()
+              limit = int(os.environ['HARD_STOP_SECONDS'])
+              if age >= limit:
+                  ec2.stop_instances(InstanceIds=[iid])
+                  print(f'Stopped isolated GPU pilot {iid} after {int(age)}s (limit {limit}s)')
+                  return {'status': 'stop-requested', 'age_seconds': int(age)}
+              return {'status': 'running', 'age_seconds': int(age), 'hard_stop_seconds': limit}
+  PilotWatchdogSchedule:
+    Type: AWS::Events::Rule
+    Properties:
+      ScheduleExpression: rate(5 minutes)
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt PilotWatchdog.Arn
+          Id: GPUAutoStop
+  PilotWatchdogInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref PilotWatchdog
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt PilotWatchdogSchedule.Arn
+Outputs:
+  GpuPilotInstanceId:
+    Value: !Ref PilotInstance
+  GpuPilotBucket:
+    Value: !Ref PilotBucket
+  GpuPilotWatchdog:
+    Value: !Ref PilotWatchdog
+  GpuPilotHardStopSeconds:
+    Value: !Ref HardStopSeconds

@@ -314,12 +314,21 @@ export function AdventurePage() {
   }, [audioPreferences.narrationEnabled, audioPreferences.storyTimeApproved, live.game?.started]);
 
   useEffect(() => {
-    if (!audioPreferences.narrationEnabled || !audioPreferences.storyTimeApproved ||
-        !live.game?.started || live.status !== "ready") return;
-    void keepStoryTimeAlive();
-    const interval = window.setInterval(() => { void keepStoryTimeAlive(); }, 240_000);
-    return () => window.clearInterval(interval);
-  }, [audioPreferences.narrationEnabled, audioPreferences.storyTimeApproved, live.game?.started, live.status]);
+    if (!normalizedRoomCode || live.status !== "ready" || !live.game) return;
+    const enabled = audioPreferences.narrationEnabled && audioPreferences.storyTimeApproved;
+    if (!enabled) {
+      void keepStoryTimeAlive(normalizedRoomCode, false);
+      return;
+    }
+    // Wake during the synopsis/lobby, NOT after Chapter One is revealed.
+    void keepStoryTimeAlive(normalizedRoomCode);
+    const interval = window.setInterval(() => { void keepStoryTimeAlive(normalizedRoomCode); }, 60_000);
+    return () => {
+      window.clearInterval(interval);
+      void keepStoryTimeAlive(normalizedRoomCode, false);
+    };
+  }, [audioPreferences.narrationEnabled, audioPreferences.storyTimeApproved,
+      normalizedRoomCode, live.status, Boolean(live.game)]);
 
   function toggleStoryTime() {
     if (audioPreferences.narrationEnabled) {

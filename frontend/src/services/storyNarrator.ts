@@ -79,7 +79,7 @@ function cleaned(text: string): string {
 }
 
 /** Chunk long scenes so every request stays under the server's 1,800 character limit. */
-export function splitPassage(text: string, maxLength = 1300): string[] {
+export function splitPassage(text: string, maxLength = 280): string[] {
   const value = cleaned(text);
   if (!value) return [];
   const pieces: string[] = [];

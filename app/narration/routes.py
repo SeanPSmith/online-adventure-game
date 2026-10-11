@@ -38,6 +38,11 @@ _calls: dict[str, deque[float]] = defaultdict(deque)
 _semaphore = asyncio.Semaphore(1)
 
 
+class RoomHeartbeat(BaseModel):
+    room_code: str = Field(min_length=1, max_length=32)
+    enabled: bool = True
+
+
 class SpeechRequest(BaseModel):
     text: str = Field(min_length=1, max_length=MAX_TEXT)
     voice: str = "af_heart"
@@ -141,6 +146,11 @@ def _store_shared_audio(key: str, audio: bytes) -> None:
         pass
 
 
+def _audio_key(text: str, voice: str) -> str:
+    # Client playback rate never affects synthesis or the shared cache.
+    return hashlib.sha256(json.dumps([CACHE_MODEL_VERSION, text, voice, 1.0]).encode()).hexdigest()
+
+
 def _audio_response(audio: bytes, *, source: str = "generated", started: float | None = None,
                     generation_ms: int | None = None, voice: str = "") -> Response:
     """Expose server/cache latency, never spoken text, account IDs or cache keys."""
@@ -184,10 +194,30 @@ async def narration_status(user=Depends(require_user)):
 
 
 @router.post("/heartbeat")
-async def narration_heartbeat(user=Depends(require_user)):
-    """Only voice-enabled clients call this while actively playing. No wake on heartbeat."""
-    host = await _ensure_awake(wake=False)
-    return {"state": host["state"]}
+async def narration_heartbeat(payload: RoomHeartbeat | None = None, user=Depends(require_user)):
+    """Wake/maintain only an authenticated participant in a live room.
+
+    Missing room_code is intentionally a legacy no-wake heartbeat. A random
+    authenticated account must never be able to keep the GPU running.
+    """
+    if payload is None:
+        host = await _ensure_awake(wake=False)
+        return {"state": host["state"]}
+    room_code = payload.room_code.strip().upper()
+    from app import main  # lazy import: main registers this router
+    room = main.rooms.room_by_code(room_code)
+    if room is None or not any(
+        str(p.user_id) == str(user.user_id) and p.is_online
+        for p in room.players.values()
+    ):
+        raise HTTPException(403, "An active adventure membership is required for Story Time.")
+    if not hosting.configured():
+        return {"state": "legacy" if _endpoint() else "unconfigured"}
+    try:
+        return await asyncio.to_thread(hosting.lease_room, room_code, str(user.user_id), enabled=payload.enabled)
+    except Exception:
+        logger.exception("Story Time room lease renewal failed")
+        return {"state": "unavailable"}
 
 
 @router.post("/speech")
@@ -203,7 +233,7 @@ async def synthesize_speech(payload: SpeechRequest, user=Depends(require_user)):
         raise HTTPException(422, "Nothing to narrate.")
     _rate_limit(str(user.user_id))
     # Playback speed is client-side, not part of synthesis, to maximize reuse.
-    key = hashlib.sha256(json.dumps([CACHE_MODEL_VERSION, text, payload.voice, 1.0]).encode()).hexdigest()
+    key = _audio_key(text, payload.voice)
     audio = _cache.get(key)
     if audio is not None:
         _cache.move_to_end(key)

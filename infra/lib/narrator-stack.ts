@@ -91,7 +91,8 @@ export class NarratorStack extends cdk.Stack {
       environment: {
         INSTANCE_ID: this.instance.instanceId,
         TABLE_NAME: this.activityTable.tableName,
-        IDLE_SECONDS: "1800",
+        IDLE_SECONDS: "1800", // legacy idle for never-used narration server
+        ROOM_IDLE_SECONDS: "900", // grace after last opt-in room heartbeat
         MAX_MONTHLY_SECONDS: "216000", // 60 hours. Approximate, checked every five minutes.
       },
     });

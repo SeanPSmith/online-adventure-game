@@ -89,9 +89,13 @@ export async function synthesizeStoryTimeSpeech(input: StoryTimeRequest, signal:
 }
 
 /** Heartbeat only while an actual room with Story Time enabled is active. */
-export async function keepStoryTimeAlive(): Promise<void> {
-  if (!readAudioPreferences().narrationEnabled) return;
+export async function keepStoryTimeAlive(roomCode: string, enabled = true): Promise<void> {
+  if (!roomCode.trim()) return;
   try {
-    await fetch(`${API_BASE}/api/narration/heartbeat`, { method: "POST", credentials: "include" });
+    await fetch(`${API_BASE}/api/narration/heartbeat`, {
+      method: "POST", credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ room_code: roomCode, enabled }),
+    });
   } catch { /* Never interfere with gameplay. */ }
 }

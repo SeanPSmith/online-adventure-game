@@ -5,7 +5,7 @@ set -euo pipefail
 
 CONTAINER="${STORY_TIME_CONTAINER:-story-time}"
 ENDPOINT="${STORY_TIME_BENCH_ENDPOINT:-http://127.0.0.1:8880/v1/audio/speech}"
-DEST="${STORY_TIME_BENCH_DIR:-$HOME/story-time-bench-$(date +%Y%m%d-%H%M%S)}"
+DEST="${STORY_TIME_BENCH_DIR:-${TMPDIR:-/tmp}/story-time-bench-$(date +%Y%m%d-%H%M%S)}"
 DOCKER=(sudo docker)
 command -v curl >/dev/null || { echo 'curl is required' >&2; exit 2; }
 "${DOCKER[@]}" inspect -f '{{.State.Running}}' "$CONTAINER" 2>/dev/null | grep -qx true || {

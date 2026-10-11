@@ -3707,6 +3707,14 @@ async def start_adventure(
                 room.code, director_output=output,
                 characters_by_player_id=characters,
             )
+            # Start private background narration only AFTER the opening is
+            # finalized. No scene text/audio is sent by this worker.
+            try:
+                from app.narration.prefetch import schedule_committed_scene
+                schedule_committed_scene(room.code, session.scene, session.narrator_voice)
+            except Exception as narration_error:
+                # No optional TTS exception may fail a committed story turn.
+                print(f"[NARRATION PREFETCH SKIPPED] type={type(narration_error).__name__}")
         except Exception as exc:
             session.starting = False
             _opening_active_rooms.discard(room.code)
@@ -4442,6 +4450,14 @@ async def finalize_resolved_turn(
                     characters_by_player_id=characters_by_player_id,
                 )
             )
+            # Future scene exists server-side before dice acknowledgement.
+            # Warm its cached audio without revealing it to any player.
+            try:
+                from app.narration.prefetch import schedule_committed_scene
+                schedule_committed_scene(room.code, session.scene, session.narrator_voice)
+            except Exception as narration_error:
+                # No optional TTS exception may fail a committed story turn.
+                print(f"[NARRATION PREFETCH SKIPPED] type={type(narration_error).__name__}")
 
         progression_updates = (
             await apply_turn_progression(

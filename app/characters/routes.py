@@ -31,6 +31,8 @@ from app.characters.schemas import (
     CharacterResponse,
     CreateCharacterRequest,
     UpdateCharacterProfileRequest,
+    HeroDispositionRequest,
+    GraveyardResponse,
 )
 
 from app.characters.service import (
@@ -301,6 +303,36 @@ async def update_character_profile(
 
 
 # =========================================================
+# WORLD GRAVEYARD (signed-in players; no biographies/account IDs)
+# =========================================================
+
+@router.get("/graveyard", response_model=GraveyardResponse)
+async def list_graveyard(
+    session_token: str | None = Cookie(default=None, alias=SESSION_COOKIE_NAME),
+):
+    await require_user(session_token)
+    return GraveyardResponse(memorials=await character_service.list_graveyard())
+
+
+@router.post("/{character_id}/disposition", response_model=CharacterResponse)
+async def set_hero_disposition(
+    character_id: str,
+    payload: HeroDispositionRequest,
+    session_token: str | None = Cookie(default=None, alias=SESSION_COOKIE_NAME),
+):
+    user = await require_user(session_token)
+    try:
+        hero = await character_service.change_disposition(
+            user.user_id, character_id, action=payload.action, epitaph=payload.epitaph,
+        )
+    except (CharacterNotFoundError, CharacterOwnershipError) as error:
+        raise HTTPException(status_code=404, detail="Character does not exist.") from error
+    except CharacterValidationError as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
+    return character_response(hero)
+
+
+# =========================================================
 # GET
 # =========================================================
 
@@ -460,7 +492,8 @@ async def delete_character(
             detail=
                 "Character does not exist.",
         ) from error
-
+    except CharacterValidationError as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
 
     return CharacterDeleteResponse(
         message=

@@ -52,6 +52,12 @@ node --test tests/frontend/story-time-playback-speeds.cjs
 say "Story Time bounded lookahead, pause and cancellation regressions"
 node --test tests/frontend/story-time-buffered-playback.cjs
 
+say "Story Time co-op narrator and reconnect regressions"
+node --test tests/frontend/story-time-coop.cjs
+
+say "Hero Hall and Graveyard browser regressions"
+node --test tests/frontend/hero-legacy.cjs
+
 say "React production build"
 (
   cd frontend

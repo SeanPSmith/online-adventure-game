@@ -22,7 +22,7 @@ import type { PartyHeroSnapshot, SceneChoice } from "../../services/game";
 import { rememberGameRoute } from "../../services/gameRouteMemory";
 import {
   readAudioPreferences, writeAudioPreferences, AUDIO_PREFERENCES_CHANGED, NARRATION_PLAYBACK_SPEEDS,
-  type AudioPreferences,
+  type AudioPreferences, KOKORO_VOICES,
 } from "../../services/audioPreferences";
 import { activateAudioFromGesture, playSound } from "../../services/audioDirector";
 import {
@@ -31,6 +31,7 @@ import {
   setAdventureNarratorVoice,
   type NarrationState,
 } from "../../services/storyNarrator";
+import { createAutoReadGate } from "../../services/storyAutoReadGate";
 import { readStoryDisplayPreferences, type StoryDisplayPreferences } from "../../services/storyPreferences";
 import { useGameSocket } from "../../state/GameSocketContext";
 import { useLiveAdventure } from "../../state/useLiveAdventure";
@@ -143,6 +144,7 @@ export function AdventurePage() {
   const [narration, setNarration] = useState<NarrationState>({ phase: "idle", label: "", error: "", cue: null });
   const [followVoice, setFollowVoice] = useState(true);
   const lastAutoNarration = useRef("");
+  const autoReadGate = useRef(createAutoReadGate());
   const [storyTime, setStoryTime] = useState<StoryTimeState>({ phase: "idle", percent: null, message: "" });
   const narratorAvailable = storyTime.phase === "ready";
   const [historyIndex, setHistoryIndex] = useState(0);
@@ -348,14 +350,31 @@ export function AdventurePage() {
     setAudioPreferences(writeAudioPreferences({ narrationSpeed: next }));
   }
 
-  // One shared voice is fixed when the host creates the room. Playback remains independent.
+  // A lobby host chooses the room's voice. Listeners cannot override it with
+  // their own Account Settings narrator choice; only playback controls are local.
+  const roomVoiceId = live.game?.narrator_voice ?? null;
+  const roomVoiceName = KOKORO_VOICES.find(v => v.value === roomVoiceId)?.label ?? "HOST SELECTED";
   useEffect(() => {
     setAdventureNarratorVoice(live.game?.narrator_voice ?? null);
     return () => setAdventureNarratorVoice(null);
-  }, [live.game?.narrator_voice]);
+  }, [roomVoiceId]);
 
-  // Never let the previous chapter speak over the next chapter or a reaction event.
-  useEffect(() => { stopNarration(); }, [normalizedRoomCode, scene?.id, turnNumber]);
+  // Existing restored chapters are not new chapter events. Record the first
+  // authoritative snapshot for this mount (including private-browser sessions
+  // with sessionStorage unavailable) before the auto-read effect can fire.
+  const currentSpokenScene = live.game?.started && scene?.body
+    ? `${normalizedRoomCode}:${turnNumber}:${scene.id}` : "";
+  const autoReadIdentity = `${normalizedRoomCode}:${characterId ?? ""}`;
+  useEffect(() => {
+    autoReadGate.current.observe(autoReadIdentity, connected && live.status === "ready" && Boolean(live.game), currentSpokenScene);
+  }, [autoReadIdentity, connected, live.status, live.game, currentSpokenScene]);
+
+  // Never let a previous chapter, another room's voice, or disconnected player
+  // keep speaking. Reconnect restores gameplay but NEVER replays old audio.
+  useEffect(() => { stopNarration(); }, [normalizedRoomCode, characterId, roomVoiceId, scene?.id, turnNumber]);
+  useEffect(() => {
+    if (!connected || live.status !== "ready") stopNarration();
+  }, [connected, live.status]);
   // Update the live audio element immediately when either personal playback setting changes.
   useEffect(() => { adjustNarrationVolume(); }, [audioPreferences.narrationVolume, audioPreferences.narrationSpeed]);
   useEffect(() => {
@@ -369,11 +388,12 @@ export function AdventurePage() {
   // Mark each scene before attempting auto-play, so reconnects and repeated
   // Socket.IO snapshots never re-read old narration. Manual READ always works.
   useEffect(() => {
-    if (!audioPreferences.narrationEnabled || !audioPreferences.narrationAutoPlay ||
+    if (!connected || !audioPreferences.narrationEnabled || !audioPreferences.narrationAutoPlay ||
         narratorAvailable !== true || !live.game?.started || !scene?.body ||
         !theater.chapterReleased || live.game?.pending_micro_event ||
         choiceLocked || showDeath || showLevelUp || live.status !== "ready") return;
-    const key = `tot:spoken:${normalizedRoomCode}:${turnNumber}:${scene.id}`;
+    const key = `tot:spoken:${currentSpokenScene}`;
+    if (!autoReadGate.current.isNewScene(autoReadIdentity, currentSpokenScene)) return;
     if (lastAutoNarration.current === key) return;
     lastAutoNarration.current = key;
     try {
@@ -384,15 +404,16 @@ export function AdventurePage() {
   }, [audioPreferences.narrationEnabled, audioPreferences.narrationAutoPlay,
       audioPreferences.narrationAutoChoices, narratorAvailable, live.game?.started,
       live.game?.pending_micro_event, live.status, scene?.id, scene?.body,
-      theater.chapterReleased, choiceLocked, showDeath, showLevelUp, normalizedRoomCode, turnNumber]);
+      theater.chapterReleased, choiceLocked, showDeath, showLevelUp, normalizedRoomCode, turnNumber,
+      connected, currentSpokenScene, autoReadIdentity]);
 
   function narrateChapter() {
-    if (!audioPreferences.narrationEnabled || !theater.chapterReleased || !scene?.body) return;
+    if (!connected || live.status !== "ready" || !audioPreferences.narrationEnabled || !theater.chapterReleased || !scene?.body) return;
     void playNarration(sceneNarrationItems(scene.body, scene.choices, audioPreferences.narrationAutoChoices));
   }
 
   function narrateChoices() {
-    if (!audioPreferences.narrationEnabled || !theater.chapterReleased) return;
+    if (!connected || live.status !== "ready" || !audioPreferences.narrationEnabled || !theater.chapterReleased) return;
     void playNarration(choiceNarrationItems(scene?.choices ?? []));
   }
 
@@ -766,6 +787,9 @@ ${scene.body.slice(0, 260)}`}
               ) : (
                 <p className="muted-copy">A solitary road is yours to take whenever you are ready.</p>
               )}
+              {audioPreferences.narrationEnabled && roomVoiceId ? (
+                <p className="muted-copy">PARTY NARRATOR // {roomVoiceName} · HOST SELECTED · YOUR PLAYBACK CONTROLS ARE PRIVATE</p>
+              ) : null}
               <div className="adventure-lobby-roster">
                 {readiness.map((player) => (
                   <div className={`adventure-lobby-player ${player.online ? "is-ready" : ""}`} key={player.player_id}>
@@ -802,6 +826,9 @@ ${scene.body.slice(0, 260)}`}
                 </button>
                 {audioPreferences.narrationEnabled ? (
                   <>
+                    <span className="eyebrow" title="Voice is chosen when the host creates the room. Your playback settings affect only this browser.">
+                      PARTY VOICE // {roomVoiceName} · YOUR VOLUME {audioPreferences.narrationVolume}%
+                    </span>
                     <button className="button button-quiet" type="button"
                       aria-label={`Change narrator playback speed, currently ${audioPreferences.narrationSpeed} times normal`}
                       title="Cycle playback speed: 0.5× to 2×"
@@ -815,10 +842,10 @@ ${scene.body.slice(0, 260)}`}
                       FOLLOW VOICE {followVoice ? "ON" : "OFF"}
                     </button>
                     <button className="button button-quiet" type="button"
-                      disabled={!scene?.body || narratorAvailable !== true || !theater.chapterReleased || Boolean(live.game?.pending_micro_event) || showDeath}
+                      disabled={!connected || live.status !== "ready" || !scene?.body || narratorAvailable !== true || !theater.chapterReleased || Boolean(live.game?.pending_micro_event) || showDeath}
                       onClick={narrateChapter}>READ CHAPTER</button>
                     <button className="button button-quiet" type="button"
-                      disabled={!scene?.choices.length || narratorAvailable !== true || !theater.chapterReleased || Boolean(live.game?.pending_micro_event) || choiceLocked || showDeath}
+                      disabled={!connected || live.status !== "ready" || !scene?.choices.length || narratorAvailable !== true || !theater.chapterReleased || Boolean(live.game?.pending_micro_event) || choiceLocked || showDeath}
                       onClick={narrateChoices}>READ CHOICES</button>
                     {(narration.phase === "playing" || narration.phase === "loading" || narration.phase === "buffering") ? (
                       <button className="button button-quiet" type="button" onClick={pauseNarration}>PAUSE</button>
@@ -1023,7 +1050,7 @@ ${scene.body.slice(0, 260)}`}
 
                       {audioPreferences.narrationEnabled ? (
                         <button className="choice-narrate-button" type="button"
-                          disabled={narratorAvailable !== true || !theater.chapterReleased || Boolean(live.game?.pending_micro_event) || choiceLocked || showDeath}
+                          disabled={!connected || live.status !== "ready" || narratorAvailable !== true || !theater.chapterReleased || Boolean(live.game?.pending_micro_event) || choiceLocked || showDeath}
                           aria-label={`Read choice ${index + 1} aloud`}
                           title="Listen to this choice without selecting it"
                           onClick={() => { void playNarration([{ text: `Option ${index + 1}. ${choice.label}`, label: `CHOICE ${index + 1}`, kind: "choice" }]); }}>

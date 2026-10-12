@@ -39,6 +39,7 @@ export const router = createBrowserRouter([
               { index: true, lazy: async () => ({ Component: (await import("./pages/game/GameHomePage")).GameHomePage }) },
               { path: "adventure/:roomId", lazy: async () => ({ Component: (await import("./pages/game/AdventurePage")).AdventurePage }) },
               { path: "heroes", lazy: async () => ({ Component: (await import("./pages/heroes/HeroManagerPage")).HeroManagerPage }) },
+              { path: "graveyard", lazy: async () => ({ Component: (await import("./pages/heroes/GraveyardPage")).GraveyardPage }) },
               { path: "heroes/new", lazy: async () => ({ Component: (await import("./pages/heroes/HeroCreatePage")).HeroCreatePage }) },
               { path: "heroes/:heroId", lazy: async () => ({ Component: (await import("./pages/heroes/HeroSheetPage")).HeroSheetPage }) },
               { path: "adventures", lazy: async () => ({ Component: (await import("./pages/game/MyAdventuresPage")).MyAdventuresPage }) },

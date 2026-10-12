@@ -366,6 +366,68 @@ class CharacterService:
 
 
     # =====================================================
+    # RETIRE / RESTORE / BURY
+    # =====================================================
+
+    @staticmethod
+    def ensure_not_in_active_room(character_id: str) -> None:
+        # Room membership must be checked on the server, never trusted to the UI.
+        from app import main
+        room = main.rooms.room_for_character(character_id)
+        if room is None:
+            return
+        session = main.game_sessions.get(room.code)
+        if session is not None and bool(getattr(session, "completed", False)):
+            return  # Completed adventures retain their chronicle, not an active lock.
+        raise CharacterValidationError(
+            "Leave or finish the active adventure before managing this Hero."
+        )
+
+    async def change_disposition(
+        self, owner_user_id: str, character_id: str, *, action: str, epitaph: str = ""
+    ) -> Character:
+        character = await self.get_owned_character(owner_user_id, character_id)
+        self.ensure_not_in_active_room(character_id)
+        if action == "retire":
+            if character.hero_status != "active" or not character.is_alive:
+                raise CharacterValidationError("Only a living, active Hero can retire.")
+            character.hero_status = "retired"
+            character.retired_at = utc_now().isoformat()
+        elif action == "restore":
+            if character.hero_status != "retired" or not character.is_alive:
+                raise CharacterValidationError("Only a living, retired Hero can return.")
+            character.hero_status = "active"
+            character.retired_at = None
+        elif action == "bury":
+            if character.is_alive:
+                raise CharacterValidationError("Only a fallen Hero may be buried.")
+            if character.hero_status == "buried":
+                raise CharacterValidationError("This Hero is already laid to rest.")
+            if character.hero_status != "active":
+                raise CharacterValidationError("This Hero cannot be buried in this state.")
+            character.hero_status = "buried"
+            character.buried_at = utc_now().isoformat()
+            character.epitaph = str(epitaph or "").strip()[:160]
+        else:
+            raise CharacterValidationError("Unknown Hero action.")
+        return await self.save_owned_character(owner_user_id, character)
+
+    async def list_graveyard(self) -> list[dict]:
+        buried = await character_store.list_memorials()
+        return [
+            {
+                "character_id": item.character_id,
+                "name": item.name,
+                "level": item.level,
+                "experience": item.experience,
+                "epitaph": item.epitaph,
+                "cause": str((item.death_record or {}).get("cause", "") or "")[:160],
+                "buried_at": item.buried_at,
+            }
+            for item in buried
+        ]
+
+    # =====================================================
     # DELETE
     # =====================================================
 
@@ -382,6 +444,8 @@ class CharacterService:
             )
         )
 
+
+        self.ensure_not_in_active_room(character.character_id)
 
         deleted = (
             await character_store.delete(

@@ -489,6 +489,7 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
               options={[...KOKORO_VOICES]}
               onChange={value => setAudioPreference({ narrationVoice: value })}
             />
+            <small>YOUR NEXT ROOM // Once a host creates an adventure, its narrator voice is shared by the party. Changing this selector won't change an ongoing room.</small>
           </div>
           <label className="audio-setting-slider"><span><strong>PLAYBACK SPEED</strong><span>{audio.narrationSpeed}×</span></span>
             <input type="range" min={NARRATION_PLAYBACK_SPEEDS[0]}

@@ -36,7 +36,7 @@ export function JoinInvitePage() {
   );
 
   const selectableHeroes = useMemo(
-    () => heroes.filter((hero) => !occupiedHeroIds.has(hero.character_id)),
+    () => heroes.filter((hero) => hero.is_alive && hero.hero_status === "active" && !occupiedHeroIds.has(hero.character_id)),
     [heroes, occupiedHeroIds],
   );
 
@@ -195,8 +195,8 @@ export function JoinInvitePage() {
           </div>
         ) : heroes.length > 0 ? (
           <div className="system-notice invite-no-hero">
-            <strong>ALL OF YOUR HEROES ARE ALREADY IN ACTIVE JOURNEYS.</strong>
-            <Link className="button" to="/game">OPEN ADVENTURE HALL</Link>
+            <strong>NO AVAILABLE LIVING HERO CAN JOIN. CREATE A NEW HERO OR RETURN TO THE HERO HALL.</strong>
+            <Link className="button" to="/game/heroes">OPEN HERO HALL</Link>
           </div>
         ) : null}
       </div>

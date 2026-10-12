@@ -337,6 +337,25 @@ class SQLiteCharacterStore:
 
 
     # =====================================================
+    # PUBLIC MEMORIALS (only voluntarily buried Heroes)
+    # =====================================================
+
+    async def list_memorials(self, limit: int = 120) -> list[Character]:
+        return await asyncio.to_thread(self._list_memorials_sync, limit)
+
+    def _list_memorials_sync(self, limit: int) -> list[Character]:
+        # JSON payload remains the source of truth on both SQLite and Postgres.
+        # A future large-scale index can replace this scan without a migration.
+        with self._connect() as connection:
+            rows = connection.execute("SELECT payload FROM characters").fetchall()
+        buried = [character for row in rows
+                  if (character := self._decode_character(row["payload"])) is not None
+                  and character.hero_status == "buried" and not character.is_alive
+                  and character.buried_at]
+        buried.sort(key=lambda item: item.buried_at or "", reverse=True)
+        return buried[:max(0, min(limit, 200))]
+
+    # =====================================================
     # NAME LOOKUP
     # =====================================================
 

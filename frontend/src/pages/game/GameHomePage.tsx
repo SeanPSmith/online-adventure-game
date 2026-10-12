@@ -143,9 +143,14 @@ export function GameHomePage() {
     [adventures],
   );
 
+  // All hero-picker entry points must agree: no fallen, buried or retired Hero.
+  const playableHeroes = useMemo(
+    () => heroes.filter((hero) => hero.is_alive && hero.hero_status === "active"),
+    [heroes],
+  );
   const selectableHeroes = useMemo(
-    () => heroes.filter((hero) => hero.is_alive && !occupiedHeroIds.has(hero.character_id)),
-    [heroes, occupiedHeroIds],
+    () => playableHeroes.filter((hero) => !occupiedHeroIds.has(hero.character_id)),
+    [playableHeroes, occupiedHeroIds],
   );
 
   useEffect(() => {
@@ -412,8 +417,14 @@ export function GameHomePage() {
           </div>
         ) : null}
 
+        {heroes.length > playableHeroes.length ? (
+          <p className="muted-copy">
+            Fallen and archived Heroes are preserved in the <Link to="/game/heroes">HERO HALL</Link>,
+            not selectable for new adventures. <Link to="/game/graveyard">VISIT THE GRAVEYARD →</Link>
+          </p>
+        ) : null}
         <div className="dashboard-hero-stack dashboard-hero-grid">
-          {heroes.slice(0, 4).map((hero) => {
+          {playableHeroes.slice(0, 4).map((hero) => {
             const busy = occupiedHeroIds.has(hero.character_id);
             const points = advancementTotal(hero);
             const selected = hero.character_id === selectedHeroId;
@@ -422,7 +433,7 @@ export function GameHomePage() {
               <article className={`dashboard-hero-card ${selected ? "is-selected" : ""}`} key={hero.character_id}>
                 <div className="dashboard-hero-copy">
                   <span className="eyebrow">
-                    LVL {hero.level} // {busy ? "IN JOURNEY" : selected ? "SELECTED" : "AVAILABLE"}
+                    LVL {hero.level} // {!hero.is_alive ? "FALLEN" : hero.hero_status === "retired" ? "RETIRED" : hero.hero_status === "buried" ? "LAID TO REST" : busy ? "IN JOURNEY" : selected ? "SELECTED" : "AVAILABLE"}
                   </span>
                   <strong>{hero.name}</strong>
                   <p>{hero.bio || "No background written yet."}</p>
@@ -433,7 +444,7 @@ export function GameHomePage() {
                   {points > 0 ? <b>{points} ADVANCEMENT WAITING</b> : null}
                 </div>
                 <div className="dashboard-hero-actions">
-                  {!busy ? (
+                  {!busy && hero.is_alive && hero.hero_status === "active" ? (
                     <button
                       className={`button ${selected ? "button-primary" : ""}`}
                       type="button"
@@ -476,7 +487,10 @@ export function GameHomePage() {
 
         {heroes.length > 0 && selectableHeroes.length === 0 ? (
           <div className="system-notice">
-            EVERY HERO YOU OWN IS ALREADY BUSY MAKING CONSEQUENCES.
+            {playableHeroes.length === 0
+              ? "NO LIVING ACTIVE HEROES REMAIN. CREATE A NEW HERO OR VISIT THE HERO HALL."
+              : "EVERY AVAILABLE HERO IS CURRENTLY IN AN ADVENTURE."}
+            <Link className="button" to="/game/heroes">HERO HALL →</Link>
           </div>
         ) : null}
 

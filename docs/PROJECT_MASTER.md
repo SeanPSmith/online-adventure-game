@@ -4,12 +4,21 @@
 > Update or rewrite the relevant sections in this file as the product changes; do not create another numbered changelog copy.
 
 **Last consolidated:** 2026-10-11  
-**Current local baseline:** Pass 60A client-side approximate sentence highlighting synchronized to the active audio passage, on top of Pass 59D bounded MP3 lookahead and Pass 59C room-aware lifecycle/private prefetch. CPU Kokoro remains the configured narrator; the separate GPU pilot awaits AWS G-family quota approval. Pass 59D is a browser playback change, not a GPU migration or infrastructure deployment. Canonical Choice → Intermission → Dice → Story reveal remains unchanged.
+**Current local baseline:** Pass 60B co-op narrator ownership and reconnect safety on top of Pass 60A client-side approximate sentence highlighting synchronized to the active audio passage, on top of Pass 59D bounded MP3 lookahead and Pass 59C room-aware lifecycle/private prefetch. CPU Kokoro remains the configured narrator; the separate GPU pilot awaits AWS G-family quota approval. Pass 59D is a browser playback change, not a GPU migration or infrastructure deployment. Canonical Choice → Intermission → Dice → Story reveal remains unchanged.
 **Public site:** `https://onlinetextadventure.com`  
 **Primary release command:** `./scripts/release-staging.sh "Describe the release"`
 
 ---
 
+
+### Pass 60B — Co-op Story Time voice and reconnect safety (client only)
+
+- The host selects one room narrator when creating the adventure; the authoritative `game.narrator_voice` is used for every participant. The active room voice is visible in the lobby and during play. Changing Account Settings voice changes only the default for a *future room*, never the voice in the current room.
+- Playback speed (0.5×–2×), narration volume, consent, and local stop/pause remain independent for each browser. Synthesis stays at 1× and continues to reuse shared audio cache keys without a new voice per listener.
+- Narration is stopped on disconnection/recovery gating, character/room change, room-voice change, and scene/turn transitions. Manual chapter/choice READ is disabled until the player's room snapshot is restored and the chapter is released.
+- The first authoritative restored chapter on page mount **or after a disconnect/reconnect** is a baseline, **not** an automatic fresh-chapter playback event, including when sessionStorage is blocked. A chapter received while disconnected is not automatically read on return. A newly generated chapter following an observed lobby/scene remains eligible for auto-read after theater releases it. Existing storage-based duplicate suppression remains a secondary guard.
+- This pass introduces no backend/schema, model, GPU, inference, AWS, or turn-order changes. Co-op regression tests are in `tests/frontend/story-time-coop.cjs` and wired into `scripts/check-project.sh`.
+- Staging smoke: start a co-op room with different account default voices; confirm host choice on both clients and independent speed/volume; reconnect a guest mid-chapter and verify no automatic replay; release a new chapter and verify opt-in auto-read; disconnect while speech is playing and verify it stops immediately; ensure no hidden chapter is narrated before turn theater release.
 
 ### Pass 60A — Sentence-following chapter presentation (client only)
 - Optional **FOLLOW VOICE ON/OFF** control in the in-adventure Story Time toolbar. While on, the full **already-released** chapter remains visible, and the approximately spoken sentence is highlighted using `HTMLAudioElement.currentTime / duration` within the current unchanged 280-character audio passage. This estimate is **not** word-level alignment or precise phoneme timing; highlight is cleared on buffering, STOP, choice/QTE transitions, and scene change. PAUSE keeps the highlight and RESUME continues from the same time.
@@ -358,6 +367,14 @@ ASCII art is decorative and **must never own or block story truth**. It requires
 ---
 
 ## 7. Hero RPG System
+
+### Hero Hall, fate and shared Graveyard (Pass 60B.1)
+
+A Hero with 0 HP is **fallen**, even if a legacy record has no explicit status. Such Heroes never appear as selectable in new-adventure or invite/join pickers. Only living `active` Heroes may create or join rooms; the backend independently rejects ineligible character IDs.
+
+Hero Hall distinguishes `active`, `retired` (living, restorable) and `buried` (fallen, permanently archived). Fallen Heroes have a somber ASCII memorial and may be voluntarily buried with an optional epitaph. Burial retains the Hero record and Chronicle history; the shared authenticated Graveyard displays only name, level, XP, limited cause, epitaph, and burial date—not the account, owner ID, or biography. Permanent deletion is separate, requires typing the exact Hero name, and removes the Hero record and its grave marker. Modifications are ownership-checked and refused during an unfinished active adventure.
+
+Legacy JSON records default to `active` without a table migration. Graveyard records are currently read from the character JSON store; index/search pagination can be added when the population grows.
 
 ### Hero Bio
 

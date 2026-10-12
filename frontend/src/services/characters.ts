@@ -19,6 +19,10 @@ export interface Character {
   health: number;
   is_alive: boolean;
   death_record: Record<string, unknown> | null;
+  hero_status: "active" | "retired" | "buried";
+  retired_at: string | null;
+  buried_at: string | null;
+  epitaph: string;
   effects: Array<Record<string, unknown>>;
   xp_current: number;
   xp_level_floor: number;
@@ -144,4 +148,32 @@ export function listCharacterStories(characterId: string) {
   return apiFetch<{ stories: CompletedStory[] }>(
     `/api/characters/${encodeURIComponent(characterId)}/stories`,
   );
+}
+
+
+export interface HeroMemorial {
+  character_id: string;
+  name: string;
+  level: number;
+  experience: number;
+  epitaph: string;
+  cause: string;
+  buried_at: string;
+}
+
+export function listGraveyard() {
+  return apiFetch<{ memorials: HeroMemorial[] }>("/api/characters/graveyard");
+}
+
+export function setHeroDisposition(characterId: string, action: "retire" | "restore" | "bury", epitaph = "") {
+  return apiFetch<Character>(`/api/characters/${encodeURIComponent(characterId)}/disposition`, {
+    method: "POST",
+    body: JSON.stringify({ action, epitaph }),
+  });
+}
+
+export function deleteCharacter(characterId: string) {
+  return apiFetch<{ message: string }>(`/api/characters/${encodeURIComponent(characterId)}`, {
+    method: "DELETE",
+  });
 }

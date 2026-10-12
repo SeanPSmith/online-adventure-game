@@ -1604,18 +1604,18 @@ async def require_owned_character(
 
 
     try:
-
-        return (
-            await character_service
-            .get_owned_character(
-
-                owner_user_id=
-                    user.user_id,
-
-                character_id=
-                    character_id,
-            )
+        character = await character_service.get_owned_character(
+            owner_user_id=user.user_id,
+            character_id=character_id,
         )
+        if not character.is_alive or character.hero_status != "active":
+            await sio.emit(
+                "room_error",
+                {"message": "This Hero is fallen or retired and cannot begin another adventure."},
+                to=sid,
+            )
+            return None
+        return character
 
     except CharacterError:
 

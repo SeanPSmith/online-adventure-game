@@ -27,6 +27,7 @@ export function GameLayout() {
           <details className="header-system-menu">
             <summary>SYSTEM</summary>
             <div className="header-system-popover">
+              <NavLink to="/game/graveyard">GRAVEYARD</NavLink>
               <NavLink to="/game/arcade">ARCADE</NavLink>
               <NavLink to="/game/rulebook">RULEBOOK</NavLink>
               {canAuthor ? <a href="/author-console">AUTHOR</a> : null}

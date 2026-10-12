@@ -8758,3 +8758,41 @@ textarea:focus {
 @media (prefers-reduced-motion: reduce) {
   .story-follow-sentence { transition: none; }
 }
+
+
+/* PASS 61 // THE HERO HALL & CEMETERY */
+.hero-hall-intro, .graveyard-intro { display: flex; align-items: center; gap: 2rem; padding: 1.35rem; margin: 1rem 0; border: 1px solid #466168; background: linear-gradient(110deg, #071518, #030808); }
+.hero-hall-intro pre, .graveyard-intro pre { flex-shrink: 0; color: #8cb4b6; line-height: 1.14; font-size: clamp(.7rem, 1vw, 1rem); }
+.hero-hall-intro p, .graveyard-intro p { color: #93a9a8; max-width: 60rem; }
+.hero-hall-counts { display: flex; flex-wrap: wrap; gap: 1rem; color: #b1c4bd; margin: .9rem 0; font-size: .8rem; }
+.hero-memorial-grid { margin-top: 1rem; }
+.hero-legacy-card { border-color: #325c66; }
+.hero-legacy-card.is-fallen { border-color: #7a5b60; background: linear-gradient(125deg, rgba(87, 42, 49, .2), transparent 75%), #060a0b; }
+.hero-legacy-card.is-archived { border-color: #526669; }
+.hero-legacy-card.is-fallen h2 a { color: #d7c7c1; }
+.hero-legacy-heading { display: flex; justify-content: space-between; align-items: flex-start; }
+.hero-card-stone { margin: 0; color: #aa8584; font-size: .65rem; line-height: 1.05; }
+.hero-legacy-obituary { color: #c6aaa6; font-style: italic; }
+.hero-legacy-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
+.hero-legacy-actions button, .hero-legacy-actions a { font-size: .7rem; }
+.hero-bury-button { border-color: #a28384; color: #d2b8b6; }
+.hero-delete-button { border-color: #57373b; color: #c38f90; }
+.hero-legacy-confirm { margin-top: 1rem; padding: 1rem; border: 1px dashed #956b69; background: rgba(32, 12, 14, .55); }
+.hero-legacy-confirm strong { color: #e6c9c1; }
+.hero-legacy-confirm label { display: grid; gap: .5rem; font-size: .75rem; color: #d3bcb7; }
+.hero-legacy-confirm input, .hero-legacy-confirm textarea { width: 100%; background: #030707; color: #e8d6d1; border: 1px solid #7b5559; padding: .6rem; }
+.hero-fate-banner { border: 2px double #865a60; display: flex; gap: 1.25rem; align-items: center; padding: 1.1rem; margin-bottom: 1.2rem; background: #150d0f; }
+.hero-fate-banner pre { white-space: pre; margin: 0; color: #c69a95; }
+.hero-fate-banner strong { font-size: 1.15rem; color: #e6bdb5; }
+.hero-fate-banner p { color: #c2a09e; }
+.hero-fate-banner.is-retired { border-color: #47666b; background: #081416; }
+.graveyard-intro { background: linear-gradient(115deg, #11141a, #050809); border-color: #4c585e; }
+.graveyard-stones { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: 1.15rem; margin: 1.75rem 0; }
+.graveyard-stone { text-align: center; min-width: 0; padding: 1rem 1.2rem 1.4rem; background: linear-gradient(#172023, #090c0e); border: 1px solid #526268; color: #adb9b9; }
+.graveyard-stone pre { font-size: clamp(.65rem, 1.1vw, 1rem); line-height: 1.2; margin: .5rem 0 0; color: #9aaeb1; }
+.graveyard-stone h2 { overflow-wrap: anywhere; font-size: 1.3rem; color: #e0dcd1; }
+.graveyard-stone blockquote { color: #d0c9bc; font-style: italic; margin: 1rem 0; }
+.graveyard-cause, .graveyard-quiet { font-size: .8rem; color: #91a3a6; }
+.graveyard-stone small { color: #849b9f; }
+.graveyard-empty { text-align: center; color: #a0b0b2; padding: 3rem 1rem; }
+@media(max-width: 640px) { .hero-hall-intro,.graveyard-intro,.hero-fate-banner { flex-direction: column; align-items: flex-start; } .graveyard-stones { grid-template-columns: 1fr; } }

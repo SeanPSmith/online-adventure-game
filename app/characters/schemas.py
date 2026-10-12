@@ -152,6 +152,10 @@ class CharacterResponse(
     is_alive: bool = True
 
     death_record: dict | None = None
+    hero_status: str = "active"
+    retired_at: str | None = None
+    buried_at: str | None = None
+    epitaph: str = ""
 
     effects: list[dict] = Field(default_factory=list)
 
@@ -199,3 +203,21 @@ class CharacterDeleteResponse(
 ):
 
     message: str
+
+class HeroDispositionRequest(BaseModel):
+    action: str  # retire | restore | bury; validated in service
+    epitaph: str = Field(default="", max_length=160)
+
+
+class MemorialResponse(BaseModel):
+    character_id: str
+    name: str
+    level: int
+    experience: int
+    epitaph: str = ""
+    cause: str = ""
+    buried_at: str
+
+
+class GraveyardResponse(BaseModel):
+    memorials: list[MemorialResponse]

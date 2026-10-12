@@ -183,6 +183,11 @@ class Character:
     health: int = 10
 
     death_record: dict | None = None
+    # Personal archive state; 'active' with 0 HP is a fallen, unburied hero.
+    hero_status: str = "active"  # active | retired | buried
+    retired_at: str | None = None
+    buried_at: str | None = None
+    epitaph: str = ""
 
 
     stats: dict[
@@ -262,6 +267,8 @@ class Character:
         self.unspent_talent_points = max(0, int(self.unspent_talent_points or 0))
         self.talents = list(dict.fromkeys(str(item).strip().lower() for item in (self.talents or []) if str(item).strip()))
         self.bio = str(self.bio or "").strip()[:800]
+        self.hero_status = self.hero_status if self.hero_status in {"active", "retired", "buried"} else "active"
+        self.epitaph = str(self.epitaph or "").strip()[:160]
         self.progression_version = max(1, int(self.progression_version or 1))
         self.advancement_history = [dict(item) for item in (self.advancement_history or []) if isinstance(item, dict)]
 
@@ -477,6 +484,10 @@ class Character:
 
             "death_record":
                 (dict(self.death_record) if isinstance(self.death_record, dict) else None),
+            "hero_status": self.hero_status,
+            "retired_at": self.retired_at,
+            "buried_at": self.buried_at,
+            "epitaph": self.epitaph,
 
             "stats": {
 
@@ -656,6 +667,10 @@ class Character:
                 if isinstance(data.get("death_record"), dict)
                 else None
             ),
+            hero_status=str(data.get("hero_status", "active") or "active"),
+            retired_at=data.get("retired_at"),
+            buried_at=data.get("buried_at"),
+            epitaph=str(data.get("epitaph", "") or ""),
 
             stats=
                 stats,

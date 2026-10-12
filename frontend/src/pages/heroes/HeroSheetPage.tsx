@@ -264,6 +264,17 @@ export function HeroSheetPage() {
 
       {error ? <div className="form-error">{error}</div> : null}
 
+      {hero && (!hero.is_alive || hero.hero_status !== "active") ? (
+        <section className={`hero-fate-banner ${!hero.is_alive ? "is-fallen" : "is-retired"}`} aria-label="Hero fate">
+          <pre aria-hidden="true">{!hero.is_alive ? "    .----.\n   / R.I.P\\\n   |      |\n __|______|__" : "  [ CHRONICLE CLOSED ]"}</pre>
+          <div>
+            <strong>{!hero.is_alive ? "THIS HERO HAS FALLEN" : "THIS HERO HAS RETIRED"}</strong>
+            <p>{!hero.is_alive ? String(hero.death_record?.cause || "Their journey has ended. Their story remains.") : "Their adventures are archived. The Hero may return from retirement."}</p>
+            {hero.hero_status === "buried" ? <Link className="button" to="/game/graveyard">VISIT THEIR GRAVE →</Link> : <Link className="button" to="/game/heroes">MANAGE THEIR LEGACY →</Link>}
+          </div>
+        </section>
+      ) : null}
+
       {hero ? (
         <div className="hero-sheet-grid hero-sheet-redesign">
           <Panel title="HERO DOSSIER" className="hero-sheet-wide hero-dossier-panel">

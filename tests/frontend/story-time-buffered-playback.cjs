@@ -210,3 +210,85 @@ test('backend prefetch and browser use the same 280-character sentence boundary'
   assert.equal(chunks.join(' '), passage.trim());
   assert.ok(chunks.every(chunk => chunk.length <= 280));
 });
+
+// Pass 60A: visual tracking never changes the audio chunking or narration transport.
+test('audio position drives a bounded browser-only cue, pause preserves it, stop clears it', async () => {
+  const h = harness();
+  const run = h.api.playNarration([h.item('One. Two. Three.')]);
+  h.complete('One. Two. Three.'); await h.flush();
+  assert.equal(h.states.at(-1).cue.text, 'One. Two. Three.');
+  assert.equal(h.states.at(-1).cue.progress, 0);
+  h.audio.duration = 10;
+  h.audio.currentTime = 5;
+  h.audio.ontimeupdate?.();
+  assert.equal(h.states.at(-1).cue.progress, 0.5);
+  h.api.pauseNarration();
+  assert.equal(h.states.at(-1).phase, 'paused');
+  assert.equal(h.states.at(-1).cue.progress, 0.5);
+  h.api.stopNarration();
+  assert.equal(h.states.at(-1).cue, null);
+  assert.equal(h.audio.ontimeupdate, null);
+  await run;
+});
+
+test('late old-chapter audio events never overwrite the next chapter cue', async () => {
+  const h = harness();
+  const old = h.api.playNarration([h.item('OLD')]);
+  h.complete('OLD'); await h.flush();
+  const oldUpdate = h.audio.ontimeupdate;
+  const newer = h.api.playNarration([h.item('NEW')]);
+  h.complete('NEW'); await h.flush();
+  assert.equal(h.states.at(-1).cue.text, 'NEW');
+  h.audio.duration = 10;
+  h.audio.currentTime = 7;
+  oldUpdate?.();
+  assert.equal(h.states.at(-1).cue.text, 'NEW');
+  assert.equal(h.states.at(-1).cue.progress, 0);
+  h.finish(); await Promise.all([old, newer]);
+});
+
+test('estimated sentence selection follows the existing cached passages and rejects stale cues', () => {
+  const syncSource = fs.readFileSync(path.join(root, 'frontend/src/services/storySentenceSync.ts'), 'utf8');
+  const exports = {};
+  const script = stripTypeScriptTypes(syncSource)
+    .replace(/export (?=(?:function|const)\s)/g, '')
+    + '\nexports.sync={spokenText,splitSentencesForDisplay,visualSentenceRanges,estimateSentenceIndex};';
+  vm.runInNewContext(script, { exports }, { filename: 'storySentenceSync.ts' });
+  const { sync } = exports;
+  const text = 'The gate opened. A shadow moved. The hero stepped forward.';
+  const chunks = [sync.spokenText(text)];
+  assert.equal(sync.estimateSentenceIndex(text, chunks, { index:0, text:chunks[0], progress:0 }), 0);
+  assert.equal(sync.estimateSentenceIndex(text, chunks, { index:0, text:chunks[0], progress:0.5 }), 1);
+  assert.equal(sync.estimateSentenceIndex(text, chunks, { index:0, text:chunks[0], progress:0.99 }), 2);
+  assert.equal(sync.estimateSentenceIndex(text, chunks, { index:0, text:'OTHER SCENE', progress:0.5 }), null);
+  assert.equal(sync.estimateSentenceIndex(text, chunks, { index:2, text:chunks[0], progress:0.5 }), null);
+  assert.equal(sync.estimateSentenceIndex(text, chunks, null), null);
+  assert.equal(sync.splitSentencesForDisplay('One. Two.\n\nThree!').length, 3);
+  // Larger real chapters span multiple cached 280-character passages.
+  // Tracking MUST NOT change or invalidate those existing cache boundaries.
+  const longScene = Array.from({ length: 14 }, (_, i) =>
+    `The travelers cross another silent bridge number ${i + 1} under a clouded sky.`).join(' ');
+  const cachedChunks = hForSentenceChunks(longScene);
+  assert.ok(cachedChunks.length > 1);
+  assert.equal(cachedChunks.join(' '), sync.spokenText(longScene));
+  assert.notEqual(sync.estimateSentenceIndex(longScene, cachedChunks,
+    { index: 1, text: cachedChunks[1], progress: 0.7 }), null);
+});
+
+function hForSentenceChunks(text) {
+  const h = harness();
+  return h.api.splitPassage(text);
+}
+
+test('Story Time keeps the full authoritative chapter readable and does not leak unrevealed scenes', () => {
+  const reveal = fs.readFileSync(path.join(root,'frontend/src/features/adventure/StoryReveal.tsx'),'utf8');
+  const page = fs.readFileSync(path.join(root,'frontend/src/pages/game/AdventurePage.tsx'),'utf8');
+  const narrator = fs.readFileSync(path.join(root,'frontend/src/services/storyNarrator.ts'),'utf8');
+  assert.match(reveal, /sr-only/);
+  assert.match(reveal, /followNarration/);
+  assert.match(reveal, /estimateSentenceIndex/);
+  assert.match(page, /theater\.chapterReleased && scene\?\.body/);
+  assert.match(page, /FOLLOW VOICE/);
+  assert.match(page, /narration\.cue/);
+  assert.match(narrator, /speed: 1/);
+});

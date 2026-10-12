@@ -1,23 +1,31 @@
 import { useEffect, useMemo, useState } from "react";
+import { splitPassage, type NarrationCue } from "../../services/storyNarrator";
+import { splitSentencesForDisplay, estimateSentenceIndex } from "../../services/storySentenceSync";
 
 interface StoryRevealProps {
   sceneId: string;
   text: string;
   enabled: boolean;
+  followNarration?: boolean;
+  narrationCue?: NarrationCue | null;
 }
 
 function prefersReducedMotion() {
   return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
 }
 
-export function StoryReveal({ sceneId, text, enabled }: StoryRevealProps) {
+export function StoryReveal({ sceneId, text, enabled, followNarration = false, narrationCue = null }: StoryRevealProps) {
   const paragraphs = useMemo(() => text.split(/\n{2,}/).filter(Boolean), [text]);
   const words = useMemo(() => paragraphs.map((paragraph) => paragraph.split(/(\s+)/)), [paragraphs]);
   const totalWords = useMemo(
     () => words.flat().filter((token) => token.trim()).length,
     [words],
   );
-  const animate = enabled && !prefersReducedMotion();
+  const animate = enabled && !followNarration && !prefersReducedMotion();
+  const syncSentences = useMemo(() => splitSentencesForDisplay(text), [text]);
+  const chunks = useMemo(() => splitPassage(text), [text]);
+  const activeSentence = followNarration && narrationCue?.kind === "story"
+    ? estimateSentenceIndex(text, chunks, narrationCue) : null;
   const [visibleWords, setVisibleWords] = useState(animate ? 0 : totalWords);
 
   useEffect(() => {
@@ -45,7 +53,16 @@ export function StoryReveal({ sceneId, text, enabled }: StoryRevealProps) {
     >
       <span className="sr-only">{text}</span>
       <div aria-hidden="true">
-        {words.map((tokens, paragraphIndex) => (
+        {followNarration ? paragraphs.map((_, paragraphIndex) => (
+          <p key={`${sceneId}:synced:${paragraphIndex}`}>
+            {syncSentences.map((sentence, sentenceIndex) => sentence.paragraph === paragraphIndex ? (
+              <span
+                key={`${sceneId}:sentence:${sentenceIndex}`}
+                className={`story-follow-sentence ${sentenceIndex === activeSentence ? "is-speaking" : ""}`}
+              >{sentence.text}</span>
+            ) : null)}
+          </p>
+        )) : words.map((tokens, paragraphIndex) => (
           <p key={`${sceneId}:${paragraphIndex}`}>
             {tokens.map((token, tokenIndex) => {
               if (!token.trim()) return token;

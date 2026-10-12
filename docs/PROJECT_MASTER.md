@@ -4,12 +4,17 @@
 > Update or rewrite the relevant sections in this file as the product changes; do not create another numbered changelog copy.
 
 **Last consolidated:** 2026-10-11  
-**Current local baseline:** Pass 59D bounded client-side Story Time MP3 lookahead and buffering on top of Pass 59C room-aware lifecycle/private prefetch. CPU Kokoro remains the configured narrator; the separate GPU pilot awaits AWS G-family quota approval. Pass 59D is a browser playback change, not a GPU migration or infrastructure deployment. Canonical Choice → Intermission → Dice → Story reveal remains unchanged.
+**Current local baseline:** Pass 60A client-side approximate sentence highlighting synchronized to the active audio passage, on top of Pass 59D bounded MP3 lookahead and Pass 59C room-aware lifecycle/private prefetch. CPU Kokoro remains the configured narrator; the separate GPU pilot awaits AWS G-family quota approval. Pass 59D is a browser playback change, not a GPU migration or infrastructure deployment. Canonical Choice → Intermission → Dice → Story reveal remains unchanged.
 **Public site:** `https://onlinetextadventure.com`  
 **Primary release command:** `./scripts/release-staging.sh "Describe the release"`
 
 ---
 
+
+### Pass 60A — Sentence-following chapter presentation (client only)
+- Optional **FOLLOW VOICE ON/OFF** control in the in-adventure Story Time toolbar. While on, the full **already-released** chapter remains visible, and the approximately spoken sentence is highlighted using `HTMLAudioElement.currentTime / duration` within the current unchanged 280-character audio passage. This estimate is **not** word-level alignment or precise phoneme timing; highlight is cleared on buffering, STOP, choice/QTE transitions, and scene change. PAUSE keeps the highlight and RESUME continues from the same time.
+- StoryReveal retains `REVEAL ALL` for ordinary typewriter mode when Story Time is off. With Story Time enabled, audio readiness **never gates text visibility**. The follow toggle is per-browser-view only; no room state, voice, narration API, S3 keys, backend chunk boundaries, AWS infrastructure, or GPU deployment are changed. The host's narrator voice and each listener's seven playback speeds (up to 2x) remain independent as before.
+- Browser tests cover audio position signals, pause/stop, stale chapter callbacks, sentence matching, and authoritative chapter release gating. **Do not claim exact narration/text synchronization until timed-token output exists.**
 
 ### Pass 59D — Buffered browser narration and interruption safety
 - **Bounded lookahead:** When a revealed scene is read, the browser starts at most three speech requests (current chunk plus two ahead) and plays chunks strictly in story order. As each finishes, it queues the next one. This hides S3/network latency behind speech and reuses Pass 59C's exact 280-character backend prefetch boundaries. It is **not** a PCM streaming endpoint or guaranteed sample-accurate gapless playback; slow CPU inference can still cause pauses at chunk boundaries.
@@ -1076,6 +1081,7 @@ This is intentionally short. Historical numbered changelog files remain archive 
 
 
 - **Pass 59A — Story Time Playback & Diagnostics:** seven playback speeds (0.5× through 2×), client-side speed reuse of cached audio, diagnostics and baseline inference measurement. Existing CPU narrator remains on v0.8.0; no EC2 changes.
+- **Pass 60A — Follow Voice:** Optional approximate sentence highlighting for already revealed chapters, using current buffered MP3 playback position without changing cache keys, inference, or gameplay. Full text remains readable; stop/reconnect never reveals future chapters.
 - **Pass 59D — Buffered Story Time:** Two-ahead MP3 fetch window, playback while upcoming chunks prepare, visible buffering state, safe pause/resume and cancellation across chapter/room transitions, no new server calls per speed, and 9 dedicated browser tests. No new AWS resources.
 - **Pass 59C — Active Adventure Story Time:** opt-in, room-scoped lobby wake and renewable DynamoDB lease, ~15-minute idle grace, watchdog rechecks for live rooms and jobs even when monthly budget is reached, private finalized-scene 280-character chunk prefetch to shared S3, never blocking game or exposing unrevealed scenes. Separate Lambda watchdog deployment is required. No GPU or streamed browser playback yet.
 - **Pass 59B — Isolated GPU Inference Pilot (not live-game integration):** opt-in, standalone CloudFormation GPU instance with NVIDIA Kokoro v0.9.0-cu126, no inbound rules, loopback-only speech API, encrypted short-lived S3 benchmark artifacts, and an automatic 2-hour stop watchdog. Full-quality Michael/Bella audio uses the same text samples as the CPU benchmark; MP3 frame parsing measures playable audio duration without ffprobe. Does not replace the existing CPU narrator or attach to the game. CloudFormation resources incur charges until explicitly stopped/cleaned up. See docs/STORY_TIME_GPU_PILOT.md. Adventure-room-aware lifecycle, streaming playback, and a GPU production migration are future work contingent on benchmark/quality results.

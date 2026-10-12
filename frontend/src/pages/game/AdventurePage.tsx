@@ -140,7 +140,8 @@ export function AdventurePage() {
     readStoryDisplayPreferences(),
   );
   const [audioPreferences, setAudioPreferences] = useState<AudioPreferences>(() => readAudioPreferences());
-  const [narration, setNarration] = useState<NarrationState>({ phase: "idle", label: "", error: "" });
+  const [narration, setNarration] = useState<NarrationState>({ phase: "idle", label: "", error: "", cue: null });
+  const [followVoice, setFollowVoice] = useState(true);
   const lastAutoNarration = useRef("");
   const [storyTime, setStoryTime] = useState<StoryTimeState>({ phase: "idle", percent: null, message: "" });
   const narratorAvailable = storyTime.phase === "ready";
@@ -808,6 +809,12 @@ ${scene.body.slice(0, 260)}`}
                       SPEED {audioPreferences.narrationSpeed}×
                     </button>
                     <button className="button button-quiet" type="button"
+                      aria-pressed={followVoice}
+                      aria-label="Follow the approximate spoken sentence in the visible chapter"
+                      onClick={() => setFollowVoice(value => !value)}>
+                      FOLLOW VOICE {followVoice ? "ON" : "OFF"}
+                    </button>
+                    <button className="button button-quiet" type="button"
                       disabled={!scene?.body || narratorAvailable !== true || !theater.chapterReleased || Boolean(live.game?.pending_micro_event) || showDeath}
                       onClick={narrateChapter}>READ CHAPTER</button>
                     <button className="button button-quiet" type="button"
@@ -840,6 +847,8 @@ ${scene.body.slice(0, 260)}`}
                   sceneId={scene.id}
                   text={scene.body}
                   enabled={storyPreferences.wordReveal && theater.phase === "none" && !(audioPreferences.narrationEnabled && audioPreferences.narrationAutoPlay)}
+                  followNarration={audioPreferences.narrationEnabled && followVoice}
+                  narrationCue={theater.chapterReleased && (narration.phase === "playing" || narration.phase === "paused") ? narration.cue : null}
                 />
               ) : (
                 <>

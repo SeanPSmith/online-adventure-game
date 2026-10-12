@@ -6,10 +6,12 @@ import { readAudioPreferences } from "./audioPreferences";
 import { synthesizeStoryTimeSpeech } from "./storyTimeEngine";
 
 export type NarrationPhase = "idle" | "loading" | "buffering" | "playing" | "paused" | "error";
-export interface NarrationState { phase: NarrationPhase; label: string; error: string; }
+/** Browser-only timing cue. Passage timing estimates sentences, not word alignment. */
+export interface NarrationCue { kind: "story" | "choice"; index: number; text: string; progress: number; }
+export interface NarrationState { phase: NarrationPhase; label: string; error: string; cue: NarrationCue | null; }
 export interface NarrationItem { text: string; label: string; kind: "story" | "choice"; }
 
-const state: NarrationState = { phase: "idle", label: "", error: "" };
+const state: NarrationState = { phase: "idle", label: "", error: "", cue: null };
 const subscribers = new Set<(value: NarrationState) => void>();
 const cache = new Map<string, string>();
 const CACHE_LIMIT = 24;
@@ -31,8 +33,8 @@ export function observeNarration(callback: (value: NarrationState) => void): () 
   return () => { subscribers.delete(callback); };
 }
 
-function publish(phase: NarrationPhase, label = "", error = "") {
-  Object.assign(state, { phase, label, error });
+function publish(phase: NarrationPhase, label = "", error = "", cue: NarrationCue | null = null) {
+  Object.assign(state, { phase, label, error, cue });
   for (const callback of subscribers) callback({ ...state });
 }
 
@@ -65,6 +67,7 @@ export function stopNarration() {
     audio.pause();
     audio.onended = null;
     audio.onerror = null;
+    audio.ontimeupdate = null;
     audio.removeAttribute("src");
     audio.load();
   }
@@ -78,7 +81,7 @@ export function pauseNarration() {
     publish("paused", state.label);
   } else if (state.phase === "playing" && audio) {
     audio.pause();
-    publish("paused", state.label);
+    publish("paused", state.label, "", state.cue);
   }
 }
 
@@ -94,7 +97,7 @@ export async function resumeNarration() {
   const identity = sequence;
   try {
     await audio.play();
-    if (identity === sequence) publish("playing", state.label);
+    if (identity === sequence) publish("playing", state.label, "", state.cue);
   } catch {
     if (identity === sequence) publish("error", "", "Browser blocked playback. Press READ to retry.");
   }
@@ -214,18 +217,33 @@ export async function playNarration(items: NarrationItem[]): Promise<void> {
       let onAbort: (() => void) | null = null;
       let onEnded: (() => void) | null = null;
       let onError: (() => void) | null = null;
+      let onTimeUpdate: (() => void) | null = null;
       const finished = new Promise<void>((resolve, reject) => {
         onEnded = () => resolve();
         onError = () => reject(new Error("Audio playback was interrupted."));
         element.onended = onEnded;
         element.onerror = onError;
+        // Never expose story text here. The page gates every cue on chapterReleased.
+        // timeupdate follows HTMLAudioElement playbackRate automatically (0.5x..2x).
+        onTimeUpdate = () => {
+          if (identity !== sequence || (state.phase !== "playing" && state.phase !== "paused")) return;
+          const duration = element.duration;
+          if (!Number.isFinite(duration) || duration <= 0) return;
+          const progress = Math.max(0, Math.min(1, element.currentTime / duration));
+          if (Math.abs(progress - (state.cue?.progress ?? 0)) >= 0.02) {
+            publish(state.phase, item.label, "", { kind: item.kind, index, text: item.text, progress });
+          }
+        };
+        element.ontimeupdate = onTimeUpdate;
         onAbort = () => resolve();
         controller.signal.addEventListener("abort", onAbort, { once: true });
       });
       try {
         await element.play();
         if (identity !== sequence) return;
-        if (state.phase !== "paused") publish("playing", item.label);
+        if (state.phase !== "paused") publish("playing", item.label, "", {
+          kind: item.kind, index, text: item.text, progress: 0,
+        });
         // The next two passages were queued before this clip started.
         await finished;
       } finally {
@@ -233,6 +251,7 @@ export async function playNarration(items: NarrationItem[]): Promise<void> {
         // an old play() promise was pending. Never clear its event handlers.
         if (element.onended === onEnded) element.onended = null;
         if (element.onerror === onError) element.onerror = null;
+        if (element.ontimeupdate === onTimeUpdate) element.ontimeupdate = null;
         if (onAbort) controller.signal.removeEventListener("abort", onAbort);
       }
       if (identity !== sequence) return;

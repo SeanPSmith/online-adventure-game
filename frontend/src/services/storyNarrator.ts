@@ -270,9 +270,11 @@ export async function playNarration(items: NarrationItem[]): Promise<void> {
       let onEnded: (() => void) | null = null;
       let onError: (() => void) | null = null;
       let onTimeUpdate: (() => void) | null = null;
-      const finished = new Promise<void>((resolve, reject) => {
-        onEnded = () => resolve();
-        onError = () => reject(new Error("Audio playback was interrupted."));
+      // Settle, rather than reject, this promise: an error may fire before
+      // audio.play() resolves. Unobserved early rejections crash some browsers.
+      const finished = new Promise<"ended" | "error" | "aborted">((resolve) => {
+        onEnded = () => resolve("ended");
+        onError = () => resolve("error");
         element.onended = onEnded;
         element.onerror = onError;
         // Never expose story text here. The page gates every cue on chapterReleased.
@@ -287,17 +289,28 @@ export async function playNarration(items: NarrationItem[]): Promise<void> {
           }
         };
         element.ontimeupdate = onTimeUpdate;
-        onAbort = () => resolve();
+        onAbort = () => resolve("aborted");
         controller.signal.addEventListener("abort", onAbort, { once: true });
       });
       try {
-        await element.play();
-        if (identity !== sequence) return;
-        if (state.phase !== "paused") publish("playing", item.label, "", {
-          kind: item.kind, index, text: item.text, progress: 0,
-        });
-        // The next two passages were queued before this clip started.
-        await finished;
+        // Some browsers leave play() pending when another chapter replaces
+        // the source. Race it against ended/error/abort; gameplay and later
+        // narration must never wait for a stale browser promise.
+        const playback = Promise.resolve().then(() => element.play()).then(
+          () => "started" as const,
+        );
+        const first = await Promise.race([playback, finished]);
+        if (identity !== sequence || controller.signal.aborted) return;
+        if (first === "started" && state.phase !== "paused") {
+          publish("playing", item.label, "", {
+            kind: item.kind, index, text: item.text, progress: 0,
+          });
+        }
+        // The clip can finish or error before play() settles. `finished`
+        // always resolves, so there is no unobserved rejection window.
+        const outcome = first === "started" ? await finished : first;
+        if (identity !== sequence || controller.signal.aborted) return;
+        if (outcome === "error") throw new Error("Audio playback was interrupted.");
       } finally {
         // A newer narration may have reused the same <audio> element while
         // an old play() promise was pending. Never clear its event handlers.

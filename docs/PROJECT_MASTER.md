@@ -4,12 +4,17 @@
 > Update or rewrite the relevant sections in this file as the product changes; do not create another numbered changelog copy.
 
 **Last consolidated:** 2026-10-12  
-**Current local baseline:** Pass 60C opt-in local dramatic breathing room and dialogue emphasis, plus Pass 60B.1 Hero Hall and Graveyard, on top of Pass 60B co-op narrator ownership and reconnect safety and Pass 60A client-side approximate sentence highlighting synchronized to the active audio passage, on top of Pass 59D bounded MP3 lookahead and Pass 59C room-aware lifecycle/private prefetch. CPU Kokoro remains the configured narrator; the separate GPU pilot awaits AWS G-family quota approval. Pass 59D is a browser playback change, not a GPU migration or infrastructure deployment. Canonical Choice → Intermission → Dice → Story reveal remains unchanged.
+**Current local baseline:** Pass 60D browser-side cancellation and startup hardening, on top of Pass 60C opt-in local dramatic breathing room and dialogue emphasis, plus Pass 60B.1 Hero Hall and Graveyard, on top of Pass 60B co-op narrator ownership and reconnect safety and Pass 60A client-side approximate sentence highlighting synchronized to the active audio passage, on top of Pass 59D bounded MP3 lookahead and Pass 59C room-aware lifecycle/private prefetch. CPU Kokoro remains the configured narrator; the separate GPU pilot awaits AWS G-family quota approval. Pass 59D is a browser playback change, not a GPU migration or infrastructure deployment. Canonical Choice → Intermission → Dice → Story reveal remains unchanged.
 **Public site:** `https://onlinetextadventure.com`  
 **Primary release command:** `./scripts/release-staging.sh "Describe the release"`
 
 ---
 
+
+### Pass 60D — Story Time reliability (client only)
+- **Abort and rapid transitions:** Stop/new chapter/room/choice interrupts a blocked `HTMLAudioElement.play()` promise without waiting for that browser API to settle. Older promise resolutions, rejections, and media callbacks cannot clear a newer chapter's listeners or repaint the narration cue; errors arising before `play()` settles are handled without unobserved rejected playback promises.
+- **Startup shutdown/reconnect:** Disabling Story Time aborts narrator status polling. Late status responses cannot reassert READY after STOP; polling sleeps cancel immediately. Aborting one pending narration passage while the shared hosted narrator starts exits that listener promptly without stopping other listeners' in-flight preparation. Gameplay and chapter reveal remain independent of all hosted speech activity.
+- **No transport changes:** Shared 280-character speech chunks, voice, rate-independent S3 cached audio keys, GPU pilot, AWS deployment and room heartbeat rules are unchanged. Dedicated browser simulations exercise delayed `play()` promises, late results, media errors, opt-out and cancellation. The standard project gate runs these tests automatically.
 
 ### Pass 60C — Dramatic Story Time pacing (client only)
 

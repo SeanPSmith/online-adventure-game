@@ -10,6 +10,7 @@ const current: StoryTimeState = { phase: "idle", percent: null, message: "" };
 const listeners = new Set<(state: StoryTimeState) => void>();
 let readiness: Promise<void> | null = null;
 let generation = 0;
+let startupController: AbortController | null = null;
 const STARTUP_TIMEOUT_MS = 180_000;
 const POLL_INTERVAL_MS = 5_000;
 
@@ -23,24 +24,62 @@ export function observeStoryTime(fn: (state: StoryTimeState) => void) {
 }
 export function stopStoryTimeEngine() {
   ++generation;
+  startupController?.abort();
+  startupController = null;
   readiness = null;
   update("idle");
+}
+
+function interrupted(): DOMException {
+  return new DOMException("Narration interrupted", "AbortError");
+}
+
+/** A cancelled listener must not wait for shared narrator startup. Do not
+ * abort the shared startup when just one passage/room is cancelled.
+ */
+function withAbort<T>(promise: Promise<T>, signal: AbortSignal): Promise<T> {
+  if (signal.aborted) return Promise.reject(interrupted());
+  return new Promise<T>((resolve, reject) => {
+    const abort = () => { cleanup(); reject(interrupted()); };
+    const cleanup = () => signal.removeEventListener("abort", abort);
+    signal.addEventListener("abort", abort, { once: true });
+    promise.then(value => { cleanup(); resolve(value); }, reason => { cleanup(); reject(reason); });
+    if (signal.aborted) abort();
+  });
+}
+
+function waitForPoll(ms: number, signal: AbortSignal): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    if (signal.aborted) { reject(interrupted()); return; }
+    const abort = () => { clearTimeout(timer); reject(interrupted()); };
+    const timer = setTimeout(() => {
+      signal.removeEventListener("abort", abort);
+      resolve();
+    }, ms);
+    signal.addEventListener("abort", abort, { once: true });
+  });
 }
 export function prepareStoryTime(): Promise<void> {
   if (!readAudioPreferences().narrationEnabled) return Promise.reject(new Error("Enable Story Time first."));
   if (current.phase === "ready") return Promise.resolve();
   if (readiness) return readiness;
   const sequence = generation;
+  const controller = new AbortController();
+  startupController = controller;
   update("downloading", "CONNECTING TO STORY TIME_");
   let request: Promise<void>;
   request = (async () => {
     const deadline = Date.now() + STARTUP_TIMEOUT_MS;
-    while (sequence === generation) {
-      const response = await fetch(`${API_BASE}/api/narration/status`, { credentials: "include" });
+    while (sequence === generation && !controller.signal.aborted) {
+      const response = await fetch(`${API_BASE}/api/narration/status`, {
+        credentials: "include", signal: controller.signal,
+      });
+      if (sequence !== generation || controller.signal.aborted) throw interrupted();
       if (!response.ok) throw new Error("Story Time is not available at the moment.");
       const status = await response.json() as { available?: boolean; state?: string };
+      if (sequence !== generation || controller.signal.aborted) throw interrupted();
       if (status.available) {
-        if (sequence === generation) update("ready", "STORY TIME IS READY");
+        update("ready", "STORY TIME IS READY");
         return;
       }
       if (status.state === "budget_exhausted") throw new Error("Story Time's monthly allowance has been reached.");
@@ -49,18 +88,23 @@ export function prepareStoryTime(): Promise<void> {
       }
       if (Date.now() >= deadline) throw new Error("The storyteller is taking longer to wake. Try again shortly.");
       update("downloading", "THE STORYTELLER IS AWAKENING_");
-      await new Promise<void>(resolve => setTimeout(resolve, POLL_INTERVAL_MS));
+      await waitForPoll(POLL_INTERVAL_MS, controller.signal);
     }
+    throw interrupted();
   })().catch(error => {
-    if (sequence === generation) update("error", error instanceof Error ? error.message : "Story Time unavailable.");
+    if (sequence === generation && !controller.signal.aborted)
+      update("error", error instanceof Error ? error.message : "Story Time unavailable.");
     throw error;
-  }).finally(() => { if (readiness === request) readiness = null; });
+  }).finally(() => {
+    if (readiness === request) readiness = null;
+    if (startupController === controller) startupController = null;
+  });
   readiness = request;
   return request;
 }
 export async function synthesizeStoryTimeSpeech(input: StoryTimeRequest, signal: AbortSignal): Promise<Blob> {
   if (signal.aborted) throw new DOMException("Narration interrupted", "AbortError");
-  await prepareStoryTime();
+  await withAbort(prepareStoryTime(), signal);
   const deadline = Date.now() + STARTUP_TIMEOUT_MS;
   let response: Response;
   while (true) {

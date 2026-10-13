@@ -10,6 +10,11 @@ interface StoryRevealProps {
   narrationCue?: NarrationCue | null;
 }
 
+/** Emphasize explicit spoken dialogue without changing the authored text. */
+export function isDialogueParagraph(text: string): boolean {
+  return /^\s*(?:[“"‘]|[—–]\s+|[\w -]{1,32}:\s*[“"])/.test(text);
+}
+
 function prefersReducedMotion() {
   return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
 }
@@ -54,7 +59,7 @@ export function StoryReveal({ sceneId, text, enabled, followNarration = false, n
       <span className="sr-only">{text}</span>
       <div aria-hidden="true">
         {followNarration ? paragraphs.map((_, paragraphIndex) => (
-          <p key={`${sceneId}:synced:${paragraphIndex}`}>
+          <p key={`${sceneId}:synced:${paragraphIndex}`} className={isDialogueParagraph(paragraphs[paragraphIndex]) ? "story-dialogue-paragraph" : undefined}>
             {syncSentences.map((sentence, sentenceIndex) => sentence.paragraph === paragraphIndex ? (
               <span
                 key={`${sceneId}:sentence:${sentenceIndex}`}
@@ -63,7 +68,7 @@ export function StoryReveal({ sceneId, text, enabled, followNarration = false, n
             ) : null)}
           </p>
         )) : words.map((tokens, paragraphIndex) => (
-          <p key={`${sceneId}:${paragraphIndex}`}>
+          <p key={`${sceneId}:${paragraphIndex}`} className={isDialogueParagraph(paragraphs[paragraphIndex]) ? "story-dialogue-paragraph" : undefined}>
             {tokens.map((token, tokenIndex) => {
               if (!token.trim()) return token;
               const current = wordIndex++;

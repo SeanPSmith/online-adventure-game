@@ -55,6 +55,9 @@ node --test tests/frontend/story-time-buffered-playback.cjs
 say "Story Time co-op narrator and reconnect regressions"
 node --test tests/frontend/story-time-coop.cjs
 
+say "Story Time dramatic pacing and dialogue regressions"
+node --test tests/frontend/story-time-dramatic-pacing.cjs
+
 say "Hero Hall and Graveyard browser regressions"
 node --test tests/frontend/hero-legacy.cjs
 

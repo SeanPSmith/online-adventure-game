@@ -8796,3 +8796,14 @@ textarea:focus {
 .graveyard-stone small { color: #849b9f; }
 .graveyard-empty { text-align: center; color: #a0b0b2; padding: 3rem 1rem; }
 @media(max-width: 640px) { .hero-hall-intro,.graveyard-intro,.hero-fate-banner { flex-direction: column; align-items: flex-start; } .graveyard-stones { grid-template-columns: 1fr; } }
+
+/* Pass 60C: terminal-style dialogue differentiation, no added speech requests. */
+.story-reveal p.story-dialogue-paragraph {
+  border-left: 2px solid var(--green-line);
+  padding-left: .9rem;
+  margin-left: .25rem;
+  color: var(--green-soft);
+}
+@media (prefers-reduced-motion: reduce) {
+  .story-reveal p.story-dialogue-paragraph { transition: none; }
+}

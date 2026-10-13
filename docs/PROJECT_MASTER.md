@@ -3,13 +3,20 @@
 > **Canonical project document.** This file replaces the old append-only changelog workflow.
 > Update or rewrite the relevant sections in this file as the product changes; do not create another numbered changelog copy.
 
-**Last consolidated:** 2026-10-11  
-**Current local baseline:** Pass 60B co-op narrator ownership and reconnect safety on top of Pass 60A client-side approximate sentence highlighting synchronized to the active audio passage, on top of Pass 59D bounded MP3 lookahead and Pass 59C room-aware lifecycle/private prefetch. CPU Kokoro remains the configured narrator; the separate GPU pilot awaits AWS G-family quota approval. Pass 59D is a browser playback change, not a GPU migration or infrastructure deployment. Canonical Choice → Intermission → Dice → Story reveal remains unchanged.
+**Last consolidated:** 2026-10-12  
+**Current local baseline:** Pass 60C opt-in local dramatic breathing room and dialogue emphasis, plus Pass 60B.1 Hero Hall and Graveyard, on top of Pass 60B co-op narrator ownership and reconnect safety and Pass 60A client-side approximate sentence highlighting synchronized to the active audio passage, on top of Pass 59D bounded MP3 lookahead and Pass 59C room-aware lifecycle/private prefetch. CPU Kokoro remains the configured narrator; the separate GPU pilot awaits AWS G-family quota approval. Pass 59D is a browser playback change, not a GPU migration or infrastructure deployment. Canonical Choice → Intermission → Dice → Story reveal remains unchanged.
 **Public site:** `https://onlinetextadventure.com`  
 **Primary release command:** `./scripts/release-staging.sh "Describe the release"`
 
 ---
 
+
+### Pass 60C — Dramatic Story Time pacing (client only)
+
+- Playback now adds a small optional local beat when a chapter finishes and the first choice is spoken, and between distinct choices. Consecutive story MP3 chunks and multiple chunks within the **same choice** remain continuous; no fake gapless streaming claim.
+- Drama pacing is on by default and adjustable independently per browser from the adventure toolbar (`PACE ON/OFF`) or Account Settings. Playback speed scales beat length, and Stop/Pause/disconnect immediately prevent waiting content from continuing. Speech synthesis text, voice, speed=1 requests, server prefetch boundaries, S3 cache identity, and party game state do not change.
+- Paragraphs that visibly begin with dialogue receive subtle terminal dialogue treatment without changing any story copy. Reduced-motion preferences continue to be respected, and the full chapter is visible without waiting for Story Time.
+- The release overlay has an SHA-256 manifest and a safe, deterministic extraction helper for local installations; release testing remains mandatory before deploying staging.
 
 ### Pass 60B — Co-op Story Time voice and reconnect safety (client only)
 

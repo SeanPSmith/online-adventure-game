@@ -836,6 +836,13 @@ ${scene.body.slice(0, 260)}`}
                       SPEED {audioPreferences.narrationSpeed}×
                     </button>
                     <button className="button button-quiet" type="button"
+                      aria-pressed={audioPreferences.narrationDramaticPacing}
+                      aria-label="Toggle local dramatic pacing between narrated choices"
+                      title="A brief breath before and between choices; doesn't slow down the chapter or gameplay"
+                      onClick={() => setAudioPreferences(writeAudioPreferences({ narrationDramaticPacing: !audioPreferences.narrationDramaticPacing }))}>
+                      PACE {audioPreferences.narrationDramaticPacing ? "ON" : "OFF"}
+                    </button>
+                    <button className="button button-quiet" type="button"
                       aria-pressed={followVoice}
                       aria-label="Follow the approximate spoken sentence in the visible chapter"
                       onClick={() => setFollowVoice(value => !value)}>

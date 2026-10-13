@@ -27,6 +27,26 @@ let pending: AbortController | null = null;
 let pausedBetweenChunks = false;
 const resumeWaiters = new Set<() => void>();
 
+/** Dramatic transitions are only between distinct spoken units. Story chunks
+ * continue immediately; pauses between their cached MP3s sound unnatural.
+ * This never changes synthesis text, voice, speed, or shared S3 cache keys.
+ */
+export function narrationTransitionMs(
+  previous: NarrationItem | undefined,
+  next: NarrationItem,
+  enabled: boolean,
+  speed: number,
+): number {
+  if (!enabled || !previous) return 0;
+  let duration = 0;
+  if (previous.kind === "story" && next.kind === "choice") duration = 480;
+  else if (previous.kind === "choice" && next.kind === "choice" && previous.label !== next.label) duration = 280;
+  if (!duration) return 0;
+  const safeSpeed = Number.isFinite(speed) && speed > 0 ? Math.max(0.5, Math.min(2, speed)) : 1;
+  return Math.round(duration / safeSpeed);
+}
+
+
 export function observeNarration(callback: (value: NarrationState) => void): () => void {
   subscribers.add(callback);
   callback({ ...state });
@@ -171,6 +191,29 @@ async function waitForUnpause(identity: number): Promise<void> {
   }
 }
 
+/** Abortable and pause-aware, including while transitioning between choices.
+ * Timing affects only local playback, not the game or the network requests.
+ */
+async function waitForNarrationBeat(durationMs: number, identity: number, signal: AbortSignal) {
+  let remaining = durationMs;
+  while (remaining > 0 && identity === sequence && !signal.aborted) {
+    await waitForUnpause(identity);
+    if (identity !== sequence || signal.aborted) return;
+    const slice = Math.min(remaining, 50);
+    const started = Date.now();
+    await new Promise<void>((resolve) => {
+      const done = () => {
+        clearTimeout(timer);
+        signal.removeEventListener("abort", done);
+        resolve();
+      };
+      const timer = setTimeout(done, slice);
+      signal.addEventListener("abort", done, { once: true });
+    });
+    remaining -= Math.min(slice, Math.max(0, Date.now() - started));
+  }
+}
+
 export async function playNarration(items: NarrationItem[]): Promise<void> {
   stopNarration();
   if (!items.length || !readAudioPreferences().narrationEnabled || !readAudioPreferences().storyTimeApproved) return;
@@ -207,6 +250,15 @@ export async function playNarration(items: NarrationItem[]): Promise<void> {
       if (state.phase === "paused") pausedBetweenChunks = true;
       await waitForUnpause(identity);
       if (identity !== sequence) return;
+
+      const preference = readAudioPreferences();
+      const beat = narrationTransitionMs(items[index - 1], item, preference.narrationDramaticPacing !== false, preference.narrationSpeed);
+      if (beat) {
+        publish("buffering", `BREATH // ${item.label}`);
+        await waitForNarrationBeat(beat, identity, controller.signal);
+        await waitForUnpause(identity);
+        if (identity !== sequence || controller.signal.aborted) return;
+      }
 
       const element = player();
       activeUrl = result.url!;

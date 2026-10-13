@@ -480,6 +480,17 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
               onChange={event => setAudioPreference({ narrationAutoChoices: event.target.checked })} />
               <span>{audio.narrationAutoChoices ? "ON" : "OFF"}</span></label>
           </div>
+          <div className="notification-setting-row">
+            <div>
+              <strong>DRAMATIC PACING // BREATH BETWEEN CHOICES</strong>
+              <p>Add a short beat before the options and between different options. Story passages stay continuous. This changes only your browser, not the party's narrator or game timing.</p>
+            </div>
+            <label className="terminal-toggle">
+              <input type="checkbox" checked={audio.narrationDramaticPacing} disabled={!audio.narrationEnabled}
+                onChange={event => setAudioPreference({ narrationDramaticPacing: event.target.checked })} />
+              <span>{audio.narrationDramaticPacing ? "ON" : "OFF"}</span>
+            </label>
+          </div>
           <div className="audio-setting-slider">
             <span><strong>NARRATOR VOICE</strong></span>
             <TerminalSelect

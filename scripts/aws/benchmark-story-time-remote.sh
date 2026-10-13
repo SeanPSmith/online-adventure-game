@@ -26,6 +26,59 @@ Story Time benchmark via SSM
   Confirm a maintenance hold is active or the idle watchdog may stop EC2.
   No other EC2 instances, Docker images or model settings will be altered.
 INFO
+# EC2 state=running is NOT proof that Run Command can reach the SSM agent.
+# A freshly started narrator may be booting or the agent may have lost registration.
+# Check before any user confirmation or benchmark-side mutation.
+SSM_WAIT_SECONDS="${STORY_TIME_SSM_WAIT_SECONDS:-120}"
+SSM_POLL_SECONDS="${STORY_TIME_SSM_POLL_SECONDS:-10}"
+if ! [[ "$SSM_WAIT_SECONDS" =~ ^[0-9]+$ ]] || (( SSM_WAIT_SECONDS > 600 )); then
+  echo 'STORY_TIME_SSM_WAIT_SECONDS must be 0-600.' >&2
+  exit 2
+fi
+if ! [[ "$SSM_POLL_SECONDS" =~ ^[0-9]+$ ]] || (( SSM_POLL_SECONDS < 1 || SSM_POLL_SECONDS > 60 )); then
+  echo 'STORY_TIME_SSM_POLL_SECONDS must be 1-60.' >&2
+  exit 2
+fi
+elapsed=0
+SSM_STATUS='None'
+while :; do
+  if ! SSM_STATUS="$(aws ssm describe-instance-information \
+      --filters "Key=InstanceIds,Values=$INSTANCE_ID" \
+      --profile "$PROFILE" --region "$REGION" \
+      --query 'InstanceInformationList[0].PingStatus' --output text)"; then
+    echo 'Could not check SSM managed-node registration; verify CLI SSM permissions.' >&2
+    exit 3
+  fi
+  if [[ "$SSM_STATUS" == Online ]]; then
+    echo "SSM managed node: Online ($INSTANCE_ID)."
+    break
+  fi
+  if (( elapsed >= SSM_WAIT_SECONDS )); then
+    echo "ERROR: Narrator EC2 is running, but SSM node is '${SSM_STATUS:-None}' after ${elapsed}s." >&2
+    echo 'EC2 status checks (instance/system):' >&2
+    aws ec2 describe-instance-status --instance-ids "$INSTANCE_ID" --include-all-instances \
+      --profile "$PROFILE" --region "$REGION" \
+      --query 'InstanceStatuses[0].[InstanceStatus.Status,SystemStatus.Status]' --output text >&2 || true
+    echo 'IAM profile, public IP and subnet (inspect for missing role or connectivity):' >&2
+    aws ec2 describe-instances --instance-ids "$INSTANCE_ID" --profile "$PROFILE" --region "$REGION" \
+      --query 'Reservations[0].Instances[0].[IamInstanceProfile.Arn,PublicIpAddress,SubnetId]' --output text >&2 || true
+    cat >&2 <<'SSM_HELP'
+No benchmark was submitted. Check the instance's SSM Agent, IAM profile
+(AmazonSSMManagedInstanceCore), and outbound HTTPS/443 to ssm and ssmmessages.
+Use Systems Manager > Fleet Manager / Managed nodes or the AWS support runbook
+AWSSupport-TroubleshootManagedInstance for persistent registration problems.
+Once SSM reports Online, re-run this script. To skip waiting during diagnostics:
+  STORY_TIME_SSM_WAIT_SECONDS=0 bash scripts/aws/benchmark-story-time-remote.sh
+SSM_HELP
+    exit 3
+  fi
+  echo "SSM is '${SSM_STATUS:-None}'; EC2 may still be initializing (${elapsed}s/${SSM_WAIT_SECONDS}s)."
+  remaining=$(( SSM_WAIT_SECONDS - elapsed ))
+  delay="$SSM_POLL_SECONDS"
+  if (( delay > remaining )); then delay="$remaining"; fi
+  sleep "$delay"
+  elapsed=$(( elapsed + delay ))
+done
 printf 'Run the on-instance narration benchmark now? [y/N] '
 read -r answer
 [[ "$answer" == y || "$answer" == Y ]] || { echo 'Cancelled.'; exit 0; }
@@ -57,10 +110,27 @@ commands = [
 with open(params_path, 'w', encoding='utf-8') as out:
     json.dump({'commands': commands, 'executionTimeout': ['900']}, out)
 PY
-COMMAND_ID="$(aws ssm send-command --document-name AWS-RunShellScript \
-  --instance-ids "$INSTANCE_ID" --parameters "file://$PARAMS_FILE" \
-  --comment 'Tales of Two Story Time inference baseline only' \
-  --profile "$PROFILE" --region "$REGION" --query Command.CommandId --output text)"
+# In rare cases SSM appears Online shortly before Run Command can target it.
+# Retry only the explicit InvalidInstanceId error; never conceal IAM or API failures.
+SSM_ERROR="$(mktemp "${TMPDIR:-/tmp}/story-time-ssm-error.XXXXXX.txt")"
+trap 'rm -f "$PARAMS_FILE" "$SSM_OUTPUT" "$SSM_ERROR"' EXIT
+COMMAND_ID=''
+for attempt in 1 2 3; do
+  if COMMAND_ID="$(aws ssm send-command --document-name AWS-RunShellScript \
+      --instance-ids "$INSTANCE_ID" --parameters "file://$PARAMS_FILE" \
+      --comment 'Tales of Two Story Time inference baseline only' \
+      --profile "$PROFILE" --region "$REGION" --query Command.CommandId --output text 2>"$SSM_ERROR")"; then
+    break
+  fi
+  if grep -q 'InvalidInstanceId' "$SSM_ERROR" && (( attempt < 3 )); then
+    echo "SSM targeting not ready (attempt $attempt/3). Retrying in 5s..." >&2
+    sleep 5
+  else
+    cat "$SSM_ERROR" >&2
+    echo 'SSM rejected the benchmark. Check managed-node PingStatus and SSM Agent connectivity.' >&2
+    exit 3
+  fi
+done
 echo "SSM command $COMMAND_ID submitted. Waiting for inference tests..."
 STATUS='Pending'
 for _ in $(seq 1 90); do

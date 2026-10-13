@@ -4,12 +4,16 @@
 > Update or rewrite the relevant sections in this file as the product changes; do not create another numbered changelog copy.
 
 **Last consolidated:** 2026-10-12  
-**Current local baseline:** Pass 61B offline CPU/GPU benchmark-comparison tooling (not yet run against AWS GPU), on top of Pass 61A cache-source and latency instrumentation and Pass 60D browser-side cancellation and startup hardening, on top of Pass 60C opt-in local dramatic breathing room and dialogue emphasis, plus Pass 60B.1 Hero Hall and Graveyard, on top of Pass 60B co-op narrator ownership and reconnect safety and Pass 60A client-side approximate sentence highlighting synchronized to the active audio passage, on top of Pass 59D bounded MP3 lookahead and Pass 59C room-aware lifecycle/private prefetch. CPU Kokoro remains the configured narrator; the separate GPU pilot awaits AWS G-family quota approval. Pass 59D is a browser playback change, not a GPU migration or infrastructure deployment. Canonical Choice → Intermission → Dice → Story reveal remains unchanged.
+**Current local baseline:** Pass 61B.1 CPU SSM readiness guard and diagnostic tooling, on top of Pass 61B offline CPU/GPU benchmark-comparison tooling (not yet run against AWS GPU), on top of Pass 61A cache-source and latency instrumentation and Pass 60D browser-side cancellation and startup hardening, on top of Pass 60C opt-in local dramatic breathing room and dialogue emphasis, plus Pass 60B.1 Hero Hall and Graveyard, on top of Pass 60B co-op narrator ownership and reconnect safety and Pass 60A client-side approximate sentence highlighting synchronized to the active audio passage, on top of Pass 59D bounded MP3 lookahead and Pass 59C room-aware lifecycle/private prefetch. CPU Kokoro remains the configured narrator; the separate GPU pilot awaits AWS G-family quota approval. Pass 59D is a browser playback change, not a GPU migration or infrastructure deployment. Canonical Choice → Intermission → Dice → Story reveal remains unchanged.
 **Public site:** `https://onlinetextadventure.com`  
 **Primary release command:** `./scripts/release-staging.sh "Describe the release"`
 
 ---
 
+
+### Pass 61B.1 — CPU benchmark SSM readiness and diagnostics (operator CLI only)
+- The Mac CPU benchmarking helper now checks Systems Manager managed-node `PingStatus=Online` before prompting or submitting `AWS-RunShellScript`. EC2 `running` does not imply SSM target readiness; the helper waits up to two minutes (set `STORY_TIME_SSM_WAIT_SECONDS=0` for an immediate diagnostic or up to 600 seconds to extend the wait). When offline, it prints EC2 system/instance health, instance IAM profile, public IP and subnet without executing a benchmark.
+- If SSM is `Online` but Run Command races registration, only `InvalidInstanceId` is retried twice with bounded pauses. Other send-command errors remain visible. This patch makes no AWS infrastructure, narrator, voice, caching, model, or frontend change, and cannot fix a broken SSM agent/IAM/network configuration by itself.
 
 ### Pass 61B — Narrator benchmark and quality-evaluation toolkit (no deployment to GPU)
 - The existing **isolated GPU pilot is unchanged**: deploying it is a separate, explicitly confirmed, billable operator action requiring AWS G-family quota. No GPU test results are claimed yet; the main CPU narrator, its S3 cache, app API, frontend, CDK and Story Director are not reconfigured.

@@ -140,6 +140,14 @@ Do not try `deploy` until AWS confirms the selected G-instance quota.
    bash scripts/aws/story-time-control.sh stop
    ```
 
+   The CPU helper requires SSM managed-node `Online`, not just EC2 `running`.
+   It now waits up to 120 seconds for a newly awakened narrator. On a persistent
+   `InvalidInstanceId`, it reports EC2 health, IAM profile, subnet and public IP
+   before aborting without starting inference. For immediate diagnostics use
+   `STORY_TIME_SSM_WAIT_SECONDS=0 bash scripts/aws/benchmark-story-time-remote.sh`.
+   If SSM never comes Online, investigate the agent, attached IAM role, and
+   outbound 443 network access; additional waiting alone cannot repair these.
+
    This creates a fixed-text CSV at
    `~/Downloads/tales-of-two-benchmarks/cpu/<run-id>/results.csv` on the Mac.
    It uses the same MP3 duration parser as the GPU test, without requiring

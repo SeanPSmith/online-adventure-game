@@ -6,8 +6,11 @@ set -euo pipefail
 CONTAINER="${STORY_TIME_CONTAINER:-story-time}"
 ENDPOINT="${STORY_TIME_BENCH_ENDPOINT:-http://127.0.0.1:8880/v1/audio/speech}"
 DEST="${STORY_TIME_BENCH_DIR:-${TMPDIR:-/tmp}/story-time-bench-$(date +%Y%m%d-%H%M%S)}"
+DURATION_TOOL="${STORY_TIME_MP3_DURATION_HELPER:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/story-time-mp3-duration.py}"
 DOCKER=(sudo docker)
 command -v curl >/dev/null || { echo 'curl is required' >&2; exit 2; }
+command -v python3 >/dev/null || { echo 'python3 is required' >&2; exit 2; }
+[[ -f "$DURATION_TOOL" ]] || { echo "MP3 duration helper missing: $DURATION_TOOL" >&2; exit 2; }
 "${DOCKER[@]}" inspect -f '{{.State.Running}}' "$CONTAINER" 2>/dev/null | grep -qx true || {
   echo "Container '$CONTAINER' is not running. Start EC2 and let Kokoro initialize first." >&2
   exit 2
@@ -50,16 +53,19 @@ PY
   fi
   wait "$stats_pid" || true
   read -r http_code elapsed bytes < "$DEST/$id.metrics.txt"
-  local reported="n/a"
-  if command -v ffprobe >/dev/null 2>&1; then
-    reported="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$outputfile" 2>/dev/null || echo 'n/a')"
-  fi
-  echo "  HTTP $http_code | wall ${elapsed}s | audio ${reported}s | bytes $bytes"
+  local reported rtf
+  reported="$(python3 "$DURATION_TOOL" "$outputfile")"
+  rtf="$(python3 - "$reported" "$elapsed" <<'PYRTF'
+import sys
+print(f"{float(sys.argv[1]) / float(sys.argv[2]):.3f}")
+PYRTF
+)"
+  echo "  HTTP $http_code | wall ${elapsed}s | audio ${reported}s | throughput ${rtf}x | bytes $bytes"
   cat "$DEST/$id.resources.txt"
   if command -v file >/dev/null 2>&1; then file "$outputfile"; fi
-  printf '%s,%s,%s,%s,%s,%s\n' "$id" "$voice" "${#message}" "$elapsed" "$reported" "$bytes" >> "$DEST/results.csv"
+  printf '%s,%s,%s,%s,%s,%s,%s,%s\n' "$id" "$voice" "${#message}" "$elapsed" "$reported" "$rtf" "$http_code" "$bytes" >> "$DEST/results.csv"
 }
-printf 'id,voice,input_chars,wall_seconds,audio_seconds,output_bytes\n' > "$DEST/results.csv"
+printf 'id,voice,input_chars,wall_seconds,audio_seconds,real_time_factor,http_status,output_bytes\n' > "$DEST/results.csv"
 run_sample 'michael_short' 'am_michael' \
   'Welcome to Tales of Two. In the shadows of the castle, the adventure begins.'
 run_sample 'bella_short' 'af_bella' \
@@ -68,5 +74,5 @@ run_sample 'michael_long' 'am_michael' \
   'The ancient lantern flickered as the travelers entered the ruined observatory. On the far wall, a silver constellation moved against the stone, tracing a path beyond the mountains. A soft voice echoed from the empty gallery above. Nobody could see who was speaking, but the words were unmistakable. The road ahead would demand courage, patience, and the willingness to trust a stranger. One traveler took a careful step forward. The other followed, and together they listened as the hidden machinery began to wake.'
 echo '---'
 echo "Saved results to $DEST/results.csv"
-echo 'Do not infer real-time factor from MP3 bytes alone; use audio_seconds when ffprobe is present.'
+echo 'Real-time factor is measured MP3 audio duration / full localhost HTTP time.'
 echo 'For cost/performance analysis, also collect EC2 CPUCreditBalance/CPUSurplusCreditsCharged and instance type in CloudWatch.'

@@ -120,3 +120,68 @@ or `start`; on EC2 inspect `sudo tail -100 /var/log/tot-story-time-gpu-setup.log
 **Not yet implemented:** chapter-aware GPU pre-generation, sentence streaming,
 room-lifecycle EC2 keepalive, shared jobs across players, and automatic backend
 migration. None should be implied by a successful pilot benchmark.
+
+## Pass 61B — repeatable baseline and A/B comparison (operators only)
+
+The following preparation is safe to install/release in the game project; it does
+not create a GPU instance. **No benchmark was executed against AWS by this pass.**
+Do not try `deploy` until AWS confirms the selected G-instance quota.
+
+1. Collect Pass 61A real-play browser diagnostics from an actual Story Time
+   adventure (WAIT, SERVER, INFERENCE and GENERATED/MEMORY/S3/REPLAY counts).
+   These values are a separate end-to-end baseline, not the localhost synthetic
+   CPU/GPU measurement.
+2. For a fresh CPU baseline, ensure the CPU narrator is running and held awake.
+   From the Mac project root:
+
+   ```bash
+   bash scripts/aws/story-time-control.sh start 90
+   bash scripts/aws/benchmark-story-time-remote.sh
+   bash scripts/aws/story-time-control.sh stop
+   ```
+
+   This creates a fixed-text CSV at
+   `~/Downloads/tales-of-two-benchmarks/cpu/<run-id>/results.csv` on the Mac.
+   It uses the same MP3 duration parser as the GPU test, without requiring
+   ffprobe on the EC2 host. If the CPU benchmark fails, still stop CPU EC2.
+3. Once quota is approved, **and only when intentionally approving billable
+   infrastructure**, create and benchmark the isolated GPU pilot as described
+   earlier in this document:
+
+   ```bash
+   bash scripts/aws/story-time-gpu-pilot.sh plan
+   bash scripts/aws/story-time-gpu-pilot.sh deploy
+   bash scripts/aws/story-time-gpu-pilot.sh benchmark
+   bash scripts/aws/story-time-gpu-pilot.sh fetch
+   ```
+
+   `benchmark` requests instance stop on success **and error**, while the
+   independent watchdog is the fallback. Verify `status` yourself. If the
+   pilot already exists and is stopped, use the explicit `start` subcommand.
+4. Compare one CPU CSV and one GPU CSV from the synced GPU results folder:
+
+   ```bash
+   python3 scripts/aws/story-time-compare-benchmarks.py \
+     --cpu "$HOME/Downloads/tales-of-two-benchmarks/cpu/<run-id>/results.csv" \
+     --gpu "$HOME/Downloads/tales-of-two-gpu-pilot/<run-id>/results.csv" \
+     --output "$HOME/Downloads/tales-of-two-benchmarks/comparison.md"
+   ```
+
+   Replace both `<run-id>` placeholders with real run folders. Listen to the
+   GPU MP3s against the existing CPU Michael/Bella voices and manually mark
+   pronunciation, pauses, missing words, timbre, warmth, and artifacts. The
+   CPU/GPU upstream container versions may differ and audio length may vary.
+   A larger audio/wall factor is better; **5×** is a target, not a guarantee.
+5. When finished, run `bash scripts/aws/story-time-gpu-pilot.sh cleanup` to
+   explicitly remove GPU stack/storage charges. This is **not** part of the
+   standard staging release script. Do not automate creating billable GPU
+   resources or a switch to the GPU as part of routine releases.
+
+### Measurement boundaries
+
+Each script sends the three public fixed sentences to an already running local
+Kokoro service, measures the complete HTTP+MP3 response and computes the
+MP3's real playable duration. These are **single-trial** benchmarks, not a
+confidence interval, cold-start measurement, queue/concurrency load test,
+streaming time-to-first-byte measurement, or proof of Story Time responsiveness.
+Collect those before approving GPU for shared live adventures.

@@ -134,12 +134,21 @@ INFO
     printf 'Run now? [y/N] '
     read -r answer
     [[ "$answer" == y || "$answer" == Y ]] || exit 0
+    # Stop the billable GPU instance on *every* post-confirmation exit path,
+    # including S3 upload, SSM submission, polling and result-fetch errors.
+    stop_gpu_on_exit() {
+      echo 'Benchmark concluded or failed; requesting GPU pilot stop.'
+      bash "$ROOT_DIR/scripts/aws/story-time-gpu-pilot.sh" stop || true
+    }
+    trap stop_gpu_on_exit EXIT
+    trap 'exit 130' INT
+    trap 'exit 143' TERM
     aws s3 cp "$ROOT_DIR/scripts/aws/story-time-gpu-benchmark-ec2.sh" \
       "s3://$BUCKET/scripts/benchmark.sh" --only-show-errors
     aws s3 cp "$ROOT_DIR/scripts/aws/story-time-mp3-duration.py" \
       "s3://$BUCKET/scripts/mp3-duration.py" --only-show-errors
     PARAMS="$(mktemp "${TMPDIR:-/tmp}/tot-gpu-ssm.XXXXXXXX.json")"
-    trap 'rm -f "$PARAMS"' EXIT
+    trap 'rm -f "$PARAMS"; stop_gpu_on_exit' EXIT
     python3 - "$PARAMS" "$BUCKET" "$RUN_ID" "$AWS_REGION" <<'PY'
 import json,sys
 p,bucket,run_id,region=sys.argv[1:]
@@ -167,10 +176,9 @@ PY
     echo "SSM status: $RESULT"
     aws ssm get-command-invocation --command-id "$COMMAND_ID" --instance-id "$IID" \
       --query '[StandardOutputContent,StandardErrorContent]' --output text || true
-    echo 'Stopping the GPU pilot now to avoid idle compute charges.'
-    bash "$0" stop || true
     [[ "$RESULT" == Success ]] || { echo 'GPU benchmark failed. Diagnostics remain available in SSM and pilot logs.' >&2; exit 1; }
     echo 'Fetch private audio and CSV with: bash scripts/aws/story-time-gpu-pilot.sh fetch'
+    echo 'Compare local results using scripts/aws/story-time-compare-benchmarks.py --cpu CPU.csv --gpu GPU.csv'
     ;;
   fetch)
     require_pilot

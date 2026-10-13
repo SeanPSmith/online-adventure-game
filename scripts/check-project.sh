@@ -61,6 +61,9 @@ node --test tests/frontend/story-time-dramatic-pacing.cjs
 say "Story Time cancellation, stale playback, and startup reliability regressions"
 node --test tests/frontend/story-time-reliability.cjs
 
+say "Story Time cache-source and latency diagnostics regressions"
+node --test tests/frontend/story-time-performance.cjs
+
 say "Hero Hall and Graveyard browser regressions"
 node --test tests/frontend/hero-legacy.cjs
 

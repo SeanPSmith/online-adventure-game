@@ -4,6 +4,33 @@ import { readAudioPreferences } from "./audioPreferences";
 export type StoryTimePhase = "idle" | "downloading" | "ready" | "error";
 export interface StoryTimeState { phase: StoryTimePhase; percent: number | null; message: string; }
 export interface StoryTimeRequest { text: string; voice: string; speed: number; }
+/** Safe, non-identifying per-passage performance data from existing response headers. */
+export interface StoryTimeRequestDiagnostic {
+  source: "memory" | "s3" | "generated" | "unknown";
+  requestMs: number;
+  serverMs: number | null;
+  inferenceMs: number | null;
+}
+
+function finiteNonnegativeMs(raw: string | null | undefined): number | null {
+  if (raw == null || raw.trim() === "") return null;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) && parsed >= 0 ? Math.round(parsed) : null;
+}
+
+export function responseDiagnostic(response: Response, requestMs: number): StoryTimeRequestDiagnostic {
+  // Headers may be inaccessible across an unconfigured CORS boundary.
+  const read = (name: string) => response.headers?.get(name) ?? null;
+  const value = read("X-Story-Time-Cache");
+  const source: StoryTimeRequestDiagnostic["source"] =
+    value === "memory" || value === "s3" || value === "generated" ? value : "unknown";
+  return {
+    source,
+    requestMs: Math.max(0, Math.round(requestMs)),
+    serverMs: finiteNonnegativeMs(read("X-Story-Time-Server-Ms")),
+    inferenceMs: finiteNonnegativeMs(read("X-Story-Time-Inference-Ms")),
+  };
+}
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "";
 const current: StoryTimeState = { phase: "idle", percent: null, message: "" };
@@ -102,8 +129,14 @@ export function prepareStoryTime(): Promise<void> {
   readiness = request;
   return request;
 }
-export async function synthesizeStoryTimeSpeech(input: StoryTimeRequest, signal: AbortSignal): Promise<Blob> {
+export async function synthesizeStoryTimeSpeech(
+  input: StoryTimeRequest,
+  signal: AbortSignal,
+  onDiagnostic?: (diagnostic: StoryTimeRequestDiagnostic) => void,
+): Promise<Blob> {
   if (signal.aborted) throw new DOMException("Narration interrupted", "AbortError");
+  // Count the entire listener wait, including narrator status/startup and 503 retries.
+  const requestStarted = Date.now();
   await withAbort(prepareStoryTime(), signal);
   const deadline = Date.now() + STARTUP_TIMEOUT_MS;
   let response: Response;
@@ -128,7 +161,10 @@ export async function synthesizeStoryTimeSpeech(input: StoryTimeRequest, signal:
     });
   }
   const blob = await response.blob();
+  if (signal.aborted) throw interrupted();
   if (!blob.type.startsWith("audio/") || !blob.size) throw new Error("Invalid narration response.");
+  // Only successful, uncancelled audio is counted. No text or account data is retained.
+  onDiagnostic?.(responseDiagnostic(response, Date.now() - requestStarted));
   return blob;
 }
 

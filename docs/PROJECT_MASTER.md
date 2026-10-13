@@ -11,6 +11,11 @@
 ---
 
 
+### Pass 61A — Story Time performance visibility (client only)
+- The adventure page exposes an optional collapsible VOICE PERFORMANCE panel while hosted Story Time is enabled. It counts local audio replays vs backend memory/S3/generation responses and displays the latest whole-request wait, server time, and inference time (milliseconds). Counters are memory-only, resettable, and contain **no** account/room/story text. A missing `X-Story-Time-*` header is explicitly classified as UNREPORTED, not fabricated as a cache hit.
+- The existing `/api/narration/speech` response headers supply these facts without extra AWS calls. A cancelled or invalid response is never counted. Speech cache keys, voices, CPU/GPU routing, narrator startup leases, S3 MP3 format, and gameplay turn/reveal timing are unchanged. An unavailable GPU quota cannot block this pass.
+- This is observability, not an inference speedup. Full end-to-end startup time can include EC2 cold starts and retries. Use these measurements as a CPU baseline before an isolated approved GPU benchmark.
+
 ### Pass 60D — Story Time reliability (client only)
 - **Abort and rapid transitions:** Stop/new chapter/room/choice interrupts a blocked `HTMLAudioElement.play()` promise without waiting for that browser API to settle. Older promise resolutions, rejections, and media callbacks cannot clear a newer chapter's listeners or repaint the narration cue; errors arising before `play()` settles are handled without unobserved rejected playback promises.
 - **Startup shutdown/reconnect:** Disabling Story Time aborts narrator status polling. Late status responses cannot reassert READY after STOP; polling sleeps cancel immediately. Aborting one pending narration passage while the shared hosted narrator starts exits that listener promptly without stopping other listeners' in-flight preparation. Gameplay and chapter reveal remain independent of all hosted speech activity.

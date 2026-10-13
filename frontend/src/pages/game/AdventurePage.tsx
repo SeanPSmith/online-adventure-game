@@ -28,8 +28,8 @@ import { activateAudioFromGesture, playSound } from "../../services/audioDirecto
 import {
   adjustNarrationVolume, choiceNarrationItems, observeNarration,
   pauseNarration, playNarration, resumeNarration, sceneNarrationItems, stopNarration,
-  setAdventureNarratorVoice,
-  type NarrationState,
+  setAdventureNarratorVoice, observeNarrationDiagnostics, resetNarrationDiagnostics,
+  type NarrationDiagnostics, type NarrationState,
 } from "../../services/storyNarrator";
 import { createAutoReadGate } from "../../services/storyAutoReadGate";
 import { readStoryDisplayPreferences, type StoryDisplayPreferences } from "../../services/storyPreferences";
@@ -142,6 +142,10 @@ export function AdventurePage() {
   );
   const [audioPreferences, setAudioPreferences] = useState<AudioPreferences>(() => readAudioPreferences());
   const [narration, setNarration] = useState<NarrationState>({ phase: "idle", label: "", error: "", cue: null });
+  const [speechDiagnostics, setSpeechDiagnostics] = useState<NarrationDiagnostics>({
+    localHits: 0, memoryHits: 0, s3Hits: 0, generated: 0, unknownResponses: 0,
+    lastSource: null, lastWaitMs: null, lastServerMs: null, lastInferenceMs: null,
+  });
   const [followVoice, setFollowVoice] = useState(true);
   const lastAutoNarration = useRef("");
   const autoReadGate = useRef(createAutoReadGate());
@@ -308,6 +312,7 @@ export function AdventurePage() {
   }, []);
 
   useEffect(() => observeNarration(setNarration), []);
+  useEffect(() => observeNarrationDiagnostics(setSpeechDiagnostics), []);
   useEffect(() => () => stopNarration(), []);
   useEffect(() => observeStoryTime(setStoryTime), []);
   useEffect(() => {
@@ -875,6 +880,18 @@ ${scene.body.slice(0, 260)}`}
                     : narration.phase === "paused" ? "NARRATION PAUSED" : ""}
                 </small>
               </div>
+              {audioPreferences.narrationEnabled ? (
+                <details className="story-time-diagnostics">
+                  <summary>VOICE PERFORMANCE // THIS BROWSER</summary>
+                  <div className="story-time-diagnostics-body">
+                    <span>REPLAY {speechDiagnostics.localHits} · MEMORY {speechDiagnostics.memoryHits} · S3 {speechDiagnostics.s3Hits} · GENERATED {speechDiagnostics.generated}</span>
+                    {speechDiagnostics.unknownResponses > 0 ? <span>UNREPORTED {speechDiagnostics.unknownResponses}</span> : null}
+                    <span>LAST {speechDiagnostics.lastSource?.toUpperCase() ?? "—"} · WAIT {speechDiagnostics.lastWaitMs ?? "—"}ms · SERVER {speechDiagnostics.lastServerMs ?? "—"}ms · INFERENCE {speechDiagnostics.lastInferenceMs ?? "—"}ms</span>
+                    <span>Estimated timings from completed requests. Cold-start waits and network time affect WAIT; local replays require no new request.</span>
+                    <button className="button button-quiet" type="button" onClick={resetNarrationDiagnostics}>RESET COUNTERS</button>
+                  </div>
+                </details>
+              ) : null}
 
               {theater.chapterReleased && scene?.body ? (
                 <StoryReveal

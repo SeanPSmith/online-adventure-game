@@ -3,7 +3,7 @@
  *  Voice quality and server/S3 cache keys are unchanged at all playback rates.
  */
 import { readAudioPreferences } from "./audioPreferences";
-import { synthesizeStoryTimeSpeech } from "./storyTimeEngine";
+import { synthesizeStoryTimeSpeech, type StoryTimeRequestDiagnostic } from "./storyTimeEngine";
 
 export type NarrationPhase = "idle" | "loading" | "buffering" | "playing" | "paused" | "error";
 /** Browser-only timing cue. Passage timing estimates sentences, not word alignment. */
@@ -15,6 +15,43 @@ const state: NarrationState = { phase: "idle", label: "", error: "", cue: null }
 const subscribers = new Set<(value: NarrationState) => void>();
 const cache = new Map<string, string>();
 const CACHE_LIMIT = 24;
+/** Session-only metrics: no prose, room code, identity, or network telemetry upload. */
+export interface NarrationDiagnostics {
+  localHits: number;
+  memoryHits: number;
+  s3Hits: number;
+  generated: number;
+  unknownResponses: number;
+  lastSource: "local" | StoryTimeRequestDiagnostic["source"] | null;
+  lastWaitMs: number | null;
+  lastServerMs: number | null;
+  lastInferenceMs: number | null;
+}
+const emptyDiagnostics = (): NarrationDiagnostics => ({
+  localHits: 0, memoryHits: 0, s3Hits: 0, generated: 0, unknownResponses: 0,
+  lastSource: null, lastWaitMs: null, lastServerMs: null, lastInferenceMs: null,
+});
+let diagnostics = emptyDiagnostics();
+const diagnosticSubscribers = new Set<(value: NarrationDiagnostics) => void>();
+export function observeNarrationDiagnostics(callback: (value: NarrationDiagnostics) => void): () => void {
+  diagnosticSubscribers.add(callback);
+  callback({ ...diagnostics });
+  return () => { diagnosticSubscribers.delete(callback); };
+}
+export function resetNarrationDiagnostics() {
+  diagnostics = emptyDiagnostics();
+  for (const callback of diagnosticSubscribers) callback({ ...diagnostics });
+}
+function recordDiagnostic(source: NarrationDiagnostics["lastSource"], waitMs: number, serverMs: number | null, inferenceMs: number | null) {
+  const field = source === "local" ? "localHits"
+    : source === "memory" ? "memoryHits"
+    : source === "s3" ? "s3Hits"
+    : source === "generated" ? "generated" : "unknownResponses";
+  diagnostics = { ...diagnostics, [field]: diagnostics[field] + 1,
+    lastSource: source, lastWaitMs: Math.max(0, Math.round(waitMs)),
+    lastServerMs: serverMs, lastInferenceMs: inferenceMs };
+  for (const callback of diagnosticSubscribers) callback({ ...diagnostics });
+}
 // Play the current chunk while preparing up to two subsequent chunks.
 // Keep the window bounded: uncontrolled prefetch would overwhelm CPU Kokoro.
 export const NARRATION_LOOKAHEAD = 2;
@@ -173,13 +210,23 @@ async function fetchSpeech(item: NarrationItem, voice: string, signal: AbortSign
   if (cached) {
     cache.delete(key);
     cache.set(key, cached);
+    if (!signal.aborted) recordDiagnostic("local", 0, null, null);
     return cached;
   }
-  const blob = await synthesizeStoryTimeSpeech({ text: item.text, voice, speed: 1 }, signal);
+  // Capture metadata for the successful response, not while a request is in flight.
+  // A cancelled chapter cannot increase the displayed performance counters.
+  const networkCapture: { value: StoryTimeRequestDiagnostic | null } = { value: null };
+  const started = Date.now();
+  const blob = await synthesizeStoryTimeSpeech(
+    { text: item.text, voice, speed: 1 }, signal,
+    (value) => { networkCapture.value = value; },
+  );
   if (signal.aborted) throw new Error("Narration interrupted.");
   if (!blob.size || !blob.type.startsWith("audio/")) throw new Error("Story Time returned invalid audio.");
   const url = URL.createObjectURL(blob);
   rememberAudio(key, url);
+  recordDiagnostic(networkCapture.value?.source ?? "unknown", networkCapture.value?.requestMs ?? Date.now() - started,
+    networkCapture.value?.serverMs ?? null, networkCapture.value?.inferenceMs ?? null);
   return url;
 }
 

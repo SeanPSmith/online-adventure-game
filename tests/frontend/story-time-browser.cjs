@@ -47,7 +47,7 @@ test('narration requests authenticated audio but no microphone',async()=>{
   assert.equal(count,2);
   assert.doesNotMatch(read('frontend/src/services/storyTimeEngine.ts'),/getUserMedia|SpeechRecognition/);
 });
-test('one host-selected narrator voice travels with the room and is used for playback',()=>{
+test('host voice remains room default while players override narration locally',()=>{
   const game=read('frontend/src/state/GameSocketContext.tsx');
   const page=read('frontend/src/pages/game/AdventurePage.tsx');
   const backend=read('app/main.py');

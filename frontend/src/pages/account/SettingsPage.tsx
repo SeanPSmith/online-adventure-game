@@ -8,7 +8,8 @@ import { adjustNarrationVolume, playNarration, stopNarration } from "../../servi
 import { observeStoryTime, prepareStoryTime, stopStoryTimeEngine, type StoryTimeState } from "../../services/storyTimeEngine";
 import { PageTitle } from "../../components/ui/PageTitle";
 import { Panel } from "../../components/ui/Panel";
-import { TerminalSelect } from "../../components/ui/TerminalSelect";
+import { NarratorVoicePicker } from "../../components/game/NarratorVoicePicker";
+import { useAuth } from "../../state/AuthContext";
 import {
   browserNotificationSupport,
   disableWebPush,
@@ -53,6 +54,10 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
     readStoryDisplayPreferences(),
   );
   const [audio, setAudio] = useState<AudioPreferences>(() => readAudioPreferences());
+  const { user } = useAuth();
+  const isAdmin = user?.permissions.includes("admin") ?? false;
+  const [seedState, setSeedState] = useState("");
+  const [seeding, setSeeding] = useState(false);
   const [storyTime, setStoryTime] = useState<StoryTimeState>({ phase: "idle", percent: null, message: "" });
 
   useEffect(() => {
@@ -76,6 +81,33 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
   useEffect(() => {
     if (audio.narrationEnabled && audio.storyTimeApproved) void prepareStoryTime().catch(() => {});
   }, [audio.narrationEnabled, audio.storyTimeApproved]);
+
+  async function seedVoicePreviews() {
+    if (!isAdmin || seeding) return;
+    setSeeding(true);
+    const api = import.meta.env.VITE_API_BASE ?? "";
+    try {
+      let completed = 0;
+      for (const voice of KOKORO_VOICES) {
+        setSeedState(`PREPARING ${voice.label} // ${completed}/${KOKORO_VOICES.length}`);
+        // GPU cold-start can take several minutes. No preview generation from
+        // ordinary player accounts, and retry only explicit 503 readiness.
+        let result: Response | null = null;
+        for (let attempt = 0; attempt < 30; attempt++) {
+          result = await fetch(`${api}/api/narration/previews/seed/${voice.value}`, {
+            method: "POST", credentials: "include", headers: { "X-TOT-Admin-Request": "1" },
+          });
+          if (result.status !== 503) break;
+          await new Promise(resolve => setTimeout(resolve, 6000));
+        }
+        if (!result?.ok) throw new Error(`Preview preparation stopped at ${voice.label} (HTTP ${result?.status ?? "offline"}).`);
+        completed++;
+      }
+      setSeedState(`ALL ${completed} ENGLISH VOICE SAMPLES ARE READY`);
+    } catch (reason) {
+      setSeedState(reason instanceof Error ? reason.message : "Preview preparation failed.");
+    } finally { setSeeding(false); }
+  }
 
   function requestStoryTime() {
     setAudioPreference({ storyTimeApproved: true, narrationEnabled: true });
@@ -493,14 +525,17 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
           </div>
           <div className="audio-setting-slider">
             <span><strong>NARRATOR VOICE</strong></span>
-            <TerminalSelect
-              ariaLabel="Narrator voice"
-              value={audio.narrationVoice}
-              disabled={!audio.narrationEnabled}
-              options={[...KOKORO_VOICES]}
-              onChange={value => setAudioPreference({ narrationVoice: value })}
-            />
-            <small>YOUR NEXT ROOM // Once a host creates an adventure, its narrator voice is shared by the party. Changing this selector won't change an ongoing room.</small>
+            <NarratorVoicePicker value={audio.narrationVoice} disabled={!audio.narrationEnabled}
+              onChange={value => setAudioPreference({ narrationVoice: value })} />
+            <small>YOUR NARRATOR // Choose from all 28 English Kokoro voices. This preference belongs to your browser and can be changed during any adventure, independently of the host.</small>
+            {isAdmin ? <div className="narrator-admin-seed">
+              <button className="button button-quiet" type="button" disabled={seeding}
+                onClick={() => void seedVoicePreviews()}>
+                {seeding ? "GENERATING SAMPLE LIBRARY…" : "ADMIN // PREPARE VOICE PREVIEWS"}
+              </button>
+              <small>One-time explicit GPU generation, then samples remain in private S3 storage and player previews require no inference.</small>
+              {seedState && <small role="status">{seedState}</small>}
+            </div> : null}
           </div>
           <label className="audio-setting-slider"><span><strong>PLAYBACK SPEED</strong><span>{audio.narrationSpeed}×</span></span>
             <input type="range" min={NARRATION_PLAYBACK_SPEEDS[0]}
@@ -517,13 +552,13 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
           </label>
           <div className="button-row">
             <button className="button" type="button" disabled={!audio.narrationEnabled || storyTime.phase !== "ready"}
-              onClick={() => void playNarration([{ text: "Welcome to Story Time. Your next adventure awaits.", kind: "story", label: "VOICE PREVIEW" }])}>
-              TEST STORY TIME
+              onClick={() => void playNarration([{ text: "Welcome to Story Time. Your next adventure awaits.", kind: "story", label: "VOICE TEST" }])}>
+              TEST LIVE NARRATION
             </button>
             <button className="button" type="button" disabled={storyTime.phase !== "ready"}
               onClick={stopNarration}>STOP READING</button>
           </div>
-          <p className="muted-copy">Story Time uses optional hosted narration. There is no voice-model download, microphone, or speech-to-text. A host selects the voice used by everyone in that adventure; playback settings stay yours.</p>
+          <p className="muted-copy">Story Time uses optional hosted narration. There is no voice-model download, microphone, or speech-to-text. Each player can pick their own narrator. Saved voice samples play without GPU inference; TEST LIVE NARRATION uses the active narrator service.</p>
         </div>
       </Panel>
 

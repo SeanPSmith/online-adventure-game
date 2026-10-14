@@ -33,8 +33,14 @@ function harness() {
   }
   let element = null;
   let blobId = 0;
+  const events = new Map();
+  const windowFake = {
+    addEventListener(name, fn) { const set=events.get(name) ?? new Set(); set.add(fn); events.set(name,set); },
+    removeEventListener(name, fn) { events.get(name)?.delete(fn); },
+    fire(name) { for (const fn of events.get(name) ?? []) fn(); },
+  };
   const context = {
-    exports: {}, Promise, Map, Set, Error, Array, AbortController,
+    exports: {}, Promise, Map, Set, Error, Array, AbortController, window:windowFake,
     Audio: class extends FakeAudio { constructor() { super(); element = this; } },
     URL: { createObjectURL(blob) { return `blob:${blob.text}:${++blobId}`; }, revokeObjectURL(url) { revoked.push(url); } },
     require(name) {
@@ -71,7 +77,13 @@ function harness() {
     assert.ok(token);
     token.reject(new Error(`Speech failed for ${text}`));
   }
-  return { api, prefs, played, requests, states, revoked, item, complete, fail, finish, flush, get audio() { return element; }, holdNextPlay() { deferNextPlay = true; }, unblockPlay() { releasePlay.shift()?.(); } };
+  function completeLatest(text, voice) {
+    const queue=pending.get(text) ?? [];
+    const at=queue.findIndex(token => token.input.voice===voice && !token.signal.aborted);
+    assert.ok(at>=0, `No active ${voice} synthesis for ${text}`);
+    const token=queue.splice(at,1)[0];token.resolve({size:100,type:'audio/mpeg',text});
+  }
+  return { api, prefs, played, requests, states, revoked, item, complete, completeLatest, fail, finish, flush, window:windowFake, get audio() { return element; }, holdNextPlay() { deferNextPlay = true; }, unblockPlay() { releasePlay.shift()?.(); } };
 }
 
 test('starts the first chunk as soon as available and fetches two ahead, never out of order', async () => {
@@ -171,17 +183,37 @@ test('a failed lookahead chunk cannot interrupt an earlier playable passage', as
   assert.match(h.states.at(-1).error, /Speech failed for B/);
 });
 
-test('the room voice is frozen for all lookahead requests', async () => {
+test('room default does not override a player\'s preferred voice', async () => {
   const h = harness();
   h.api.setAdventureNarratorVoice('bm_george');
   const run = h.api.playNarration(['A','B','C'].map(h.item));
-  h.prefs.narrationVoice = 'af_bella';
-  h.api.setAdventureNarratorVoice('af_bella');
+  assert.deepEqual(h.requests.map(x => x.voice), ['am_michael','am_michael','am_michael']);
   for (const text of ['A','B','C']) h.complete(text);
   await h.flush(); h.finish(); await h.flush(); h.finish(); await h.flush(); h.finish(); await run;
-  assert.deepEqual(h.requests.map(x => x.voice), ['bm_george','bm_george','bm_george']);
 });
 
+
+test('mid-adventure switch preserves current audio, cancels lookahead and changes the next clip', async () => {
+  const h = harness();
+  const run = h.api.playNarration(['A','B','C'].map(h.item));
+  h.complete('A'); await h.flush();
+  assert.equal(h.played.length,1);
+  const oldPrefetch=h.requests.filter(x => x.text==='B' || x.text==='C');
+  assert.ok(oldPrefetch.every(x => x.voice==='am_michael'));
+  h.prefs.narrationVoice = 'af_bella';
+  h.window.fire('tot:audio-preferences-changed');
+  assert.equal(h.played.length,1, 'current A must not be interrupted');
+  h.finish(); await h.flush();
+  assert.ok(h.requests.some(x => x.text==='B' && x.voice==='af_bella'));
+  assert.ok(h.requests.some(x => x.text==='C' && x.voice==='af_bella'));
+  h.completeLatest('B','af_bella'); await h.flush();
+  assert.equal(h.played.length,2);
+  h.finish(); await h.flush();
+  h.completeLatest('C','af_bella'); await h.flush();
+  assert.equal(h.played.length,3);
+  h.finish(); await run;
+  assert.equal(h.states.at(-1).phase,'idle');
+});
 
 test('a superseded play() promise cannot clear the new chapter audio handlers', async () => {
   const h = harness();

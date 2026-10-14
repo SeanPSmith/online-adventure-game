@@ -58,6 +58,9 @@ node --test tests/frontend/story-time-coop.cjs
 say "Story Time dramatic pacing and dialogue regressions"
 node --test tests/frontend/story-time-dramatic-pacing.cjs
 
+say "Story Time expanded voice library and mid-adventure narrator switching"
+node --test tests/frontend/story-time-voice-library.cjs
+
 say "Story Time cancellation, stale playback, and startup reliability regressions"
 node --test tests/frontend/story-time-reliability.cjs
 

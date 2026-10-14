@@ -1,3 +1,4 @@
+import { NarratorVoicePicker } from "../../components/game/NarratorVoicePicker";
 import {
   useEffect,
   useMemo,
@@ -22,7 +23,7 @@ import type { PartyHeroSnapshot, SceneChoice } from "../../services/game";
 import { rememberGameRoute } from "../../services/gameRouteMemory";
 import {
   readAudioPreferences, writeAudioPreferences, AUDIO_PREFERENCES_CHANGED, NARRATION_PLAYBACK_SPEEDS,
-  type AudioPreferences, KOKORO_VOICES,
+  type AudioPreferences, KOKORO_VOICES, narratorVoiceLabel,
 } from "../../services/audioPreferences";
 import { activateAudioFromGesture, playSound } from "../../services/audioDirector";
 import {
@@ -355,8 +356,8 @@ export function AdventurePage() {
     setAudioPreferences(writeAudioPreferences({ narrationSpeed: next }));
   }
 
-  // A lobby host chooses the room's voice. Listeners cannot override it with
-  // their own Account Settings narrator choice; only playback controls are local.
+  // The host voice is only an initial room default/prefetch hint; each
+  // participant's actual narration voice is their independent browser choice.
   const roomVoiceId = live.game?.narrator_voice ?? null;
   const roomVoiceName = KOKORO_VOICES.find(v => v.value === roomVoiceId)?.label ?? "HOST SELECTED";
   useEffect(() => {
@@ -794,7 +795,7 @@ ${scene.body.slice(0, 260)}`}
                 <p className="muted-copy">A solitary road is yours to take whenever you are ready.</p>
               )}
               {audioPreferences.narrationEnabled && roomVoiceId ? (
-                <p className="muted-copy">PARTY NARRATOR // {roomVoiceName} · HOST SELECTED · YOUR PLAYBACK CONTROLS ARE PRIVATE</p>
+                <p className="muted-copy">NARRATOR // {narratorVoiceLabel(audioPreferences.narrationVoice)} · YOUR OWN VOICE · ROOM DEFAULT {roomVoiceName}</p>
               ) : null}
               <div className="adventure-lobby-roster">
                 {readiness.map((player) => (
@@ -832,9 +833,11 @@ ${scene.body.slice(0, 260)}`}
                 </button>
                 {audioPreferences.narrationEnabled ? (
                   <>
-                    <span className="eyebrow" title="Voice is chosen when the host creates the room. Your playback settings affect only this browser.">
-                      PARTY VOICE // {roomVoiceName} · YOUR VOLUME {audioPreferences.narrationVolume}%
+                    <span className="eyebrow" title="Voice selection belongs to your browser and can change during the adventure.">
+                      YOUR VOICE // {narratorVoiceLabel(audioPreferences.narrationVoice)} · VOLUME {audioPreferences.narrationVolume}%
                     </span>
+                    <NarratorVoicePicker value={audioPreferences.narrationVoice}
+                      onChange={voice => setAudioPreferences(writeAudioPreferences({ narrationVoice: voice }))} />
                     <button className="button button-quiet" type="button"
                       aria-label={`Change narrator playback speed, currently ${audioPreferences.narrationSpeed} times normal`}
                       title="Cycle playback speed: 0.5× to 2×"

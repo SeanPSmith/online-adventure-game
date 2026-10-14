@@ -119,10 +119,14 @@ def test_react_launch_ui_uses_get_started_and_no_browser_native_controls() -> No
     # Native <select> widgets diverge from the adventure UI on mobile/desktop.
     assert "<select" not in react_source
     assert "TerminalSelect" in read("frontend/src/pages/game/GameHomePage.tsx")
+    # The 28-voice searchable picker is now shared by Settings and live play;
+    # archived Chronicles use the same styled, accessible TerminalSelect as other UI.
     settings = read("frontend/src/pages/account/SettingsPage.tsx")
-    assert 'ariaLabel="Narrator voice"' in settings
-    assert 'options={[...KOKORO_VOICES]}' in settings
+    archive = read("frontend/src/components/game/ArchivedChronicleAudio.tsx")
+    assert '<NarratorVoicePicker value={audio.narrationVoice}' in settings
     assert 'onChange={value => setAudioPreference({ narrationVoice: value })}' in settings
+    assert '<NarratorVoicePicker value={audioPreferences.narrationVoice}' in page
+    assert '<TerminalSelect ariaLabel="Preferred Chronicle narrator track"' in archive
 
 
 def test_adventure_host_narrator_voice_has_a_real_import() -> None:

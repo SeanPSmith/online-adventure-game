@@ -75,7 +75,7 @@ test('two browsers have independent auto-read guards even in same shared room', 
   assert.equal(guest.isNewScene('ROOMA','ROOMA:2:scene2'), true);
 });
 
-test('frontend honors room voice, not personal voice, with local playback speed and volume', () => {
+test('frontend lets each participant control voice while preserving local speed and volume', () => {
   const page = read('frontend/src/pages/game/AdventurePage.tsx');
   const narrator = read('frontend/src/services/storyNarrator.ts');
   const context = read('frontend/src/state/GameSocketContext.tsx');
@@ -83,9 +83,9 @@ test('frontend honors room voice, not personal voice, with local playback speed 
   assert.match(context, /narration_voice: readAudioPreferences\(\)\.narrationVoice/);
   assert.match(backend, /session\.narrator_voice = proposed_voice/);
   assert.match(page, /setAdventureNarratorVoice\(live\.game\?\.narrator_voice/);
-  assert.match(page, /PARTY VOICE \/\//);
-  assert.match(page, /YOUR VOLUME/);
-  assert.match(narrator, /adventureVoice \?\? readAudioPreferences\(\)\.narrationVoice/);
+  assert.match(page, /YOUR VOICE \/\//);
+  assert.match(page, /NarratorVoicePicker/);
+  assert.match(narrator, /readAudioPreferences\(\)\.narrationVoice \|\| adventureVoice/);
   assert.match(narrator, /audio\.playbackRate = prefs\.narrationSpeed/);
   assert.match(narrator, /audio\.volume = prefs\.narrationVolume \/ 100/);
   assert.match(narrator, /speed: 1/);
@@ -101,7 +101,7 @@ test('reconnect and offline actions stop audio and never allow hidden narration'
   assert.match(page, /theater\.chapterReleased/);
 });
 
-test('voice selector explains that only the room host chooses the active narrator', () => {
-  assert.match(read('frontend/src/pages/account/SettingsPage.tsx'), /YOUR NEXT ROOM/);
-  assert.match(read('frontend/src/pages/account/SettingsPage.tsx'), /Changing this selector won't change an ongoing room/);
+test('voice selector explains that each participant picks their own narrator', () => {
+  assert.match(read('frontend/src/pages/account/SettingsPage.tsx'), /YOUR NARRATOR/);
+  assert.match(read('frontend/src/pages/account/SettingsPage.tsx'), /independently of the host/);
 });

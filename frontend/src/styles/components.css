@@ -8820,3 +8820,26 @@ textarea:focus {
 .story-time-diagnostics summary { cursor: pointer; font-weight: 700; letter-spacing: 0.04em; }
 .story-time-diagnostics-body { display: flex; flex-wrap: wrap; gap: 0.55rem 1rem; align-items: center; padding-top: 0.65rem; }
 .story-time-diagnostics-body span { overflow-wrap: anywhere; }
+
+/* Pass 61D: compact IRC-style player narrator library, usable on mobile. */
+.narrator-voice-picker { position: relative; min-width: min(100%, 210px); max-width: 100%; }
+.narrator-voice-current { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.narrator-voice-library { position: relative; z-index: 5; margin-top: 4px; padding: 10px; background: var(--panel, #101a1b); border: 1px solid var(--border-strong, #4b625f); max-width: min(480px, 90vw); width: 100%; }
+.narrator-voice-filter { display: grid; gap: 5px; font-size: 10px; letter-spacing: .1em; }
+.narrator-voice-filter input { width: 100%; min-width: 0; padding: 8px; background: var(--surface, #0b1013); border: 1px solid var(--border, #57635f); color: var(--text, #f4f4f4); }
+.narrator-voice-results { margin: 8px 0; max-height: 260px; overflow-y: auto; overscroll-behavior: contain; }
+.narrator-voice-group > strong { display: block; padding: 8px 2px 5px; font-size: 10px; color: var(--green, #77da97); letter-spacing: .08em; }
+.narrator-voice-option { display: flex; align-items: stretch; gap: 6px; border-bottom: 1px solid var(--border, #354039); }
+.narrator-voice-option button:first-child { flex: 1; min-width: 0; text-align: left; }
+.narrator-voice-option button:last-child { white-space: nowrap; }
+.narrator-voice-option .is-selected { color: var(--green, #77da97); font-weight: 800; }
+.narrator-voice-library small { display: block; margin-top: 8px; line-height: 1.5; }
+.narrator-admin-seed { display: grid; gap: 8px; margin-top: 8px; }
+@media (max-width: 580px) {
+  .narrator-voice-picker { width: 100%; }
+  .narrator-voice-library { max-width: 100%; }
+}
+
+.chronicle-voice-track { display: grid; gap: 6px; max-width: 360px; margin: 10px 0; font-size: 11px; }
+.chronicle-voice-track .terminal-select { width: 100%; }
+.chronicle-voice-track small { color: var(--text-dim); }

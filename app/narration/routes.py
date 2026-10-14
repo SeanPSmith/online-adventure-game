@@ -18,12 +18,18 @@ from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
 from app.notifications.routes import require_user
+from app.auth.routes import require_admin_write
 from app.narration import hosting, archive
 
 router = APIRouter(prefix="/api/narration", tags=["narration"])
 logger = logging.getLogger(__name__)
 
-VOICES = ("af_heart", "af_bella", "af_sky", "am_michael", "bm_george")
+VOICES = (
+    "af_heart", "af_bella", "af_sky", "am_michael", "bm_george",
+    "af_alloy", "af_aoede", "af_jessica", "af_kore", "af_nicole", "af_nova", "af_river", "af_sarah",
+    "am_adam", "am_echo", "am_eric", "am_fenrir", "am_liam", "am_onyx", "am_puck", "am_santa",
+    "bf_alice", "bf_emma", "bf_isabella", "bf_lily", "bm_daniel", "bm_fable", "bm_lewis",
+)
 MAX_TEXT = 1800
 MAX_AUDIO_BYTES = 5 * 1024 * 1024
 CACHE_MAX_BYTES = 24 * 1024 * 1024
@@ -224,6 +230,92 @@ async def narration_heartbeat(payload: RoomHeartbeat | None = None, user=Depends
         return {"state": "unavailable"}
 
 
+# Prepared once by an administrator, stored in the non-expiring private
+# archive bucket. Player previews NEVER call hosting.touch or Kokoro.
+PREVIEW_TEXT = (
+    "Beyond the ancient gates, a silver lantern flickered. "
+    "Your companions exchanged a wary glance as the forgotten kingdom stirred beneath the stars."
+)
+PREVIEW_VERSION = "kokoro-v0.9-gpu-english-v1"
+
+
+def _preview_key(voice: str) -> str:
+    return f"previews/{PREVIEW_VERSION}/{voice}.mp3"
+
+
+def _preview_read(voice: str) -> bytes | None:
+    bucket = os.getenv("KOKORO_ARCHIVE_BUCKET", "").strip()
+    if not bucket:
+        return None
+    try:
+        import boto3
+        from botocore.exceptions import ClientError
+        obj = boto3.client("s3").get_object(Bucket=bucket, Key=_preview_key(voice))
+        audio = obj["Body"].read(MAX_AUDIO_BYTES + 1)
+        return audio if 0 < len(audio) <= MAX_AUDIO_BYTES else None
+    except ClientError as exc:
+        if exc.response.get("Error", {}).get("Code") not in {"NoSuchKey", "404"}:
+            logger.warning("voice_preview_read_error voice=%s", voice)
+        return None
+    except Exception:
+        return None
+
+
+def _preview_save(voice: str, audio: bytes) -> None:
+    bucket = os.getenv("KOKORO_ARCHIVE_BUCKET", "").strip()
+    if not bucket:
+        raise RuntimeError("The private voice preview archive is not configured.")
+    import boto3
+    boto3.client("s3").put_object(
+        Bucket=bucket, Key=_preview_key(voice), Body=audio,
+        ContentType="audio/mpeg", ServerSideEncryption="AES256",
+    )
+
+
+@router.get("/previews/{voice}")
+async def play_voice_preview(voice: str, user=Depends(require_user)):
+    if voice not in VOICES:
+        raise HTTPException(404, "Unknown narrator voice.")
+    audio = await asyncio.to_thread(_preview_read, voice)
+    if audio is None:
+        raise HTTPException(404, "This voice sample has not been prepared yet.")
+    return _audio_response(audio, source="s3", voice=voice)
+
+
+@router.post("/previews/seed/{voice}")
+async def seed_voice_preview(voice: str, admin=Depends(require_admin_write)):
+    """Explicit admin-only one-time generation; no player can wake GPU for previews."""
+    if voice not in VOICES:
+        raise HTTPException(404, "Unknown narrator voice.")
+    if not os.getenv("KOKORO_ARCHIVE_BUCKET", "").strip():
+        raise HTTPException(409, "The private sample archive has not been configured.")
+    if await asyncio.to_thread(_preview_read, voice) is not None:
+        return {"voice": voice, "cached": True}
+    endpoint = _endpoint()
+    if not endpoint:
+        raise HTTPException(503, "Voice service is not configured.")
+    host = await _ensure_awake(wake=True)
+    if host["state"] not in {"running", "legacy"} or not await asyncio.to_thread(hosting.healthy, endpoint):
+        raise HTTPException(503, "GPU is awakening; retry this preview in a few seconds.",
+                            headers={"Retry-After": "6"})
+    async with _semaphore:
+        if await asyncio.to_thread(_preview_read, voice) is not None:
+            return {"voice": voice, "cached": True}
+        try:
+            lease = await asyncio.to_thread(hosting.begin_generation)
+        except Exception as exc:
+            raise HTTPException(503, "Voice generation is temporarily unavailable.") from exc
+        try:
+            audio = await asyncio.to_thread(_read_kokoro, endpoint, PREVIEW_TEXT, voice, 1.0)
+            await asyncio.to_thread(_preview_save, voice, audio)
+        except Exception as exc:
+            logger.warning("voice_preview_seed_failed voice=%s type=%s", voice, type(exc).__name__)
+            raise HTTPException(502, "Unable to prepare this voice preview.") from exc
+        finally:
+            await asyncio.to_thread(hosting.finish_generation, lease)
+    return {"voice": voice, "cached": False}
+
+
 @router.get("/archive/{history_id}")
 async def list_archived_narration(history_id: str, user=Depends(require_user)):
     from app.main import store
@@ -261,8 +353,7 @@ async def _remember_room_audio(payload: SpeechRequest, user, text: str,
                                    for p in room.players.values()):
             return
         session = game_sessions.get(room.code)
-        if (session is None or not session.started or
-                payload.voice != session.narrator_voice):
+        if (session is None or not session.started or payload.voice not in VOICES):
             return
         matched = archive.identify(session.scene, text)
         if matched is None:

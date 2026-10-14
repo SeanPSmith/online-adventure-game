@@ -1,3 +1,35 @@
+> **Pass 61D.2 — Chronicle narrator selector UI contract hotfix:**
+> Replace the last native HTML voice dropdown in completed Chronicle playback
+> with the existing themed `TerminalSelect` used elsewhere in Tales of Two.
+> Preserve voice preference, co-op track selection, audio pause/reset behavior,
+> and the expanded 28-voice Story Time picker. Update launch-regression
+> assertions to recognize the new searchable narrator picker in Settings and
+> adventures while still forbidding any native `<select>` in React pages.
+> No AWS infrastructure, model, server, or GPU changes.
+>
+> **Pass 61D.1 — Full English narrator library and personal voice switching:**
+> Story Time now lists all 28 English Kokoro voices (five original voices featured),
+> with a searchable voice picker in Account Settings and live adventures. Each
+> participant chooses their own voice; changing midway takes effect on the
+> next speech chunk, cancels stale bounded lookahead, and preserves current
+> playback and cached completed Chronicle MP3s. Co-op Chronicle replay avoids
+> duplicate overlapping voice variants, with a preferred voice-track selector.
+> Administrator-only opt-in preview preparation stores synthetic 28-voice
+> examples in the existing private, non-expiring S3 archive. Player previews
+> fetch those files without GPU wake; before preparation they report that the
+> samples are unavailable. This pass makes no changes to CDK, EC2 watchdog,
+> AWS stack routing, or CPU rollback. Full runtime acceptance remains required.
+> See `docs/STORY_TIME_VOICE_LIBRARY.md`.
+>
+> **Pass 61C.6 — Cross-stack export cutover fix, deployed to staging:**
+> After dedicated GPU stack and Kokoro MP3 smoke successfully deployed, the
+> backend routing update originally rolled back because CDK required narrator
+> stack exports that were not yet published. The cutover script now deploys
+> producer exports before consumer backend. The user's subsequent staging
+> output confirms `AdventurePlatformBackend-staging` successfully deployed
+> and cutover reported routing Story Time to GPU. Live adventure narration,
+> automatic room wake, and idle stop remain acceptance checks.
+>
 > **Pass 61C.3 — Dedicated budget GPU narrator rollout (first deploy failed, no cutover):**
 > A separate, explicitly opt-in `AdventurePlatformNarratorGpu-staging` CDK stack
 > provisions the verified `g6f.large` + AWS GRID 580.159.03 and Kokoro GPU
@@ -1465,3 +1497,18 @@ diagnostics on smoke failure, and read-only
 `story-time-gpu-service.sh diagnose`. A running Docker container does not guarantee
 Kokoro API readiness. No CPU/GPU backend cutover is authorized by this change;
 operator must obtain a passing smoke before deploying backend GPU routing.
+
+### Pass 61C.6 — Cross-stack export ordering during GPU cutover (2026-10-14)
+
+The dedicated `AdventurePlatformNarratorGpu-staging` G6f deployed and passed real
+Kokoro MP3 smoke tests. Staging cutover then rolled the Backend back because
+`AdventurePlatformNarratorGpu-staging:ExportsOutputFnGetAttAudioCache05BDCF99ArnB43F994E`
+was not exported: the GPU stack was initially synthesized/deployed separately,
+but Backend was later deployed `--exclusively` with new cross-stack references.
+The Mac operator script now diffs and deploys the **selected existing narrator
+producer** in the **selected backend routing context**, so CDK publishes missing
+auto-generated CloudFormation exports before it deploys the Backend. It requires
+independent confirmations and preserves the dedicated G6f and CPU fallback.
+Review the narrator stack diff for **Outputs-only changes**; never approve an
+unexpected instance/storage replacement. No GPU/Backend cloud changes were made
+by this patch, and real AWS cutover remains to be verified.

@@ -269,32 +269,63 @@ export async function playNarration(items: NarrationItem[]): Promise<void> {
   const identity = sequence;
   const controller = new AbortController();
   pending = controller;
-  // Freeze the room voice for this entire playback, including prefetched chunks.
-  const voice = adventureVoice ?? readAudioPreferences().narrationVoice;
-  const prepared = new Map<number, Promise<Prepared>>();
+  // Each participant picks their own narrator. The host's original voice is
+  // retained as an optional room fallback, never enforced on other listeners.
+  const preferredVoice = () => readAudioPreferences().narrationVoice || adventureVoice || "af_heart";
+  const prepared = new Map<number, { voice: string; job: Promise<Prepared>; abort: AbortController }>();
+  let currentIndex = 0;
   function fillWindow(index: number) {
+    const voice = preferredVoice();
     for (let i = index; i < Math.min(items.length, index + NARRATION_LOOKAHEAD + 1); i++) {
-      if (prepared.has(i)) continue;
-      // A settled result avoids unhandled rejections if a future chunk is
-      // aborted before its turn to play, or if the player leaves the room.
-      const job = fetchSpeech(items[i], voice, controller.signal).then(
+      const prior = prepared.get(i);
+      if (prior?.voice === voice) continue;
+      prior?.abort.abort();
+      const localAbort = new AbortController();
+      // Each prefetch has its own abort handle; the main cancellation below
+      // aborts all outstanding entries without relying on AbortSignal.any.
+      // Keep obsolete prefetch promises settled and ignored after a switch.
+      const job = fetchSpeech(items[i], voice, localAbort.signal).then(
         (url): Prepared => ({ url }),
         (error): Prepared => ({ error }),
       );
-      prepared.set(i, job);
+      prepared.set(i, { voice, job, abort: localAbort });
     }
   }
+  // A changed voice does not interrupt the current clip. It invalidates the
+  // bounded lookahead so the next chunk uses the newly selected voice.
+  const onPreferencesChange = () => {
+    for (const [index, entry] of prepared) {
+      if (index < currentIndex || (index === currentIndex && state.phase === "playing")) continue;
+      if (entry.voice !== preferredVoice()) { entry.abort.abort(); prepared.delete(index); }
+    }
+  };
+  if (typeof window !== "undefined" && typeof window.addEventListener === "function") window.addEventListener("tot:audio-preferences-changed", onPreferencesChange);
+  controller.signal.addEventListener("abort", () => { for (const entry of prepared.values()) entry.abort.abort(); }, { once: true });
 
   try {
     fillWindow(0);
     for (let index = 0; index < items.length; index++) {
       if (identity !== sequence) return;
+      currentIndex = index;
       const item = items[index];
       if (!pausedBetweenChunks) publish(index === 0 ? "loading" : "buffering", item.label);
       fillWindow(index);
-      const result = await prepared.get(index)!;
-      if (identity !== sequence) return;
-      prepared.delete(index);
+      // If the voice changed while a clip was being prepared, discard the
+      // old result and fetch this same clip using the latest preference.
+      let result: Prepared;
+      while (true) {
+        fillWindow(index);
+        const selected = prepared.get(index)!;
+        result = await selected.job;
+        if (identity !== sequence) return;
+        if (selected.voice !== preferredVoice()) {
+          selected.abort.abort();
+          prepared.delete(index);
+          continue;
+        }
+        prepared.delete(index);
+        break;
+      }
       if ("error" in result) throw result.error;
       if (state.phase === "paused") pausedBetweenChunks = true;
       await waitForUnpause(identity);
@@ -375,6 +406,8 @@ export async function playNarration(items: NarrationItem[]): Promise<void> {
   } catch (reason) {
     if (identity === sequence) publish("error", "", reason instanceof Error ? reason.message : "Narration unavailable.");
   } finally {
+    if (typeof window !== "undefined" && typeof window.removeEventListener === "function") window.removeEventListener("tot:audio-preferences-changed", onPreferencesChange);
+    for (const entry of prepared.values()) entry.abort.abort();
     if (identity === sequence) {
       pending = null;
       activeUrl = null;

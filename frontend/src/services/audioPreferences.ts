@@ -46,13 +46,42 @@ function percent(value: unknown, fallback: number): number {
   return Number.isFinite(n) ? Math.max(0, Math.min(100, Math.round(n))) : fallback;
 }
 
+/** Kokoro v1.0 English voices: full model catalogue, with initial five featured. */
 export const KOKORO_VOICES = [
-  { value: "af_heart", label: "Heart — warm" },
-  { value: "af_bella", label: "Bella — expressive" },
-  { value: "af_sky", label: "Sky — bright" },
-  { value: "am_michael", label: "Michael — grounded" },
-  { value: "bm_george", label: "George — British" },
+  { value: "af_heart", label: "Heart — warm", accent: "American", gender: "Female", featured: true },
+  { value: "af_bella", label: "Bella — expressive", accent: "American", gender: "Female", featured: true },
+  { value: "af_sky", label: "Sky — bright", accent: "American", gender: "Female", featured: true },
+  { value: "am_michael", label: "Michael — grounded", accent: "American", gender: "Male", featured: true },
+  { value: "bm_george", label: "George — British", accent: "British", gender: "Male", featured: true },
+  { value: "af_alloy", label: "Alloy", accent: "American", gender: "Female", featured: false },
+  { value: "af_aoede", label: "Aoede", accent: "American", gender: "Female", featured: false },
+  { value: "af_jessica", label: "Jessica", accent: "American", gender: "Female", featured: false },
+  { value: "af_kore", label: "Kore", accent: "American", gender: "Female", featured: false },
+  { value: "af_nicole", label: "Nicole", accent: "American", gender: "Female", featured: false },
+  { value: "af_nova", label: "Nova", accent: "American", gender: "Female", featured: false },
+  { value: "af_river", label: "River", accent: "American", gender: "Female", featured: false },
+  { value: "af_sarah", label: "Sarah", accent: "American", gender: "Female", featured: false },
+  { value: "am_adam", label: "Adam", accent: "American", gender: "Male", featured: false },
+  { value: "am_echo", label: "Echo", accent: "American", gender: "Male", featured: false },
+  { value: "am_eric", label: "Eric", accent: "American", gender: "Male", featured: false },
+  { value: "am_fenrir", label: "Fenrir", accent: "American", gender: "Male", featured: false },
+  { value: "am_liam", label: "Liam", accent: "American", gender: "Male", featured: false },
+  { value: "am_onyx", label: "Onyx", accent: "American", gender: "Male", featured: false },
+  { value: "am_puck", label: "Puck", accent: "American", gender: "Male", featured: false },
+  { value: "am_santa", label: "Santa", accent: "American", gender: "Male", featured: false },
+  { value: "bf_alice", label: "Alice", accent: "British", gender: "Female", featured: false },
+  { value: "bf_emma", label: "Emma", accent: "British", gender: "Female", featured: false },
+  { value: "bf_isabella", label: "Isabella", accent: "British", gender: "Female", featured: false },
+  { value: "bf_lily", label: "Lily", accent: "British", gender: "Female", featured: false },
+  { value: "bm_daniel", label: "Daniel", accent: "British", gender: "Male", featured: false },
+  { value: "bm_fable", label: "Fable", accent: "British", gender: "Male", featured: false },
+  { value: "bm_lewis", label: "Lewis", accent: "British", gender: "Male", featured: false },
 ] as const;
+
+export function narratorVoiceLabel(id: string): string {
+  return KOKORO_VOICES.find(voice => voice.value === id)?.label ?? "Heart";
+}
+
 
 export function normalizeAudioPreferences(value: Partial<AudioPreferences> = {}): AudioPreferences {
   return {

@@ -71,3 +71,31 @@ only when ready to incur compute charges. Do not run `cutover` unless smoke pass
 
 This patch is **Mac-side operator tooling only**. No CDK stack update, new
 EC2 instance, or backend deployment is required to use these commands.
+
+### Pass 61C.6 — Fix first cutover's missing CloudFormation narrator exports (2026-10-14)
+
+The dedicated GPU stack deployed and the synthetic MP3 `smoke` passed, but the first
+Backend cutover failed with `UPDATE_ROLLBACK_COMPLETE`. Its **stack-level rollback reason**
+was `No export named AdventurePlatformNarratorGpu-staging:ExportsOutputFnGetAttAudioCache05BDCF99ArnB43F994E found`.
+The initial GPU provisioning synth did not select it as the backend narrator, so CDK
+never generated the implicit producer exports for its S3 cache ARN (and possibly its
+instance/table attributes). The former cutover command deployed the Backend with
+`--exclusively`, so CloudFormation could not create the missing exports in the GPU
+stack on the Backend's behalf. Filtering only `UPDATE_FAILED` resource events misses
+this stack-level error; read all recent CloudFormation stack events when investigating.
+
+`story-time-gpu-service.sh cutover` now explicitly synthesizes **both stacks in the
+selected routing mode**, diffs and deploys **only the existing GPU producer stack**
+first (allowing CDK to publish its generated outputs), then diffs and deploys only
+the Backend consumer. Rollback uses the same ordering with the existing CPU producer.
+Both steps require separate, explicit confirmation. **Review the producer diff:** it
+should only add missing CloudFormation Outputs/Exports, not replace the EC2 instance,
+cache bucket or activity table; cancel if destructive changes appear. The script
+stops immediately if the producer update fails, leaving Backend routing unchanged.
+
+The dedicated GPU stack is already `CREATE_COMPLETE`; **do not call `clear-rollback`
+or `provision`**. Backend `UPDATE_ROLLBACK_COMPLETE` is a recoverable status and is
+not a reason to delete it. GPU can remain stopped during troubleshooting; cutover
+requires a running GPU and another successful `smoke`, then the producer-first
+update. This patch is local operator code; no narrator inference or AWS deployment
+was executed while packaging it.

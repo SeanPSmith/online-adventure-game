@@ -186,12 +186,36 @@ verify_gpu_synth() {
   rm -rf "$dir"
 }
 cdk_action() {
-  local selected="$1"
+  local selected="$1" target_stack publish_confirmation switch_confirmation
   export TOT_ENABLE_NARRATOR_STACK=1
   export TOT_ENABLE_GPU_NARRATOR_STACK=1
   export TOT_STORY_TIME_GPU_CUTOVER="$selected"
-  (cd "$ROOT/infra" && npm run build && npx cdk diff "$BACKEND_STACK" --profile "$AWS_PROFILE")
-  ask "$( [[ "$selected" == 1 ]] && echo SWITCH STAGING TO GPU || echo RESTORE CPU NARRATOR )"
+
+  if [[ "$selected" == 1 ]]; then
+    target_stack="$GPU_STACK"
+    publish_confirmation='PUBLISH GPU NARRATOR EXPORTS'
+    switch_confirmation='SWITCH STAGING TO GPU'
+  else
+    target_stack="$CPU_STACK"
+    publish_confirmation='PUBLISH CPU NARRATOR EXPORTS'
+    switch_confirmation='RESTORE CPU NARRATOR'
+  fi
+
+  # Critical: the Backend refers to the narrator's instance, cache, and table.
+  # CDK generates cross-stack Outputs/Exports ONLY when that consumer reference
+  # exists in the synthesized app. The narrator was originally deployed alone,
+  # before cutover, and thus lacked the auto-generated AudioCache ARN export.
+  # Backend --exclusively cannot publish it on the producer's behalf.
+  # Synthesize the narrator WITH the selected backend reference, update ONLY
+  # that already-provisioned narrator stack, then deploy the Backend.
+  echo "Review $target_stack export changes before backend routing."
+  (cd "$ROOT/infra" && npm run build && npx cdk diff "$target_stack" --exclusively --profile "$AWS_PROFILE")
+  ask "$publish_confirmation"
+  (cd "$ROOT/infra" && npx cdk deploy "$target_stack" --exclusively --profile "$AWS_PROFILE" --require-approval broadening)
+
+  echo "Narrator CloudFormation exports published; review backend routing diff."
+  (cd "$ROOT/infra" && npx cdk diff "$BACKEND_STACK" --exclusively --profile "$AWS_PROFILE")
+  ask "$switch_confirmation"
   (cd "$ROOT/infra" && npx cdk deploy "$BACKEND_STACK" --exclusively --profile "$AWS_PROFILE" --require-approval broadening)
 }
 case "$ACTION" in
@@ -215,8 +239,8 @@ Commands:
   bash scripts/aws/story-time-gpu-service.sh smoke       # bounded readiness retries + failure logs
   bash scripts/aws/story-time-gpu-service.sh diagnose    # read-only container/driver logs
   bash scripts/aws/story-time-gpu-service.sh stop
-  bash scripts/aws/story-time-gpu-service.sh cutover     # explicitly change backend
-  bash scripts/aws/story-time-gpu-service.sh rollback    # return to CPU
+  bash scripts/aws/story-time-gpu-service.sh cutover     # publish GPU exports first, then change backend
+  bash scripts/aws/story-time-gpu-service.sh rollback    # publish CPU exports first, then restore backend
 PLAN
     ;;
   provision)

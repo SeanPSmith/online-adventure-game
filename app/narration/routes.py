@@ -149,7 +149,10 @@ def _store_shared_audio(key: str, audio: bytes) -> None:
 
 def _audio_key(text: str, voice: str) -> str:
     # Client playback rate never affects synthesis or the shared cache.
-    return hashlib.sha256(json.dumps([CACHE_MODEL_VERSION, text, voice, 1.0]).encode()).hexdigest()
+    # CPU v0.8 and GPU v0.9 are not interchangeable, even when voices and
+    # MP3 byte lengths appear identical. Prevent cross-model cache poisoning.
+    version = os.getenv("KOKORO_CACHE_VERSION", CACHE_MODEL_VERSION).strip() or CACHE_MODEL_VERSION
+    return hashlib.sha256(json.dumps([version, text, voice, 1.0]).encode()).hexdigest()
 
 
 def _audio_response(audio: bytes, *, source: str = "generated", started: float | None = None,

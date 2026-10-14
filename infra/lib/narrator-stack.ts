@@ -9,12 +9,15 @@ import * as targets from "aws-cdk-lib/aws-events-targets";
 import { Construct } from "constructs";
 import { resourcePrefix } from "./naming";
 import * as path from "node:path";
+import * as fs from "node:fs";
 
 export interface NarratorStackProps extends cdk.StackProps {
   readonly projectName: string;
   readonly environmentName: string;
   readonly vpc: ec2.IVpc;
   readonly backendSecurityGroup: ec2.ISecurityGroup;
+  /** Explicit opt-in. A separate stack; never replace the working CPU narrator. */
+  readonly gpuMode?: boolean;
 }
 
 /** Created only by an explicit TOT_ENABLE_NARRATOR_STACK=1 CDK deploy. */
@@ -26,6 +29,7 @@ export class NarratorStack extends cdk.Stack {
   public constructor(scope: Construct, id: string, props: NarratorStackProps) {
     super(scope, id, props);
     const prefix = resourcePrefix(props.projectName, props.environmentName);
+    const gpu = props.gpuMode === true;
     const sg = new ec2.SecurityGroup(this, "NarratorSecurityGroup", {
       vpc: props.vpc,
       description: "Private Story Time inference: only ECS backend may connect",
@@ -37,8 +41,19 @@ export class NarratorStack extends cdk.Stack {
       assumedBy: new iam.ServicePrincipal("ec2.amazonaws.com"),
       managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonSSMManagedInstanceCore")],
     });
+    if (gpu) {
+      // G6f requires AWS GRID, not the regular Tesla or OSS kernel driver.
+      role.addToPolicy(new iam.PolicyStatement({
+        actions: ["s3:ListBucket"], resources: ["arn:aws:s3:::ec2-linux-nvidia-drivers"],
+      }));
+      role.addToPolicy(new iam.PolicyStatement({
+        actions: ["s3:GetObject"], resources: ["arn:aws:s3:::ec2-linux-nvidia-drivers/*"],
+      }));
+    }
     const userData = ec2.UserData.forLinux();
-    userData.addCommands(
+    if (gpu) {
+      userData.addCommands(fs.readFileSync(path.join(__dirname, "../narrator/gpu-bootstrap.sh"), "utf8"));
+    } else userData.addCommands(
       "set -euxo pipefail",
       // Amazon Linux 2023 ships curl-minimal. Installing full curl alongside it
       // causes dnf to fail before Docker can be configured (cloud-init scripts-user).
@@ -51,18 +66,23 @@ export class NarratorStack extends cdk.Stack {
       "docker run -d --name story-time --restart unless-stopped --memory=3g --cpus=2 --pids-limit=512 -p 8880:8880 -e API_LOG_LEVEL=WARNING ghcr.io/remsky/kokoro-fastapi-cpu:v0.8.0",
     );
     this.instance = new ec2.Instance(this, "NarratorInstance", {
-      instanceName: `${prefix}-story-time`,
+      instanceName: gpu ? `${prefix}-story-time-gpu` : `${prefix}-story-time`,
       vpc: props.vpc,
       vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
       associatePublicIpAddress: true, // Outbound image pull / SSM, without NAT fees.
-      instanceType: new ec2.InstanceType("t3a.medium"),
-      creditSpecification: ec2.CpuCredits.STANDARD,
-      machineImage: ec2.MachineImage.latestAmazonLinux2023({ cpuType: ec2.AmazonLinuxCpuType.X86_64 }),
+      instanceType: new ec2.InstanceType(gpu ? "g6f.large" : "t3a.medium"),
+      ...(!gpu ? { creditSpecification: ec2.CpuCredits.STANDARD } : {}),
+      machineImage: gpu
+        ? ec2.MachineImage.fromSsmParameter(
+            "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.1-x86_64",
+            { cachedInContext: true, os: ec2.OperatingSystemType.LINUX },
+          )
+        : ec2.MachineImage.latestAmazonLinux2023({ cpuType: ec2.AmazonLinuxCpuType.X86_64 }),
       securityGroup: sg,
       role,
       userData,
       requireImdsv2: true,
-      blockDevices: [{ deviceName: "/dev/xvda", volume: ec2.BlockDeviceVolume.ebs(30, {
+      blockDevices: [{ deviceName: "/dev/xvda", volume: ec2.BlockDeviceVolume.ebs(gpu ? 50 : 30, {
         encrypted: true,
         volumeType: ec2.EbsDeviceVolumeType.GP3,
         deleteOnTermination: true,
@@ -91,9 +111,10 @@ export class NarratorStack extends cdk.Stack {
       environment: {
         INSTANCE_ID: this.instance.instanceId,
         TABLE_NAME: this.activityTable.tableName,
-        IDLE_SECONDS: "1800", // legacy idle for never-used narration server
-        ROOM_IDLE_SECONDS: "900", // grace after last opt-in room heartbeat
-        MAX_MONTHLY_SECONDS: "216000", // 60 hours. Approximate, checked every five minutes.
+        IDLE_SECONDS: gpu ? "420" : "1800",
+        ROOM_IDLE_SECONDS: gpu ? "300" : "900",
+        MIN_UPTIME_SECONDS: gpu ? "600" : "1200", // First boot and cold-start grace.
+        MAX_MONTHLY_SECONDS: gpu ? "108000" : "216000", // GPU 30h/month (~$6 compute), advisory only.
       },
     });
     watchdog.addToRolePolicy(new iam.PolicyStatement({
@@ -111,7 +132,7 @@ export class NarratorStack extends cdk.Stack {
     });
     cdk.Tags.of(this).add("Project", props.projectName);
     cdk.Tags.of(this).add("Environment", props.environmentName);
-    cdk.Tags.of(this).add("Purpose", "OptionalStoryTime");
+    cdk.Tags.of(this).add("Purpose", gpu ? "OptionalStoryTimeGpu" : "OptionalStoryTime");
     new cdk.CfnOutput(this, "NarratorInstanceId", { value: this.instance.instanceId });
     new cdk.CfnOutput(this, "NarratorPrivateUrl", { value: `http://${this.instance.instancePrivateIp}:8880` });
     new cdk.CfnOutput(this, "NarratorCacheBucket", { value: this.audioBucket.bucketName });

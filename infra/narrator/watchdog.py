@@ -15,6 +15,7 @@ TABLE_NAME = os.getenv("TABLE_NAME", "")
 IDLE = int(os.getenv("IDLE_SECONDS", "1800"))
 LIMIT = int(os.getenv("MAX_MONTHLY_SECONDS", "216000"))
 ROOM_IDLE = int(os.getenv("ROOM_IDLE_SECONDS", "900"))
+MIN_UPTIME = int(os.getenv("MIN_UPTIME_SECONDS", "1200"))
 
 
 def month_of(timestamp):
@@ -90,7 +91,7 @@ def handler(event, context):
         ExpressionAttributeValues={":m": result["month"], ":u": result["used_seconds"], ":n": now})
     # The initial image pull can take time. A running request or manual hold
     # prevents automatic idle stop. Re-check everything before issuing Stop.
-    if result["should_stop"] and state == "running" and now - launch_epoch >= 1200:
+    if result["should_stop"] and state == "running" and now - launch_epoch >= MIN_UPTIME:
         check_at = int(time.time())
         latest = table.get_item(Key={"id": "narrator"}, ConsistentRead=True).get("Item", {})
         idle_seconds = ROOM_IDLE if int(latest.get("last_room_request_epoch", 0)) else IDLE

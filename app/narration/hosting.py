@@ -11,7 +11,7 @@ import uuid
 from datetime import datetime, timezone
 from urllib.request import urlopen
 
-MAX_MONTHLY_SECONDS = 60 * 60 * 60
+MAX_MONTHLY_SECONDS = int(os.getenv("KOKORO_MAX_MONTHLY_SECONDS", "216000"))
 
 
 def configured() -> bool:

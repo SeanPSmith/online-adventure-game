@@ -36,6 +36,8 @@ export interface BackendStackProps extends cdk.StackProps {
   readonly narratorInstance?: ec2.IInstance;
   readonly narratorActivityTable?: dynamodb.ITable;
   readonly narratorCacheBucket?: s3.IBucket;
+  readonly kokoroCacheVersion?: string;
+  readonly kokoroMaxMonthlySeconds?: number;
 }
 
 export class BackendStack extends cdk.Stack {
@@ -101,6 +103,8 @@ export class BackendStack extends cdk.Stack {
         TOT_PUBLIC_BASE_URL: props.notificationPublicBaseUrl,
         TOT_VAPID_CONTACT: props.vapidContact,
         KOKORO_BASE_URL: props.kokoroBaseUrl,
+        KOKORO_CACHE_VERSION: props.kokoroCacheVersion ?? "kokoro-cpu-v0.8.0",
+        KOKORO_MAX_MONTHLY_SECONDS: String(props.kokoroMaxMonthlySeconds ?? 216000),
         KOKORO_INSTANCE_ID: props.narratorInstance?.instanceId ?? "",
         KOKORO_ACTIVITY_TABLE: props.narratorActivityTable?.tableName ?? "",
         KOKORO_CACHE_BUCKET: props.narratorCacheBucket?.bucketName ?? "",

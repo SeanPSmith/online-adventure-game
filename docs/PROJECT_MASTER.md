@@ -1,3 +1,21 @@
+> **Pass 61C.2 — Dedicated budget GPU narrator infrastructure (prepared, NOT deployed):**
+> A separate, explicitly opt-in `AdventurePlatformNarratorGpu-staging` CDK stack
+> provisions the verified `g6f.large` + AWS GRID 580.159.03 and Kokoro GPU
+> v0.9.0; it uses independent DynamoDB room/generation leases, private S3
+> cache, five-minute idle watchdog, 10-minute minimum EC2 uptime, and an
+> approximate 30-hour monthly compute allowance. The backend continues to
+> use the existing CPU narrator unless an operator explicitly provisions,
+> smoke-tests and switches via `scripts/aws/story-time-gpu-service.sh`.
+> Story text/dice/Arcade are never blocked by the optional narrator.
+> Separate model-version cache keys prevent CPU/GPU audio collisions.
+> Normal `release-staging.sh` does NOT buy GPU compute or migrate narration.
+> After successful live cutover, room Story Time opt-in wakes the GPU in the
+> lobby and the watchdog stops it after no eligible rooms or generation jobs
+> remain; idle stop occurs after grace/poll intervals, not after every turn.
+> The original isolated G6f *benchmark pilot* retains its separate hard-stop
+> watchdog and is never used to serve live gameplay.
+> See `docs/STORY_TIME_GPU_SERVICE.md` for safe rollout and rollback.
+>
 > **Pass 61C.1 — Completed Chronicle audio archive (staging integration, not GPU cutover):**
 > A separate private S3 bucket owned by the Backend stack stores authenticated
 > scene-matched speech chunks for active adventures under a 30-day `pending/`
@@ -141,7 +159,7 @@ and benchmark failure-stop behavior remain enabled.
 > Update or rewrite the relevant sections in this file as the product changes; do not create another numbered changelog copy.
 
 **Last consolidated:** 2026-10-12  
-**Current local baseline:** Pass 61B.1 CPU SSM readiness guard and diagnostic tooling, on top of Pass 61B offline CPU/GPU benchmark-comparison tooling (not yet run against AWS GPU), on top of Pass 61A cache-source and latency instrumentation and Pass 60D browser-side cancellation and startup hardening, on top of Pass 60C opt-in local dramatic breathing room and dialogue emphasis, plus Pass 60B.1 Hero Hall and Graveyard, on top of Pass 60B co-op narrator ownership and reconnect safety and Pass 60A client-side approximate sentence highlighting synchronized to the active audio passage, on top of Pass 59D bounded MP3 lookahead and Pass 59C room-aware lifecycle/private prefetch. CPU Kokoro remains the configured narrator; the separate GPU pilot awaits AWS G-family quota approval. Pass 59D is a browser playback change, not a GPU migration or infrastructure deployment. Canonical Choice → Intermission → Dice → Story reveal remains unchanged.
+**Current local baseline:** Pass 61C.2 GPU narrator integration prepared (not deployed), plus Pass 61C.1 Chronicle audio archive, on top of Pass 61B.1 CPU SSM readiness guard and diagnostic tooling, on top of Pass 61B offline CPU/GPU benchmark-comparison tooling (not yet run against AWS GPU), on top of Pass 61A cache-source and latency instrumentation and Pass 60D browser-side cancellation and startup hardening, on top of Pass 60C opt-in local dramatic breathing room and dialogue emphasis, plus Pass 60B.1 Hero Hall and Graveyard, on top of Pass 60B co-op narrator ownership and reconnect safety and Pass 60A client-side approximate sentence highlighting synchronized to the active audio passage, on top of Pass 59D bounded MP3 lookahead and Pass 59C room-aware lifecycle/private prefetch. CPU Kokoro remains the configured narrator until an explicitly tested dedicated G6f production stack cutover; the isolated budget G6f has already passed its three-sample AWS benchmark and user voice-quality review. Pass 59D is a browser playback change, not a GPU migration or infrastructure deployment. Canonical Choice → Intermission → Dice → Story reveal remains unchanged.
 **Public site:** `https://onlinetextadventure.com`  
 **Primary release command:** `./scripts/release-staging.sh "Describe the release"`
 
@@ -152,8 +170,15 @@ and benchmark failure-stop behavior remain enabled.
 - The Mac CPU benchmarking helper now checks Systems Manager managed-node `PingStatus=Online` before prompting or submitting `AWS-RunShellScript`. EC2 `running` does not imply SSM target readiness; the helper waits up to two minutes (set `STORY_TIME_SSM_WAIT_SECONDS=0` for an immediate diagnostic or up to 600 seconds to extend the wait). When offline, it prints EC2 system/instance health, instance IAM profile, public IP and subnet without executing a benchmark.
 - If SSM is `Online` but Run Command races registration, only `InvalidInstanceId` is retried twice with bounded pauses. Other send-command errors remain visible. This patch makes no AWS infrastructure, narrator, voice, caching, model, or frontend change, and cannot fix a broken SSM agent/IAM/network configuration by itself.
 
+### Pass 61C.2 — Dedicated budget GPU Story Time (opt-in infrastructure, NOT deployed)
+- The verified **G6f fractional L4** is now packaged into a separate narrator *service* stack, not the isolated pilot. No normal code release changes the existing CPU EC2 resources, endpoint or cache. New instance infrastructure requires an explicit typed-confirmation operator deploy.
+- Provisioning pins the AL2023 kernel 6.1 AMI, matches `kernel-devel` and `kernel-modules-extra`, installs AWS GRID 580.159.03, enables virtual-memory overcommit, configures NVIDIA Container Toolkit and a systemd-owned Kokoro GPU container. Server listens on TCP/8880 **only** from the ECS backend security group. The model/container image is not changed from user-approved benchmark versions. Live first-boot and reconnect health **remain unverified** until operator AWS tests.
+- Frontend opt-in heartbeat from lobby → DynamoDB listener lease → EC2 wake while stopped → Story Time inference and shared S3; idle watchdog rechecks generation/room leases before stop. G6f min uptime 10m, room grace 5m and EventBridge polling 5m; first boot may need additional time, and EC2 remains billable while running. Its 30-hour/month allowance is advisory, not a hard spend limit. A single GPU is shared across all active opted-in rooms.
+- CPU/GPU audio caches and model-version hashes are isolated, preserving replay behavior. Completed Chronicle archive remains separate from both temporary caches and does not wake compute.
+- `story-time-gpu-service.sh` provides **plan/provision/status/start/smoke/stop/cutover/rollback**. The cutover refuses to run unless CPU fallback exists and on-instance GPU health is verified. `deploy-backend.sh` fails closed when a GPU stack exists but selected routing is unspecified. Production is **not** automatically switched by source installation or staging release.
+
 ### Pass 61B — Narrator benchmark and quality-evaluation toolkit (no deployment to GPU)
-- The existing **isolated GPU pilot is unchanged**: deploying it is a separate, explicitly confirmed, billable operator action requiring AWS G-family quota. No GPU test results are claimed yet; the main CPU narrator, its S3 cache, app API, frontend, CDK and Story Director are not reconfigured.
+- The **isolated GPU pilot remains separate** from live gameplay. AWS benchmark results for the g6f.large were Michael 0.576 s, Bella 0.504 s, Michael long 3.452 s, about 9.78× real-time synthesis in aggregate. The user approved Michael/Bella voice quality. This benchmark does not establish dedicated-service cold start, concurrency or live rollout readiness.
 - CPU benchmark now measures MP3 duration using the same stdlib frame parser as GPU instead of depending on optional `ffprobe`. Both emit wall seconds, audio seconds, real-time factor and HTTP status for exactly the same three fixed passages. The Mac-side CPU SSM helper extracts `results.csv` to `~/Downloads/tales-of-two-benchmarks/cpu/<run-id>/results.csv`; it never uploads story content. CPU instance remains manually managed; stop it after benchmarking.
 - GPU benchmark CLI now requests a GPU stop **on all exits after user confirmation** (including failed uploads and SSM calls); the five-minute watchdog remains a separate fallback, not a spend guarantee. `fetch` retrieves only isolated pilot benchmark artifacts, not the live narration cache.
 - `scripts/aws/story-time-compare-benchmarks.py --cpu CPU.csv --gpu GPU.csv --output comparison.md` creates a fully local, deterministic comparison and manual Michael/Bella listening checklist. It refuses invalid/mismatched voice/input sample data and distinguishes audio throughput from perceived latency and subjective quality. It **does not** validate GPU by itself; do not migrate without listening, cold-start/concurrency and cost evidence.

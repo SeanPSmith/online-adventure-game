@@ -51,13 +51,26 @@ if (config.enableDataStack) {
   data.addDependency(network);
 }
 
-// Deliberately opt-in: a normal game release MUST NOT create billable compute.
-const narrator = process.env.TOT_ENABLE_NARRATOR_STACK === "1"
+// Normal releases have NO narrator stack by default. GPU is a distinct stack;
+// enabling its synthesis never replaces the known-good CPU instance.
+const cpuNarrator = process.env.TOT_ENABLE_NARRATOR_STACK === "1"
   ? new NarratorStack(app, "AdventurePlatformNarrator-staging", {
       ...common, vpc: network.vpc, backendSecurityGroup: network.backendSecurityGroup,
     })
   : undefined;
-if (narrator) narrator.addDependency(network);
+if (cpuNarrator) cpuNarrator.addDependency(network);
+const gpuNarrator = process.env.TOT_ENABLE_GPU_NARRATOR_STACK === "1"
+  ? new NarratorStack(app, "AdventurePlatformNarratorGpu-staging", {
+      ...common, vpc: network.vpc, backendSecurityGroup: network.backendSecurityGroup,
+      gpuMode: true,
+    })
+  : undefined;
+if (gpuNarrator) gpuNarrator.addDependency(network);
+const gpuCutover = process.env.TOT_STORY_TIME_GPU_CUTOVER === "1";
+if (gpuCutover && !gpuNarrator) {
+  throw new Error("GPU cutover requires TOT_ENABLE_GPU_NARRATOR_STACK=1 and an explicitly provisioned GPU narrator.");
+}
+const narrator = gpuCutover ? gpuNarrator : cpuNarrator;
 
 let backend: BackendStack | undefined;
 if (config.enableBackendStack) {
@@ -91,6 +104,8 @@ if (config.enableBackendStack) {
       narratorInstance: narrator?.instance,
       narratorActivityTable: narrator?.activityTable,
       narratorCacheBucket: narrator?.audioBucket,
+      kokoroCacheVersion: gpuCutover ? "kokoro-gpu-v0.9.0-cu126" : "kokoro-cpu-v0.8.0",
+      kokoroMaxMonthlySeconds: gpuCutover ? 108000 : 216000,
     },
   );
   backend.addDependency(network);

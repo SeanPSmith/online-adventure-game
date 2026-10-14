@@ -151,6 +151,25 @@ class SQLiteStateStore:
 
             connection.execute(
                 """
+                CREATE TABLE IF NOT EXISTS adventure_audio_clips (
+                    history_id TEXT NOT NULL,
+                    clip_id TEXT NOT NULL,
+                    turn_number INTEGER NOT NULL,
+                    position INTEGER NOT NULL,
+                    kind TEXT NOT NULL,
+                    voice TEXT NOT NULL,
+                    archived INTEGER NOT NULL DEFAULT 0,
+                    PRIMARY KEY (history_id, clip_id)
+                )
+                """
+            )
+            connection.execute(
+                "CREATE INDEX IF NOT EXISTS idx_adventure_audio_history "
+                "ON adventure_audio_clips (history_id, turn_number, position)"
+            )
+
+            connection.execute(
+                """
                 CREATE TABLE IF NOT EXISTS adventure_history_players (
                     history_id TEXT NOT NULL,
                     user_id TEXT NOT NULL,
@@ -1051,6 +1070,56 @@ class SQLiteStateStore:
 
         return stories
 
+
+    async def record_audio_clip(self, history_id: str, clip_id: str, turn_number: int,
+                                position: int, kind: str, voice: str) -> None:
+        await asyncio.to_thread(self._record_audio_clip_sync, history_id, clip_id,
+                                turn_number, position, kind, voice)
+
+    def _record_audio_clip_sync(self, history_id: str, clip_id: str, turn_number: int,
+                                position: int, kind: str, voice: str) -> None:
+        with self._connect() as connection:
+            connection.execute(
+                "INSERT INTO adventure_audio_clips "
+                "(history_id, clip_id, turn_number, position, kind, voice) "
+                "VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(history_id, clip_id) DO NOTHING",
+                (history_id, clip_id, turn_number, position, kind, voice),
+            )
+            connection.commit()
+
+    async def completed_audio_clips(self, history_id: str, user_id: str) -> list[dict] | None:
+        return await asyncio.to_thread(self._completed_audio_clips_sync, history_id, user_id)
+
+    def _completed_audio_clips_sync(self, history_id: str, user_id: str) -> list[dict] | None:
+        with self._connect() as connection:
+            membership = connection.execute(
+                "SELECT 1 FROM adventure_history_players WHERE history_id = ? AND user_id = ?",
+                (history_id, user_id),
+            ).fetchone()
+            if not membership:
+                return None
+            rows = connection.execute(
+                "SELECT clip_id, turn_number, position, kind, voice, archived "
+                "FROM adventure_audio_clips WHERE history_id = ? "
+                "ORDER BY turn_number, position, clip_id", (history_id,),
+            ).fetchall()
+            return [dict(row) for row in rows]
+
+    def _pending_audio_clips_sync(self, history_id: str) -> list[str]:
+        with self._connect() as connection:
+            rows = connection.execute(
+                "SELECT clip_id FROM adventure_audio_clips WHERE history_id = ? AND archived = 0",
+                (history_id,),
+            ).fetchall()
+            return [row["clip_id"] for row in rows]
+
+    def _mark_audio_archived_sync(self, history_id: str, clip_id: str) -> None:
+        with self._connect() as connection:
+            connection.execute(
+                "UPDATE adventure_audio_clips SET archived = 1 WHERE history_id = ? AND clip_id = ?",
+                (history_id, clip_id),
+            )
+            connection.commit()
 
     async def onboarding_dismissed(self, user_id: str) -> bool:
         return await asyncio.to_thread(self._onboarding_dismissed_sync, user_id)

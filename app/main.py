@@ -4522,6 +4522,18 @@ async def finalize_resolved_turn(
                 room,
                 session,
             )
+            # Copy previously narrated audio out of the short-lived cache.
+            # Neither AWS nor archive outages may block a finale reveal.
+            from app.narration import archive as narration_archive
+            async def _promote_finished_audio(history_id: str) -> None:
+                try:
+                    await asyncio.to_thread(narration_archive.promote, store, history_id)
+                except Exception:
+                    pass
+            asyncio.create_task(
+                _promote_finished_audio(f"{room.code}:{session.adventure_id}"),
+                name="archive-completed-story-audio",
+            )
 
         turn_payload = {
             "room_code": room.code,

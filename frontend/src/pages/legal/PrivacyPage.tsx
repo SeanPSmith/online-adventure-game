@@ -4,7 +4,7 @@ import { Panel } from "../../components/ui/Panel";
 export function PrivacyPage() {
   return (
     <article className="legal-page public-legal-page">
-      <PageTitle eyebrow="LEGAL // LAST UPDATED OCTOBER 9, 2026" title="PRIVACY" />
+      <PageTitle eyebrow="LEGAL // LAST UPDATED OCTOBER 13, 2026" title="PRIVACY" />
 
       <div className="legal-copy-grid">
         <Panel title="WHAT THE GAME KEEPS">
@@ -33,9 +33,13 @@ export function PrivacyPage() {
           <p>
             Story Time does not download a speech model onto your device and does not
             request microphone access, record your voice, or recognize spoken commands.
-            The game may cache generated audio to avoid repeat processing; audio and
-            service diagnostics may be stored temporarily for operation and security.
-            You can disable narration any time in your audio preferences.
+            The game may cache generated audio to avoid repeat processing. When you
+            listen in an adventure, audio segments can be kept temporarily for up to
+            30 days while the story is active. Audio from a completed adventure
+            can be retained with its Chronicle and replayed by that adventure's
+            participants without generating it again. Disabling narration prevents
+            future playback requests, but does not remove already archived audio.
+            Operational diagnostics may also be stored temporarily.
           </p>
           <p>
             <a href="/legal/story-time-third-party-notices.txt" target="_blank" rel="noopener noreferrer">

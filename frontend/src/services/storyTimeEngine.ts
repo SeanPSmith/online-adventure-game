@@ -3,7 +3,7 @@ import { readAudioPreferences } from "./audioPreferences";
 
 export type StoryTimePhase = "idle" | "downloading" | "ready" | "error";
 export interface StoryTimeState { phase: StoryTimePhase; percent: number | null; message: string; }
-export interface StoryTimeRequest { text: string; voice: string; speed: number; }
+export interface StoryTimeRequest { text: string; voice: string; speed: number; room_code?: string; }
 /** Safe, non-identifying per-passage performance data from existing response headers. */
 export interface StoryTimeRequestDiagnostic {
   source: "memory" | "s3" | "generated" | "unknown";

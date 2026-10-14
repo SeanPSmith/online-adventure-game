@@ -67,6 +67,25 @@ export interface CreationRules {
   skills: { id: string; label: string; stat: string; description: string }[];
 }
 
+export interface ArchivedNarrationClip {
+  clip_id: string;
+  turn_number: number;
+  position: number;
+  kind: "story" | "choice";
+  voice: string;
+}
+
+export function listArchivedNarration(historyId: string) {
+  return apiFetch<{ clips: ArchivedNarrationClip[] }>(
+    `/api/narration/archive/${encodeURIComponent(historyId)}`,
+  );
+}
+
+export function archivedNarrationUrl(historyId: string, clipId: string): string {
+  const base = import.meta.env.VITE_API_BASE ?? "";
+  return `${base}/api/narration/archive/${encodeURIComponent(historyId)}/${encodeURIComponent(clipId)}`;
+}
+
 export interface CompletedStoryPlayer {
   character_id: string;
   character_name: string;

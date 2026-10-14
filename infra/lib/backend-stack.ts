@@ -59,6 +59,17 @@ export class BackendStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
+    // Completed-story audio stays private and outlives the 30-day narrator cache.
+    // Unfinished room uploads expire after 30 days. Only completed/* is retained.
+    const narrationArchive = new s3.Bucket(this, "NarrationArchive", {
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      encryption: s3.BucketEncryption.S3_MANAGED,
+      enforceSSL: true,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+      autoDeleteObjects: false,
+      lifecycleRules: [{ prefix: "pending/", expiration: cdk.Duration.days(30) }],
+    });
+
     const taskDefinition = new ecs.FargateTaskDefinition(this, "TaskDefinition", {
       family: `${prefix}-backend`,
       cpu: props.cpu,
@@ -93,6 +104,7 @@ export class BackendStack extends cdk.Stack {
         KOKORO_INSTANCE_ID: props.narratorInstance?.instanceId ?? "",
         KOKORO_ACTIVITY_TABLE: props.narratorActivityTable?.tableName ?? "",
         KOKORO_CACHE_BUCKET: props.narratorCacheBucket?.bucketName ?? "",
+        KOKORO_ARCHIVE_BUCKET: narrationArchive.bucketName,
       },
       secrets: {
         DB_USER: ecs.Secret.fromSecretsManager(props.databaseSecret, "username"),
@@ -115,6 +127,8 @@ export class BackendStack extends cdk.Stack {
       containerPort: 8000,
       protocol: ecs.Protocol.TCP,
     });
+
+    narrationArchive.grantReadWrite(taskDefinition.taskRole);
 
     if (props.narratorInstance && props.narratorActivityTable && props.narratorCacheBucket) {
       taskDefinition.taskRole.addToPrincipalPolicy(new iam.PolicyStatement({

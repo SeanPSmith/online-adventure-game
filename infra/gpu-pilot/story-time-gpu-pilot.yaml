@@ -12,7 +12,19 @@ Parameters:
   InstanceType:
     Type: String
     Default: g4dn.xlarge
-    AllowedValues: [g4dn.xlarge, g6.xlarge]
+    AllowedValues: [g4dn.xlarge, g6.xlarge, g6f.large]
+  ContainerMemoryGiB:
+    Type: Number
+    Default: 12
+    MinValue: 2
+    MaxValue: 24
+    Description: Memory limit for GPU Kokoro Docker container, smaller for g6f.large
+  RootVolumeGiB:
+    Type: Number
+    Default: 80
+    MinValue: 30
+    MaxValue: 200
+    Description: Root EBS storage for Docker image and model
   GpuAmiId:
     Type: AWS::EC2::Image::Id
     Description: AWS ECS-optimized AL2023 GPU AMI from the public SSM parameter
@@ -22,6 +34,8 @@ Parameters:
     MinValue: 900
     MaxValue: 14400
     Description: Automatic stop after this many seconds of an uninterrupted EC2 run
+Conditions:
+  IsFractionalGpu: !Equals [!Ref InstanceType, g6f.large]
 Resources:
   PilotSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -59,6 +73,19 @@ Resources:
               - Effect: Allow
                 Action: [s3:PutObject]
                 Resource: !Sub '${PilotBucket.Arn}/results/*'
+        - !If
+          - IsFractionalGpu
+          - PolicyName: ReadAwsGridDriverForBudgetOnly
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action: s3:ListBucket
+                  Resource: arn:aws:s3:::ec2-linux-nvidia-drivers
+                - Effect: Allow
+                  Action: s3:GetObject
+                  Resource: arn:aws:s3:::ec2-linux-nvidia-drivers/*
+          - !Ref AWS::NoValue
   PilotInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
@@ -116,7 +143,7 @@ Resources:
       BlockDeviceMappings:
         - DeviceName: /dev/xvda
           Ebs:
-            VolumeSize: 80
+            VolumeSize: !Ref RootVolumeGiB
             VolumeType: gp3
             Encrypted: true
             DeleteOnTermination: true
@@ -127,23 +154,100 @@ Resources:
           Value: StoryTimeGpuPilot
         - Key: Environment
           Value: staging
-      UserData:
-        Fn::Base64: !Sub |
-          #!/bin/bash
-          set -euxo pipefail
-          exec > >(tee -a /var/log/tot-story-time-gpu-setup.log) 2>&1
-          systemctl enable --now docker
-          systemctl enable --now amazon-ssm-agent || true
-          if ! command -v aws >/dev/null 2>&1; then
-            dnf install -y awscli-2
-          fi
-          nvidia-smi
-          docker pull ghcr.io/remsky/kokoro-fastapi-gpu:v0.9.0-cu126
-          docker rm -f story-time-gpu 2>/dev/null || true
-          docker run -d --name story-time-gpu --restart unless-stopped \
-            --gpus all --shm-size=1g --memory=12g --pids-limit=1024 \
-            -p 127.0.0.1:8880:8880 -e API_LOG_LEVEL=WARNING \
-            ghcr.io/remsky/kokoro-fastapi-gpu:v0.9.0-cu126
+      UserData: !If
+        - IsFractionalGpu
+        - Fn::Base64: !Sub |
+            #!/bin/bash
+            # Clean AL2023, not an OSS NVIDIA DLAMI: G6f requires GRID vGPU.
+            set -euxo pipefail
+            exec > >(tee -a /var/log/tot-story-time-gpu-setup.log) 2>&1
+            echo 'G6f GRID bootstrap: deliberately pinned to AWS-supported 19.5/19.4 guest drivers.'
+            # AL2023 changed its default kernel from 6.1 to 6.18 in August 2026.
+            # Kernel >=6.12 uses kernel6.12-devel/kernel6.18-devel (not kernel-devel).
+            # The operator currently pins the budget AMI to kernel 6.1 for a stable
+            # GRID build, but validate the running kernel in case AWS changes it.
+            # Do NOT dnf upgrade here: development headers must match uname -r.
+            RUNNING_KERNEL="$(uname -r)"
+            case "$RUNNING_KERNEL" in
+              6.1.*)  KERNEL_DEV_PKG="kernel-devel-$RUNNING_KERNEL"; KERNEL_EXTRA_PKG="kernel-modules-extra-$RUNNING_KERNEL" ;;
+              6.12.*) KERNEL_DEV_PKG="kernel6.12-devel-$RUNNING_KERNEL"; KERNEL_EXTRA_PKG="kernel6.12-modules-extra-$RUNNING_KERNEL" ;;
+              6.18.*) KERNEL_DEV_PKG="kernel6.18-devel-$RUNNING_KERNEL"; KERNEL_EXTRA_PKG="kernel6.18-modules-extra-$RUNNING_KERNEL" ;;
+              *) echo "ERROR: Unsupported AL2023 GPU kernel: $RUNNING_KERNEL" >&2; exit 10 ;;
+            esac
+            echo "Installing matching kernel build headers and DRM modules: $KERNEL_DEV_PKG $KERNEL_EXTRA_PKG"
+            # AL2023 ships curl-minimal by default. Installing full `curl` alongside
+            # it causes a hard DNF dependency conflict and aborts cloud-init.
+            # The NVIDIA repository fetch below only needs curl-minimal's HTTPS.
+            dnf install -y docker awscli-2 gcc make perl pciutils \
+              elfutils-libelf-devel libglvnd-devel "$KERNEL_DEV_PKG" "$KERNEL_EXTRA_PKG"
+            command -v curl >/dev/null 2>&1 || {
+              echo 'ERROR: curl executable unavailable after bootstrap dependencies.' >&2
+              exit 14
+            }
+            test -d "/usr/src/kernels/$RUNNING_KERNEL" || {
+              echo "ERROR: Missing development headers for running kernel $RUNNING_KERNEL" >&2
+              exit 11
+            }
+            # The base AL2023 EC2 image omits optional DRM/GEM modules. Without
+            # the matching kernel*-modules-extra RPM the proprietary NVIDIA
+            # module compiles but fails to load with:
+            #   nvidia: Unknown symbol drm_gem_object_free (err -2)
+            modprobe drm || { echo 'ERROR: DRM kernel runtime module unavailable' >&2; exit 17; }
+            systemctl enable --now docker
+            systemctl enable --now amazon-ssm-agent || true
+            # The AWS-owned bucket requires the limited List/Get policy on this EC2 role.
+            aws s3 ls s3://ec2-linux-nvidia-drivers/ --recursive > /tmp/tot-grid-object-list.txt
+            GRID_KEY="$(awk '$4 ~ /(^|\/)NVIDIA-Linux-x86_64-580\.159\.03([-.][a-zA-Z0-9_-]+)?\.run$/ {print $4; exit}' /tmp/tot-grid-object-list.txt)"
+            if [[ -z "$GRID_KEY" ]]; then
+              GRID_KEY="$(awk '$4 ~ /(^|\/)NVIDIA-Linux-x86_64-580\.126\.09([-.][a-zA-Z0-9_-]+)?\.run$/ {print $4; exit}' /tmp/tot-grid-object-list.txt)"
+            fi
+            if [[ -z "$GRID_KEY" ]]; then
+              echo 'ERROR: No pinned supported GRID 19.4 or 19.5 driver found. Refusing generic/OSS drivers.' >&2
+              exit 12
+            fi
+            echo "Selected AWS GRID driver: $GRID_KEY"
+            aws s3 cp "s3://ec2-linux-nvidia-drivers/$GRID_KEY" /tmp/tot-grid-driver.run
+            chmod 700 /tmp/tot-grid-driver.run
+            sh /tmp/tot-grid-driver.run --silent --accept-license --no-questions --kernel-module-type=proprietary
+            modprobe nvidia || true
+            nvidia-smi || { echo 'GRID driver did not initialize; do not launch Kokoro.' >&2; exit 13; }
+            # Install NVIDIA's signed repository metadata and container toolkit.
+            curl -fsSL https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo \
+              -o /etc/yum.repos.d/nvidia-container-toolkit.repo
+            dnf install -y nvidia-container-toolkit
+            nvidia-ctk runtime configure --runtime=docker
+            systemctl restart docker
+            docker pull ghcr.io/remsky/kokoro-fastapi-gpu:v0.9.0-cu126
+            docker rm -f story-time-gpu 2>/dev/null || true
+            docker run -d --name story-time-gpu --restart unless-stopped \
+              --gpus all --shm-size=1g --memory=${ContainerMemoryGiB}g --pids-limit=1024 \
+              -p 127.0.0.1:8880:8880 -e API_LOG_LEVEL=WARNING \
+              ghcr.io/remsky/kokoro-fastapi-gpu:v0.9.0-cu126
+            echo 'G6f GRID bootstrap finished; ready for benchmark when Kokoro is healthy.'
+        - Fn::Base64: !Sub |
+              #!/bin/bash
+              set -euxo pipefail
+              exec > >(tee -a /var/log/tot-story-time-gpu-setup.log) 2>&1
+              if ! command -v docker >/dev/null 2>&1; then
+                dnf install -y docker
+              fi
+              systemctl enable --now docker
+              if command -v nvidia-ctk >/dev/null 2>&1; then
+                nvidia-ctk runtime configure --runtime=docker
+                systemctl restart docker
+              fi
+              systemctl enable --now amazon-ssm-agent || true
+              if ! command -v aws >/dev/null 2>&1; then
+                dnf install -y awscli-2
+              fi
+              nvidia-smi
+              docker pull ghcr.io/remsky/kokoro-fastapi-gpu:v0.9.0-cu126
+              docker rm -f story-time-gpu 2>/dev/null || true
+              docker run -d --name story-time-gpu --restart unless-stopped \
+                --gpus all --shm-size=1g --memory=${ContainerMemoryGiB}g --pids-limit=1024 \
+                -p 127.0.0.1:8880:8880 -e API_LOG_LEVEL=WARNING \
+                ghcr.io/remsky/kokoro-fastapi-gpu:v0.9.0-cu126
+
   PilotWatchdogRole:
     Type: AWS::IAM::Role
     Properties:

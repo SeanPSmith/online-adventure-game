@@ -56,7 +56,9 @@ function recordDiagnostic(source: NarrationDiagnostics["lastSource"], waitMs: nu
 // Keep the window bounded: uncontrolled prefetch would overwhelm CPU Kokoro.
 export const NARRATION_LOOKAHEAD = 2;
 let adventureVoice: string | null = null;
+let adventureRoom: string | null = null;
 export function setAdventureNarratorVoice(voice: string | null) { adventureVoice = voice; }
+export function setAdventureNarratorRoom(room: string | null) { adventureRoom = room; }
 let audio: HTMLAudioElement | null = null;
 let activeUrl: string | null = null;
 let sequence = 0;
@@ -218,7 +220,7 @@ async function fetchSpeech(item: NarrationItem, voice: string, signal: AbortSign
   const networkCapture: { value: StoryTimeRequestDiagnostic | null } = { value: null };
   const started = Date.now();
   const blob = await synthesizeStoryTimeSpeech(
-    { text: item.text, voice, speed: 1 }, signal,
+    { text: item.text, voice, speed: 1, room_code: adventureRoom ?? undefined }, signal,
     (value) => { networkCapture.value = value; },
   );
   if (signal.aborted) throw new Error("Narration interrupted.");

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { PageTitle } from "../../components/ui/PageTitle";
 import { Panel } from "../../components/ui/Panel";
 import { ShareMomentButton } from "../../components/game/ShareMomentButton";
+import { ArchivedChronicleAudio } from "../../components/game/ArchivedChronicleAudio";
 import {
   listCharacters,
   listCharacterStories,
@@ -87,6 +88,7 @@ export function HistoryPage() {
                 <span>{story.room_code}</span>
               </div>
               <p>{story.recap || story.final_resolution}</p>
+              <ArchivedChronicleAudio historyId={story.history_id} />
               <div className="history-card-actions">
                 <ShareMomentButton
                   title={`${story.adventure_title} — Tales of Two`}

@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import { PageTitle } from "../../components/ui/PageTitle";
 import { Panel } from "../../components/ui/Panel";
 import { ShareMomentButton } from "../../components/game/ShareMomentButton";
+import { ArchivedChronicleAudio } from "../../components/game/ArchivedChronicleAudio";
 import { apiFetch } from "../../services/api";
 import { useGameSocket } from "../../state/GameSocketContext";
 type Shelf = "active" | "completed" | "abandoned";
@@ -53,7 +54,7 @@ export function MyAdventuresPage() {
      <p>{shelf === "active" ? "Previously: " : ""}{text}</p>
      <div className="history-card-actions">
       {shelf === "active" ? <Link className="button button-primary" to={`/game/adventure/${encodeURIComponent(row.room_code)}?hero=${encodeURIComponent(row.character_id || "")}`}>{row.director_retry_required ? "RECOVER ADVENTURE" : "CONTINUE"}</Link> : null}
-      {shelf === "completed" ? <><details><summary>READ CHRONICLE</summary><p>{row.final_resolution || row.recap}</p>{row.turn_history?.map((turn, index) => <section key={index}><strong>TURN {turn.turn_number} // {turn.scene_title}</strong><p>{turn.resolution}</p></section>)}</details><ShareMomentButton title={`${title} — Tales of Two`} text={`${row.ending_label || ""} // ${text}`} url={`${window.location.origin}/`} label="SHARE CHRONICLE" className="button button-quiet" /><Link className="button" to="/game">PLAY ANOTHER ADVENTURE</Link></> : null}
+      {shelf === "completed" ? <><details><summary>READ CHRONICLE</summary><p>{row.final_resolution || row.recap}</p>{row.turn_history?.map((turn, index) => <section key={index}><strong>TURN {turn.turn_number} // {turn.scene_title}</strong><p>{turn.resolution}</p></section>)}</details><ArchivedChronicleAudio historyId={`${row.room_code}:${row.adventure_id}`} /><ShareMomentButton title={`${title} — Tales of Two`} text={`${row.ending_label || ""} // ${text}`} url={`${window.location.origin}/`} label="SHARE CHRONICLE" className="button button-quiet" /><Link className="button" to="/game">PLAY ANOTHER ADVENTURE</Link></> : null}
       {shelf === "abandoned" ? <span>Ended by {row.ended_by === "operator" ? "the operator" : "the host"}. Hero progress is preserved.</span> : null}
      </div>
     </article>;

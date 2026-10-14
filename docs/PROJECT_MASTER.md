@@ -1,3 +1,140 @@
+> **Pass 61C.1 — Completed Chronicle audio archive (staging integration, not GPU cutover):**
+> A separate private S3 bucket owned by the Backend stack stores authenticated
+> scene-matched speech chunks for active adventures under a 30-day `pending/`
+> prefix. Upon completion, server-committed clip references are idempotently
+> promoted to unexpired `completed/` objects; both Story Library and Sealed
+> Chronicles pages can play archived audio via an ownership-checked backend
+> stream, with no GPU wakeup. Audio bytes and clip ordering remain outside the
+> adventure-history row; no existing stories are retroactively backfilled.
+> S3 archive failures must not break narration or game progression. This pass
+> does NOT change the existing 30-day narrator cache, G6f pilot, CPU instance,
+> narrator endpoint, or auto-sleep logic. See `docs/STORY_TIME_ARCHIVE.md`.
+>
+> **Pass 61B.11 (isolated budget GPU, operator-only):** G6f runtime logs prove
+> Linux refused `nvc:[driver]` virtual memory reservations under the default
+> `vm.overcommit_memory=0` policy. Added a guarded `memory-repair` to the
+> existing stopped g6f.large pilot. The test applies `vm.overcommit_memory=1`
+> temporarily, validates Docker GPU passthrough and Kokoro HTTP readiness, and
+> persists the pilot-only sysctl only on verified success; restores it on
+> failure. Explicit confirmation, automatic EC2 stop, and 30-minute watchdog
+> remain mandatory. No CPU narrator or T4 changes, and no benchmark result
+> can be claimed until AWS testing and quality A/B are completed.
+
+### Pass 61B.10 — Budget GPU runtime diagnostics (operator-only)
+
+The existing g6f.large now loads GRID and `nvidia-smi` reports the L4-3Q 3 GB
+slice, but NVIDIA's Docker hook still fails with `driver rpc error: failed to
+process request: unknown` **after persistence mode was enabled**. This does not
+prove a persistence problem; host RAM usage alone does not establish Linux
+virtual-memory commitment limits either. NVIDIA container-toolkit reports on
+other small hosts show similar errors when `nvc:[driver]` requests more virtual
+memory than the host allows; that cause remains UNCONFIRMED for this EC2 host.
+
+The read-only `diagnose` command now prioritizes the *saved* runtime repair log,
+NVIDIA CLI debug log, kernel allocation/segfault/OOM messages from current and
+previous boot, and `vm.overcommit_memory` / `/proc/meminfo`. These appear before
+the old GRID installer messages so they aren't truncated by AWS SSM's inline
+output cap. `diagnose` never starts EC2, changes sysctls, downloads images or
+runs a container. Because the pilot is stopped, host logs need **one explicit,
+billable start of the existing instance**, followed by a diagnosed SSM Online
+state and an automatic stop request; no new stack or driver reinstall.
+
+Do not set `vm.overcommit_memory=1`, add swap, or persist a sysctl until the
+`nvc:[driver]` kernel logs actually establish a memory-commit failure. Do not
+start another benchmark until GPU passthrough smoke testing succeeds.
+
+### Pass 61B.9 — G6f NVIDIA container-runtime recovery (isolated pilot only)
+
+The existing budget `g6f.large` now loads the AWS GRID driver after matching
+DRM modules were installed, but the Kokoro container failed to start with
+`nvidia-container-cli: initialization error: driver rpc error: failed to process
+request: unknown`. Driver persistence being off is a documented candidate,
+**not yet a confirmed diagnosis**. No GPU inference/benchmark is claimed.
+
+Added a guarded **`runtime-repair`** command for only the *stopped* budget pilot.
+With explicit confirmation it uses SSM to test NVIDIA persistence and UVM,
+run `nvidia-container-cli` independently, check a short-lived Docker GPU
+container, and only then start Kokoro and check the localhost HTTP endpoint.
+It captures bounded kernel / memory / toolkit failure diagnostics, and requests
+EC2 stop on every completion/failure path. If persistence solves the runtime
+error, the host installs a pre-Docker boot service to preserve that fix across
+subsequent EC2 starts. It does not reinstall GRID, deploy EC2, or modify the
+CPU narrator. The 30-minute watchdog still applies. An unsuccessful smoke test
+must be diagnosed before another benchmark attempt.
+
+Command, after installing the overlay and verifying status is `stopped`:
+`bash scripts/aws/story-time-gpu-budget.sh runtime-repair`.
+
+### Pass 61B.8 — Repair AL2023 missing DRM module dependency (budget GPU only)
+
+The latest failed GRID installer log shows `nvidia: Unknown symbol drm_gem_object_free (err -2)` after NVIDIA successfully compiled `nvidia.ko` on the pinned 6.1 kernel. This matches the Amazon Linux 2023 issue where DRM/GEM kernel modules were moved to the optional `kernel*-modules-extra` package. The budget-only CloudFormation user-data now installs the *matching running-kernel* extra modules before installing GRID, and requires that `modprobe drm` succeed.
+
+The budget operator also has a one-time, typed-confirmation `repair` command for the **existing stopped** g6f.large stack. It uses its dedicated SSM instance/bucket to install matching DRM modules, retry the AWS GRID installer, finish Docker/Kokoro provisioning, and write a repaired marker only when healthy. It requests EC2 stop on completion or failure and retains the 30-minute watchdog. The benchmark checks that marker only for the budget variant when the original cloud-init status is failed, and still verifies `nvidia-smi` and the running container. No production CPU narrator, T4 pilot, backend routing, or AWS resources have been changed by preparing this overlay. Real AWS compatibility and Kokoro audio remain unverified.
+
+Cost-aware sequence: install overlay; confirm budget instance is stopped; run `bash scripts/aws/story-time-gpu-budget.sh repair` (billable EC2 start, exact confirmation); check stopped; start and run benchmark if repair succeeds; fetch audio; stop; cleanup after preserving results. For future fresh deployments the first-boot fix is included. References: https://github.com/amazonlinux/amazon-linux-2023/issues/538 and https://docs.aws.amazon.com/linux/al2023/ug/kernel-update.html.
+
+### Pass 61B.7 — Focused NVIDIA kernel-module diagnostics (local operator CLI only)
+
+- The fourth `g6f.large` trial progressed through the kernel header installation,
+  driver retrieval and GRID 19.5 extraction. The NVIDIA installer then failed to
+  load `nvidia.ko`. The cause is **not yet determined**: kernel-module load logs
+  must be read before making another infrastructure change.
+- The prior `diagnose` SSM invocation produced too much stdout from DNF/bootstrap
+  package listings; SSM truncated its response before the installer details.
+  `diagnose` now prints bounded, high-signal sections with NVIDIA installer
+  errors **first**, installer tail, current/previous boot kernel module messages,
+  and concise driver/device facts. It is read-only and never starts/stops EC2.
+- Budget instance `i-054773888f147a896` was restarted only for diagnostics and
+  then requested to stop; confirm final EC2 state before further action. A
+  stopped EC2 still incurs EBS storage costs until pilot cleanup.
+- No driver, AMI, Docker, application, T4 pilot or CPU narrator changes are
+  authorized by this diagnostics-only patch. There is no reason to redeploy
+  CloudFormation or release the application for this investigation.
+
+### Pass 61B.6 — G6f AL2023 curl-minimal conflict and bootstrap gate (operator-only)
+
+- **Confirmed cause of third G6f attempt:** The AL2023 kernel-6.1 AMI's DNF transaction failed because `curl-minimal` was preinstalled and the GPU user-data script unnecessarily requested the conflicting full `curl` package. This occurred *before* the GRID driver installation; the stopped instance has no successful GPU measurements. The budget user-data no longer requests full `curl`, relying on the AMI's HTTPS-capable `curl-minimal`, and checks that the `curl` executable is available.
+- **Startup gate:** The remote benchmark now waits for `cloud-init status --wait --long`, verifies `nvidia-smi`, and checks that the GPU Kokoro Docker container is running before downloading/starting test scripts. SSM Online is not considered proof of driver readiness. Failures keep the normal EC2 stop-on-exit safety and report that `diagnose` should be run; this does not guarantee GRID compatibility on AWS.
+- The third budget instance (`i-01c063510a41f800f`) was confirmed **stopped** in operator logs. Because cloud-init user-data ran and failed on first boot, the corrected infrastructure requires explicit budget-pilot cleanup and a fresh opt-in deployment. No change to the T4 pilot, staging backend, game logic, live CPU narrator, or cache.
+- Verification: offline Python narration tests, YAML/user-data bash parsing, ZIP replacement, and file hash checks. Real GRID/CUDA throughput is still unverified for `g6f.large`.
+
+### Pass 61B.5 — G6f kernel-devel bootstrap failure (operator-only, not deployed)
+
+The second `g6f.large` bootstrap failed during its first `dnf install`, before downloading
+GRID: AL2023's August 2026 default-kernel transition selected `6.18.54-...`,
+but user data requested `kernel-devel-$(uname -r)` (the AL2023 6.1 package name).
+AWS names 6.18's matching package `kernel6.18-devel-$(uname -r)`. The new budget
+pilot explicitly uses the still-supported AL2023 **kernel 6.1** AMI for a more
+predictable GRID build; bootstrap also selects the correct development package
+when the running kernel is 6.1, 6.12, or 6.18, and checks that build headers exist
+before proceeding. The existing failed budget instance must be **cleaned up and
+redeployed** to use new EC2 user data. Restarting the stopped instance will NOT
+apply the fix. No service is migrated; existing T4 benchmark and production CPU
+narrator are unchanged. Driver and CUDA compatibility on G6f are still unverified.
+
+### Pass 61B.4 — Fractional GPU bootstrap diagnostics (local operator CLI only)
+
+The second `g6f.large` run failed pre-inference: `command -v nvidia-smi` found no driver utility. This does not distinguish incomplete user-data provisioning from a failed install. `story-time-gpu-budget.sh diagnose` now reads the last EC2 console output without starting the instance; only if EC2 is already running and SSM Online will it run read-only checks of cloud-init, `/var/log/tot-story-time-gpu-setup.log`, NVIDIA installer log, kernel-devel, lspci and Docker. This does not cure the driver issue or redeploy infrastructure. Capture logs before changing driver/AMI again; no application deployment needed.
+
+### Pass 61B.3 — Budget fractional GPU GRID driver correction (operator-only; not deployed)
+
+The first `g6f.large` benchmark failed before Kokoro started because the selected
+AWS OSS NVIDIA-driver AMI could not initialize the fractional `L4-3Q` vGPU.
+Budget deployments now select a clean AL2023 base image, install pinned AWS GRID
+19.5/19.4 guest drivers (required for G6f), and configure NVIDIA Container
+Toolkit. An explicit cleanup/redeploy is required: restarting the previously
+stopped budget instance does not apply updated UserData. Role access is limited
+to read-only AWS driver objects. Existing T4 pilot, CPU narrator and application
+routing remain untouched. This corrects provisioning only; real G6f inference
+speed, compatibility and listening quality must still be verified. Watchdog
+and benchmark failure-stop behavior remain enabled.
+
+### Pass 61B.2 — On-demand budget GPU benchmark (not deployed)
+
+- Independent `g6f.large` fractional NVIDIA L4 benchmark pilot with `story-time-gpu-budget.sh` and isolated CloudFormation stack, S3 artifacts and watchdog; retains the T4 pilot and production CPU narrator intact.
+- Uses G6f-compatible AWS DLAMI, 6 GiB Docker limit, 50 GiB requested gp3 root disk (automatically raised to AMI snapshot minimum) and 30-minute watchdog. Startup, GPU-driver compatibility, latency, audio quality and cost per synthesis are unverified until AWS tests pass. Manual stop/cleanup remains required for spend control.
+- No backend routing changes or release-staging required. Use the canonical benchmark comparison tool to assess speed and voice quality before any production decision.
+
 # Tales of Two — Master Project Documentation
 
 > **Canonical project document.** This file replaces the old append-only changelog workflow.

@@ -28,7 +28,7 @@ import { activateAudioFromGesture, playSound } from "../../services/audioDirecto
 import {
   adjustNarrationVolume, choiceNarrationItems, observeNarration,
   pauseNarration, playNarration, resumeNarration, sceneNarrationItems, stopNarration,
-  setAdventureNarratorVoice, observeNarrationDiagnostics, resetNarrationDiagnostics,
+  setAdventureNarratorVoice, setAdventureNarratorRoom, observeNarrationDiagnostics, resetNarrationDiagnostics,
   type NarrationDiagnostics, type NarrationState,
 } from "../../services/storyNarrator";
 import { createAutoReadGate } from "../../services/storyAutoReadGate";
@@ -361,8 +361,9 @@ export function AdventurePage() {
   const roomVoiceName = KOKORO_VOICES.find(v => v.value === roomVoiceId)?.label ?? "HOST SELECTED";
   useEffect(() => {
     setAdventureNarratorVoice(live.game?.narrator_voice ?? null);
-    return () => setAdventureNarratorVoice(null);
-  }, [roomVoiceId]);
+    setAdventureNarratorRoom(normalizedRoomCode);
+    return () => { setAdventureNarratorVoice(null); setAdventureNarratorRoom(null); };
+  }, [roomVoiceId, normalizedRoomCode]);
 
   // Existing restored chapters are not new chapter events. Record the first
   // authoritative snapshot for this mount (including private-browser sessions

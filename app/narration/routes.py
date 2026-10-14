@@ -18,7 +18,7 @@ from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
 from app.notifications.routes import require_user
-from app.narration import hosting
+from app.narration import hosting, archive
 
 router = APIRouter(prefix="/api/narration", tags=["narration"])
 logger = logging.getLogger(__name__)
@@ -45,6 +45,7 @@ class RoomHeartbeat(BaseModel):
 
 class SpeechRequest(BaseModel):
     text: str = Field(min_length=1, max_length=MAX_TEXT)
+    room_code: str | None = Field(default=None, max_length=32)
     voice: str = "af_heart"
     speed: float = Field(default=1.0, ge=0.75, le=1.5)
     kind: str = "story"
@@ -220,6 +221,64 @@ async def narration_heartbeat(payload: RoomHeartbeat | None = None, user=Depends
         return {"state": "unavailable"}
 
 
+@router.get("/archive/{history_id}")
+async def list_archived_narration(history_id: str, user=Depends(require_user)):
+    from app.main import store
+    clips = await store.completed_audio_clips(history_id, str(user.user_id))
+    if clips is None:
+        raise HTTPException(404, "Chronicle not found.")
+    # Retry interrupted promotion on demand, without ever waking the narrator.
+    await asyncio.to_thread(archive.promote, store, history_id)
+    clips = await store.completed_audio_clips(history_id, str(user.user_id))
+    return {"clips": [{k: c[k] for k in ("clip_id", "turn_number", "position", "kind", "voice")}
+                      for c in clips if c["archived"]]}
+
+
+@router.get("/archive/{history_id}/{clip_id}")
+async def play_archived_narration(history_id: str, clip_id: str, user=Depends(require_user)):
+    from app.main import store
+    clips = await store.completed_audio_clips(history_id, str(user.user_id))
+    if clips is None or not any(c["clip_id"] == clip_id and c["archived"] for c in clips):
+        raise HTTPException(404, "Archived audio not found.")
+    audio = await asyncio.to_thread(archive.read_completed, history_id, clip_id, MAX_AUDIO_BYTES)
+    if audio is None:
+        raise HTTPException(404, "Archived audio is unavailable.")
+    return _audio_response(audio, source="s3")
+
+
+async def _remember_room_audio(payload: SpeechRequest, user, text: str,
+                               key: str, audio: bytes) -> None:
+    """Untrusted browser room codes are never enough to claim a story clip."""
+    if not payload.room_code or not os.getenv("KOKORO_ARCHIVE_BUCKET"):
+        return
+    try:
+        from app.main import rooms, game_sessions, store
+        room = rooms.room_by_code(payload.room_code.strip().upper())
+        if room is None or not any(str(p.user_id) == str(user.user_id) and p.is_online
+                                   for p in room.players.values()):
+            return
+        session = game_sessions.get(room.code)
+        if (session is None or not session.started or
+                payload.voice != session.narrator_voice):
+            return
+        matched = archive.identify(session.scene, text)
+        if matched is None:
+            return
+        position, kind = matched
+        history_id = f"{room.code}:{session.adventure_id}"
+        value = archive.clip_id(int(session.turn_number), position, key)
+        # Save pending bytes first; never create a manifest for missing audio.
+        saved = await asyncio.to_thread(archive.save_pending, history_id, value, audio)
+        if not saved:
+            return
+        await store.record_audio_clip(history_id, value, int(session.turn_number),
+                                      position, kind, payload.voice)
+        if session.completed:
+            await asyncio.to_thread(archive.promote, store, history_id)
+    except Exception as exc:
+        logger.warning("story_time_archive_write_skipped type=%s", type(exc).__name__)
+
+
 @router.post("/speech")
 async def synthesize_speech(payload: SpeechRequest, user=Depends(require_user)):
     started = time.perf_counter()
@@ -237,10 +296,12 @@ async def synthesize_speech(payload: SpeechRequest, user=Depends(require_user)):
     audio = _cache.get(key)
     if audio is not None:
         _cache.move_to_end(key)
+        await _remember_room_audio(payload, user, text, key, audio)
         return _audio_response(audio, source="memory", started=started, voice=payload.voice)
     audio = await asyncio.to_thread(_shared_audio, key)
     if audio is not None:
         _save_cache(key, audio)
+        await _remember_room_audio(payload, user, text, key, audio)
         return _audio_response(audio, source="s3", started=started, voice=payload.voice)
     host = await _ensure_awake(wake=True)
     if host["state"] in {"unavailable", "budget_exhausted", "unconfigured"}:
@@ -291,5 +352,6 @@ async def synthesize_speech(payload: SpeechRequest, user=Depends(require_user)):
                 await asyncio.to_thread(hosting.finish_generation, lease)
             await asyncio.to_thread(_store_shared_audio, key, audio)
         _save_cache(key, audio)
+    await _remember_room_audio(payload, user, text, key, audio)
     return _audio_response(audio, source=cache_source, started=started,
                            generation_ms=inference_ms, voice=payload.voice)

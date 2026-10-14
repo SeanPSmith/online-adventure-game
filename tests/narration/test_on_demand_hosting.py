@@ -15,6 +15,7 @@ def clean(monkeypatch):
     routes._cache.clear(); routes._calls.clear(); routes._cache_bytes = 0
     for name in ("KOKORO_BASE_URL", "KOKORO_INSTANCE_ID", "KOKORO_ACTIVITY_TABLE", "KOKORO_CACHE_BUCKET"):
         monkeypatch.delenv(name, raising=False)
+    monkeypatch.setattr(routes, "_authorize_scene_speech", lambda *args: None)
 
 
 def user():

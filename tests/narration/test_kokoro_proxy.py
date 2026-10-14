@@ -20,6 +20,7 @@ def reset_proxy(monkeypatch):
     monkeypatch.delenv("KOKORO_INSTANCE_ID", raising=False)
     monkeypatch.delenv("KOKORO_ACTIVITY_TABLE", raising=False)
     monkeypatch.setattr(routes.hosting, "healthy", lambda endpoint: True)
+    monkeypatch.setattr(routes, "_authorize_scene_speech", lambda *args: None)
 
 
 def run_speech(**kw):

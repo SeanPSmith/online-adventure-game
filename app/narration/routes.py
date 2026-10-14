@@ -373,6 +373,33 @@ async def _remember_room_audio(payload: SpeechRequest, user, text: str,
         logger.warning("story_time_archive_write_skipped type=%s", type(exc).__name__)
 
 
+def _authorize_scene_speech(payload: SpeechRequest, user, text: str) -> None:
+    """Fail closed before even looking up shared cache or waking paid inference.
+
+    The room code is an untrusted locator, not authorization. Only a current,
+    server-committed scene read by an online member may be voiced. This also
+    prevents an account from synthesizing arbitrary text through our GPU.
+    Prepared voice previews and completed Chronicle playback have separate
+    authenticated, no-inference endpoints and are unaffected.
+    """
+    code = (payload.room_code or "").strip().upper()
+    if not re.fullmatch(r"[A-Z0-9]{6}", code):
+        raise HTTPException(403, "Join an active adventure to use Story Time narration.")
+    from app.main import rooms, game_sessions  # Lazy import after application startup.
+    room = rooms.room_by_code(code)
+    if room is None or not any(
+        str(member.user_id) == str(user.user_id) and member.is_online
+        for member in room.players.values()
+    ):
+        raise HTTPException(403, "An active adventure membership is required for narration.")
+    session = game_sessions.get(code)
+    if session is None or not session.started or session.scene is None:
+        raise HTTPException(403, "There is no revealed adventure passage to narrate.")
+    match = archive.identify(session.scene, text)
+    if match is None or match[1] != payload.kind:
+        raise HTTPException(403, "Only the current adventure passage may be narrated.")
+
+
 @router.post("/speech")
 async def synthesize_speech(payload: SpeechRequest, user=Depends(require_user)):
     started = time.perf_counter()
@@ -384,6 +411,8 @@ async def synthesize_speech(payload: SpeechRequest, user=Depends(require_user)):
     text = _normalize_text(payload.text)
     if not text:
         raise HTTPException(422, "Nothing to narrate.")
+    # Admission MUST precede memory/S3 cache reads, rate accounting and GPU wake.
+    _authorize_scene_speech(payload, user, text)
     _rate_limit(str(user.user_id))
     # Playback speed is client-side, not part of synthesis, to maximize reuse.
     key = _audio_key(text, payload.voice)

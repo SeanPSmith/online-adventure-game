@@ -76,6 +76,7 @@ def test_job_lease_is_durable_and_cleared(monkeypatch):
 
 
 def test_game_speech_lease_around_generation(monkeypatch):
+    monkeypatch.setattr(routes, "_authorize_scene_speech", lambda *args: None)
     monkeypatch.setenv("KOKORO_BASE_URL", "http://10.42.0.10:8880")
     routes._cache.clear()
     routes._calls.clear()
@@ -96,6 +97,7 @@ def test_game_speech_lease_around_generation(monkeypatch):
 
 
 def test_failed_synthesis_always_releases_lease(monkeypatch):
+    monkeypatch.setattr(routes, "_authorize_scene_speech", lambda *args: None)
     monkeypatch.setenv("KOKORO_BASE_URL", "http://10.42.0.10:8880")
     routes._cache.clear(); routes._calls.clear(); routes._cache_bytes = 0
     async def ready(*, wake): return {"state": "running"}

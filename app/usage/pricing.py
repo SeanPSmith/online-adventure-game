@@ -21,6 +21,13 @@ _DEFAULT_PRICES: dict[str, ModelPrice] = {
     "gpt-5.6-terra": ModelPrice(Decimal("2.00"), Decimal("0.20"), Decimal("12.00")),
     "gpt-5.6-luna": ModelPrice(Decimal("0.20"), Decimal("0.02"), Decimal("1.20")),
     "gpt-5.6": ModelPrice(Decimal("4.00"), Decimal("0.40"), Decimal("20.00")),
+    # GPT-6 pricing is staged for controlled quality/cost comparisons only.
+    # No model routing is changed by adding estimates to the usage ledger.
+    # Standard short-context API rates at 2026-10-14, per million tokens.
+    "gpt-6.1-sol": ModelPrice(Decimal("2.00"), Decimal("0.10"), Decimal("10.00")),
+    "gpt-6-sol": ModelPrice(Decimal("2.00"), Decimal("0.20"), Decimal("10.00")),
+    "gpt-6-luna": ModelPrice(Decimal("0.10"), Decimal("0.01"), Decimal("0.50")),
+    "gpt-6-astra": ModelPrice(Decimal("10.00"), Decimal("1.00"), Decimal("50.00")),
 }
 
 

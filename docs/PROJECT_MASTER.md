@@ -1,3 +1,14 @@
+> **Pass 62A.1 — Story Time inference authorization hardening + GPT-6 price evaluation preparation:**
+> Speech synthesis now requires an online participant in an active room and
+> exactly the server-revealed chapter/choice passage, checked before even reading
+> caches or waking GPU compute. Player previews and completed Chronicles remain
+> independent non-inference endpoints. Current local throttling is not yet a
+> distributed production quota. GPT-6 family standard price estimates were added
+> to the ledger for future A/B testing **without changing the Director models**.
+> Death releases a Hero slot while preserving legacy; host-funded co-op and a
+> sandbox Story Credit economy are the planned commercial rules, not shipped.
+> See `docs/LAUNCH_READINESS.md` for decisions, risks and next validation steps.
+>
 > **Pass 61D.2 — Chronicle narrator selector UI contract hotfix:**
 > Replace the last native HTML voice dropdown in completed Chronicle playback
 > with the existing themed `TerminalSelect` used elsewhere in Tales of Two.

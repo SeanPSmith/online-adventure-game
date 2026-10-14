@@ -151,3 +151,20 @@ def test_every_openai_surface_is_metered_and_product_exposes_allowances() -> Non
     assert "ACCESS & AI USAGE // PLAYTEST" in account
     assert "AI COST CONTROL // PLAYTEST GUARDRAILS" in admin
     assert "DAILY KILL SWITCH" in admin
+
+
+def test_gpt6_model_pricing_supports_isolated_cost_evaluation(monkeypatch) -> None:
+    from app.usage.pricing import model_price
+    monkeypatch.delenv("TOT_AI_MODEL_PRICING_JSON", raising=False)
+    assert str(model_price("gpt-6.1-sol").input_per_million) == "2.00"
+    assert str(model_price("gpt-6.1-sol").cached_input_per_million) == "0.10"
+    assert str(model_price("gpt-6.1-sol").output_per_million) == "10.00"
+    assert str(model_price("gpt-6-sol").cached_input_per_million) == "0.20"
+    assert str(model_price("gpt-6-luna").output_per_million) == "0.50"
+    assert estimate_cost_microusd(
+        model="gpt-6.1-sol", input_tokens=8000, output_tokens=1000,
+    ) == 26000
+    # The Director's default must not silently change during a safety patch.
+    director = (__import__("pathlib").Path(__file__).resolve().parents[2]
+                / "app/generation/director.py").read_text()
+    assert '"gpt-5.6-sol"' in director

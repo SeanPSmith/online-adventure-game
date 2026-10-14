@@ -102,14 +102,19 @@ def test_cache_audio_is_unaffected_when_archive_upload_fails(monkeypatch):
     # Archiving is explicitly optional, not allowed to break speech playback.
     monkeypatch.setenv("KOKORO_ARCHIVE_BUCKET", "private-archive")
     monkeypatch.setenv("KOKORO_BASE_URL", "http://127.0.0.1:8880")
-    monkeypatch.setitem(sys.modules, "app.main", SimpleNamespace(rooms=SimpleNamespace(room_by_code=lambda _: None)))
+    room = SimpleNamespace(code="ABC123", players={"p": SimpleNamespace(user_id="user-1", is_online=True)})
+    session = SimpleNamespace(started=True, completed=False, scene=SimpleNamespace(body="Once upon a time", choices=[]))
+    monkeypatch.setitem(sys.modules, "app.main", SimpleNamespace(
+        rooms=SimpleNamespace(room_by_code=lambda code: room if code == "ABC123" else None),
+        game_sessions=SimpleNamespace(get=lambda code: session if code == "ABC123" else None),
+    ))
     monkeypatch.setattr(routes.hosting, "healthy", lambda endpoint: True)
     monkeypatch.setattr(routes, "_read_kokoro", lambda *args: b"audio")
     routes._cache.clear()
     routes._calls.clear()
     routes._cache_bytes = 0
     response = run(routes.synthesize_speech(
-        routes.SpeechRequest(text="Once upon a time", voice="af_bella", room_code="NOPE"),
+        routes.SpeechRequest(text="Once upon a time", voice="af_bella", room_code="ABC123"),
         SimpleNamespace(user_id="user-1"),
     ))
     assert response.body == b"audio"

@@ -6,5 +6,6 @@
     "us-east-1d",
     "us-east-1e",
     "us-east-1f"
-  ]
+  ],
+  "ssm:account=120737642380:parameterName=/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.1-x86_64:region=us-east-1": "ami-03714e87ed2cafc78"
 }

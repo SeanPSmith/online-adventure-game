@@ -1,4 +1,4 @@
-> **Pass 61C.2 — Dedicated budget GPU narrator infrastructure (prepared, NOT deployed):**
+> **Pass 61C.3 — Dedicated budget GPU narrator rollout (first deploy failed, no cutover):**
 > A separate, explicitly opt-in `AdventurePlatformNarratorGpu-staging` CDK stack
 > provisions the verified `g6f.large` + AWS GRID 580.159.03 and Kokoro GPU
 > v0.9.0; it uses independent DynamoDB room/generation leases, private S3
@@ -170,12 +170,13 @@ and benchmark failure-stop behavior remain enabled.
 - The Mac CPU benchmarking helper now checks Systems Manager managed-node `PingStatus=Online` before prompting or submitting `AWS-RunShellScript`. EC2 `running` does not imply SSM target readiness; the helper waits up to two minutes (set `STORY_TIME_SSM_WAIT_SECONDS=0` for an immediate diagnostic or up to 600 seconds to extend the wait). When offline, it prints EC2 system/instance health, instance IAM profile, public IP and subnet without executing a benchmark.
 - If SSM is `Online` but Run Command races registration, only `InvalidInstanceId` is retried twice with bounded pauses. Other send-command errors remain visible. This patch makes no AWS infrastructure, narrator, voice, caching, model, or frontend change, and cannot fix a broken SSM agent/IAM/network configuration by itself.
 
-### Pass 61C.2 — Dedicated budget GPU Story Time (opt-in infrastructure, NOT deployed)
+### Pass 61C.2–61C.3 — Dedicated budget GPU Story Time (first deploy failed; no cutover)
 - The verified **G6f fractional L4** is now packaged into a separate narrator *service* stack, not the isolated pilot. No normal code release changes the existing CPU EC2 resources, endpoint or cache. New instance infrastructure requires an explicit typed-confirmation operator deploy.
 - Provisioning pins the AL2023 kernel 6.1 AMI, matches `kernel-devel` and `kernel-modules-extra`, installs AWS GRID 580.159.03, enables virtual-memory overcommit, configures NVIDIA Container Toolkit and a systemd-owned Kokoro GPU container. Server listens on TCP/8880 **only** from the ECS backend security group. The model/container image is not changed from user-approved benchmark versions. Live first-boot and reconnect health **remain unverified** until operator AWS tests.
 - Frontend opt-in heartbeat from lobby → DynamoDB listener lease → EC2 wake while stopped → Story Time inference and shared S3; idle watchdog rechecks generation/room leases before stop. G6f min uptime 10m, room grace 5m and EventBridge polling 5m; first boot may need additional time, and EC2 remains billable while running. Its 30-hour/month allowance is advisory, not a hard spend limit. A single GPU is shared across all active opted-in rooms.
 - CPU/GPU audio caches and model-version hashes are isolated, preserving replay behavior. Completed Chronicle archive remains separate from both temporary caches and does not wake compute.
-- `story-time-gpu-service.sh` provides **plan/provision/status/start/smoke/stop/cutover/rollback**. The cutover refuses to run unless CPU fallback exists and on-instance GPU health is verified. `deploy-backend.sh` fails closed when a GPU stack exists but selected routing is unspecified. Production is **not** automatically switched by source installation or staging release.
+- `story-time-gpu-service.sh` provides **plan/provision/clear-rollback/status/start/smoke/stop/cutover/rollback**. The cutover refuses to run unless CPU fallback exists and on-instance GPU health is verified. `deploy-backend.sh` fails closed when a GPU stack exists but selected routing is unspecified. Production is **not** automatically switched by source installation or staging release.
+- Pass 61C.3: the first dedicated CloudFormation create hit `InvalidLaunchTemplateName.AlreadyExistsException` and rolled back. For the dedicated GPU stack only, `LaunchTemplateName` is now omitted so CloudFormation generates a unique physical name. After `ROLLBACK_COMPLETE`, the scoped `clear-rollback` command (typed confirmation required) deletes only that failed stack before the next explicit provisioning attempt. The CPU narrator and benchmark pilot are unchanged; narration has not cut over.
 
 ### Pass 61B — Narrator benchmark and quality-evaluation toolkit (no deployment to GPU)
 - The **isolated GPU pilot remains separate** from live gameplay. AWS benchmark results for the g6f.large were Michael 0.576 s, Bella 0.504 s, Michael long 3.452 s, about 9.78× real-time synthesis in aggregate. The user approved Michael/Bella voice quality. This benchmark does not establish dedicated-service cold start, concurrency or live rollout readiness.
@@ -1447,3 +1448,20 @@ that turn theater release the scene first. Neither gameplay timing nor Kokoro
 backend behavior is changed by this hotfix.
 
 Release: `./scripts/release-staging.sh "Pass 56 hotfix: align Kokoro voice selector and story-reveal regression checks"`
+
+
+### Pass 61C.4 — Launch Template construct compatibility and synth guard
+
+The first 61C.3 retry failed locally because `ec2.Instance.node.tryFindChild("LaunchTemplate")` was incorrectly assumed to return a `CfnLaunchTemplate`. In CDK, launch templates can be wrapped in higher-level constructs. The GPU-only stack now applies an Aspect to every synthesized `CfnLaunchTemplate`, deleting the explicit `LaunchTemplateName` property. The GPU `provision` command **fails closed** unless an independent JSON-template check confirms exactly one `g6f.large` Launch Template without a fixed name. This safety check runs before any AWS changes or deploy confirmation. The CPU instance is untouched. The failed CloudFormation stack was already successfully deleted; **do not run `clear-rollback` again while the stack is absent**.
+
+
+### Pass 61C.5 — Dedicated narrator readiness hotfix (2026-10-13)
+
+The `AdventurePlatformNarratorGpu-staging` GPU stack successfully deployed after Pass 61C.4,
+but its first SSM smoke request received a connection reset from Kokoro. Pass 61C.5
+updates the **local Mac management script only**: 3-minute bounded HTTP readiness
+retries, a fixed non-story Michael MP3 inference check, Docker exit/OOM and log
+diagnostics on smoke failure, and read-only
+`story-time-gpu-service.sh diagnose`. A running Docker container does not guarantee
+Kokoro API readiness. No CPU/GPU backend cutover is authorized by this change;
+operator must obtain a passing smoke before deploying backend GPU routing.

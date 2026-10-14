@@ -34,3 +34,40 @@ After the last listener stops heartbeating or the room closes, room leases expir
 - AMI is pulled from the 6.1 SSM parameter with a stable CDK context lookup; review the pinned image before reprovisioning. Deployment may fail if compatible kernel packages or driver artifacts disappear in later AWS releases.
 - 10-minute minimum uptime reduces cold-start shutdown risk; `cloud-init` and model pull can still take longer. The watchdog is not a health controller and does not automatically repair broken GPU containers.
 - No Spot usage or third-party inference service is enabled. No old benchmark pilot teardown is performed automatically; clean up unused pilot stacks separately after documenting results.
+
+## Pass 61C.3 — First-deploy Launch Template collision recovery
+
+First provisioning can fail with `InvalidLaunchTemplateName.AlreadyExistsException` at `NarratorInstance/LaunchTemplate`. Do **not** delete other EC2 launch templates; the conflict may refer to a resource controlled by another stack. The dedicated GPU template now removes the explicit `LaunchTemplateName` property at synth time so CloudFormation generates a unique physical name. The existing CPU and budget pilot stacks are unchanged.
+
+Wait for the dedicated `AdventurePlatformNarratorGpu-staging` stack to enter `ROLLBACK_COMPLETE`. Then use `bash scripts/aws/story-time-gpu-service.sh clear-rollback`, confirm by typing `DELETE FAILED GPU STACK`, and allow it to finish. This action refuses to delete other stack states or other stacks. Review any resources retained by CloudFormation (e.g. private buckets) separately. Rerun `plan` and `provision`, then `smoke` *before* `cutover`. Do not delete a launch template manually.
+
+The CDK egress line `${NarratorSecurityGroup.GroupId} Out Everything Everyone (IPv4)` is not an Internet ingress rule; it's due to `allowAllOutbound: true`. Port 8880 inbound remains restricted to the backend security group. Review the rest of the CDK diff for unintended inbound rules before approval.
+
+### Pass 61C.4 — Launch Template construct compatibility and synth guard
+
+The first 61C.3 retry failed locally because `ec2.Instance.node.tryFindChild("LaunchTemplate")` was incorrectly assumed to return a `CfnLaunchTemplate`. In CDK, launch templates can be wrapped in higher-level constructs. The GPU-only stack now applies an Aspect to every synthesized `CfnLaunchTemplate`, deleting the explicit `LaunchTemplateName` property. The GPU `provision` command **fails closed** unless an independent JSON-template check confirms exactly one `g6f.large` Launch Template without a fixed name. This safety check runs before any AWS changes or deploy confirmation. The CPU instance is untouched. The failed CloudFormation stack was already successfully deleted; **do not run `clear-rollback` again while the stack is absent**.
+
+### Pass 61C.5 — First dedicated GPU smoke readiness and diagnostics (2026-10-13)
+
+The dedicated `AdventurePlatformNarratorGpu-staging` CDK stack successfully deployed with
+CloudFormation-generated Launch Template name, instance `i-0c640e1e1de05a336`
+(`g6f.large`). The initial `smoke` reached a running L4-3Q GPU and completed cloud-init
+but hit `curl: (56) Recv failure: Connection reset by peer` when checking Kokoro.
+That alone does **not** show whether Kokoro was still starting or had crashed.
+No backend cutover was performed.
+
+The dedicated-service `smoke` now waits up to three minutes for a successful HTTP
+`/v1/audio/voices` response and then synthesizes a short, fixed Michael
+health-check MP3 without game/story content. If readiness fails, it reports the Docker container's
+exit/OOM state and recent logs. `diagnose` is a separate read-only SSM inspection of
+container state, Kokoro logs, systemd, GPU, and HTTP. Both require the **existing**
+instance to be running; neither starts EC2 or changes live narrator routing.
+
+Operator workflow: `story-time-gpu-service.sh status`, and if running,
+`story-time-gpu-service.sh smoke`. On a failure,
+`story-time-gpu-service.sh diagnose`; save the output before stopping an idle
+GPU with `story-time-gpu-service.sh stop`. If already stopped, start manually
+only when ready to incur compute charges. Do not run `cutover` unless smoke passes.
+
+This patch is **Mac-side operator tooling only**. No CDK stack update, new
+EC2 instance, or backend deployment is required to use these commands.

@@ -6,7 +6,7 @@ import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as events from "aws-cdk-lib/aws-events";
 import * as targets from "aws-cdk-lib/aws-events-targets";
-import { Construct } from "constructs";
+import { Construct, IConstruct } from "constructs";
 import { resourcePrefix } from "./naming";
 import * as path from "node:path";
 import * as fs from "node:fs";
@@ -88,6 +88,22 @@ export class NarratorStack extends cdk.Stack {
         deleteOnTermination: true,
       }) }],
     });
+
+    // A CDK ec2.Instance may wrap its CfnLaunchTemplate inside an L2
+    // ec2.LaunchTemplate (the L1 is then the wrapper's default child). Do NOT
+    // assume instance.node.tryFindChild("LaunchTemplate") returns an L1.
+    // Restrict this aspect to the separate GPU stack; CPU remains untouched.
+    // A real synth-time assertion in story-time-gpu-service.sh verifies that the
+    // resulting GPU CloudFormation template has no fixed LaunchTemplateName.
+    if (gpu) {
+      cdk.Aspects.of(this).add({
+        visit(node: IConstruct): void {
+          if (node instanceof ec2.CfnLaunchTemplate) {
+            node.addPropertyDeletionOverride("LaunchTemplateName");
+          }
+        },
+      });
+    }
 
     this.audioBucket = new s3.Bucket(this, "AudioCache", {
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,

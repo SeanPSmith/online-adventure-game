@@ -69,3 +69,67 @@ def test_operator_script_explicit_and_safe():
     assert 'smoke # Refuse to switch' in txt
     backend = load('scripts/aws/deploy-backend.sh')
     assert 'Refusing ambiguous Backend CDK deployment.' in backend
+
+
+def test_gpu_launch_template_name_generated_by_cloudformation():
+    src = load('infra/lib/narrator-stack.ts')
+    assert 'cdk.Aspects.of(this).add({' in src
+    assert 'node instanceof ec2.CfnLaunchTemplate' in src
+    assert 'node.addPropertyDeletionOverride("LaunchTemplateName")' in src
+    assert 'GPU instance LaunchTemplate child not found' not in src
+    script = load('scripts/aws/story-time-gpu-service.sh')
+    assert 'verify_gpu_synth' in script
+    assert 'verify-gpu-cdk-template.py' in script
+    assert script.index('verify_gpu_synth\n    (cd') < script.index("ask 'DEPLOY DEDICATED GPU'")
+
+
+def test_gpu_create_rollback_cleanup_is_scoped_to_failed_stack():
+    script = load('scripts/aws/story-time-gpu-service.sh')
+    assert 'current_status="$(stack_status "$GPU_STACK")"' in script
+    assert '"$current_status" != ROLLBACK_COMPLETE' in script
+    assert "ask 'DELETE FAILED GPU STACK'" in script
+    assert 'aws cloudformation delete-stack --stack-name "$GPU_STACK"' in script
+    assert 'aws cloudformation wait stack-delete-complete --stack-name "$GPU_STACK"' in script
+    subprocess.run(['bash', '-n', str(PROJECT_ROOT / 'scripts/aws/story-time-gpu-service.sh')], check=True)
+
+
+def test_gpu_stack_rollback_cleanup_state_machine(tmp_path):
+    import sys
+    import textwrap
+
+    aws = tmp_path / 'aws'
+    aws.write_text(textwrap.dedent(f'''\
+        #!{sys.executable}
+        import os, sys
+        from pathlib import Path
+        args = sys.argv[1:]
+        if args[:2] == ['sts', 'get-caller-identity']:
+            print('120737642380' if 'Account' in args else 'arn:aws:sts::120737642380:assumed-role/ReadOnly/session')
+        elif args[:2] == ['cloudformation', 'describe-stacks']:
+            status = os.environ.get('FAKE_STACK_STATUS', '')
+            if status == 'AUTH_FAILURE':
+                sys.stderr.write('Error when retrieving token from sso: Token has expired\\n')
+                sys.exit(255)
+            if status == 'ABSENT':
+                sys.stderr.write('Stack with id AdventurePlatformNarratorGpu-staging does not exist\\n')
+                sys.exit(255)
+            print(status)
+        elif args[:2] == ['cloudformation', 'delete-stack']:
+            Path(os.environ['FAKE_AWS_LOG']).write_text(' '.join(args))
+        elif args[:2] == ['cloudformation', 'wait']:
+            pass
+        else:
+            sys.stderr.write('Unexpected AWS action: ' + ' '.join(args) + '\\n')
+            sys.exit(111)
+    '''))
+    aws.chmod(0o755)
+    script = PROJECT_ROOT / 'scripts/aws/story-time-gpu-service.sh'
+    env = dict(os.environ, PATH=str(tmp_path) + os.pathsep + os.environ['PATH'], FAKE_AWS_LOG=str(tmp_path / 'log'))
+    for status, allowed in [('ROLLBACK_COMPLETE', True), ('CREATE_COMPLETE', False), ('ROLLBACK_IN_PROGRESS', False), ('AUTH_FAILURE', False)]:
+        (tmp_path / 'log').unlink(missing_ok=True)
+        result = subprocess.run(['bash', str(script), 'clear-rollback'], input='DELETE FAILED GPU STACK\n',
+                                env=dict(env, FAKE_STACK_STATUS=status), text=True, capture_output=True)
+        assert (result.returncode == 0) is allowed, (status, result.stdout, result.stderr)
+        assert (tmp_path / 'log').exists() is allowed
+        if allowed:
+            assert (tmp_path / 'log').read_text() == 'cloudformation delete-stack --stack-name AdventurePlatformNarratorGpu-staging'

@@ -19,7 +19,7 @@ from pydantic import BaseModel, Field
 
 from app.notifications.routes import require_user
 from app.auth.routes import require_admin_write
-from app.narration import hosting, archive
+from app.narration import hosting, archive, metering
 
 router = APIRouter(prefix="/api/narration", tags=["narration"])
 logger = logging.getLogger(__name__)
@@ -413,19 +413,45 @@ async def synthesize_speech(payload: SpeechRequest, user=Depends(require_user)):
         raise HTTPException(422, "Nothing to narrate.")
     # Admission MUST precede memory/S3 cache reads, rate accounting and GPU wake.
     _authorize_scene_speech(payload, user, text)
-    _rate_limit(str(user.user_id))
+    user_id = str(user.user_id)
+    try:
+        if metering.enabled():
+            await asyncio.to_thread(metering.admit_request, user_id)
+        else:
+            _rate_limit(user_id)  # Local developer fallback. Staging configures distributed metering.
+    except metering.LimitReached as exc:
+        await asyncio.to_thread(metering.record_denial, user_id, "rate")
+        raise HTTPException(429, str(exc), headers={"Retry-After": "60"}) from exc
+    except metering.MeterUnavailable as exc:
+        raise HTTPException(503, str(exc)) from exc
+
+    async def respond(data: bytes, *, source: str, inference_ms: int | None = None) -> Response:
+        if metering.enabled():
+            await asyncio.to_thread(metering.record_result, user_id, source,
+                                    bytes_sent=len(data), inference_ms=inference_ms or 0)
+        return _audio_response(data, source=source, started=started,
+                               generation_ms=inference_ms, voice=payload.voice)
+
     # Playback speed is client-side, not part of synthesis, to maximize reuse.
     key = _audio_key(text, payload.voice)
     audio = _cache.get(key)
     if audio is not None:
         _cache.move_to_end(key)
         await _remember_room_audio(payload, user, text, key, audio)
-        return _audio_response(audio, source="memory", started=started, voice=payload.voice)
+        return await respond(audio, source="memory")
     audio = await asyncio.to_thread(_shared_audio, key)
     if audio is not None:
         _save_cache(key, audio)
         await _remember_room_audio(payload, user, text, key, audio)
-        return _audio_response(audio, source="s3", started=started, voice=payload.voice)
+        return await respond(audio, source="s3")
+    # A depleted allowance must never wake an idle GPU just to be rejected later.
+    try:
+        await asyncio.to_thread(metering.preflight_generation, user_id, len(text))
+    except metering.LimitReached as exc:
+        await asyncio.to_thread(metering.record_denial, user_id, "generation")
+        raise HTTPException(429, str(exc), headers={"Retry-After": "3600"}) from exc
+    except metering.MeterUnavailable as exc:
+        raise HTTPException(503, str(exc)) from exc
     host = await _ensure_awake(wake=True)
     if host["state"] in {"unavailable", "budget_exhausted", "unconfigured"}:
         raise HTTPException(503, "The storyteller is not available. Continue reading for now.")
@@ -443,6 +469,13 @@ async def synthesize_speech(payload: SpeechRequest, user=Depends(require_user)):
             if audio is not None:
                 cache_source = "s3"
         if audio is None:
+            try:
+                await asyncio.to_thread(metering.admit_generation, user_id, len(text))
+            except metering.LimitReached as exc:
+                await asyncio.to_thread(metering.record_denial, user_id, "generation")
+                raise HTTPException(429, str(exc), headers={"Retry-After": "3600"}) from exc
+            except metering.MeterUnavailable as exc:
+                raise HTTPException(503, str(exc)) from exc
             try:
                 lease = await asyncio.to_thread(hosting.begin_generation)
             except Exception as exc:
@@ -466,6 +499,8 @@ async def synthesize_speech(payload: SpeechRequest, user=Depends(require_user)):
                     audio = await asyncio.to_thread(_read_kokoro, endpoint, text, payload.voice, 1.0)
                     inference_ms = round((time.perf_counter() - inference_started) * 1000)
                 except (HTTPError, URLError, TimeoutError, ValueError, OSError) as exc:
+                    if metering.enabled():
+                        await asyncio.to_thread(metering.record_result, user_id, "failed")
                     raise HTTPException(502, "The narrator could not prepare this passage. Try again.") from exc
             finally:
                 if renewal:
@@ -476,5 +511,4 @@ async def synthesize_speech(payload: SpeechRequest, user=Depends(require_user)):
             await asyncio.to_thread(_store_shared_audio, key, audio)
         _save_cache(key, audio)
     await _remember_room_audio(payload, user, text, key, audio)
-    return _audio_response(audio, source=cache_source, started=started,
-                           generation_ms=inference_ms, voice=payload.voice)
+    return await respond(audio, source=cache_source, inference_ms=inference_ms)

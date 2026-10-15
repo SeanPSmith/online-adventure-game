@@ -72,6 +72,21 @@ export class BackendStack extends cdk.Stack {
       lifecycleRules: [{ prefix: "pending/", expiration: cdk.Duration.days(30) }],
     });
 
+    // Isolated from the narrator watchdog's lease table: metering writes must
+    // never turn the five-minute idle scan into a growing operational expense.
+    const narrationMeter = new dynamodb.Table(this, "NarrationMeter", {
+      partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      timeToLiveAttribute: "expires_at_epoch",
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+    });
+    narrationMeter.addGlobalSecondaryIndex({
+      indexName: "DayIndex",
+      partitionKey: { name: "day", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "id", type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
+
     const taskDefinition = new ecs.FargateTaskDefinition(this, "TaskDefinition", {
       family: `${prefix}-backend`,
       cpu: props.cpu,
@@ -109,6 +124,12 @@ export class BackendStack extends cdk.Stack {
         KOKORO_ACTIVITY_TABLE: props.narratorActivityTable?.tableName ?? "",
         KOKORO_CACHE_BUCKET: props.narratorCacheBucket?.bucketName ?? "",
         KOKORO_ARCHIVE_BUCKET: narrationArchive.bucketName,
+        STORY_TIME_METER_TABLE: narrationMeter.tableName,
+        STORY_TIME_WINDOW_REQUEST_LIMIT: "50",
+        STORY_TIME_USER_DAILY_GENERATIONS: "300",
+        STORY_TIME_USER_DAILY_CHARACTERS: "180000",
+        STORY_TIME_GLOBAL_DAILY_GENERATIONS: "9000",
+        STORY_TIME_GLOBAL_DAILY_CHARACTERS: "5000000",
       },
       secrets: {
         DB_USER: ecs.Secret.fromSecretsManager(props.databaseSecret, "username"),
@@ -133,6 +154,10 @@ export class BackendStack extends cdk.Stack {
     });
 
     narrationArchive.grantReadWrite(taskDefinition.taskRole);
+    narrationMeter.grantReadWriteData(taskDefinition.taskRole);
+    // TransactWriteItems is not included in the standard grantReadWriteData
+    // policy on every CDK version. Atomic user/global caps require it.
+    narrationMeter.grant(taskDefinition.taskRole, "dynamodb:TransactWriteItems");
 
     if (props.narratorInstance && props.narratorActivityTable && props.narratorCacheBucket) {
       taskDefinition.taskRole.addToPrincipalPolicy(new iam.PolicyStatement({

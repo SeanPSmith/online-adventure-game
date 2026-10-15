@@ -226,6 +226,45 @@ export function getAdminUsage() {
   return apiFetch<AdminUsageSnapshot>("/api/auth/admin/usage");
 }
 
+export interface NarrationUsageSnapshot {
+  configured: boolean;
+  days: number;
+  limits: {
+    window_requests: number;
+    user_daily_generations: number;
+    user_daily_characters: number;
+    global_daily_generations: number;
+    global_daily_characters: number;
+  };
+  totals: {
+    requests: number;
+    generated: number;
+    memory: number;
+    s3: number;
+    failed: number;
+    denied: number;
+    sent_bytes: number;
+    inference_ms: number;
+  };
+  top_users: Array<{
+    user_id: string;
+    requests: number;
+    generated: number;
+    memory: number;
+    s3: number;
+    failed: number;
+    denied: number;
+    today_generated: number;
+    today_requests: number;
+  }>;
+  alerts: Array<{ user_id: string; reason: string; generations: number; requests: number }>;
+  disclaimer?: string;
+}
+
+export function getAdminNarrationUsage() {
+  return apiFetch<NarrationUsageSnapshot>("/api/auth/admin/narration-usage");
+}
+
 export function setUserEntitlement(
   userId: string,
   payload: {

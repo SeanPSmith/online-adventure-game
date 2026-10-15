@@ -723,6 +723,17 @@ async def admin_ai_usage(
     return await ai_usage_store.admin_snapshot(limit=40)
 
 
+@router.get("/admin/narration-usage")
+async def admin_narration_usage(user=Depends(require_admin_user)):
+    """Private account-level narrator telemetry; no story content is exposed."""
+    import asyncio
+    from app.narration import metering
+    try:
+        return await asyncio.to_thread(metering.admin_snapshot, days=7)
+    except metering.MeterUnavailable as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
 class AdminActiveRequest(BaseModel):
     enabled: bool
 

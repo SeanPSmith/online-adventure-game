@@ -19,6 +19,15 @@ Updated 2026-10-14. **Planning decisions, not shipped purchase/character feature
 
 This reduces an expensive proxy-abuse route; **it is not comprehensive anti-abuse protection**. In particular, the 50-requests/5-min speech limiter is process-local, and an authorized player may still generate multiple voice variants. Launch still requires atomic distributed rate/budget enforcement (per account, adventure, room, and global), correlated usage trails and administrator alerting. No infrastructure or frontend changes were made in 62A.1; deploy backend code and test live room requests.
 
+## Shipped partial protections — Pass 62A.2
+
+Narrator calls now use backend-owned shared DynamoDB admission and daily
+per-user/global inference reservations, with an admin-only seven-day monitoring
+view. See `docs/STORY_TIME_COST_GUARDRAILS.md` for exact limits and important
+remaining protections. Full financial accounting, AWS WAF, anomaly alert
+delivery, unified Director/game quotas and a sandbox credit ledger are still
+pending; do not treat this as public-payments launch approval.
+
 ## Next work packages (in order)
 
 1. **62A.2 Distributed metering and abuse response:** atomic per-user/day speech admission; per-room concurrency and model generation budgets; aggregated, privacy-conscious operator telemetry; warning / suspension / emergency stop. Distinguish cached, first-time generated, and speculative prefetch. Prevent abandoned room leases from keeping the GPU awake unnecessarily. Audit billing ceilings versus actual spending, including AWS fixed costs.

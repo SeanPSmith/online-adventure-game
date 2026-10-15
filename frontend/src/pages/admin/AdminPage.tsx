@@ -8,6 +8,7 @@ import {
   contentImportErrorMessage,
   getAdminAnalytics,
   getAdminUsage,
+  getAdminNarrationUsage,
   getAdminProjectDocumentation,
   importAuthorContent,
   listUsers,
@@ -16,6 +17,7 @@ import {
   setUserEntitlement,
   type AdminAnalyticsSnapshot,
   type AdminUsageSnapshot,
+  type NarrationUsageSnapshot,
   type AdminProjectDocumentation,
   type ContentImportReport,
 } from "../../services/admin";
@@ -57,6 +59,8 @@ export function AdminPage() {
   const [analyticsError, setAnalyticsError] = useState("");
   const [usage, setUsage] = useState<AdminUsageSnapshot | null>(null);
   const [usageError, setUsageError] = useState("");
+  const [narrationUsage, setNarrationUsage] = useState<NarrationUsageSnapshot | null>(null);
+  const [narrationUsageError, setNarrationUsageError] = useState("");
   const [usageWorkingUserId, setUsageWorkingUserId] = useState("");
   const [projectDocs, setProjectDocs] = useState<AdminProjectDocumentation | null>(null);
   const [projectDocsOpen, setProjectDocsOpen] = useState(false);
@@ -101,6 +105,16 @@ export function AdminPage() {
     }
   }, []);
 
+  const loadNarrationUsage = useCallback(async () => {
+    try {
+      const snapshot = await getAdminNarrationUsage();
+      setNarrationUsage(snapshot);
+      setNarrationUsageError("");
+    } catch (reason) {
+      setNarrationUsageError(reason instanceof Error ? reason.message : "Narrator metering unavailable.");
+    }
+  }, []);
+
   const loadProjectDocs = useCallback(async () => {
     setProjectDocsLoading(true);
     setProjectDocsError("");
@@ -126,14 +140,20 @@ export function AdminPage() {
     void loadUsers();
     void loadAnalytics();
     void loadUsage();
+    void loadNarrationUsage();
 
     const interval = window.setInterval(() => {
       void loadAnalytics();
       void loadUsage();
     }, 10000);
+    // DynamoDB seven-day dashboard queries are slower and need less polling.
+    const narrationInterval = window.setInterval(() => void loadNarrationUsage(), 60000);
 
-    return () => window.clearInterval(interval);
-  }, [isAdmin, loadAnalytics, loadUsage, loadUsers]);
+    return () => {
+      window.clearInterval(interval);
+      window.clearInterval(narrationInterval);
+    };
+  }, [isAdmin, loadAnalytics, loadUsage, loadNarrationUsage, loadUsers]);
 
   const visibleUsers = useMemo(() => users, [users]);
   const maxDailyTurns = useMemo(
@@ -375,6 +395,44 @@ export function AdminPage() {
           </tbody></table></div>
         </details>
         <p className="muted-copy">Model costs are estimates from configured per-token rates. The server enforces both per-account monthly allowances and a global daily ceiling before each OpenAI request leaves the app.</p>
+      </Panel>
+
+      <Panel title="STORY TIME // USAGE & ABUSE PROTECTION">
+        {narrationUsageError ? <div className="form-error">{narrationUsageError}</div> : null}
+        {narrationUsage?.configured === false ? (
+          <p className="muted-copy">Narrator metering is not configured. Public access must remain restricted.</p>
+        ) : null}
+        <div className="admin-stat-grid">
+          <div><span>VOICE REQUESTS / 7D</span><strong>{narrationUsage?.totals.requests ?? "—"}</strong></div>
+          <div><span>GPU GENERATIONS / 7D</span><strong>{narrationUsage?.totals.generated ?? "—"}</strong></div>
+          <div><span>MEMORY CACHE / 7D</span><strong>{narrationUsage?.totals.memory ?? "—"}</strong></div>
+          <div><span>S3 CACHE / 7D</span><strong>{narrationUsage?.totals.s3 ?? "—"}</strong></div>
+          <div><span>INFERENCE FAILURES / 7D</span><strong>{narrationUsage?.totals.failed ?? "—"}</strong></div>
+          <div><span>THROTTLE ALERT WINDOWS / 7D</span><strong>{narrationUsage?.totals.denied ?? "—"}</strong></div>
+          <div><span>PER-USER DAILY CAP</span><strong>{narrationUsage?.limits.user_daily_generations ?? "—"}</strong></div>
+          <div><span>GLOBAL DAILY CAP</span><strong>{narrationUsage?.limits.global_daily_generations ?? "—"}</strong></div>
+          <div><span>REQUEST LIMIT / 5 MIN</span><strong>{narrationUsage?.limits.window_requests ?? "—"}</strong></div>
+        </div>
+        {(narrationUsage?.alerts.length ?? 0) > 0 ? (
+          <div className="system-notice" role="status">
+            <strong>HIGH USAGE ACCOUNTS</strong> — {narrationUsage?.alerts.map(entry =>
+              `${entry.user_id} (${entry.generations} generated)`
+            ).join(" • ")}
+          </div>
+        ) : null}
+        <details>
+          <summary>TOP NARRATION USERS // LAST 7 DAYS</summary>
+          <div className="operations-table-wrap"><table><thead><tr>
+            <th>Account ID</th><th>Requests</th><th>GPU</th><th>Cache</th><th>Failures / Throttle</th>
+          </tr></thead><tbody>
+            {(narrationUsage?.top_users ?? []).map(entry => (
+              <tr key={entry.user_id}><td>{entry.user_id}</td><td>{entry.requests}</td>
+              <td>{entry.generated} ({entry.today_generated} today)</td>
+              <td>{entry.memory + entry.s3}</td><td>{entry.failed} / {entry.denied}</td></tr>
+            ))}
+          </tbody></table></div>
+        </details>
+        <p className="muted-copy">Server-side DynamoDB counters, not dollar charges. GPU boot/runtime, previews, and AWS overhead are not attributed here. CloudWatch, AWS Cost Explorer, and provider invoices remain necessary for actual spending.</p>
       </Panel>
 
       <Panel title="PLAY ACTIVITY // LAST 14 COMPLETION DAYS">

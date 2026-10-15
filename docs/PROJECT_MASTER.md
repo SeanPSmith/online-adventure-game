@@ -1,3 +1,13 @@
+> **Pass 62A.3 (2026-10-15):** Fix a false GPU route mismatch in the
+> Pass 62A.2 monitoring deployment script: the ECS task-definition JMESPath
+> query must flatten nested container environment variables before selecting
+> the narrator instance ID. Apply the same fix to the meter-table verification
+> query. Retain the fail-closed routing protection. Nine focused/mock-AWS tests
+> cover healthy GPU routing, genuine mismatch refusal, and metering verification.
+> No runtime, narrator infrastructure or billed AWS changes in this hotfix.
+
+> **Pass 62A.2 (2026-10-14):** Distributed Story Time abuse and cost guardrails added via a new backend-owned DynamoDB meter with atomic user/global daily generation limits, shared request throttling and private Admin Control Room narration telemetry. See `docs/STORY_TIME_COST_GUARDRAILS.md`. This does not deploy payments, guarantee cloud spending limits, or change Director models.
+
 > **Pass 62A.1 — Story Time inference authorization hardening + GPT-6 price evaluation preparation:**
 > Speech synthesis now requires an online participant in an active room and
 > exactly the server-revealed chapter/choice passage, checked before even reading

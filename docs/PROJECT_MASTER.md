@@ -1,3 +1,14 @@
+> **Pass 63.11 (2026-10-16) — Author console dropdown label sync:**
+> The Author console's custom dropdowns previously updated their hidden native
+> `<select>` values during draft hydration, autosave reconciliation, AI proposal
+> application and generation-profile refresh without emitting `change` events;
+> the visible button could show an old/blank label even while the opened menu
+> correctly highlighted the saved option. Synchronize the custom trigger after
+> programmatic changes, wrap newly rendered repeated-field dropdowns, and use
+> one document outside-click listener instead of accumulating listeners on
+> rerender. Regression tests exercise native value hydration, label/menu parity,
+> dynamic option updates and repeated installation. No API/schema/GPU changes.
+
 > **Pass 63.10 (2026-10-16) — Author Writer Helper premise fidelity and safe review:**
 > Document-level AI assistance now treats the author's rough note as binding
 > story substance. A conservative server check rejects obvious premise

@@ -1471,6 +1471,10 @@ function renderRepeatSection(sectionName) {
         card.append(header, fields);
         container.appendChild(card);
     });
+
+    // Repeated NPC/lore/thread rows create new select elements on every render.
+    // Decorate and synchronize them too, without registering duplicate controls.
+    installTerminalSelects(container);
 }
 
 
@@ -1565,6 +1569,9 @@ function renderSimpleFields() {
             control.value = value ?? "";
         }
     }
+    // Assigning select.value programmatically does not emit a change event.
+    // Refresh the custom button label after draft hydration, including reloads.
+    syncTerminalSelects();
 }
 
 
@@ -2054,6 +2061,7 @@ function renderEditor() {
     }
 
     renderWorldReferencePicker();
+    installTerminalSelects();
     refreshAiHelperButtons();
     updateStrengthUI();
 }
@@ -2135,6 +2143,7 @@ async function saveDraft({silent = false} = {}) {
 
         if (revision === revisionAtStart) {
             activeSource = structuredClone(saved.source);
+            syncTerminalSelects();
             markSaved();
         } else {
             ui.saveState.textContent = "UNSAVED";
@@ -2416,6 +2425,7 @@ async function refreshGenerationProviderStatus() {
             )
     );
 
+    syncTerminalSelects(ui.generationPanel);
     renderGenerationProviderStatus();
     renderAuthorAssistState();
 
@@ -3264,6 +3274,7 @@ function populateWorldSelect() {
         option.textContent = world.title;
         ui.newParent.appendChild(option);
     }
+    syncTerminalSelects(ui.newDialog);
 }
 
 
@@ -3274,6 +3285,7 @@ function updateCreateDialogKind() {
     if (isBrief && createContextParentId) {
         ui.newParent.value = createContextParentId;
     }
+    syncTerminalSelects(ui.newDialog);
 }
 
 
@@ -3908,11 +3920,28 @@ function restoreReturnToGameRoute() {
    SITE-NATIVE SELECT MENUS
 ========================================================= */
 
+// A select's value often changes without a browser change event (draft load,
+// autosave reconciliation, AI proposal approval, dynamic options). Keep the
+// visible button bound to the native source of truth, not an old render.
+const terminalSelectBindings = new WeakMap();
+let terminalSelectOutsideListenerInstalled = false;
+
+function syncTerminalSelects(root = document) {
+    const selects = root instanceof HTMLSelectElement
+        ? [root]
+        : Array.from(root.querySelectorAll("select"));
+    for (const select of selects) {
+        terminalSelectBindings.get(select)?.sync();
+    }
+}
+
 function installTerminalSelect(nativeSelect) {
-    if (
-        !(nativeSelect instanceof HTMLSelectElement)
-        || nativeSelect.dataset.terminalSelect === "ready"
-    ) {
+    if (!(nativeSelect instanceof HTMLSelectElement)) {
+        return;
+    }
+    const existing = terminalSelectBindings.get(nativeSelect);
+    if (existing) {
+        existing.sync();
         return;
     }
 
@@ -3941,6 +3970,13 @@ function installTerminalSelect(nativeSelect) {
     function syncTrigger() {
         trigger.textContent = selectedLabel();
         trigger.disabled = nativeSelect.disabled;
+        if (!menu.hidden) {
+            Array.from(menu.children).forEach((item, index) => {
+                const selected = index === nativeSelect.selectedIndex;
+                item.setAttribute("aria-selected", selected ? "true" : "false");
+                item.classList.toggle("is-selected", selected);
+            });
+        }
     }
 
     function closeMenu() {
@@ -3952,19 +3988,13 @@ function installTerminalSelect(nativeSelect) {
     function renderMenu() {
         menu.replaceChildren();
 
-        Array.from(nativeSelect.options).forEach(option => {
+        Array.from(nativeSelect.options).forEach((option, index) => {
             const item = document.createElement("button");
             item.type = "button";
             item.setAttribute("role", "option");
-            item.setAttribute(
-                "aria-selected",
-                option.value === nativeSelect.value ? "true" : "false",
-            );
-            item.className = (
-                option.value === nativeSelect.value
-                    ? "is-selected"
-                    : ""
-            );
+            const selected = index === nativeSelect.selectedIndex;
+            item.setAttribute("aria-selected", selected ? "true" : "false");
+            item.className = selected ? "is-selected" : "";
             item.textContent = option.textContent.trim();
             item.disabled = option.disabled;
             item.addEventListener("click", () => {
@@ -3972,6 +4002,7 @@ function installTerminalSelect(nativeSelect) {
                 nativeSelect.dispatchEvent(new Event("change", { bubbles: true }));
                 syncTrigger();
                 closeMenu();
+                trigger.focus();
             });
             menu.appendChild(item);
         });
@@ -3982,19 +4013,25 @@ function installTerminalSelect(nativeSelect) {
             closeMenu();
             return;
         }
+        syncTrigger();
         renderMenu();
         menu.hidden = false;
         shell.classList.add("is-open");
         trigger.setAttribute("aria-expanded", "true");
     });
-
+    trigger.addEventListener("keydown", event => {
+        if (event.key === "Escape") {
+            closeMenu();
+        }
+    });
     nativeSelect.addEventListener("change", syncTrigger);
+    shell.addEventListener("author:close-select", closeMenu);
 
     const selectObserver = new MutationObserver(() => {
-        syncTrigger();
         if (!menu.hidden) {
             renderMenu();
         }
+        syncTrigger();
     });
     selectObserver.observe(nativeSelect, {
         childList: true,
@@ -4002,20 +4039,25 @@ function installTerminalSelect(nativeSelect) {
         attributes: true,
     });
 
-    document.addEventListener("pointerdown", event => {
-        if (!shell.contains(event.target)) {
-            closeMenu();
-        }
-    });
-
     shell.append(trigger, menu);
     nativeSelect.insertAdjacentElement("afterend", shell);
+    terminalSelectBindings.set(nativeSelect, {sync: syncTrigger});
     syncTrigger();
 }
 
-
-function installTerminalSelects() {
-    document.querySelectorAll("select").forEach(installTerminalSelect);
+function installTerminalSelects(root = document) {
+    // One document listener avoids leaking handlers when repeated fields rerender.
+    if (!terminalSelectOutsideListenerInstalled) {
+        document.addEventListener("pointerdown", event => {
+            for (const shell of document.querySelectorAll(".author-terminal-select.is-open")) {
+                if (!shell.contains(event.target)) {
+                    shell.dispatchEvent(new Event("author:close-select"));
+                }
+            }
+        });
+        terminalSelectOutsideListenerInstalled = true;
+    }
+    root.querySelectorAll("select").forEach(installTerminalSelect);
 }
 
 

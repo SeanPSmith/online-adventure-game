@@ -82,6 +82,9 @@ node --test tests/frontend/hero-legacy.cjs
 say "Author AI proposal review and explicit apply regressions"
 node --test tests/frontend/author-ai-review.cjs
 
+say "Author console custom dropdown hydration and autosave regressions"
+node --test tests/frontend/author-terminal-select.cjs
+
 say "React production build"
 (
   cd frontend

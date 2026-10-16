@@ -136,13 +136,14 @@ export function IntermissionRuntime({
   useEffect(() => {
     if (!storyReady || storyReadySeconds > 0 || finalized) return;
 
-    submitFinalScore();
-    setFinalized(true);
-
-    const timer = window.setTimeout(
-      onStoryReadyComplete,
-      120,
-    );
+    // Do not mark the component finalized until the timer fires. Doing so
+    // immediately rerenders and cleans up this effect, cancelling the very
+    // callback responsible for dismissing Story Ready.
+    const timer = window.setTimeout(() => {
+      submitFinalScore();
+      setFinalized(true);
+      onStoryReadyComplete();
+    }, 120);
 
     return () => window.clearTimeout(timer);
   }, [

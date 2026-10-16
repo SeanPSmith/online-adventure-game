@@ -901,8 +901,8 @@ ${scene.body.slice(0, 260)}`}
                 <StoryReveal
                   sceneId={scene.id}
                   text={scene.body}
-                  enabled={storyPreferences.wordReveal && theater.phase === "none" && !(audioPreferences.narrationEnabled && audioPreferences.narrationAutoPlay)}
-                  followNarration={audioPreferences.narrationEnabled && followVoice}
+                  enabled={storyPreferences.wordReveal && theater.phase === "none"}
+                  followNarration={audioPreferences.narrationEnabled && followVoice && narration.cue?.kind === "story" && (narration.phase === "playing" || narration.phase === "paused")}
                   narrationCue={theater.chapterReleased && (narration.phase === "playing" || narration.phase === "paused") ? narration.cue : null}
                 />
               ) : (
@@ -1485,6 +1485,7 @@ ${scene.body.slice(0, 260)}`}
         playerId={live.playerId}
         intermissionResult={live.intermissionResult}
         onSubmitIntermissionScore={live.submitIntermissionScore}
+        onSync={live.sync}
         onRetry={() => {
           live.clearRetryableError();
           live.retryPendingTurn();

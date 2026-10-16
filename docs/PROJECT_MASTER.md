@@ -1,3 +1,21 @@
+> **Pass 63.2 (2026-10-16) — Dice animation TypeScript build fix:**
+> Capture the nullable authoritative turn check in a stable local binding before
+> scheduling the delayed dice animation. Use that binding throughout callbacks
+> so strict TypeScript compilation succeeds without non-null assertions and the
+> displayed roll stays identical to the committed server result. Update the
+> dice regression to enforce the safe binding. No gameplay state machine,
+> server, AWS, or narration behavior changed.
+
+> **Pass 63.1 (2026-10-16) — Gameplay presentation stabilization:** Prevent the
+> Story Ready countdown from cancelling its own release timer; preserve frozen
+> dice while countdown renders; surface retry/re-sync recovery rather than a
+> stranded intermission; display real D20 values while animating; make the
+> War cabinet show tied opening cards before the tiebreaker; restore story
+> word reveal when no spoken narration cue is active. No backend schema,
+> paid economy, Director model, narrator deployment, or Hero HP rule changes.
+> The reported Control Room HTTP 500 remains unconfirmed pending backend
+> CloudWatch traceback. See `docs/GAMEPLAY_STABILIZATION_PASS63.md`.
+
 > **Pass 62A.3 (2026-10-15):** Fix a false GPU route mismatch in the
 > Pass 62A.2 monitoring deployment script: the ECS task-definition JMESPath
 > query must flatten nested container environment variables before selecting

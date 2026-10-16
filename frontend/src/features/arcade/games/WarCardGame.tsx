@@ -9,6 +9,8 @@ type Card = { rank: string; suit: string; value: number; id: string };
 type BattleResult = {
   mine: Card;
   theirs: Card;
+  openingMine: Card;
+  openingTheirs: Card;
   playerDeck: Card[];
   enemyDeck: Card[];
   pot: Card[];
@@ -41,6 +43,8 @@ function resolveBattle(playerSource: Card[], enemySource: Card[]): BattleResult 
   let mine = player.shift();
   let theirs = enemy.shift();
   if (!mine || !theirs) return null;
+  const openingMine = mine;
+  const openingTheirs = theirs;
   pot.push(mine, theirs);
 
   while (mine.value === theirs.value && player.length && enemy.length) {
@@ -63,7 +67,7 @@ function resolveBattle(playerSource: Card[], enemySource: Card[]): BattleResult 
   if (winner === "player") player.push(...shuffledPot);
   else enemy.push(...shuffledPot);
 
-  return { mine, theirs, playerDeck: player, enemyDeck: enemy, pot, warDepth, winner };
+  return { mine, theirs, openingMine, openingTheirs, playerDeck: player, enemyDeck: enemy, pot, warDepth, winner };
 }
 
 export function WarCardGame({ score, onScoreChange, turnNumber, storyReady }: ArcadeGameProps) {
@@ -75,15 +79,19 @@ export function WarCardGame({ score, onScoreChange, turnNumber, storyReady }: Ar
   const [message, setMessage] = useState("DRAW // HIGH CARD TAKES THE BATTLE_");
   const [warDepth, setWarDepth] = useState(0);
   const [potSize, setPotSize] = useState(0);
+  const [openingTie, setOpeningTie] = useState<string | null>(null);
+  const [showingTiebreak, setShowingTiebreak] = useState(false);
   const [battleNo, setBattleNo] = useState(1);
   const [locked, setLocked] = useState(false);
   const [dealPulse, setDealPulse] = useState(0);
   const resolveTimer = useRef<number | null>(null);
+  const tiebreakTimer = useRef<number | null>(null);
   const resetTimer = useRef<number | null>(null);
   const { feedback, showFeedback } = useArcadeFeedback(1750);
 
   useEffect(() => () => {
     if (resolveTimer.current !== null) window.clearTimeout(resolveTimer.current);
+    if (tiebreakTimer.current !== null) window.clearTimeout(tiebreakTimer.current);
     if (resetTimer.current !== null) window.clearTimeout(resetTimer.current);
   }, []);
 
@@ -95,6 +103,8 @@ export function WarCardGame({ score, onScoreChange, turnNumber, storyReady }: Ar
     setEnemyCard(null);
     setWarDepth(0);
     setPotSize(0);
+    setOpeningTie(null);
+    setShowingTiebreak(false);
     setLocked(false);
     setBattleNo(1);
     setMessage("NEW DECKS // DRAW WHEN READY_");
@@ -115,48 +125,64 @@ export function WarCardGame({ score, onScoreChange, turnNumber, storyReady }: Ar
     setEnemyCard(null);
     setWarDepth(result.warDepth);
     setPotSize(result.pot.length);
+    setOpeningTie(result.warDepth ? `${result.openingMine.rank} = ${result.openingTheirs.rank}` : null);
+    setShowingTiebreak(false);
     setDealPulse((value) => value + 1);
     setMessage(result.warDepth ? `WAR! // ${result.pot.length} CARDS IN THE POT_` : "CARDS FLYING TO CENTER_");
 
     resolveTimer.current = window.setTimeout(() => {
-      setPlayerCard(result.mine);
-      setEnemyCard(result.theirs);
-      setPlayerDeck(result.playerDeck);
-      setEnemyDeck(result.enemyDeck);
+      // Show the ACTUAL matching opener before showing the higher tiebreaker.
+      // Otherwise players see two unequal face-up cards beneath WAR! and
+      // understandably conclude that normal high-card rounds triggered a war.
+      setPlayerCard(result.openingMine);
+      setEnemyCard(result.openingTheirs);
+      const revealResult = () => {
+        setShowingTiebreak(Boolean(result.warDepth));
+        setPlayerCard(result.mine);
+        setEnemyCard(result.theirs);
+        setPlayerDeck(result.playerDeck);
+        setEnemyDeck(result.enemyDeck);
 
-      const playerOut = result.playerDeck.length === 0;
-      const enemyOut = result.enemyDeck.length === 0;
-      const wonGame = enemyOut && !playerOut;
-      const lostGame = playerOut && !enemyOut;
+        const playerOut = result.playerDeck.length === 0;
+        const enemyOut = result.enemyDeck.length === 0;
+        const wonGame = enemyOut && !playerOut;
+        const lostGame = playerOut && !enemyOut;
 
-      if (result.winner === "player") {
-        const battleAward = 4 + result.warDepth * 8;
-        const award = battleAward + (wonGame ? 30 : 0);
-        onScoreChange(Math.min(999, score + award));
-        setMessage(wonGame ? "DECK CONQUERED // YOU WIN THE GAME_" : `${result.warDepth ? "WAR WON" : "BATTLE WON"} // TAKE ${result.pot.length} CARDS // +${battleAward}_`);
-        showFeedback({
-          title: wonGame ? "GAME WON!" : result.warDepth ? "YOU WIN THE WAR!" : "YOU WIN",
-          detail: wonGame ? "THE HOUSE HAS NO CARDS LEFT" : `${result.mine.rank}${result.mine.suit} BEATS ${result.theirs.rank}${result.theirs.suit} // +${result.pot.length} CARDS`,
-          delta: award,
-          tone: result.warDepth || wonGame ? "great" : "good",
-        }, wonGame ? 2600 : result.warDepth ? 2200 : 1650);
+        if (result.winner === "player") {
+          const battleAward = 4 + result.warDepth * 8;
+          const award = battleAward + (wonGame ? 30 : 0);
+          onScoreChange(Math.min(999, score + award));
+          setMessage(wonGame ? "DECK CONQUERED // YOU WIN THE GAME_" : `${result.warDepth ? "WAR WON" : "BATTLE WON"} // TAKE ${result.pot.length} CARDS // +${battleAward}_`);
+          showFeedback({
+            title: wonGame ? "GAME WON!" : result.warDepth ? "YOU WIN THE WAR!" : "YOU WIN",
+            detail: wonGame ? "THE HOUSE HAS NO CARDS LEFT" : `${result.mine.rank}${result.mine.suit} BEATS ${result.theirs.rank}${result.theirs.suit} // +${result.pot.length} CARDS`,
+            delta: award,
+            tone: result.warDepth || wonGame ? "great" : "good",
+          }, wonGame ? 2600 : result.warDepth ? 2200 : 1650);
+        } else {
+          setMessage(lostGame ? "YOUR DECK IS GONE // HOUSE WINS THE GAME_" : `${result.warDepth ? "WAR LOST" : "BATTLE LOST"} // HOUSE TAKES ${result.pot.length}_`);
+          showFeedback({
+            title: lostGame ? "GAME LOST" : result.warDepth ? "WAR LOST" : "HOUSE WINS",
+            detail: lostGame ? "YOUR DECK HAS BEEN CAPTURED" : `${result.theirs.rank}${result.theirs.suit} BEATS ${result.mine.rank}${result.mine.suit} // -${result.pot.length} CARDS`,
+            tone: "bad",
+          }, lostGame ? 2600 : result.warDepth ? 2200 : 1650);
+        }
+
+        if (playerOut || enemyOut) {
+          resetTimer.current = window.setTimeout(resetGame, 3000);
+        } else {
+          resetTimer.current = window.setTimeout(() => {
+            setLocked(false);
+            setBattleNo((value) => value + 1);
+            setMessage("DRAW THE NEXT CARD_");
+          }, result.warDepth ? 2300 : 1750);
+        }
+      };
+      if (result.warDepth) {
+        setMessage(`MATCHED ${result.openingMine.rank} // WAR! // REVEALING TIEBREAKER_`);
+        tiebreakTimer.current = window.setTimeout(revealResult, 950);
       } else {
-        setMessage(lostGame ? "YOUR DECK IS GONE // HOUSE WINS THE GAME_" : `${result.warDepth ? "WAR LOST" : "BATTLE LOST"} // HOUSE TAKES ${result.pot.length}_`);
-        showFeedback({
-          title: lostGame ? "GAME LOST" : result.warDepth ? "WAR LOST" : "HOUSE WINS",
-          detail: lostGame ? "YOUR DECK HAS BEEN CAPTURED" : `${result.theirs.rank}${result.theirs.suit} BEATS ${result.mine.rank}${result.mine.suit} // -${result.pot.length} CARDS`,
-          tone: "bad",
-        }, lostGame ? 2600 : result.warDepth ? 2200 : 1650);
-      }
-
-      if (playerOut || enemyOut) {
-        resetTimer.current = window.setTimeout(resetGame, 3000);
-      } else {
-        resetTimer.current = window.setTimeout(() => {
-          setLocked(false);
-          setBattleNo((value) => value + 1);
-          setMessage("DRAW THE NEXT CARD_");
-        }, result.warDepth ? 2300 : 1750);
+        revealResult();
       }
     }, result.warDepth ? 720 : 420);
   }
@@ -177,7 +203,7 @@ export function WarCardGame({ score, onScoreChange, turnNumber, storyReady }: Ar
 
         <div className="war-center-pile">
           <strong>{warDepth ? "WAR!" : "VS"}</strong>
-          {warDepth ? <div className="war-face-down-row" aria-label={`${potSize} cards in war pot`}><span>▥</span><span>▥</span><span>▥</span><b>{potSize} CARD POT</b></div> : <span>HIGH CARD WINS</span>}
+          {warDepth ? <div className="war-face-down-row" aria-label={`${potSize} cards in war pot`}><span>▥</span><span>▥</span><span>▥</span><b>{openingTie} // TIED OPENERS</b><b>{showingTiebreak ? "TIEBREAKER SHOWN" : "TIEBREAKER INCOMING"}</b><small>{potSize} CARD POT</small></div> : <span>HIGH CARD WINS</span>}
         </div>
 
         <div className="war-player-zone">

@@ -121,9 +121,11 @@ export function useTurnTheater({
     // freshly authored chapter is revealed only after the dice are acknowledged.
     if (phaseRef.current !== "story-ready") return;
     const final = readyReceiptRef.current;
+    // A late commit must not strand the UI in Story Ready after removing the
+    // Arcade. Preserve the stage until the authoritative final receipt arrives.
+    if (!final || final.preliminary) return; // Never display unfinished results.
     clearTimer();
     rememberIntermission(null);
-    if (!final || final.preliminary) return; // Never display unfinished results.
     readyReceiptRef.current = null;
     showReceipt(final);
     transition("resolution");
@@ -228,7 +230,9 @@ export function useTurnTheater({
       || phaseRef.current === "intermission" || phaseRef.current === "story-ready";
     if (hadIntermission) {
       readyReceiptRef.current = committed;
-      if (!game.turn_pending && game.turn_number > resolvedTurnNumber(committed)) {
+      if (phaseRef.current === "story-ready" && countdownValue === 0) {
+        finishIntermissionStoryReady();
+      } else if (!game.turn_pending && game.turn_number > resolvedTurnNumber(committed)) {
         beginStoryReady();
       }
       return;
@@ -245,15 +249,18 @@ export function useTurnTheater({
     }
   }, [game?.started, game?.turn_number, game?.turn_pending, game?.last_turn_result,
     turnReceipt, lastTurn, roomCode, characterId, showReceipt, clearTimer,
-    transition, beginStoryReady]);
+    transition, beginStoryReady, finishIntermissionStoryReady]);
 
   // On reconnect, reconstruct a pending Arcade and never treat lobby readiness
   // as a player choice. Retry does not re-roll the saved Python results.
   useEffect(() => {
     if (!game?.started) return;
     if (game.director_retry_required) {
-      if (phaseRef.current === "none" || phaseRef.current === "intermission") {
+      // Errors can arrive after the countdown has started. Always expose the
+      // server's recovery action instead of trapping the player in Story Ready.
+      if (phaseRef.current !== "resolution" && phaseRef.current !== "retry") {
         clearTimer();
+        rememberIntermission(null);
         transition("retry");
       }
     } else if (game.turn_pending) {

@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import type { IntermissionResult } from "../../services/game";
 import { IntermissionRuntime } from "./IntermissionRuntime";
 import type { TurnTheaterState } from "./useTurnTheater";
@@ -21,13 +22,26 @@ export function TurnTheater({
   intermissionResult,
   onSubmitIntermissionScore,
   onRetry,
+  onSync,
 }: {
   theater: TurnTheaterState;
   playerId: string | null;
   intermissionResult: IntermissionResult | null;
   onSubmitIntermissionScore: (turnNumber: number, gameId: string, score: number) => void;
   onRetry: () => void;
+  onSync: () => void;
 }) {
+  const [showResync, setShowResync] = useState(false);
+  const readyWithoutExit = theater.phase === "story-ready" && theater.countdownValue === 0;
+  useEffect(() => {
+    setShowResync(false);
+    if (theater.phase !== "intermission" && !readyWithoutExit) return;
+    // Resync requests a saved room snapshot; it does not regenerate text or
+    // reroll dice. Keep normal 3-second transitions completely uninterrupted.
+    const timer = window.setTimeout(() => setShowResync(true), readyWithoutExit ? 2000 : 45000);
+    return () => window.clearTimeout(timer);
+  }, [theater.phase, readyWithoutExit]);
+
   if (theater.phase === "none") return null;
 
   if (theater.phase === "resolution" && theater.activeReceipt) {
@@ -58,6 +72,12 @@ export function TurnTheater({
           onSubmitScore={onSubmitIntermissionScore}
           onStoryReadyComplete={theater.finishIntermissionStoryReady}
         />
+        {showResync ? (
+          <div className="system-notice" role="status">
+            <p>THE STORY IS TAKING LONGER THAN EXPECTED. YOU CAN RESTORE THE ROOM STATE WITHOUT RELOADING OR REROLLING.</p>
+            <button className="button" type="button" onClick={onSync}>RE-SYNC STORY</button>
+          </div>
+        ) : null}
       </div>
     );
   }
@@ -82,6 +102,13 @@ export function TurnTheater({
             <pre className="turn-theater-countdown">{asciiCountdown(theater.countdownValue)}</pre>
             <strong>THE CONSEQUENCES HAVE ARRIVED_</strong>
           </>
+        ) : null}
+
+        {showResync && theater.phase !== "retry" ? (
+          <div className="system-notice" role="status">
+            <p>STILL WAITING FOR THE STORY. CHECK THE SERVER STATE WITHOUT RESTARTING THE ADVENTURE.</p>
+            <button className="button" type="button" onClick={onSync}>RE-SYNC STORY</button>
+          </div>
         ) : null}
 
         {theater.phase === "retry" ? (

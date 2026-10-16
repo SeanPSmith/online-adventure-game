@@ -86,20 +86,23 @@ function AnimatedResultCard({
   soundId: string;
 }) {
   const [rolling, setRolling] = useState(active && Boolean(result.check));
-  const [displayRoll, setDisplayRoll] = useState<number | string>(result.check ? "?" : "—");
+  const [displayRoll, setDisplayRoll] = useState<number | string>(result.check ? result.check.roll : "—");
   const [settled, setSettled] = useState(complete);
 
   useEffect(() => {
     setSettled(complete);
     setRolling(active && Boolean(result.check));
-    setDisplayRoll(result.check ? (complete ? result.check.roll : "?") : "—");
+    setDisplayRoll(result.check ? result.check.roll : "—");
   }, [result.check?.roll, result.check?.total, complete, active]);
 
   useEffect(() => {
     if (!active || complete) return;
-    if (result.check) playSound("dice-roll", `${soundId}:rolling`);
+    // Capture the check once: it is nullable on TurnResult, and React's
+    // delayed callbacks must use the same committed check that began the roll.
+    const check = result.check;
+    if (check) playSound("dice-roll", `${soundId}:rolling`);
 
-    if (!result.check) {
+    if (!check) {
       setSettled(true);
       const timer = setTimeout(onDone, 450);
       return () => clearTimeout(timer);
@@ -114,20 +117,21 @@ function AnimatedResultCard({
       if (cancelled) return;
 
       if (frame >= 14) {
-        setDisplayRoll(result.check?.roll ?? "?");
+        setDisplayRoll(check.roll);
         setRolling(false);
         setSettled(true);
-        const outcome = result.check?.outcome ?? "";
+        const outcome = check.outcome ?? "";
         const cue = outcome.includes("critical_failure") ? "critical-fail"
           : outcome.includes("critical_success") ? "critical"
           : outcome.includes("failure") ? "failure" : "success";
         playSound(cue, `${soundId}:settled`);
-        finishTimer = setTimeout(onDone, result.check?.critical ? 900 : 600);
+        finishTimer = setTimeout(onDone, check.critical ? 900 : 600);
         return;
       }
 
-      // No invented D20 values: only the committed server roll is ever shown.
-      setDisplayRoll("?");
+      // Animate the committed value visually, never substitute a question mark
+      // or fabricate other dice results while the CSS roll effect is active.
+      setDisplayRoll(check.roll);
       const delay = 45 + frame * 8;
       frame += 1;
       frameTimer = setTimeout(nextFrame, delay);

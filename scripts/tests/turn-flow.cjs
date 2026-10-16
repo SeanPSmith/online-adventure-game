@@ -305,3 +305,25 @@ test('snapshot of newer turn cannot cause a second roll reveal', () => {
   assert.equal(h.output().phase,'resolution');
   assert.equal(h.output().activeReceipt.results[0].check.roll,9);
 });
+
+
+test('late server retry while Story Ready is open exposes recovery, not a frozen countdown', () => {
+  const h=harness(); h.render();
+  h.update({game:h.game({pending:true,intermission:arcade(1)}),turnReceipt:result(17)});
+  const committed=result(17,false);
+  h.update({game:h.game({turn:2,final:committed}),turnReceipt:committed,lastTurn:committed});
+  assert.equal(h.output().phase,'story-ready');
+  h.update({game:h.game({turn:2,pending:true,retry:true})});
+  assert.equal(h.output().phase,'retry');
+  assert.equal(h.output().activeReceipt,null);
+});
+
+test('countdown rerenders do not overwrite the authoritative frozen roll', () => {
+  const h=harness(); h.render();
+  h.update({game:h.game({pending:true,intermission:arcade(1)}),turnReceipt:result(20)});
+  const committed=result(3,false);
+  h.update({game:h.game({turn:2,final:committed}),turnReceipt:committed,lastTurn:committed});
+  h.advance(3100);
+  h.endArcade();
+  assert.equal(h.output().activeReceipt.results[0].check.roll,20);
+});

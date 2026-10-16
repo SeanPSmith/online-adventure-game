@@ -89,10 +89,10 @@ class OperationsStore:
             controls = db.execute("SELECT paused FROM ai_controls WHERE control_id = 'global'").fetchone()
             totals = db.execute('''SELECT COUNT(*) AS requests,
                 COALESCE(SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END), 0) AS failed,
-                COALESCE(SUM(CASE WHEN operation LIKE '%repair%' THEN 1 ELSE 0 END), 0) AS repairs,
+                COALESCE(SUM(CASE WHEN operation LIKE ? THEN 1 ELSE 0 END), 0) AS repairs,
                 COALESCE(SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END), 0) AS pending,
                 COALESCE(AVG(CASE WHEN latency_ms > 0 THEN latency_ms ELSE NULL END), 0) AS latency_ms
-                FROM ai_usage_events WHERE period_key = ?''', (month,)).fetchone()
+                FROM ai_usage_events WHERE period_key = ?''', ('%repair%', month)).fetchone()
             retry_rows = db.execute("SELECT metadata_json FROM ai_usage_events WHERE period_key = ?", (month,)).fetchall()
             retry_calls = 0
             retry_sample_calls = 0

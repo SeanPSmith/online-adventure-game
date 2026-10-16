@@ -1,3 +1,12 @@
+> **Pass 63.3 (2026-10-16) — Control Room PostgreSQL 500 hotfix:**
+> Correct the monthly operations metrics query to bind the SQL LIKE search
+> value (`%repair%`) as a parameter instead of embedding a literal with
+> percent markers. Psycopg interprets `%r` as an invalid placeholder even
+> inside quoted SQL, causing `GET /api/auth/admin/operations` to return 500
+> on staging PostgreSQL while SQLite unit tests pass. A strict PostgreSQL
+> placeholder-emulation regression runs the full operations snapshot and
+> verifies repair counts. No schema migration, AWS stack, or gameplay changes.
+
 > **Pass 63.2 (2026-10-16) — Dice animation TypeScript build fix:**
 > Capture the nullable authoritative turn check in a stable local binding before
 > scheduling the delayed dice animation. Use that binding throughout callbacks

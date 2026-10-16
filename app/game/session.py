@@ -19,6 +19,7 @@ from app.adventures.bootstrap import (
 )
 
 from app.generation.ascii_art import generate_scene_ascii_art
+from app.generation.momentum import measure_scene_progress
 from app.adventures.models import (
     AdventureDefinition,
     CheckSpec,
@@ -2458,6 +2459,11 @@ class GameSessionManager:
 
         resolved_scene_title = str(session.scene.title or "").strip()
 
+        # Compare only previously committed canon to the new Director state.
+        # This advisory diagnostic must never mutate mechanics or veto a turn.
+        previous_story_state = deepcopy(session.story_state)
+
+
         completed = bool(
             director_output.get(
                 "completed",
@@ -2953,7 +2959,15 @@ class GameSessionManager:
                 ) + 1
 
 
+        narrative_progress = measure_scene_progress(
+            previous_story_state,
+            session.story_state,
+            before_title=resolved_scene_title,
+            after_title=session.dynamic_scene["title"],
+        )
+
         history_entry = {
+            "narrative_progress": narrative_progress,
             "turn_number":
                 resolved_turn,
 

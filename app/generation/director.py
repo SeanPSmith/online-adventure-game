@@ -14,6 +14,8 @@ from pydantic import (
     ValidationError,
 )
 
+from app.generation.momentum import director_momentum_context, measure_scene_progress
+
 from app.generation.director_schema import (
     DirectorRecapDraft,
     DirectorStoryTurnDraft,
@@ -485,6 +487,26 @@ WRAP-UP REQUEST
   satisfying epilogue with completed=true and choices=[].
 - Never use the wrap request as an excuse for an arbitrary deus ex machina. The
   ending still has to grow from the state the players created.
+
+STORY MOMENTUM — SERVER FEEDBACK
+- runtime.narrative_momentum is derived from committed chapters and actual
+  server-resolved checks. It contains advisory continuity warnings, not new
+  dice outcomes and not a license to invent inventory, HP, or world flags.
+- A low-progress chapter may be valid (a crucial conversation, a genuine
+  standoff, or a climax); TWO IN A ROW should be exceptional. When direction
+  is mandatory_macro_advance, resolve or fundamentally change the current
+  obstacle, reveal a consequential truth, change location/time, or close a
+  route; don't merely rename the scene or rewrite the same choices.
+- If direction is bank_success_and_leave_solved_obstacle or
+  pay_off_success_and_progress, honor the locked successful action and let the
+  Hero enjoy having won. Move forward instead of reintroducing the same gate.
+- If direction is fail_forward_with_new_cost_or_route, establish a concrete
+  lasting cost or detour and offer a NEW decision rather than another try at
+  the identical check. A failure is not automatically physical self-injury.
+- Keep story_state in sync with the fiction. If a threat ends, objective
+  resolves, discovery occurs, or the party changes position, update the
+  corresponding structured fields. Do not falsify state just to satisfy a
+  momentum signal.
 
 STORY PACING
 - The server provides current_turn, minimum_turns, target_turns, maximum_turns,
@@ -1493,6 +1515,11 @@ class OpenAIRuntimeDirector:
         recent_scene_openings = _recent_scene_openings(
             list(session.director_history)
         )
+        momentum_context = director_momentum_context(
+            list(session.director_history),
+            ({} if opening_mode else turn_facts),
+        )
+
 
         quick_event_requested = (not opening_mode) and should_schedule_micro_event(
             resolved_turn_number=current_turn,
@@ -1668,6 +1695,9 @@ class OpenAIRuntimeDirector:
 
                 "recent_offered_choices":
                     recent_offered_choices,
+
+                "narrative_momentum":
+                    momentum_context,
 
                 "players":
                     player_context,
@@ -2270,6 +2300,23 @@ class OpenAIRuntimeDirector:
             recent_choices=recent_offered_choices,
             recent_openings=recent_scene_openings,
         )
+
+        # Momentum checks are also non-blocking: log low-progress scenes so
+        # later turns get stronger direction, without causing another provider
+        # request, intermission lock, or repeated dice roll.
+        momentum_observation = measure_scene_progress(
+            dict(session.story_state),
+            draft.story_state.model_dump(),
+            before_title=("SYNOPSIS" if opening_mode else str(session.scene.title or "")),
+            after_title=draft.title,
+        )
+        if momentum_observation["level"] == "low" and not draft.completed:
+            print(
+                "[DIRECTOR LOW PROGRESS] "
+                f"room={session.room_code} turn={current_turn} "
+                f"prior_streak={momentum_context['consecutive_low_progress_scenes']} "
+                f"outcomes={momentum_context['current_turn_checks']}"
+            )
 
         # Freshness is a quality hint, not a reason to risk a second expensive
         # full-turn generation. Keep the valid turn playable and log the issue;

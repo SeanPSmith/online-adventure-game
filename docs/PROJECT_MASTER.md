@@ -1,3 +1,13 @@
+> **Pass 63.7 (2026-10-16) — Narrative momentum feedback and gameplay diagnostics:**
+> The backend records compact, non-blocking progress signals per committed
+> Director chapter: changed goal, scene, party position, resolved thread,
+> closed route, new fact, or meaningful advantage. Subsequent AI requests
+> receive bounded momentum context with recent actual server dice outcomes;
+> a two-scene stagnation streak prompts a macro-level advance instead of
+> rehashing the same obstacle. Diagnostics never veto generated chapters,
+> reroll dice, add model calls, or change the working GPU/narration path.
+> See `docs/GAMEPLAY_MOMENTUM_PASS63_7.md`.
+
 > **Pass 63.6 (2026-10-16) — Hero health recovery between adventures:**
 > Living Heroes who are outside an active adventure recover 10% of maximum HP
 > (rounded up, minimum 1) per whole real-time hour, capped at max HP. Recovery

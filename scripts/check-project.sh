@@ -79,6 +79,9 @@ node --test tests/frontend/playtest-diagnostics.cjs
 say "Hero Hall and Graveyard browser regressions"
 node --test tests/frontend/hero-legacy.cjs
 
+say "Author AI proposal review and explicit apply regressions"
+node --test tests/frontend/author-ai-review.cjs
+
 say "React production build"
 (
   cd frontend

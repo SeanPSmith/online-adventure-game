@@ -66,6 +66,9 @@ const ui = {
     authorAiPrompt: byId("author-ai-prompt"),
     authorAiState: byId("author-ai-state"),
     authorAiSubmit: byId("author-ai-submit"),
+    authorAiApply: byId("author-ai-apply"),
+    authorAiPreview: byId("author-ai-preview"),
+    authorAiPreviewChanges: byId("author-ai-preview-changes"),
     authorAiCancel: byId("author-ai-cancel"),
     authorAiClose: byId("author-ai-close"),
 
@@ -134,6 +137,7 @@ let currentFilter = "all";
 let createContextParentId = null;
 let authorAssistInFlight = false;
 let authorAiTarget = null;
+let authorAiPending = null;
 let linkedWorldSource = null;
 let linkedWorldVersionLabel = "";
 
@@ -608,6 +612,77 @@ function applyAiAssistResult(result, revisionAtStart, successMessage) {
 }
 
 
+function clearAuthorAiProposal() {
+    authorAiPending = null;
+    ui.authorAiPreview.hidden = true;
+    ui.authorAiApply.hidden = true;
+    ui.authorAiPreviewChanges.replaceChildren();
+}
+
+function previewAuthorValue(value) {
+    if (value === undefined || value === null || value === "") {
+        return "(empty)";
+    }
+    return typeof value === "string"
+        ? value
+        : JSON.stringify(value, null, 2);
+}
+
+function previewAuthorPath(source, path) {
+    // Python paths use locations[0].name; JS path access supports dotted arrays.
+    return getPath(source, path.replace(/\[(\d+)\]/g, ".$1"));
+}
+
+function renderAuthorAiProposal(sourceBefore, result) {
+    clearAuthorAiProposal();
+    const paths = Array.isArray(result?.changed_paths) ? result.changed_paths : [];
+    const fragment = document.createDocumentFragment();
+    for (const path of paths) {
+        const details = document.createElement("details");
+        const heading = document.createElement("summary");
+        heading.textContent = String(path).replaceAll("_", " ");
+        details.appendChild(heading);
+        for (const [label, value] of [
+            ["BEFORE", previewAuthorPath(sourceBefore, path)],
+            ["PROPOSED", previewAuthorPath(result.source, path)],
+        ]) {
+            const caption = document.createElement("strong");
+            caption.textContent = label;
+            details.appendChild(caption);
+            const text = document.createElement("pre");
+            text.textContent = previewAuthorValue(value);
+            details.appendChild(text);
+        }
+        fragment.appendChild(details);
+    }
+    if (!paths.length) {
+        const message = document.createElement("p");
+        message.textContent = "No changes proposed. Your original draft is unchanged.";
+        fragment.appendChild(message);
+    }
+    ui.authorAiPreviewChanges.replaceChildren(fragment);
+    ui.authorAiPreview.hidden = false;
+    ui.authorAiApply.hidden = paths.length === 0;
+    renderAuthorAssistState(paths.length ? "REVIEW REQUIRED" : "NO CHANGES");
+}
+
+function applyReviewedAuthorAiProposal() {
+    if (!authorAiPending || authorAssistInFlight) {
+        return;
+    }
+    const {result, revisionAtStart, successMessage} = authorAiPending;
+    try {
+        applyAiAssistResult(result, revisionAtStart, successMessage);
+        clearAuthorAiProposal();
+        authorAiTarget = null;
+        ui.authorAiDialog.close();
+    } catch (error) {
+        renderAuthorAssistState("REVIEW EXPIRED", true);
+        showToast(error.message, true);
+        clearAuthorAiProposal();
+    }
+}
+
 function aiHelperAvailable() {
     return Boolean(
         activeVersion?.status === "draft"
@@ -640,6 +715,8 @@ function openAuthorAiHelper(target) {
     }
 
     authorAiTarget = target;
+    clearAuthorAiProposal();
+    ui.authorAiSubmit.textContent = "GENERATE PROPOSAL";
     ui.authorAiPrompt.value = "";
 
     if (target.kind === "field") {
@@ -680,6 +757,7 @@ function closeAuthorAiHelper() {
     }
 
     authorAiTarget = null;
+    clearAuthorAiProposal();
     ui.authorAiDialog.close();
 }
 
@@ -696,6 +774,7 @@ async function submitAuthorAiHelper() {
         return;
     }
 
+    clearAuthorAiProposal();
     authorAssistInFlight = true;
     ui.authorAiSubmit.disabled = true;
     renderAuthorAssistState("WRITING_");
@@ -737,17 +816,18 @@ async function submitAuthorAiHelper() {
             }
         );
 
-        applyAiAssistResult(
+        // Never mutate activeSource (or autosave) on generation alone.
+        renderAuthorAiProposal(source, result);
+        // renderAuthorAiProposal resets display state, retain the pending result
+        // only after the safe diff has been constructed.
+        authorAiPending = {
             result,
             revisionAtStart,
-            authorAiTarget.kind === "field"
+            successMessage: authorAiTarget.kind === "field"
                 ? `AI UPDATED ${authorAiTarget.label}`
                 : `AI EXPANDED ${authorAiTarget.label}`,
-        );
-
-        renderAuthorAssistState("APPLIED");
-        authorAiTarget = null;
-        ui.authorAiDialog.close();
+        };
+        ui.authorAiSubmit.textContent = "REGENERATE PROPOSAL";
 
     } catch (error) {
         renderAuthorAssistState("FAILED", true);
@@ -758,9 +838,13 @@ async function submitAuthorAiHelper() {
         ui.authorAiSubmit.disabled = false;
         refreshAiHelperButtons();
 
-        setTimeout(() => {
-            renderAuthorAssistState();
-        }, 1600);
+        if (authorAiPending) {
+            renderAuthorAssistState("REVIEW REQUIRED");
+        } else {
+            setTimeout(() => {
+                renderAuthorAssistState();
+            }, 1600);
+        }
     }
 }
 
@@ -3621,6 +3705,11 @@ ui.refreshGeneratedButton.addEventListener(
 ui.authorAiSubmit.addEventListener(
     "click",
     submitAuthorAiHelper
+);
+
+ui.authorAiApply.addEventListener(
+    "click",
+    applyReviewedAuthorAiProposal
 );
 
 ui.authorAiCancel.addEventListener(

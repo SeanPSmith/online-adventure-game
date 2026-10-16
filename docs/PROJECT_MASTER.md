@@ -1,3 +1,15 @@
+> **Pass 63.10 (2026-10-16) — Author Writer Helper premise fidelity and safe review:**
+> Document-level AI assistance now treats the author's rough note as binding
+> story substance. A conservative server check rejects obvious premise
+> substitutions on sparse World and Brief drafts, including replacing a boat
+> accident on a beach with a plane crash in the wilderness; core field edits
+> receive the same safeguard. More importantly, the Author console stages
+> generated changes in a before/after review instead of applying and autosaving
+> them immediately. Authors explicitly accept or discard proposals, and revision
+> checks remain in place. This is one pass through the existing model: no extra
+> inference, database migration, AWS change, or Director/narrator change.
+> See `docs/AUTHOR_WRITER_FIDELITY_PASS63_10.md`.
+
 > **Pass 63.9 (2026-10-16) — AI Writer Helper HTTP 500 hotfix:**
  > Import the author-assistance AI usage context and usage-limit exception into
  > `app/authoring/routes.py`. The live `POST /api/author/assist` endpoint

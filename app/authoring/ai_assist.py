@@ -63,6 +63,13 @@ SCOPE RULES
 AUTHORING PRINCIPLES
 - Preserve the author's names, dates, relationships, constraints, mysteries, tone,
   and deliberately vague ideas.
+- The author's note is the PREMISE, not permission to propose a different one.
+  Preserve the concrete trigger, vehicle or mechanism, setting and location.
+  For example, a BOAT ACCIDENT on a BEACH must remain a boat accident on a
+  beach: never substitute a plane crash, an inland wilderness, or any unrelated
+  scenario. Keep the author's key nouns and scenario anchors explicitly visible
+  in the starting_situation (for Briefs) or premise (for Worlds).
+- Elaborate the supplied scenario; do not transplant it into a stock genre plot.
 - Do not solve mysteries the author intentionally left unresolved.
 - If an NPC must remain unnamed, leave the name empty.
 - Prefer concrete sensory/behavioral detail over generic genre filler.
@@ -648,10 +655,15 @@ class AuthorAssistService:
             "Return useful source prose, not player-facing narration.\n\n"
             if section == "field"
             else (
+                "The author's note is authoritative. Expand its EXACT events, setting, "
+                "place, and circumstances; do not replace them. "
                 "Expand this author note into WORLD source material only. Do not invent "
                 "adventure-specific beats, timing, or run controls.\n\n"
                 if document_kind == "world"
-                else "Expand this author note into this ADVENTURE BRIEF only. Use linked "
+                else "The author's note is authoritative. Retain the EXACT incident, "
+                "vehicle, location, and situation in starting_situation; expand without "
+                "substituting a different plot. "
+                "Expand this author note into this ADVENTURE BRIEF only. Use linked "
                 "World material as read-only context instead of duplicating it. When a linked "
                 "World item should be featured, select it through world_references using the exact "
                 "source_id provided in context; do not recreate that item locally.\n\n"
@@ -716,6 +728,63 @@ class AuthorAssistService:
             ) from error
 
         return proposal.model_dump(mode="json")
+
+    # A sparse new document has no existing authored premise to protect in the
+    # merge. A small, deterministic anchor check prevents an unrelated structured
+    # response from being auto-applied to that document. This is deliberately
+    # conservative: a false rejection costs a retry, never lost author work.
+    _NOTE_STOPWORDS = frozenset({
+        "about", "after", "again", "also", "around", "before", "between",
+        "could", "create", "from", "have", "into", "just", "like", "make",
+        "more", "some", "story", "adventure", "where", "which", "while",
+        "with", "would", "should", "their", "there", "them", "they",
+        "then", "this", "that", "those", "these", "want", "write", "give",
+        "please", "expand", "hero", "heroes", "character", "characters",
+        "player", "players", "scene", "scenes", "idea", "rough", "thing",
+        "things", "very", "over", "under", "when", "what", "onto", "only",
+        "does", "into", "will", "need", "been", "were", "your", "mine",
+    })
+
+    @classmethod
+    def _note_anchors(cls, text: str) -> set[str]:
+        return {
+            word for word in re.findall(r"[a-z]{4,}", text.casefold())
+            if word not in cls._NOTE_STOPWORDS
+        }
+
+    @classmethod
+    def _require_premise_alignment(
+        cls, source: dict[str, Any], proposal: dict[str, Any], instruction: str
+    ) -> None:
+        """Reject obvious plot substitution on a blank World/Brief document.
+
+        Existing source premises are already protected by the merge. For sparse
+        documents, the note is all the author has supplied, so require its key
+        concrete words to survive in the MAIN generated premise, not just notes.
+        Paraphrases can be rejected deliberately; authors can revise the note or
+        retry rather than risk losing their original concept.
+        """
+        kind = source.get("identity", {}).get("document_kind", "world")
+        main_field = "starting_situation" if kind == "brief" else "premise"
+        if str(source.get(main_field, "") or "").strip():
+            return
+        anchors = cls._note_anchors(instruction)
+        if len(anchors) < 2:
+            return
+        main_text = str(proposal.get(main_field, "") or "")
+        present = cls._note_anchors(main_text)
+        # Short notes are especially vulnerable to wholesale substitution.
+        # Require all substantive terms for a 2-3 word concept; for richer notes
+        # permit some rewording while preserving the majority of anchors.
+        required = len(anchors) if len(anchors) <= 3 else max(3, (len(anchors) * 3 + 4) // 5)
+        missing = anchors - present
+        if len(anchors & present) < required:
+            raise ValueError(
+                "AI changed the core premise; nothing was applied. "
+                "Your note must remain the story's actual setting and event. "
+                "Missing source details: " + ", ".join(sorted(missing)[:8])
+                + ". Please retry or write the starting situation directly."
+            )
 
     @staticmethod
     def _is_blank(value: Any) -> bool:
@@ -1103,6 +1172,19 @@ class AuthorAssistService:
                 field_path=field_path,
                 linked_world_source=linked_world_source,
             )
+            # A single-field edit is allowed to replace existing prose, so the
+            # normal blank-field merge protection does not apply here.
+            # Verify concrete scenario anchors before editing a core premise.
+            if field_path in {
+                "premise", "starting_situation", "identity.one_sentence_pitch"
+            }:
+                guard_source = copy.deepcopy(normalized)
+                guard_source["starting_situation" if normalized["identity"]["document_kind"] == "brief" else "premise"] = ""
+                self._require_premise_alignment(
+                    guard_source,
+                    {"starting_situation" if normalized["identity"]["document_kind"] == "brief" else "premise": proposal.get("value", "")},
+                    instruction,
+                )
             merged, changed = self._apply_text_field(
                 normalized,
                 field_path,
@@ -1117,6 +1199,7 @@ class AuthorAssistService:
                 current_item=None,
                 linked_world_source=linked_world_source,
             )
+            self._require_premise_alignment(normalized, proposal, instruction)
             if normalized.get("identity", {}).get("document_kind") == "brief":
                 proposal = self._validated_world_reference_proposal(
                     proposal,

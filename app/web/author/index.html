@@ -414,14 +414,22 @@
             ></textarea>
         </label>
 
+        <section id="author-ai-preview" class="author-ai-preview" hidden aria-live="polite">
+            <h3>REVIEW BEFORE APPLYING</h3>
+            <p>The proposal has NOT changed your draft. Check that the AI kept your
+               setting, incident, characters and tone before accepting.</p>
+            <div id="author-ai-preview-changes" class="author-ai-preview-changes"></div>
+        </section>
+
         <div class="author-ai-footer">
             <span id="author-ai-state" class="author-assist-state">READY</span>
-            <span class="field-help">Uses the fast authoring model. Nothing is published automatically.</span>
+            <span class="field-help">AI proposals are never applied or saved without your review.</span>
         </div>
 
         <div class="dialog-actions">
             <button id="author-ai-cancel" class="button subtle" type="button">CANCEL</button>
-            <button id="author-ai-submit" class="button primary" type="button">EXPAND WITH AI</button>
+            <button id="author-ai-submit" class="button primary" type="button">GENERATE PROPOSAL</button>
+            <button id="author-ai-apply" class="button primary" type="button" hidden>APPLY REVIEWED CHANGES</button>
         </div>
     </div>
 </dialog>

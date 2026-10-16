@@ -1,3 +1,13 @@
+> **Pass 63.8 (2026-10-16) — Completed-run playtest diagnostics and cost comparison groundwork:**
+> Admin Control Room now has a read-only completed-adventure report (up to 20
+> recent runs) combining archived Pass 63.7 story-momentum signals with
+> AI ledger cost, repair/failure counts, and `director_story` p50/p90 API latency.
+> A same-token GPT-6.1 Sol pricing counterfactual is clearly distinguished
+> from a real model-quality or speed benchmark; no extra provider requests or
+> staging model changes occur. Older/missing telemetry is explicitly marked
+> NO DATA. No migrations, GPU, narrator, or gameplay changes. See
+> `docs/PLAYTEST_METRICS_PASS63_8.md`.
+
 > **Pass 63.7 (2026-10-16) — Narrative momentum feedback and gameplay diagnostics:**
 > The backend records compact, non-blocking progress signals per committed
 > Director chapter: changed goal, scene, party position, resolved thread,

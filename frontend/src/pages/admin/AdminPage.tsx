@@ -1,3 +1,4 @@
+import { PlaytestDiagnostics } from "./PlaytestDiagnostics";
 import { OperationsDashboard } from "./OperationsDashboard";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import "./AdminPage.css";
@@ -346,6 +347,8 @@ export function AdminPage() {
       ) : null}
 
       <OperationsDashboard />
+
+      <PlaytestDiagnostics />
 
       <Panel title="PLAYER ACTIVITY">
         {analyticsError ? <div className="form-error">{analyticsError}</div> : null}

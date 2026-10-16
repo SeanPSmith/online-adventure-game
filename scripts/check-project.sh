@@ -73,6 +73,9 @@ node --test tests/frontend/story-time-performance.cjs
 say "Completed Chronicle audio archive regression checks"
 node --test tests/frontend/story-time-archive.cjs
 
+say "Completed adventure quality and cost diagnostics"
+node --test tests/frontend/playtest-diagnostics.cjs
+
 say "Hero Hall and Graveyard browser regressions"
 node --test tests/frontend/hero-legacy.cjs
 

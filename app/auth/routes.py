@@ -746,6 +746,15 @@ class AdminTerminateRequest(BaseModel):
     confirmation: str
 
 
+@router.get("/admin/playtest-diagnostics")
+async def admin_playtest_diagnostics(
+    limit: int = Query(default=20, ge=1, le=40),
+    user=Depends(require_admin_user),
+):
+    from app.admin.playtest import playtest_report_store
+    return await playtest_report_store.snapshot(limit=limit)
+
+
 @router.get("/admin/operations")
 async def admin_operations(user=Depends(require_admin_user)):
     from app import main

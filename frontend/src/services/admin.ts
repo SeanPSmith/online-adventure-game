@@ -303,3 +303,46 @@ export function getOperations() {return apiFetch<OperationsSnapshot>("/api/auth/
 export function setAIPause(paused: boolean) {return apiFetch("/api/auth/admin/ai-pause", {method: "PUT", headers: adminHeaders, body: JSON.stringify({paused})});}
 export function setAccountActive(userId: string, enabled: boolean) {return apiFetch(`/api/auth/admin/users/${encodeURIComponent(userId)}/active`, {method: "PUT", headers: adminHeaders, body: JSON.stringify({enabled})});}
 export function terminateRoom(roomCode: string, confirmation: string) {return apiFetch(`/api/auth/admin/rooms/${encodeURIComponent(roomCode)}/terminate`, {method: "POST", headers: adminHeaders, body: JSON.stringify({confirmation})});}
+
+export interface PlaytestDiagnosticsRun {
+  room_code: string;
+  adventure_id: string;
+  adventure_title: string;
+  completed_at: string;
+  turns: number;
+  ai_requests: number;
+  ai_failures: number;
+  repair_calls: number;
+  story_latency_p50_ms: number | null;
+  story_latency_p90_ms: number | null;
+  estimated_ai_cost_usd: number | null;
+  gpt61_same_tokens_usd: number | null;
+  gpt61_comparable_calls: number;
+  models: string[];
+  progress: {
+    counts: {low: number; scene_shift: number; substantive: number; unknown: number};
+    assessed_turns: number;
+    longest_low_streak: number;
+    low_progress_percent: number | null;
+  };
+}
+
+export interface PlaytestDiagnosticsSnapshot {
+  generated_at: string;
+  sample_limit: number;
+  summary: {
+    completed_runs: number;
+    runs_with_ai_metering: number;
+    runs_with_progress_data: number;
+    total_assessed_turns: number;
+    low_progress_percent: number | null;
+    runs_with_two_low_in_a_row: number;
+    sample_estimated_ai_cost_usd: number;
+  };
+  runs: PlaytestDiagnosticsRun[];
+  limits: {costs: string; comparison: string; timing: string; progress: string};
+}
+
+export function getPlaytestDiagnostics(limit = 20) {
+  return apiFetch<PlaytestDiagnosticsSnapshot>(`/api/auth/admin/playtest-diagnostics?limit=${limit}`);
+}

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ArcadeGameProps } from "../arcadeTypes";
 import { ArcadeFeedback, useArcadeFeedback } from "../engine/ArcadeFeedback";
-import { seededShuffle } from "../engine/seeded";
+import { shuffleWarCards, resolveWarWinner } from "./warRules";
+import { playSound } from "../../../services/audioDirector";
 
 const RANKS = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
 const SUITS = ["♠", "♥", "♦", "♣"];
@@ -19,9 +20,11 @@ type BattleResult = {
 };
 
 function buildDeck(seed: number) {
-  return seededShuffle(
+  // Fresh unbiased shuffle for each new War game. The previous seeded deck
+  // repeated the same outcome whenever an adventure retried the same turn.
+  void seed; // retained for existing caller signature
+  return shuffleWarCards(
     SUITS.flatMap((suit) => RANKS.map((rank, value) => ({ rank, suit, value: value + 2, id: `${rank}${suit}` }))),
-    seed,
   );
 }
 
@@ -62,8 +65,10 @@ function resolveBattle(playerSource: Card[], enemySource: Card[]): BattleResult 
     if (!player.length && !enemy.length && mine.value === theirs.value) break;
   }
 
-  const winner: "player" | "enemy" = mine.value >= theirs.value ? "player" : "enemy";
-  const shuffledPot = seededShuffle(pot, pot.length * 131 + mine.value * 17 + theirs.value * 7);
+  // If both players run out of cards in a tied war, decide with a fair
+  // coin flip rather than giving the player an undocumented >= advantage.
+  const winner = resolveWarWinner(mine.value, theirs.value);
+  const shuffledPot = shuffleWarCards(pot);
   if (winner === "player") player.push(...shuffledPot);
   else enemy.push(...shuffledPot);
 
@@ -121,6 +126,7 @@ export function WarCardGame({ score, onScoreChange, turnNumber, storyReady }: Ar
     if (!result) return;
 
     setLocked(true);
+    playSound("arcade");
     setPlayerCard(null);
     setEnemyCard(null);
     setWarDepth(result.warDepth);

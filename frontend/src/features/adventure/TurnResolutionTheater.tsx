@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { receiptKey } from "./turnFlow";
+import { cosmeticD20Face } from "./diceAnimation";
 import { playSound } from "../../services/audioDirector";
 import type {
   HeroProgressionUpdate,
@@ -86,7 +87,7 @@ function AnimatedResultCard({
   soundId: string;
 }) {
   const [rolling, setRolling] = useState(active && Boolean(result.check));
-  const [displayRoll, setDisplayRoll] = useState<number | string>(result.check ? result.check.roll : "—");
+  const [displayRoll, setDisplayRoll] = useState<number | string>(active && !complete ? "—" : result.check ? result.check.roll : "—");
   const [settled, setSettled] = useState(complete);
 
   useEffect(() => {
@@ -129,9 +130,10 @@ function AnimatedResultCard({
         return;
       }
 
-      // Animate the committed value visually, never substitute a question mark
-      // or fabricate other dice results while the CSS roll effect is active.
-      setDisplayRoll(check.roll);
+      // The intermediate faces are purely visual. The ONLY outcome used for
+      // gameplay is the server-committed check, revealed on the final frame.
+      // Uniform 1-20 animation, never another server roll or a '?' placeholder.
+      setDisplayRoll(cosmeticD20Face());
       const delay = 45 + frame * 8;
       frame += 1;
       frameTimer = setTimeout(nextFrame, delay);

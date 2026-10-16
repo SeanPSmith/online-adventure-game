@@ -50,7 +50,11 @@ def test_scene_reveal_waits_for_turn_theater_to_release_it() -> None:
     # narrator actually starts supplying a spoken cue.
     assert 'enabled={storyPreferences.wordReveal && theater.phase === "none"' in page
     assert 'narration.cue?.kind === "story"' in page
+    # Only intermediate visual dice faces are random in the browser; the
+    # authoritative check is supplied by the server, never calculated here.
     assert "Math.random()" not in result
+    assert 'setDisplayRoll(cosmeticD20Face())' in result
+    assert 'setDisplayRoll(check.roll)' in result
     assert "[turnIdentity, results.length]" in result
     assert 'theater.chapterReleased && scene?.body' in page
     assert 'theater.chapterReleased ? scene?.choices ?? [] : []' in page

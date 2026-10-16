@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { playSound } from "../../../services/audioDirector";
 
 export type ArcadeFeedbackTone = "good" | "bad" | "neutral" | "great";
 export type ArcadeFeedbackMode = "overlay" | "compact";
@@ -27,6 +28,8 @@ export function useArcadeFeedback(durationMs = 1050) {
   const showFeedback = useCallback((next: Omit<ArcadeFeedbackState, "id">, customDurationMs = durationMs) => {
     if (timerRef.current !== null) window.clearTimeout(timerRef.current);
     sequenceRef.current += 1;
+    // Only emit a short cue when the player opted into Arcade SFX.
+    playSound("arcade");
     setFeedback({ ...next, id: sequenceRef.current });
     timerRef.current = window.setTimeout(() => {
       setFeedback(null);

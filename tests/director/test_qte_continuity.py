@@ -5,43 +5,29 @@ from pathlib import Path
 from app.generation.director import SYSTEM_INSTRUCTIONS, _current_qte_consequences
 
 
-def test_only_current_scene_reaction_enters_director_context() -> None:
+def test_qte_reactions_never_enter_director_story_context() -> None:
     history = [
         {"created_from_turn": 3, "outcomes": [
             {"player_name": "A", "result": "A lands beside the hatch.",
-             "tag": "qte_success", "option_label": "DUCK", "effect": {"modifier": 2}}
+             "tag": "qte_success", "effect": {"modifier": 2}}
         ]},
         {"created_from_turn": 6, "outcomes": [
-            {"player_name": "A", "result": "A grabs the ladder.", "tag": "qte_failure"}
+            {"player_name": "B", "result": "B grabs the ladder.", "tag": "qte_failure"}
         ]},
     ]
-    assert _current_qte_consequences(history, 4) == [
-        {"reactions": [{"hero": "A", "fictional_consequence": "A lands beside the hatch."}]}
-    ]
+    assert _current_qte_consequences(history, 4) == []
     assert _current_qte_consequences(history, 5) == []
-    assert _current_qte_consequences(history, 7) == [
-        {"reactions": [{"hero": "A", "fictional_consequence": "A grabs the ladder."}]}
-    ]
+    assert _current_qte_consequences(history, 7) == []
 
 
-def test_coop_consequences_preserved_without_mechanical_receipt() -> None:
-    history = [{"created_from_turn": 3, "outcomes": [
-        {"player_name": "A", "result": "A ducks into cover.", "success": True},
-        {"player_name": "B", "result": "B takes the impact.", "success": False},
-    ]}]
-    content = _current_qte_consequences(history, 4)
-    assert len(content[0]["reactions"]) == 2
-    assert "success" not in str(content)
-
-
-def test_director_and_ui_connect_reaction_to_current_choices() -> None:
-    assert "immediately following main choice menu" in SYSTEM_INSTRUCTIONS
-    assert "AFTER either QTE success or failure" in SYSTEM_INSTRUCTIONS
-    assert "not the situation before the QTE" in SYSTEM_INSTRUCTIONS
+def test_qte_fiction_and_next_chapter_are_independent() -> None:
+    assert "not another story beat" in SYSTEM_INSTRUCTIONS
+    assert "Never arrange scene_body to lead into the QTE" in SYSTEM_INSTRUCTIONS
+    assert "temporary one-turn mechanical modifier" in SYSTEM_INSTRUCTIONS
     page = Path("frontend/src/pages/game/AdventurePage.tsx").read_text()
-    assert "item.created_from_turn) === turnNumber - 1" in page
-    assert "qte-choice-consequence" in page
-    assert page.index('className="qte-choice-consequence"') < page.index('className="choice-grid"')
+    assert 'qte-choice-consequence' not in page
+    assert 'localReaction' not in page
+    assert 'className="choice-grid"' in page
 
 
 def test_runtime_skips_missing_or_invalid_authored_qte_instead_of_generic_prompt() -> None:

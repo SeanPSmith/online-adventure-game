@@ -126,6 +126,7 @@ test('pacing controls and dialogue display are wired without modifying story tex
   assert.match(settings, /DRAMATIC PACING \/\/ BREATH BETWEEN CHOICES/);
   assert.match(prefs, /narrationDramaticPacing: true/);
   assert.match(reveal, /story-dialogue-paragraph/);
-  assert.match(reveal, /\{sentence\.text\}/);
+  assert.match(reveal, /sentence\.text\.split/);
+  assert.match(reveal, /story-reveal-word/);
   assert.match(reveal, /\{token\}/);
 });

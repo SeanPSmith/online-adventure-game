@@ -26,28 +26,37 @@ export function StoryReveal({ sceneId, text, enabled, followNarration = false, n
     () => words.flat().filter((token) => token.trim()).length,
     [words],
   );
-  const animate = enabled && !followNarration && !prefersReducedMotion();
+  // Never flip between a fully-rendered sentence view and a fresh word reveal
+  // when narration starts/stops. Scene identity alone resets the reveal.
+  const animate = enabled && !prefersReducedMotion();
   const syncSentences = useMemo(() => splitSentencesForDisplay(text), [text]);
   const chunks = useMemo(() => splitPassage(text), [text]);
   const activeSentence = followNarration && narrationCue?.kind === "story"
     ? estimateSentenceIndex(text, chunks, narrationCue) : null;
   const [visibleWords, setVisibleWords] = useState(animate ? 0 : totalWords);
 
+  // A new chapter (or an explicit display-preference change) starts the reveal.
+  // Voice arrival and audio completion must never restart or hide words.
   useEffect(() => {
-    if (!animate) {
-      setVisibleWords(totalWords);
-      return;
-    }
+    setVisibleWords(animate ? 0 : totalWords);
+  }, [sceneId, text, animate, totalWords]);
 
-    setVisibleWords(0);
-    let count = 0;
+  // Voice playback never waits for this animation. In silent mode, progress
+  // word by word; while tracking the voice, align to the spoken sentence.
+  useEffect(() => {
+    if (!animate || followNarration || totalWords === 0) return;
     const timer = window.setInterval(() => {
-      count += 1;
-      setVisibleWords(count);
-      if (count >= totalWords) window.clearInterval(timer);
+      setVisibleWords((current) => Math.min(totalWords, current + 1));
     }, 34);
     return () => window.clearInterval(timer);
-  }, [sceneId, text, animate, totalWords]);
+  }, [animate, followNarration, sceneId, text, totalWords]);
+
+  useEffect(() => {
+    if (!animate || !followNarration || activeSentence === null) return;
+    const spokenWords = syncSentences.slice(0, activeSentence + 1)
+      .reduce((count, sentence) => count + (sentence.text.match(/\S+/g)?.length ?? 0), 0);
+    setVisibleWords((current) => Math.max(current, Math.min(totalWords, spokenWords)));
+  }, [animate, followNarration, activeSentence, syncSentences, totalWords]);
 
   let wordIndex = 0;
 
@@ -64,7 +73,11 @@ export function StoryReveal({ sceneId, text, enabled, followNarration = false, n
               <span
                 key={`${sceneId}:sentence:${sentenceIndex}`}
                 className={`story-follow-sentence ${sentenceIndex === activeSentence ? "is-speaking" : ""}`}
-              >{sentence.text}</span>
+              >{sentence.text.split(/(\s+)/).map((token, tokenIndex) => {
+                if (!token.trim()) return token;
+                const current = wordIndex++;
+                return <span key={`${sentenceIndex}:${tokenIndex}`} className={`story-reveal-word ${current < visibleWords ? "is-visible" : ""}`}>{token}</span>;
+              })}</span>
             ) : null)}
           </p>
         )) : words.map((tokens, paragraphIndex) => (

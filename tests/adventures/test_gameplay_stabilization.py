@@ -34,9 +34,14 @@ def test_dice_animate_the_authoritative_number_not_question_marks() -> None:
     src = source("frontend/src/features/adventure/TurnResolutionTheater.tsx")
     assert 'setDisplayRoll("?")' not in src
     assert 'const check = result.check;' in src
-    assert src.count('setDisplayRoll(check.roll)') == 2
-    assert 'setDisplayRoll(result.check.roll)' not in src
+    assert src.count('setDisplayRoll(check.roll)') == 1
+    assert 'setDisplayRoll(cosmeticD20Face())' in src
+    assert 'import { cosmeticD20Face } from "./diceAnimation";' in src
     assert 'Math.random()' not in src
+    cosmetic = source('frontend/src/features/adventure/diceAnimation.ts')
+    assert 'Math.floor(Math.random() * 20) + 1' in cosmetic
+    assert 'setDisplayRoll(result.check.roll)' not in src
+    assert 'const check = result.check;' in src
 
 
 def test_war_first_showed_equal_ranks_and_displays_tiebreaker_separately() -> None:

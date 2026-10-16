@@ -1,3 +1,19 @@
+> **Pass 63.5 (2026-10-16) — Separate cosmetic dice faces from game outcomes:**
+> Isolate temporary D20 animation numbers in `diceAnimation.ts`, leaving the
+> actual roll, critical result, and HP consequences exclusively server-authored.
+> Fixes the Pass 63.4 full Python regression conflict without reverting the
+> changing-number animation. Static contracts and a browser unit test verify
+> the isolation. No gameplay odds, infrastructure, or narration changes.
+
+> **Pass 63.4 (2026-10-16) — Gameplay fairness and story pacing:**
+> Feedback-driven follow-up after a complete narrated adventure. Real rolling
+> D20 animation, fresh fair War shuffles, 90-second stall prompt, uninterrupted
+> word-by-word reveal during Story Time, opt-in Arcade cues, self-contained
+> one-turn QTE modifiers, macro-scale story Director guidance, and more
+> contextual server-authoritative fatal epitaphs. Server dice odds, GPU
+> narration, infrastructure and Hero mechanics remain unchanged. See
+> `docs/GAMEPLAY_STABILIZATION_PASS63_4.md`.
+
 > **Pass 63.3 (2026-10-16) — Control Room PostgreSQL 500 hotfix:**
 > Correct the monthly operations metrics query to bind the SQL LIKE search
 > value (`%repair%`) as a parameter instead of embedding a literal with

@@ -60,14 +60,10 @@ SERVER AUTHORITY
 - Never invent a die roll or override a supplied outcome.
 - Never directly mutate HP, stats, inventory, or flags.
 - Do not claim a mechanical success/failure that was not supplied by TURN FACTS.
-- runtime.recent_micro_events contains ONLY the fictional outcome of a reaction
-  that occurred inside the CURRENT playable scene, before the locked choices.
-  Treat it as a settled change to the physical situation. Integrate any important
-  consequence naturally near the START of the next scene, or into its immediate
-  stakes. Do not paste or recap the reaction at the END of scene_body, append an
-  epilogue/score report, or repeat the UI's right/wrong result. The choices must
-  follow from the UPDATED physical situation, not the situation before the QTE.
-  Never invent or paraphrase its mechanics, modifiers, or correctness labels.
+- runtime.recent_micro_events is UI-only reaction history, NOT story canon.
+  Brief reaction challenges grant one-turn buffs/penalties, but never determine
+  the next chapter's plot, paragraph ending, location, or available choices.
+  Do not recap, quote, extend, or integrate QTE prompts or results into prose.
 - runtime.players[].character.bio is player-authored Hero canon. Use it as
   characterization/background when relevant, but do not dump it back verbatim or
   invent contradictions to it.
@@ -308,54 +304,27 @@ COHESION RULES
   coincidence the default explanation.
 
 QUICK EVENT / QTE AUTHORING
-- runtime.quick_event_requested is server-owned cadence. If false, quick_event
-  MUST be null. If true and this turn is not completed, author exactly one QTE
-  that grows directly out of scene_body. If completed=true, quick_event MUST be null.
-- The QTE MUST interrupt the SAME physical problem the Heroes will address in
-  the immediately following main choice menu. It is NOT an unrelated sting after
-  the scene has already finished, nor a disconnected postscript after the plot.
-- Build this beat IN ORDER: (1) establish place, stakes and a concrete new hazard
-  in scene_body; (2) end scene_body at the precise moment a reflex matters;
-  (3) author the QTE to resolve that specific reflex; (4) offer main choices that
-  are plausible immediately AFTER either QTE success or failure. Each choice
-  must respond to the same location/problem/people established by the scene and
-  QTE, rather than introducing an unrelated new task. The QTE may change footing,
-  position, leverage or readiness, but cannot prematurely resolve the whole
-  central conflict or invalidate the choice menu on either outcome.
-- success_text and failure_text must say specifically where the Hero ends up or
-  what changed, and leave the SAME subsequent decision open. They should naturally
-  lead the reader into the main choices instead of sounding like a story ending.
-- QTE GAME MECHANICS are a separate UI layer. scene_body contains only novel prose
-  and the cue/hazard. It MUST NOT mention a QTE, quick reaction, timer, countdown,
-  odds, correct/right/wrong answer, option labels, success/failure effects, buffs,
-  nerfs, or announce the prompt. Never paste QTE options into scene_body.
-- Supply EXACTLY THREE short, immediately distinguishable responses. Put them
-  in this schema order: (1) BEST, (2) NEUTRAL (safe enough, but loses an
-  opportunity), (3) BAD (a plausible mistake given the hazard). The server
-  reshuffles their player-visible order each time; never write ABC/123 clues.
-  Each option label: 2-5 words; description: one terse clause, <=75 characters.
-  A timed decision cannot ask players to read three paragraphs. A careful
-  reader should identify the best response from tangible hazard details.
-  NEUTRAL is not secretly WRONG: no positive or negative status modifier.
-  BAD is convincingly dangerous, not nonsensical or a joke.
-- Set correct_option_id to the FIRST authored option ID (best response).
-  Server assigns the SECOND option the neutral role and the THIRD the bad role,
-  then shuffles presentation before players see it.
-- correct_option_id is committed on the server BEFORE any player answers and is
-  never exposed to the client while the QTE is live. Do not make correctness a
-  matter of taste; there must be a concrete reason one response is best in this
-  exact physical/social situation.
-- success_effect is a contextual +1 or +2 buff to exactly one valid stat OR skill.
-  failure_effect is a contextual -1 or -2 nerf to exactly one valid stat OR skill.
-  Both use duration_turns=1. Python validates/applies the mechanic and expires it
-  automatically after the next resolved story round.
-- Effect names are compact RPG labels (for example QUICK FOOTED, SHARP READ,
-  RATTLED, OFF BALANCE). Tie the target to the fiction rather than picking a stat
-  arbitrarily.
-- success_text and failure_text explain what physically happened because of the
-  reaction. They should be concise, specific, and usable as a continuity fact.
-- The QTE does not replace the main scene choices; it is a brief reaction beat
-  between full decisions.
+- runtime.quick_event_requested is server-owned cadence. If false or if the
+  adventure is completed, quick_event MUST be null. Otherwise author one short
+  self-contained reaction challenge. The QTE is a temporary ARCADE interaction,
+  not another story beat, cliffhanger, subplot, or canonical plot resolution.
+- Never arrange scene_body to lead into the QTE; never end its last paragraph
+  on a reflex/timer/prompt. The chapter must stand on its own without the QTE.
+  Choices must stand on their own and remain valid for ANY QTE response.
+- The QTE may borrow atmosphere from the setting, but its result grants ONLY
+  a temporary one-turn mechanical modifier. It cannot change the Hero's real
+  physical location, what occurred in scene_body, major continuity, or fate.
+- scene_body must not mention QTE, reactions, timers, prompts, correct options,
+  buffs, nerfs, or any mechanical UI. Never paste reaction outcomes into prose.
+- Supply exactly THREE short distinguishable responses in schema order:
+  BEST, NEUTRAL, BAD. The server shuffles the visible options. Option labels
+  2-5 words, descriptions a terse clause up to 75 characters.
+- Set correct_option_id to the FIRST authored option ID. The SECOND is neutral
+  and the THIRD is bad. Do not reveal correctness in client-facing text.
+- Success gives +1/+2 to exactly one stat or skill with duration_turns=1. Failure gives
+  -1/-2 to one stat or skill for one turn. Neutral has no modifier.
+- Success/failure text describes a *momentary reaction*, not a permanent event.
+  Effect names should be short, clear RPG-style labels.
 
 STRUCTURED STORY STATE
 - runtime.story_state is the durable continuity ledger from prior turns.
@@ -529,6 +498,21 @@ STORY PACING
   climax/resolution, you MAY complete before target_turns.
 - Do not rush merely because the target is approaching.
 - Do not stall merely to reach the target.
+- The adventure seed sets the broad genre and destination; the Director chooses
+  the narrative TIME SCALE within it. Prefer hours, meaningful travel, changed
+  relationships and objectives, or a scene transition over second-by-second
+  choreography. Moment-to-moment storytelling is appropriate only for pivotal
+  action sequences and climaxes; use a montage/time cut when the immediate
+  obstacle is resolved.
+- A SUCCESS, especially a critical success, MUST remove or substantially alter
+  the current obstacle and open a new meaningful situation. Never ask the player
+  to repeat the same solved maneuver in the next turn. Failure imposes a real
+  new cost, lost option, changed relationship, or detour; do not reset the Hero
+  at the identical checkpoint. A bad roll is not a reason to invent a succession
+  of arbitrary emergencies or force a meaningless death.
+- On difficult adventures, make stakes sharper and fallout durable, not every
+  routine task a hard roll. After extended danger and repeated failures, offer
+  an achievable breather, recovery, or strategic pivot when fiction permits.
 - Each resolved turn must move the ADVENTURE, not just the Hero's hands. A mundane
   preparation (lighting a campfire, opening a door, gathering tools, crossing
   a room) happens as part of ONE turn or inside the next scene; never stretch
@@ -907,32 +891,13 @@ def _compact_story_state_context(story_state: dict[str, Any]) -> dict[str, Any]:
 
 
 def _current_qte_consequences(
-    history: list[dict[str, Any]],
-    current_turn: int,
+    history: list[dict[str, Any]], current_turn: int,
 ) -> list[dict[str, Any]]:
-    """Only the reaction in the scene being resolved can affect this turn.
+    """QTEs are temporary modifiers, not canon carried into new chapters.
 
-    Full QTE receipts contain option labels, scoring tags and mechanical effects.
-    Sending those receipts back to the LLM encourages a disconnected QTE recap
-    instead of scene continuity. The persistent receipts remain untouched.
+    The server still persists their mechanical effects and audit receipts, but
+    narrative generation deliberately receives no QTE result text.
     """
-    relevant_turn = current_turn - 1
-    for item in reversed(history):
-        if not isinstance(item, dict):
-            continue
-        if int(item.get("created_from_turn", 0) or 0) != relevant_turn:
-            continue
-        outcomes = [
-            {
-                "hero": str(outcome.get("player_name", ""))[:80],
-                "fictional_consequence": str(outcome.get("result", ""))[:320],
-            }
-            for outcome in item.get("outcomes", [])[:2]
-            if isinstance(outcome, dict) and outcome.get("result")
-        ]
-        if outcomes:
-            return [{"reactions": outcomes}]
-        return []
     return []
 
 

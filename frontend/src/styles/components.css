@@ -8682,20 +8682,7 @@ textarea:focus {
 
 /* Pass 53 QTE follow-through: the fictional consequence sits between the
    interrupted scene and its choice menu, never tacked onto story prose. */
-.qte-choice-consequence {
-  margin: 0 0 14px;
-  padding: 12px 14px;
-  border: 1px solid var(--green-line-dim);
-  background: var(--panel-strong, rgba(0, 20, 12, 0.45));
-}
-.qte-choice-consequence p {
-  margin: 6px 0;
-  line-height: 1.55;
-  color: var(--text);
-}
-.qte-choice-consequence small {
-  color: var(--muted);
-}
+
 
 /* Pass 54 — fatal consequences and visible reward ledger */
 .theater-reward-ledger { display: flex; flex-wrap: wrap; gap: .35rem .85rem; font-size: .8rem; opacity: .92; margin: .4rem 0 .6rem; }
@@ -8745,7 +8732,7 @@ textarea:focus {
 .choice-narrate-button:disabled { opacity: .4; cursor: not-allowed; }
 @media (max-width: 600px) { .adventure-narration-controls .button { flex: 0 1 auto; } }
 
-/* Pass 60A // opt-in visual sentence tracking. Text never waits for audio. */
+/* Pass 63.4 // voice tracking does not bypass, reset or hide word-by-word reveal. */
 .story-follow-sentence {
   border-radius: 2px;
   transition: background-color 180ms ease, color 180ms ease;

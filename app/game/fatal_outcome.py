@@ -64,16 +64,20 @@ def reconcile_fatal_outcome(
         result["ending_label"] = session.ending_label
         # In particular, never show Director's already-written happy ending or
         # a fresh menu after lethal damage.
-        terminal = (
-            "The journey ends here. " + (
-                " ".join(
-                    str(getattr(player, "name", "") or "A Hero")
-                    + " has fallen from "
-                    + str((update.get("death_record") or {}).get("cause", "mortal wounds"))
-                    + "."
-                    for player, update in fallen
-                ) or "No Heroes remain to carry on."
+        # The Director finished BEFORE server-authoritative HP reconciliation.
+        # Replace any contradictory happy ending with a short, shareable last
+        # scene grounded in the real cause. Never invent a villain or reroll fate.
+        epitaphs = []
+        for player, update in fallen:
+            name = str(getattr(player, "name", "") or "A Hero")
+            cause = str((update.get("death_record") or {}).get("cause", "mortal wounds") or "mortal wounds").strip().rstrip(".! ")
+            epitaphs.append(
+                f"{name}'s final choice echoes through the world. {cause}. "
+                f"There is no next roll, no second chance at this crossroads. "
+                f"What {name} dared, and what it cost, becomes part of this world's history."
             )
+        terminal = "THE LAST PAGE\n\n" + (
+            "\n\n".join(epitaphs) if epitaphs else "No Heroes remain to carry the story forward."
         )
         result["resolution"] = terminal
         session.last_resolution = terminal

@@ -52,6 +52,9 @@ node --test tests/frontend/story-time-playback-speeds.cjs
 say "Story Time bounded lookahead, pause and cancellation regressions"
 node --test tests/frontend/story-time-buffered-playback.cjs
 
+say "Pass 63.4 gameplay fairness and narration presentation regressions"
+node --test tests/frontend/pass63-4-gameplay.cjs
+
 say "Story Time co-op narrator and reconnect regressions"
 node --test tests/frontend/story-time-coop.cjs
 

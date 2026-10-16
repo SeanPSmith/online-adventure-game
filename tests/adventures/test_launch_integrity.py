@@ -143,7 +143,8 @@ async def test_admin_publication_updates_cached_live_rotation(tmp_path):
 def test_director_has_story_scale_pacing_and_three_distinct_qte_roles():
     assert "lighting a campfire" in SYSTEM_INSTRUCTIONS
     assert "At least every TWO turns" in SYSTEM_INSTRUCTIONS
-    assert "(1) BEST, (2) NEUTRAL" in SYSTEM_INSTRUCTIONS
+    assert "BEST, NEUTRAL, BAD" in SYSTEM_INSTRUCTIONS
+    assert "not another story beat" in SYSTEM_INSTRUCTIONS
 
 
 def test_local_hero_progression_is_looked_up_by_player_id():

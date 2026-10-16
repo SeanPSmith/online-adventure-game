@@ -1,3 +1,12 @@
+> **Pass 63.9 (2026-10-16) — AI Writer Helper HTTP 500 hotfix:**
+ > Import the author-assistance AI usage context and usage-limit exception into
+ > `app/authoring/routes.py`. The live `POST /api/author/assist` endpoint
+ > previously raised `NameError: ai_usage_scope is not defined` before model
+ > inference; the missing `UsageLimitExceeded` symbol could also mask a
+ > legitimate allowance rejection. Route-level regression tests cover a
+ > successful scoped request, 402 allowance denial, and 502/503/422 error
+ > mappings. No model, database, infrastructure, or gameplay change.
+
 > **Pass 63.8 (2026-10-16) — Completed-run playtest diagnostics and cost comparison groundwork:**
 > Admin Control Room now has a read-only completed-adventure report (up to 20
 > recent runs) combining archived Pass 63.7 story-momentum signals with

@@ -156,6 +156,7 @@ class CharacterResponse(
     retired_at: str | None = None
     buried_at: str | None = None
     epitaph: str = ""
+    rest_recovered_at: str | None = None
 
     effects: list[dict] = Field(default_factory=list)
 

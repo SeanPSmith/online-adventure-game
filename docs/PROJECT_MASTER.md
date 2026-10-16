@@ -1,3 +1,13 @@
+> **Pass 63.6 (2026-10-16) — Hero health recovery between adventures:**
+> Living Heroes who are outside an active adventure recover 10% of maximum HP
+> (rounded up, minimum 1) per whole real-time hour, capped at max HP. Recovery
+> is applied on authenticated Hero reads, atomically persisted using a character
+> payload compare-and-swap so retries and concurrent requests never award HP
+> twice. Adventure turns reset the server rest clock; active rooms, deceased
+> Heroes, and buried Heroes cannot receive passive recovery. The Hero Hall,
+> Hero Sheet, and Dashboard explain the rate. No purchase/currency healing,
+> resurrection, GPU changes, or migrations. See `docs/HERO_REST_PASS63_6.md`.
+
 > **Pass 63.5 (2026-10-16) — Separate cosmetic dice faces from game outcomes:**
 > Isolate temporary D20 animation numbers in `diceAnimation.ts`, leaving the
 > actual roll, critical result, and HP consequences exclusively server-authored.

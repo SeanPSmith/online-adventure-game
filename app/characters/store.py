@@ -276,6 +276,41 @@ class SQLiteCharacterStore:
 
 
     # =====================================================
+    # ATOMIC PASSIVE REST (NO SCHEMA MIGRATION)
+    # =====================================================
+
+    async def recover_resting(self, character_id: str, owner_user_id: str, *, now) -> Character | None:
+        return await asyncio.to_thread(self._recover_resting_sync, character_id, owner_user_id, now)
+
+    def _recover_resting_sync(self, character_id: str, owner_user_id: str, now) -> Character | None:
+        from app.characters.rest import apply_resting_recovery
+
+        # Optimistic compare-and-swap protects the character payload against
+        # concurrent REST requests and unrelated progression/profile writes.
+        for _ in range(4):
+            with self._connect() as connection:
+                row = connection.execute(
+                    "SELECT payload FROM characters WHERE character_id = ? AND owner_user_id = ?",
+                    (character_id, owner_user_id),
+                ).fetchone()
+                if row is None:
+                    return None
+                original = row["payload"]
+                hero = self._decode_character(original)
+                if hero is None or not apply_resting_recovery(hero, now=now):
+                    return hero
+                new_payload = json.dumps(hero.to_dict())
+                changed = connection.execute(
+                    """UPDATE characters SET payload = ?, updated_at = ?
+                       WHERE character_id = ? AND owner_user_id = ? AND payload = ?""",
+                    (new_payload, hero.updated_at.isoformat(), character_id, owner_user_id, original),
+                )
+                if changed.rowcount == 1:
+                    return hero
+        # On repeated concurrent writes, return fresh state; never overwrite.
+        return self._get_by_id_sync(character_id)
+
+    # =====================================================
     # GET USER CHARACTERS
     # =====================================================
 

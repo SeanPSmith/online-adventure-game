@@ -440,6 +440,9 @@ export function GameHomePage() {
                 </div>
                 <div className="dashboard-hero-vitals">
                   <span>HP {hero.health}/{hero.max_health}</span>
+                  {hero.health > 0 && hero.health < hero.max_health && !busy ? (
+                    <span title="Passive recovery while not in an adventure">REST +{Math.max(1, Math.ceil(hero.max_health * 0.1))} HP/H</span>
+                  ) : null}
                   <span>XP {Math.round(hero.xp_progress_percent)}%</span>
                   {points > 0 ? <b>{points} ADVANCEMENT WAITING</b> : null}
                 </div>

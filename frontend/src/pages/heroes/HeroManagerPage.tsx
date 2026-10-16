@@ -105,6 +105,9 @@ export function HeroManagerPage() {
                 ) : hero.bio ? <p className="hero-card-bio">{hero.bio}</p> : null}
                 <div className="hero-card-stats">
                   <span>HP {hero.health}/{hero.max_health}</span>
+                  {hero.is_alive && hero.health < hero.max_health ? (
+                    <span title="Recovers between adventures, not during active play">REST +{Math.max(1, Math.ceil(hero.max_health * 0.1))} HP / HOUR</span>
+                  ) : null}
                   <span>XP {hero.experience}</span>
                   <span>PTS {hero.unspent_stat_points + hero.unspent_skill_points + hero.unspent_talent_points}</span>
                 </div>

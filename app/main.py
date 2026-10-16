@@ -2011,6 +2011,9 @@ async def apply_turn_progression(
         )
         health_after = int(character.health)
         health_change = health_after - health_before
+        # Reset the passive-rest clock on every resolved adventure turn.
+        # Playing time must never be counted as time resting.
+        character.rest_recovered_at = utc_now().isoformat()
 
         died_this_turn = bool(health_before > 0 and health_after <= 0)
         if died_this_turn:
@@ -2114,7 +2117,8 @@ async def apply_turn_progression(
             active_finite_effects.append(effect)
             new_effects.append(effect)
 
-        if xp_gained or new_effects or expired_effects or pending_health_events or died_this_turn or effects_cleaned:
+        if (xp_gained or new_effects or expired_effects or pending_health_events
+                or died_this_turn or effects_cleaned or (character.is_alive and character.health < character.max_health)):
             await character_service.save_owned_character(
                 character.owner_user_id,
                 character,

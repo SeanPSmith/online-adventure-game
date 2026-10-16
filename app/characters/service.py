@@ -233,6 +233,27 @@ class CharacterService:
 
 
     # =====================================================
+    # SERVER-OWNED PASSIVE REST
+    # =====================================================
+
+    async def _recover_if_idle(self, character: Character) -> Character:
+        if character.health <= 0 or character.health >= character.max_health:
+            return character
+        if character.hero_status not in {"active", "retired"}:
+            return character
+        try:
+            self.ensure_not_in_active_room(character.character_id)
+        except CharacterValidationError:
+            return character
+        except ImportError:
+            # A non-server tool without the room authority must not grant HP.
+            return character
+        updated = await character_store.recover_resting(
+            character.character_id, character.owner_user_id, now=utc_now()
+        )
+        return updated or character
+
+    # =====================================================
     # LIST
     # =====================================================
 
@@ -244,10 +265,12 @@ class CharacterService:
     ]:
 
         characters = await character_store.list_for_user(owner_user_id)
-        for character in characters:
+        for index, character in enumerate(characters):
+            character = await self._recover_if_idle(character)
             if migrate_progression(character):
                 character.updated_at = utc_now()
                 await character_store.save(character)
+            characters[index] = character
         return characters
 
 
@@ -285,6 +308,7 @@ class CharacterService:
             )
 
 
+        character = await self._recover_if_idle(character)
         if migrate_progression(character):
             character.updated_at = utc_now()
             await character_store.save(character)

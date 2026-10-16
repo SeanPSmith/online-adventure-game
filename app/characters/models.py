@@ -188,6 +188,8 @@ class Character:
     retired_at: str | None = None
     buried_at: str | None = None
     epitaph: str = ""
+    # Persisted resting checkpoint, independent of profile edits or refreshes.
+    rest_recovered_at: str | None = None
 
 
     stats: dict[
@@ -488,6 +490,7 @@ class Character:
             "retired_at": self.retired_at,
             "buried_at": self.buried_at,
             "epitaph": self.epitaph,
+            "rest_recovered_at": self.rest_recovered_at,
 
             "stats": {
 
@@ -671,6 +674,7 @@ class Character:
             retired_at=data.get("retired_at"),
             buried_at=data.get("buried_at"),
             epitaph=str(data.get("epitaph", "") or ""),
+            rest_recovered_at=data.get("rest_recovered_at"),
 
             stats=
                 stats,

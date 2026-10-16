@@ -23,6 +23,7 @@ export interface Character {
   retired_at: string | null;
   buried_at: string | null;
   epitaph: string;
+  rest_recovered_at: string | null;
   effects: Array<Record<string, unknown>>;
   xp_current: number;
   xp_level_floor: number;

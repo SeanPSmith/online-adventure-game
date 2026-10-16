@@ -328,6 +328,9 @@ export function HeroSheetPage() {
                   <span>HEALTH</span>
                   <strong>{hero.health}<i>/ {hero.max_health}</i></strong>
                   <div className="meter"><span style={{ width: `${Math.max(0, Math.min(100, (hero.health / Math.max(1, hero.max_health)) * 100))}%` }} /></div>
+                  {hero.is_alive && hero.health < hero.max_health ? (
+                    <small>RECOVERS +{Math.max(1, Math.ceil(hero.max_health * 0.1))} HP / HOUR OUTSIDE ADVENTURES</small>
+                  ) : null}
                 </div>
                 <div className="hero-vital-primary">
                   <span>EXPERIENCE</span>

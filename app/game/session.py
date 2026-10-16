@@ -45,6 +45,8 @@ from app.game.check_engine import (
     perform_character_check,
 )
 
+from app.game.outcome_stakes import bank_outcome_stakes, outcome_contracts
+
 from app.game.challenge_scaling import (
     build_challenge_profile,
     scale_director_difficulty,
@@ -2207,6 +2209,13 @@ class GameSessionManager:
                             "risk_level"
                         ],
 
+                    # Freeze offered stakes beside the server-resolved roll.
+                    # Future AI generations cannot silently reframe the choice.
+                    "possible_gains": list(choice.possible_gains),
+                    "possible_costs": list(choice.possible_costs),
+                    "choice_reward_level": choice.reward_level,
+                    "choice_impact_level": choice.impact_level,
+
                     "xp_reward":
                         xp_breakdown[
                             "final_xp"
@@ -2832,6 +2841,18 @@ class GameSessionManager:
             )
 
 
+        # Pass 63.12: bank the offered stakes of authoritative successful and
+        # failed checks in fiction-only state. Never award inventory/currency,
+        # alter roll results, or inflict extra HP from this safeguard.
+        # Measure actual DIRECTOR progress rather than crediting the safeguards
+        # below as if they had been present in the generated chapter.
+        generated_story_state = deepcopy(session.story_state)
+        turn_stakes = outcome_contracts(canonical_turn_facts)
+        if turn_stakes:
+            session.story_state = bank_outcome_stakes(
+                session.story_state, turn_stakes, completed=completed,
+            )
+
         # Pass 31: QTE fiction is authored in the same Director response as
         # this new playable scene. Cadence and the hidden correct answer remain
         # server-owned; public clients never receive correct_option_id.
@@ -2961,12 +2982,13 @@ class GameSessionManager:
 
         narrative_progress = measure_scene_progress(
             previous_story_state,
-            session.story_state,
+            generated_story_state,
             before_title=resolved_scene_title,
             after_title=session.dynamic_scene["title"],
         )
 
         history_entry = {
+            "outcome_stakes": outcome_contracts(canonical_turn_facts),
             "narrative_progress": narrative_progress,
             "turn_number":
                 resolved_turn,

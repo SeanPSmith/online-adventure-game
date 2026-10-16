@@ -15,6 +15,7 @@ from pydantic import (
 )
 
 from app.generation.momentum import director_momentum_context, measure_scene_progress
+from app.game.outcome_stakes import outcome_contracts
 
 from app.generation.director_schema import (
     DirectorRecapDraft,
@@ -108,8 +109,12 @@ CHOICE DESIGN
   * archetype, tone, risk_level, reward_level, and impact_level,
   * 1-4 possible_gains and 1-4 possible_costs,
   * and an optional server-resolved check.
-- possible_gains and possible_costs are honest stakes, not promises. Describe
-  plausible upside/downside the player can understand before committing.
+- possible_gains and possible_costs are the specific plausible stakes of
+  this action, shown to the player BEFORE committing. Make them concrete and
+  causally achievable. A successful check commits to at least one advertised
+  gain; a failed check incurs at least one advertised cost. Never advertise a
+  reward you cannot honor if the roll succeeds. Other optional gains/costs
+  remain conditional on extraordinary success/failure and the stated risk.
 - At least 2 active choices must include a check. Normally MOST choices should.
 - Unchecked choices are for automatic, conversational, or genuinely
   low-friction actions where uncertainty adds nothing.
@@ -172,6 +177,32 @@ PLAYER OUTCOMES MUST MATTER
   or closed route.
 - When both players choose different approaches, preserve that divergence and
   let their results reshape different parts of the state.
+
+AUTHORITATIVE CHOICE STAKES — BANK THE PAYOFF
+- runtime.outcome_stakes is computed from the exact dice results and the
+  gains/costs PREVIOUSLY OFFERED on the chosen option. It is not an invitation
+  to invent a more convenient outcome or to reroll.
+- On success, pay off gain_due in a VISIBLE, concrete way in the new scene:
+  access, an actual clue, a usable position, a named ally, removed danger,
+  resolved obstacle, or earned resource already justified by the fiction.
+  If exceptional success earns extra_gain_due, provide that SECOND distinct
+  benefit too. Do not immediately take it away to restore artificial tension.
+- On failure, realize cost_due as a real change: lost time, exposure, spent
+  leverage, damage to trust, separation, or a closed opportunity. Critical
+  failures may add extra_cost_due only if it was established among the stakes.
+  Never turn every routine failure into physical injury or Hero death.
+- If recovery_due, the next playable choices MUST include at least ONE viable,
+  clearly distinct comeback approach to the consequence. A new tactic might
+  salvage the goal, contain the cost, negotiate a replacement, or pursue another
+  route. It may require a NEW roll or tradeoff; it does not auto-succeed or
+  erase the original loss. Do not force players to select this recovery.
+- The next chapter should show the reward/setback, not repeat the dice roll or
+  require the SAME check again to claim an already-earned success.
+- story_state must retain actual payoff as an active_advantage, known_fact,
+  important_item, resolved_thread or changed situation as appropriate; retain
+  actual setbacks and pending comebacks in recent_consequences/unresolved_threads.
+  These are NARRATIVE facts. Do not invent Hero currency, inventory, XP, HP,
+  or stat changes: the server owns all character mechanics.
 
 SUCCESS, FAILURE, AND CONSEQUENCE
 - Meaningful success should be allowed to feel good. Bank the advantage.
@@ -1695,6 +1726,10 @@ class OpenAIRuntimeDirector:
 
                 "recent_offered_choices":
                     recent_offered_choices,
+
+                "outcome_stakes": outcome_contracts(
+                    {} if opening_mode else turn_facts,
+                ),
 
                 "narrative_momentum":
                     momentum_context,

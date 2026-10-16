@@ -1,3 +1,20 @@
+> **Pass 63.12 (2026-10-16) — Consequential checks and recoverable setbacks:**
+> The server now freezes the choice's advertised gains/costs alongside the
+> authoritative D20 result. The Director receives per-player outcome contracts:
+> success requires a concrete payoff, exceptional high-risk success may earn a
+> second distinct offered benefit, and failure must enact its advertised cost
+> while providing a different playable recovery approach on the next chapter.
+> A server-side fiction-state safeguard banks the earned advantages and
+> consequences if the Director fails to include them, with an outstanding
+> recovery thread rather than a free reroll or retroactive undo. All character
+> inventory, money, HP, XP, effects, and dice remain governed by existing
+> server mechanics; no new consumables or treasure are silently minted.
+> Story momentum continues to measure the Director's original generated
+> state, not supplemental records, so poor payout narration stays diagnosable.
+> Recoveries are prompted, not semantically certified; validate comeback
+> choices and prose quality in real adventure playtests. No migrations, AWS,
+> narrator, or frontend layout changes. See `docs/OUTCOME_STAKES_PASS63_12.md`.
+
 > **Pass 63.11 (2026-10-16) — Author console dropdown label sync:**
 > The Author console's custom dropdowns previously updated their hidden native
 > `<select>` values during draft hydration, autosave reconciliation, AI proposal

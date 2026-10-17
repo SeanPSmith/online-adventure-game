@@ -1,0 +1,49 @@
+/* Home only: transform existing functional navigation into the leather bookmark strip.
+   Other pages retain the standard shell. No link or permissions logic is changed. */
+.p64-shell.is-desk-home{position:relative;background:#130c08}
+.p64-shell.is-desk-home .game-main{padding:0;min-height:0}
+.p64-shell.is-desk-home .game-header{
+ position:absolute;top:120px;left:max(18px,calc((100vw - 1560px)/2));width:141px;z-index:30;
+ display:flex;flex-direction:column;align-items:stretch;gap:0;padding:11px 8px 13px;margin:0;
+ min-height:0;background:linear-gradient(110deg,#130e0b,#2e1c13 50%,#140d0a);
+ border:5px ridge #80552d;border-radius:6px 11px 8px 6px;
+ box-shadow:0 5px 15px #000d,inset 0 0 0 2px #a775384d;
+}
+.p64-shell.is-desk-home .game-header .brand{display:block;margin:0 0 12px;text-align:center;border-bottom:1px solid #95704470;padding:4px 2px 12px}
+.p64-shell.is-desk-home .game-header .brand-mark{display:none}
+.p64-shell.is-desk-home .game-header .brand strong{font:normal 16px/1.13 Georgia,serif;letter-spacing:0;color:#edcb96}
+.p64-shell.is-desk-home .game-header .brand small{font:italic 10px/1.2 Georgia,serif;letter-spacing:0;text-transform:none;color:#ae8b61;margin-top:7px}
+.p64-shell.is-desk-home .game-header .header-nav{display:flex;flex-direction:column;align-items:stretch;gap:2px;padding:0;width:100%;overflow:visible}
+.p64-shell.is-desk-home .game-header .header-nav>a:not(.button),
+.p64-shell.is-desk-home .game-header .header-system-menu>summary{
+ width:100%;display:block;text-align:left;white-space:normal;font:normal 11px Georgia,serif;color:#dfc8a0;padding:11px 9px;
+ min-height:39px;border:0;border-bottom:1px solid #73553943;text-decoration:none;letter-spacing:.02em;background:transparent
+}
+.p64-shell.is-desk-home .game-header .header-nav>a.active{background:linear-gradient(90deg,#6e4222,#37231a);color:#ffe8bb;border-left:3px solid #cba15a}
+.p64-shell.is-desk-home .game-header .header-nav>a:hover,
+.p64-shell.is-desk-home .game-header .header-system-menu>summary:hover{background:#5e3e24;color:#fff2d6}
+.p64-shell.is-desk-home .game-header .header-system-menu{width:100%;position:relative}
+.p64-shell.is-desk-home .game-header .header-system-popover{left:calc(100% + 10px);right:auto;top:0;z-index:100;min-width:175px;box-shadow:0 12px 32px #000b}
+.p64-shell.is-desk-home .game-header .header-user{margin-top:11px;padding:8px 4px 0;border:0;border-top:1px solid #74513775;min-width:0}
+.p64-shell.is-desk-home .game-header .header-user .eyebrow{font:9px Georgia,serif;color:#ac875c}
+.p64-shell.is-desk-home .game-header .header-user strong{font:normal 11px Georgia,serif;color:#f2d9ad;overflow-wrap:anywhere}
+@media(max-width:1570px){.p64-shell.is-desk-home .game-header{left:10px;width:134px}.p64-shell.is-desk-home .game-header .brand strong{font-size:14px}}
+@media(max-width:1320px){
+ .p64-shell.is-desk-home .game-header{position:relative;top:auto;left:auto;width:auto;max-width:100%;height:auto;margin:0;padding:8px 12px;display:flex;flex-direction:row;align-items:center;flex-wrap:wrap;gap:12px;border:0;border-bottom:2px solid #7f5430;border-radius:0;box-shadow:0 4px 16px #000a}
+ .p64-shell.is-desk-home .game-header .brand{margin:0;padding:0 12px 0 0;border:0;text-align:left}
+ .p64-shell.is-desk-home .game-header .brand strong{font-size:17px}
+ .p64-shell.is-desk-home .game-header .brand small{font-size:9px;margin-top:3px}
+ .p64-shell.is-desk-home .game-header .header-nav{flex:1 1 auto;display:flex;flex-direction:row;flex-wrap:wrap;gap:3px;align-items:center;width:auto}
+ .p64-shell.is-desk-home .game-header .header-nav>a:not(.button),.p64-shell.is-desk-home .game-header .header-system-menu>summary{width:auto;min-height:44px;padding:12px 10px;text-align:center;border:0}
+ .p64-shell.is-desk-home .game-header .header-system-menu{width:auto}
+ .p64-shell.is-desk-home .game-header .header-system-popover{left:auto;right:0;top:100%}
+ .p64-shell.is-desk-home .game-header .header-user{display:none}
+}
+@media(max-width:700px){
+ .p64-shell.is-desk-home .game-header{display:block;padding:6px 7px 0}
+ .p64-shell.is-desk-home .game-header .brand{text-align:center;padding:7px 0}
+ .p64-shell.is-desk-home .game-header .header-nav{width:100%;display:flex;flex-wrap:nowrap;overflow-x:auto;gap:0;padding:2px 0;justify-content:flex-start}
+ .p64-shell.is-desk-home .game-header .header-nav>a:not(.button),.p64-shell.is-desk-home .game-header .header-system-menu>summary{font-size:11px;min-height:44px;padding:12px 10px;white-space:nowrap}
+ .p64-shell.is-desk-home .game-header .header-system-menu{position:static;flex-shrink:0}
+ .p64-shell.is-desk-home .game-header .header-system-popover{right:0;left:auto;top:auto;min-width:200px}
+}

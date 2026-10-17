@@ -1,0 +1,129 @@
+/* Pass 64.2a — visual-fidelity correction. Real DOM for all book contents;
+   desk photography is decorative; all game actions remain in GameHomePage. */
+.p64-desk {
+  background:linear-gradient(180deg,rgba(10,6,4,.02),rgba(8,5,4,.2)),url('/art/pass64/desk-scene.webp') top center / 100% auto no-repeat,#21130e;
+  border:0;box-shadow:inset 0 0 125px #0b0705a6;
+  min-height:100vh;padding:clamp(155px,13vw,205px) 34px 55px;
+  overflow:visible;
+}
+.p64-desk::before{display:none}
+.p64-tabletop{width:100%;max-width:1270px;padding:0;margin:auto;filter:drop-shadow(0 20px 22px #050303b6)}
+.p64-tabletop::before{display:none!important}
+.p64-tabletop::after{display:none}
+.p64-book{
+  transform:rotate(-.3deg);overflow:visible;
+  border:16px solid #21120e;border-radius:23px 18px 26px 22px;
+  outline:3px solid #7f4b26;
+  box-shadow:0 0 0 3px #3b2316,0 0 0 9px #100806,0 0 0 11px #b5834380,0 28px 65px #000e,inset 0 0 24px #100604;
+  background:#d6b688;
+}
+.p64-book::before{inset:-14px;z-index:2;border-radius:19px;opacity:1;background:linear-gradient(90deg,#6d442440,#05030215 4%,transparent 7%,transparent 93%,#08040333 98%,#a47b3e33);pointer-events:none}
+.p64-book::after{inset:8px;z-index:4;border:1px solid #63452842;pointer-events:none}
+.p64-spine{z-index:5;width:41px;left:calc(50% - 20px);background:linear-gradient(90deg,#3b211c05 0%,#38201f94 29%,#140a09db 49%,#fae9bc33 55%,#5f4320ad 67%,#8c5b3013);box-shadow:0 0 18px #3423198f}
+.p64-leaf{padding:clamp(22px,2.4vw,34px);box-shadow:inset 0 0 40px #64431c7f;min-height:600px;background:radial-gradient(ellipse at 50% 45%,#fff5d76b,transparent 76%),url('/art/pass64/paper.webp') center / 760px 900px repeat,#ebd4af}
+.p64-leaf-left{border-right:0;border-radius:12px 0 2px 13px;background-image:linear-gradient(90deg,#7b553759 0,transparent 4%,transparent 87%,#53341830 98%),radial-gradient(ellipse at 50% 45%,#fff5d76b,transparent 76%),url('/art/pass64/paper.webp')}
+.p64-leaf-right{border-left:0;border-radius:0 12px 14px 0;background-image:linear-gradient(90deg,#58391f40 0,transparent 5%,transparent 90%,#6e442d50 100%),radial-gradient(ellipse at 50% 45%,#fff5d76b,transparent 76%),url('/art/pass64/paper.webp')}
+.p64-leaf::after{inset:11px;border-color:#976f464c}
+/* The greeting now belongs ON the opening page, never in a separate photographic banner. */
+.p64-masthead{display:block;max-width:none;margin:0 0 20px;padding:5px 4px 11px;text-align:center;color:#4d2d1c;text-shadow:none;border-bottom:1px solid #ad815b6b}
+.p64-masthead .p64-sigil{height:22px;width:22px;display:inline-grid;font-size:22px;border:0;box-shadow:none;color:#96703d;margin-bottom:3px}
+.p64-masthead .p64-overline{color:#8e6239;font-size:9px;letter-spacing:.16em}
+.p64-masthead h1{font:normal clamp(24px,2.35vw,35px)/1.13 Georgia,'Times New Roman',serif;color:#2e2017;margin:5px 0}
+.p64-masthead h1 em{color:#83412e}
+.p64-masthead p{color:#775638;font:italic clamp(11px,1vw,13px)/1.4 Georgia,serif;margin:4px 0}
+.p64-masthead .p64-network{position:static;max-width:none;margin:9px auto 0;width:max-content;background:transparent;border:0;padding:2px 7px;color:#77563c!important;font:italic 10px Georgia,serif;letter-spacing:0}
+.p64-masthead .p64-network::first-letter{color:#965e2d}
+.p64-page-label{font:normal 11px Georgia,serif;letter-spacing:.13em;color:#7d5329;margin:0 0 12px}
+/* Featured chapter: large hand-illustrated plate with typeset story details over its bottom edge. */
+.p64-feature{padding:6px;border:2px ridge #937047;background:#6e492a;box-shadow:0 8px 15px #6646295c,0 0 0 4px #d2a77665;isolation:isolate}
+.p64-feature-art{height:clamp(275px,29vw,415px);background:#38251e}
+.p64-feature-art img{filter:saturate(1.02) contrast(1.04);object-fit:cover}
+.p64-feature-art::after{inset:20% 0 0;background:linear-gradient(0deg,#100b0af4,#110b0b95 31%,transparent 76%)}
+.p64-feature-ribbon{bottom:auto;top:13px;left:12px;font:600 10px Georgia,serif}
+.p64-feature-copy{position:absolute;z-index:2;left:6px;right:6px;bottom:6px;padding:22px 19px 17px;background:transparent;border:0;color:#f3dfbd}
+.p64-feature-copy h2{font:normal clamp(26px,2.4vw,38px)/1.03 Georgia,serif;color:#fff0d3;max-width:570px;margin:7px 0}
+.p64-feature-copy p{color:#e5cfb0;margin:6px 0 14px;font-style:italic}
+.p64-feature-copy .p64-overline{font-size:9px;letter-spacing:.12em;color:#f0c389}
+.p64-blood-button{min-height:44px;padding:9px 17px;background:linear-gradient(#a64236,#64161e);box-shadow:inset 0 0 0 2px #692726,0 3px 10px #0009;font-size:13px!important}
+.p64-feature-empty{min-height:300px}
+/* Preserve all actions, but treat secondary live controls as inset journal entries. */
+.p64-ledger-title{font:normal clamp(19px,1.7vw,25px) Georgia,serif;margin:11px 0}
+.p64-ink-divider{margin:18px 0 10px}
+.p64-wardrobe-link{font-size:12px;text-align:center;margin:0 0 17px;color:#694628!important}
+.p64-desk .dashboard-section-header{margin:0 0 11px}
+.p64-desk .dashboard-section-header h2{font:normal clamp(20px,1.9vw,27px)/1.1 Georgia,serif;color:#412a1b;margin:4px 0}
+.p64-desk .dashboard-section-header p{font:italic 12px/1.4 Georgia,serif}
+.p64-desk .dashboard-hero-browser{margin:0 0 19px;padding:1px 0 14px;border-bottom:1px solid #98734e8f}
+.p64-desk .dashboard-hero-card{background:linear-gradient(130deg,#f4e6ca9e,#ddbf8e99);border-color:#9b774b;padding:10px;box-shadow:0 2px 6px #4b291a33}
+.p64-desk .dashboard-hero-card.is-selected{border-color:#9f6135;box-shadow:0 0 0 2px #d4a65e85,0 3px 10px #4b281e44}
+.p64-hero-medallion{width:44px;height:44px;border:3px double #b88b4f;background:radial-gradient(circle at 40% 30%,#c78b5b,#402418 75%);box-shadow:0 0 0 3px #e8c995,0 3px 7px #2d160e55}
+.p64-desk .dashboard-hero-copy strong{font-size:16px;line-height:1.12}
+.p64-desk .dashboard-hero-copy p{font-size:11px}
+.p64-desk .dashboard-hero-vitals{font-size:10px}
+.p64-desk .dashboard-hero-actions{gap:6px}
+.p64-desk .dashboard-hero-actions .button{min-height:30px;font-size:10px;padding:5px 8px}
+.p64-desk .dashboard-hero-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.p64-desk .dashboard-adventure-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.p64-catalog-art{height:120px}
+.p64-desk .dashboard-adventure-card{box-shadow:0 3px 7px #4b2b1c52;background:#e9d2aa7f}
+.p64-desk .dashboard-adventure-card h3{font-size:18px;margin:7px 0 5px}
+.p64-desk .dashboard-adventure-card .panel-body{padding:10px}
+.p64-desk .dashboard-adventure-card p{font-size:11px;-webkit-line-clamp:3}
+.p64-desk .catalog-toolbar{padding:8px;gap:6px;grid-template-columns:minmax(0,1fr) minmax(110px,.55fr) 55px}
+.p64-desk :is(.panel,.dashboard-hero-card,.adventure-card){background-color:transparent}
+.p64-desk a:not(.button):not(.p64-blood-button){color:#6e3924;text-decoration-color:#b7834b}
+.p64-desk .dashboard-system-section{margin:0}
+.p64-desk .p64-desk-scrap{display:none}
+.p64-desk .p64-wardrobe-teaser{margin-top:18px;background:#d8bf97a6}
+.p64-desk .dashboard-command-grid .panel{background:#e6cba49e}
+.p64-desk .dashboard-system-section{margin:0}
+/* Long page behavior: all game actions remain reachable; the first spread gets the visual priority. */
+.p64-desk .dashboard-command-grid{gap:10px}
+.p64-onboarding-bookmark{margin-top:14px}
+@media (max-width:1300px){
+  .p64-desk{padding:155px 24px 45px}
+  .p64-tabletop{max-width:1040px;margin-left:auto}
+  .p64-leaf{padding:23px}
+  .p64-feature-art{height:320px}
+  .p64-desk .dashboard-hero-grid{grid-template-columns:1fr}
+  .p64-desk .dashboard-adventure-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:940px){
+ .p64-desk{padding:95px 12px 40px;background-size:auto 850px;background-repeat:no-repeat}
+ .p64-tabletop{max-width:680px}
+ .p64-book{display:block;transform:none;border-width:10px;border-radius:17px}
+ .p64-book::before{display:none}
+ .p64-spine{display:none}
+ .p64-leaf{min-height:0;padding:clamp(19px,4vw,38px)}
+ .p64-leaf-left{border-radius:10px 10px 0 0;border-bottom:10px solid #3b261c}
+ .p64-leaf-right{border-radius:0 0 10px 10px}
+ .p64-masthead{margin:0 0 17px}
+ .p64-feature-art{height:350px}
+ .p64-desk .dashboard-hero-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:580px){
+ .p64-desk{padding:68px 5px 30px;margin:0;min-height:0;border:0;background-size:auto 550px;background-position:center top}
+ .p64-tabletop{padding:0 7px}
+ .p64-book{border:6px solid #2d1d15;box-shadow:0 0 0 2px #986c3d,0 8px 25px #080504b8}
+ .p64-leaf{padding:19px 13px 24px}
+ .p64-leaf::after{inset:6px}
+ .p64-masthead h1{font-size:29px}
+ .p64-masthead .p64-overline{font-size:8px;line-height:1.4}
+ .p64-masthead p{font-size:12px}
+ .p64-feature-art{height:310px}
+ .p64-feature-copy{padding:12px 12px 13px}
+ .p64-feature-copy h2{font-size:clamp(23px,6vw,30px)}
+ .p64-feature-copy p{font-size:12px}
+ .p64-feature-ribbon{font-size:9px}
+ .p64-desk .dashboard-hero-grid,.p64-desk .dashboard-adventure-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .p64-desk .dashboard-adventure-card h3{font-size:16px}
+ .p64-catalog-art{height:106px}
+ .p64-desk .dashboard-hero-card{padding:8px;grid-template-columns:33px minmax(0,1fr)}
+ .p64-hero-medallion{width:30px;height:30px;font-size:16px}
+ .p64-desk .dashboard-hero-actions{grid-column:1/-1}
+ .p64-desk .dashboard-hero-copy strong{font-size:14px}
+ .p64-desk .catalog-toolbar{grid-template-columns:1fr 1fr}
+ .p64-desk .catalog-search-field{grid-column:1/-1}
+}
+@media(max-width:390px){.p64-desk .dashboard-hero-grid,.p64-desk .dashboard-adventure-grid{grid-template-columns:1fr}.p64-feature-art{height:330px}}
+@media(prefers-reduced-motion:reduce){.p64-desk *,.p64-desk *::before,.p64-desk *::after{transition:none!important;animation:none!important}}

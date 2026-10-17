@@ -2,6 +2,7 @@ import { Link, NavLink, Outlet, useLocation } from "react-router";
 import { useAuth } from "../state/AuthContext";
 import { useAppearance } from "../features/appearance/AppearanceContext";
 import "../styles/pass64Shell.css";
+import "../styles/deskShellFidelityPass64.css";
 
 export function GameLayout() {
   const { user, logout } = useAuth();
@@ -10,9 +11,10 @@ export function GameLayout() {
   const canAuthor = user?.permissions.includes("author") ?? false;
   const isAdmin = user?.permissions.includes("admin") ?? false;
   const isAdventureMode = location.pathname.startsWith("/game/adventure/");
+  const isDeskHome = location.pathname === "/game";
 
   return (
-    <div className={`site-shell game-site-shell p64-shell ${isAdventureMode ? "is-adventure-mode" : ""}`} data-platform-skin={preferences.platformSkin}>
+    <div className={`site-shell game-site-shell p64-shell ${isAdventureMode ? "is-adventure-mode" : ""} ${isDeskHome ? "is-desk-home" : ""}`} data-platform-skin={preferences.platformSkin}>
       <a className="skip-link" href="#main-content">SKIP TO CONTENT</a>
       <header className={`site-header game-header ${isAdventureMode ? "is-adventure-header" : ""}`}>
         <Link className="brand" to="/game">

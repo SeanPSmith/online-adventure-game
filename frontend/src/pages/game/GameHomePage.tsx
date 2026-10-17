@@ -1,4 +1,5 @@
 import "./gameHomePass64.css";
+import "./deskFidelityPass64.css";
 import { useAppearance } from "../../features/appearance/AppearanceContext";
 import { FirstRunGuide } from "../../features/onboarding/FirstRunGuide";
 import { useEffect, useMemo, useState } from "react";
@@ -255,17 +256,6 @@ export function GameHomePage() {
 
   return (
     <div className="p64-desk" data-platform-skin={preferences.platformSkin} data-reduced-motion={preferences.reducedMotion}>
-      <header className="p64-masthead">
-        <div className="p64-sigil" aria-hidden="true">✧</div>
-        <div>
-          <span className="p64-overline">YOUR ADVENTURER'S DESK · SOMEWHERE BETWEEN DESTINIES</span>
-          <h1>Welcome back, <em>troublemaker.</em></h1>
-          <p>The worlds have been behaving suspiciously well without you.</p>
-        </div>
-        <span className={`p64-network ${connected ? "is-connected" : ""}`} role="status">
-          {connected ? "✦ THE STORIES ARE AWAKE" : "✧ RECONNECTING TO THE ARCHIVE"}
-        </span>
-      </header>
 
       {(latestError || heroError) ? (
         <div className="form-error">
@@ -284,6 +274,18 @@ export function GameHomePage() {
         <div className="p64-book" aria-label="Adventurer's journal">
           <div className="p64-spine" aria-hidden="true" />
           <div className="p64-leaf p64-leaf-left">
+      <header className="p64-masthead">
+        <div className="p64-sigil" aria-hidden="true">✧</div>
+        <div>
+          <span className="p64-overline">YOUR ADVENTURER'S DESK · SOMEWHERE BETWEEN DESTINIES</span>
+          <h1>Welcome back, <em>troublemaker.</em></h1>
+          <p>The worlds have been behaving suspiciously well without you.</p>
+        </div>
+        <span className={`p64-network ${connected ? "is-connected" : ""}`} role="status">
+          {connected ? "✦ THE STORIES ARE AWAKE" : "✧ RECONNECTING TO THE ARCHIVE"}
+        </span>
+      </header>
+
             <span className="p64-page-label">✦ &nbsp; THE OPEN CHRONICLE</span>
             <section className="p64-feature" aria-label="Continue your adventure">
               {primaryJourney ? (

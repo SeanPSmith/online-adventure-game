@@ -4,18 +4,23 @@ import { useAppearance } from "../features/appearance/AppearanceContext";
 import "../styles/pass64Shell.css";
 import "../styles/deskShellFidelityPass64.css";
 import "../styles/deskScrapbookShell64.css";
+import "../styles/pass64_2cPerformance.css";
+import "../features/appearance/themePresentation.css";
+import { themeCssVars } from "../features/appearance/themePacks";
+import { BookPageTurn } from "../features/appearance/BookPageTurn";
+import type { CSSProperties } from "react";
 
 export function GameLayout() {
   const { user, logout } = useAuth();
   const location = useLocation();
-  const { preferences } = useAppearance();
+  const { preferences, libraryTheme } = useAppearance();
   const canAuthor = user?.permissions.includes("author") ?? false;
   const isAdmin = user?.permissions.includes("admin") ?? false;
   const isAdventureMode = location.pathname.startsWith("/game/adventure/");
   const isDeskHome = location.pathname === "/game";
 
   return (
-    <div className={`site-shell game-site-shell p64-shell ${isAdventureMode ? "is-adventure-mode" : ""} ${isDeskHome ? "is-desk-home" : ""}`} data-platform-skin={preferences.platformSkin}>
+    <div className={`site-shell game-site-shell p64-shell ${isAdventureMode ? "is-adventure-mode" : ""} ${isDeskHome ? "is-desk-home" : ""}`} data-platform-skin={preferences.platformSkin} data-installed-library-theme={Boolean(libraryTheme)} data-theme-material={libraryTheme?.material} style={libraryTheme ? themeCssVars(libraryTheme) as CSSProperties : undefined}>
       <a className="skip-link" href="#main-content">SKIP TO CONTENT</a>
       <header className={`site-header game-header ${isAdventureMode ? "is-adventure-header" : ""}`}>
         <Link className="brand" to="/game">
@@ -53,6 +58,7 @@ export function GameLayout() {
         </div>
       </header>
 
+      <BookPageTurn />
       <main id="main-content" tabIndex={-1} className="game-main">
         <Outlet />
       </main>

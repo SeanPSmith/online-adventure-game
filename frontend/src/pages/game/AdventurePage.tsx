@@ -1,3 +1,5 @@
+import { themeCssVars } from "../../features/appearance/themePacks";
+import type { CSSProperties } from "react";
 import "./adventureWorldPass64.css";
 import { useAppearance } from "../../features/appearance/AppearanceContext";
 import { resolveAppearance } from "../../features/appearance/themeContract";
@@ -90,7 +92,7 @@ function outcomeLabel(outcome: string) {
 
 export function AdventurePage() {
   const { roomId } = useParams();
-  const { preferences } = useAppearance();
+  const { preferences, readerTheme } = useAppearance();
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -645,7 +647,9 @@ export function AdventurePage() {
           </div>
         </div>
       ) : null}
-      <div className="adventure-layout" data-world-skin={worldSkin.reader} data-reduced-motion={worldSkin.reducedMotion}>
+      <div className="adventure-layout" data-world-skin={worldSkin.reader} data-reduced-motion={worldSkin.reducedMotion}
+        data-installed-reader-theme={Boolean(readerTheme && worldSkin.reader !== "plain")} data-theme-material={readerTheme?.material}
+        style={readerTheme && worldSkin.reader !== "plain" ? themeCssVars(readerTheme) as CSSProperties : undefined}>
         <section className="story-pane panel" ref={storyPaneRef}>
           <div className="scene-art">
             <pre>{theater.chapterReleased ? (scene?.ascii_art?.trim() || "SETTING THE STAGE_") : "THE NEXT CHAPTER IS SEALED_"}</pre>

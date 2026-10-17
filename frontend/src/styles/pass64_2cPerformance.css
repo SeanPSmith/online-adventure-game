@@ -1,0 +1,28 @@
+/* 64.2c: spend the first viewport on the book, not a 200px decorative masthead. */
+@media(min-width:1321px){
+ .p64-desk{padding-top:clamp(96px,7.6vw,125px);background-size:100% auto}
+ .p64-shell.is-desk-home .game-header{top:119px}
+ .p64-desk .p64-tabletop{filter:none}
+ .p64-desk .p64-book{transform:none;perspective:none;box-shadow:0 0 0 5px #130b09,0 0 0 9px #5e361f,0 0 0 11px #ae7e4980,0 25px 42px #020101b9}
+}
+@media(min-width:941px) and (max-width:1320px){.p64-desk{padding-top:86px}}
+@media(max-width:940px){.p64-desk{padding-top:35px}}
+@media(max-width:700px){
+ .p64-desk{padding-top:22px}
+ .p64-shell.is-desk-home .game-header{padding-top:3px;padding-bottom:1px}
+ .p64-shell.is-desk-home .game-header .brand{padding:3px 0 5px}
+ .p64-shell.is-desk-home .game-header .brand small{display:none}
+ .p64-shell.is-desk-home .game-header .header-nav{padding:0}
+ .p64-shell.is-desk-home .game-header .header-nav>a:not(.button),
+ .p64-shell.is-desk-home .game-header .header-system-menu>summary{min-height:42px;padding:11px 9px}
+}
+/* Old hardware: do not layer expensive rotated transform/filter effects over the complete journal. */
+.p64-desk .p64-tabletop{filter:none}
+.p64-desk .p64-feature,.p64-desk .dashboard-hero-card.p64b-portrait,
+.p64-desk .dashboard-adventure-card.p64b-postcard{transition-duration:140ms}
+@media(hover:none){
+ .p64-desk .p64-feature:hover,.p64-desk .dashboard-hero-card.p64b-portrait:hover,
+ .p64-desk .dashboard-adventure-card.p64b-postcard:hover{transform:none}
+}
+.p64-desk[data-reduced-motion="true"] *,
+.p64-desk[data-reduced-motion="true"] *::before,.p64-desk[data-reduced-motion="true"] *::after{animation:none!important;transition:none!important}

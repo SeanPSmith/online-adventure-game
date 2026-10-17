@@ -1,0 +1,17 @@
+{
+  "format": "tales-of-two-theme/v1",
+  "id": "my-field-journal",
+  "name": "My Field Journal",
+  "target": "library",
+  "material": "parchment",
+  "palette": {
+    "paper": "#f2dfb9",
+    "ink": "#352019",
+    "muted": "#6b4a32",
+    "leather": "#3d2319",
+    "accent": "#843426",
+    "accentText": "#fff5de",
+    "frame": "#a27a41",
+    "desk": "#1c120d"
+  }
+}

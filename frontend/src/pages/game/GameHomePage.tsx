@@ -1,7 +1,8 @@
+import "./gameHomePass64.css";
+import { useAppearance } from "../../features/appearance/AppearanceContext";
 import { FirstRunGuide } from "../../features/onboarding/FirstRunGuide";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { PageTitle } from "../../components/ui/PageTitle";
 import { Panel } from "../../components/ui/Panel";
 import { TerminalSelect } from "../../components/ui/TerminalSelect";
 import { RoomInviteButton } from "../../components/game/RoomInviteButton";
@@ -13,6 +14,17 @@ import type {
 import { rememberGameRoute } from "../../services/gameRouteMemory";
 import { useAuth } from "../../state/AuthContext";
 import { useGameSocket } from "../../state/GameSocketContext";
+
+const PASS64_ART = "/art/pass64/";
+function p64Cover(title: string, tags: string[] = []) {
+  const subject = `${title} ${tags.join(" ")}`.toLowerCase();
+  if (/space|star|galaxy|sol|sci.fi|cyber|robot|future/.test(subject)) return `${PASS64_ART}scifi.webp`;
+  if (/horror|manor|haunt|gothic|ashes|masque|shadow|veil/.test(subject)) return `${PASS64_ART}gothic.webp`;
+  if (/sea|harbor|light|coast|ocean|water/.test(subject)) return `${PASS64_ART}harbor.webp`;
+  if (/wood|forest|nature|wild/.test(subject)) return `${PASS64_ART}explorer.webp`;
+  if (/fantasy|castle|crown|king|dragon|quest/.test(subject)) return `${PASS64_ART}fantasy.webp`;
+  return `${PASS64_ART}explorer.webp`;
+}
 
 const HIDDEN_INTERNAL_ADVENTURES = new Set([
   "old_chapel",
@@ -47,6 +59,7 @@ function advancementTotal(hero: Character) {
 
 export function GameHomePage() {
   const navigate = useNavigate();
+  const { preferences } = useAppearance();
   const { user } = useAuth();
   const canAuthor = user?.permissions.includes("author") ?? false;
   const isAdmin = user?.permissions.includes("admin") ?? false;
@@ -241,26 +254,18 @@ export function GameHomePage() {
   }
 
   return (
-    <>
-      <PageTitle
-        eyebrow="PLAYER DASHBOARD"
-        title="WHAT HAPPENS NEXT?"
-        actions={
-          <>
-            <span className={`network-badge ${connected ? "is-online" : "is-offline"}`}>
-              {connected ? "STORY NETWORK ONLINE" : "PICKING UP THE SIGNAL_"}
-            </span>
-            {primaryJourney ? (
-              <Link
-                className="button button-primary"
-                to={`/game/adventure/${encodeURIComponent(primaryJourney.room_code)}?hero=${encodeURIComponent(primaryJourney.character_id)}`}
-              >
-                {primaryJourney.director_retry_required ? "RECOVER JOURNEY" : "CONTINUE JOURNEY"}
-              </Link>
-            ) : null}
-          </>
-        }
-      />
+    <div className="p64-desk" data-platform-skin={preferences.platformSkin} data-reduced-motion={preferences.reducedMotion}>
+      <header className="p64-masthead">
+        <div className="p64-sigil" aria-hidden="true">✧</div>
+        <div>
+          <span className="p64-overline">YOUR ADVENTURER'S DESK · SOMEWHERE BETWEEN DESTINIES</span>
+          <h1>Welcome back, <em>troublemaker.</em></h1>
+          <p>The worlds have been behaving suspiciously well without you.</p>
+        </div>
+        <span className={`p64-network ${connected ? "is-connected" : ""}`} role="status">
+          {connected ? "✦ THE STORIES ARE AWAKE" : "✧ RECONNECTING TO THE ARCHIVE"}
+        </span>
+      </header>
 
       {(latestError || heroError) ? (
         <div className="form-error">
@@ -273,6 +278,39 @@ export function GameHomePage() {
         </div>
       ) : null}
 
+
+
+      <div className="p64-tabletop">
+        <div className="p64-book" aria-label="Adventurer's journal">
+          <div className="p64-spine" aria-hidden="true" />
+          <div className="p64-leaf p64-leaf-left">
+            <span className="p64-page-label">✦ &nbsp; THE OPEN CHRONICLE</span>
+            <section className="p64-feature" aria-label="Continue your adventure">
+              {primaryJourney ? (
+                <>
+                  <div className="p64-feature-art">
+                    <img alt="Illustrated adventure landscape" src={p64Cover(primaryJourney.adventure_title)} />
+                    <span className="p64-feature-ribbon">CHAPTER {primaryJourney.turn_number} · {journeyState(primaryJourney)}</span>
+                  </div>
+                  <div className="p64-feature-copy">
+                    <span className="p64-overline">A BOOKMARK IN THE WILDERNESS</span>
+                    <h2>{primaryJourney.adventure_title}</h2>
+                    <p>{primaryJourney.scene_title || "Your story is waiting where you left it."}</p>
+                    <Link className="p64-blood-button" to={`/game/adventure/${encodeURIComponent(primaryJourney.room_code)}?hero=${encodeURIComponent(primaryJourney.character_id)}`}>
+                      {primaryJourney.director_retry_required ? "Recover your story" : "Return to your story"} <span aria-hidden="true">↗</span>
+                    </Link>
+                  </div>
+                </>
+              ) : (
+                <div className="p64-feature-empty">
+                  <span className="p64-quiet-compass" aria-hidden="true">✵</span>
+                  <h2>Every legend starts somewhere.</h2>
+                  <p>Frequently with questionable equipment. Find something worth getting lost in.</p>
+                  <a href="#p64-library" className="p64-blood-button">Find an adventure <span aria-hidden="true">↗</span></a>
+                </div>
+              )}
+            </section>
+            <div className="p64-onboarding-bookmark">
       <FirstRunGuide
         heroes={selectableHeroes}
         selectedHeroId={selectedHeroId}
@@ -286,8 +324,10 @@ export function GameHomePage() {
           createRoom(selectedHeroId, "first_light", mode);
         }}
       />
-
-      <section className="dashboard-command-grid">
+            </div>
+            <div className="p64-ink-divider" aria-hidden="true">✧</div>
+            <h2 className="p64-ledger-title">Your unfinished business <span>Quite the collection.</span></h2>
+            <section className="dashboard-command-grid">
         <Panel title="CONTINUE JOURNEY" className="dashboard-journey-panel">
           {!directoryReady ? (
             <p className="muted-copy">CONSULTING THE ARCHIVE_</p>
@@ -398,9 +438,13 @@ export function GameHomePage() {
             </button>
           </div>
         </Panel>
-      </section>
-
-      <section className="dashboard-hero-browser">
+      
+            </section>
+          </div>
+          <div className="p64-leaf p64-leaf-right">
+            <span className="p64-page-label">✧ &nbsp; THE PEOPLE &amp; PLACES</span>
+            <Link className="p64-wardrobe-link" to="/account?tab=preferences#wardrobe">✦ Change your journal’s look ↗</Link>
+            <section className="dashboard-hero-browser">
         <div className="dashboard-section-header">
           <div>
             <span className="eyebrow">YOUR HEROES</span>
@@ -431,6 +475,7 @@ export function GameHomePage() {
 
             return (
               <article className={`dashboard-hero-card ${selected ? "is-selected" : ""}`} key={hero.character_id}>
+                <span className="p64-hero-medallion" aria-hidden="true">{hero.name.slice(0, 1)}</span>
                 <div className="dashboard-hero-copy">
                   <span className="eyebrow">
                     LVL {hero.level} // {!hero.is_alive ? "FALLEN" : hero.hero_status === "retired" ? "RETIRED" : hero.hero_status === "buried" ? "LAID TO REST" : busy ? "IN JOURNEY" : selected ? "SELECTED" : "AVAILABLE"}
@@ -466,7 +511,7 @@ export function GameHomePage() {
         </div>
       </section>
 
-      <section className="dashboard-adventure-browser">
+      <section id="p64-library" className="dashboard-adventure-browser">
         <div className="dashboard-section-header">
           <div>
             <span className="eyebrow">ADVENTURE LIBRARY</span>
@@ -527,6 +572,7 @@ export function GameHomePage() {
         <div className="adventure-catalog-grid dashboard-adventure-grid">
           {filteredCatalog.map((adventure) => (
             <article className="adventure-card dashboard-adventure-card panel" key={adventure.adventure_id}>
+              <div className="p64-catalog-art"><img src={p64Cover(adventure.title, adventure.tags)} alt="" loading="lazy" /></div>
               <div className="panel-body">
                 <div className="adventure-card-tags">
                   {(adventure.tags.length ? adventure.tags : ["ADVENTURE"]).slice(0, 4).map((tag) => (
@@ -556,6 +602,15 @@ export function GameHomePage() {
           </div>
         ) : null}
       </section>
+            <Link className="p64-wardrobe-teaser" to="/account?tab=preferences#wardrobe">
+              <span className="p64-teaser-emblem" aria-hidden="true">✦</span>
+              <span><strong>The Wardrobe</strong><span>Same soul. Different jacket. Change your journal's look.</span></span>
+            </Link>
+
+          </div>
+        </div>
+        <div className="p64-desk-scrap" aria-hidden="true">Same people. Different worlds. Better stories.</div>
+      </div>
 
       <section className="dashboard-system-section">
         <Panel title="SYSTEM MENU" className="dashboard-system-panel">
@@ -732,6 +787,6 @@ export function GameHomePage() {
           </section>
         </div>
       ) : null}
-    </>
+    </div>
   );
 }

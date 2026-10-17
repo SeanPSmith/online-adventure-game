@@ -1,0 +1,86 @@
+{
+  "frontend/src/main.tsx": {
+    "baseline_sha256": "a0cf360a1ce287da9dfca80502feca52952201ac471084febeb52b415c6473ec",
+    "updated_sha256": "0516d777c4917a2dcffe1f07475ab9130c54a05b399841308dd6086d7a858bdd"
+  },
+  "frontend/src/layouts/GameLayout.tsx": {
+    "baseline_sha256": "38be5e1de1d5d86e038669078f9b60c07de4f6797464c9629b56cd77343a7551",
+    "updated_sha256": "f36e1748849d4e6253fa2bbc579cd0e29c70c0141c0cc501498a2583d0e47ba0"
+  },
+  "frontend/src/pages/game/GameHomePage.tsx": {
+    "baseline_sha256": "3d8ca6ba6b26eb2d65cb0224e83fbdc4b91a4a500acfa4531ef56eb42ae387cb",
+    "updated_sha256": "a17da0507d37afb5207b77134c592162b80de59bba52c5af6b137c9bff8f2624"
+  },
+  "frontend/src/pages/game/AdventurePage.tsx": {
+    "baseline_sha256": "b9ef8cea990985a3baf1723c221f30d97b763afeb4698b0e597c8cb25976e0f5",
+    "updated_sha256": "3a7127c8a267e9260e940944c33aaf39c824aabf8d908167bd5969a3318127d2"
+  },
+  "frontend/src/pages/account/AccountPage.tsx": {
+    "baseline_sha256": "388b3762ad0869038458d2a1b980b438ca6d2d84f517c2c5f4a80c802b701f5b",
+    "updated_sha256": "48349f1ec72d372634ec706b80ebbf94d31bcbc8663e9acb962f4ef5cf476f40"
+  },
+  "frontend/src/features/appearance/themeContract.ts": {
+    "baseline_sha256": null,
+    "updated_sha256": "e18ec98046663939a93ff6af5b340be4d63bf7ea485d069f6b6c10c01a09647d"
+  },
+  "frontend/src/features/appearance/AppearanceContext.tsx": {
+    "baseline_sha256": null,
+    "updated_sha256": "89797999c829b691f0b0209b5098613b9187ba7927f34acc1a5948a892762a33"
+  },
+  "frontend/src/features/appearance/AppearanceWardrobe.tsx": {
+    "baseline_sha256": null,
+    "updated_sha256": "b5717bd2e60a63d92ad96ade9d1bf900723cb77e99e8d6dedfb4604a4d53bd6b"
+  },
+  "frontend/src/features/appearance/wardrobe.css": {
+    "baseline_sha256": null,
+    "updated_sha256": "ccefb7ab19d1afef583b0ed45c05bc43c43c1bec46485dd3a8dbeba050aded3b"
+  },
+  "frontend/src/pages/game/gameHomePass64.css": {
+    "baseline_sha256": null,
+    "updated_sha256": "00911763dc4b7631a61d3f6b6b0caf44657d7bf02d65bf3b0fb9ee9de434edba"
+  },
+  "frontend/src/pages/game/adventureWorldPass64.css": {
+    "baseline_sha256": null,
+    "updated_sha256": "7355d8975ea67cb7e44b19d184e87a753549009421940fbdf9d98b8e97d451eb"
+  },
+  "frontend/src/styles/pass64Shell.css": {
+    "baseline_sha256": null,
+    "updated_sha256": "8c80fd1c5bca2941dbbcf19b883eed91777292d9526f25d4bb52bdce80d5aa78"
+  },
+  "frontend/public/art/pass64/paper.webp": {
+    "baseline_sha256": null,
+    "updated_sha256": "2568d66630ee0f05add426242663908012ea43b2f2f03f3186f3bcf50f213322"
+  },
+  "frontend/public/art/pass64/desk-wood.webp": {
+    "baseline_sha256": null,
+    "updated_sha256": "85509cbb8a197509a1bd118a820436c887ecd48556b80c177c0bbe5e85ba2fad"
+  },
+  "frontend/public/art/pass64/desk-props.webp": {
+    "baseline_sha256": null,
+    "updated_sha256": "1e565631ccef9644dc018cc7568b08c6176590244b24ff957778d37a1367a18d"
+  },
+  "frontend/public/art/pass64/fantasy.webp": {
+    "baseline_sha256": null,
+    "updated_sha256": "c0ebcaedd68e4294d88b7d2f47e49f52cc8f3cd55056ed0687712e39d901086e"
+  },
+  "frontend/public/art/pass64/scifi.webp": {
+    "baseline_sha256": null,
+    "updated_sha256": "7bcf788489f5923da572c630993bcd785d5640fe9eb947d391aecb0bda698f59"
+  },
+  "frontend/public/art/pass64/gothic.webp": {
+    "baseline_sha256": null,
+    "updated_sha256": "fbf29b91f1f568811a4f711365461a85d0d6b82d35bf486a528fa477edbe439b"
+  },
+  "frontend/public/art/pass64/horror.webp": {
+    "baseline_sha256": null,
+    "updated_sha256": "b2ee8b12ac2da850116d5c5d43aa40bbe8a8c72bd75514b87d1e6198898df6c6"
+  },
+  "frontend/public/art/pass64/harbor.webp": {
+    "baseline_sha256": null,
+    "updated_sha256": "fb1ba5a919d122dcd2cf246192deb3f9e9bfed28db08653a8cab4787a491fabb"
+  },
+  "frontend/public/art/pass64/explorer.webp": {
+    "baseline_sha256": null,
+    "updated_sha256": "eabeffa789464a1218299e44f9aefc06b89d4a5fb07df3ad31d72dfa815477e1"
+  }
+}

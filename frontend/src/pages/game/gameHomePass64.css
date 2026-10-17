@@ -1,0 +1,187 @@
+/* Tales of Two — Pass 64.0: the Adventurer's Desk.
+   All overrides are scoped. No game-state code or global input behavior changes. */
+.p64-desk {
+  --p64-ink:#342316; --p64-faded:#755941; --p64-wax:#751c21; --p64-gold:#ad783e;
+  --p64-line:#98714d7a; --p64-paper:#dec59a;
+  color:var(--p64-ink); font-family:Georgia,'Times New Roman',serif;
+  isolation:isolate; position:relative; padding:clamp(18px,3vw,42px);
+  background:linear-gradient(0deg,#100b09ca,#100b09bd),url('/art/pass64/desk-wood.webp') center / 900px 980px repeat,#21130d;
+  border:2px solid #6a482a; min-height:calc(100vh - 150px);
+  box-shadow:inset 0 0 0 7px #120c09,inset 0 0 0 9px #68452c,0 18px 35px #0009;
+}
+.p64-desk::before {content:"";position:absolute;inset:14px;border:1px solid #9e78454d;pointer-events:none}
+.p64-desk :is(button,a,input,select){font-family:inherit}
+.p64-desk :is(button,a):focus-visible{outline:3px solid #f3ba56;outline-offset:3px}
+.p64-masthead {display:flex;gap:18px;align-items:center;justify-content:center;text-align:center;max-width:1100px;margin:8px auto 24px;color:#e8c891;position:relative;text-shadow:0 2px 7px #080503}
+.p64-sigil{flex:none;border:1px solid #aa783e;border-radius:50%;height:62px;width:62px;display:grid;place-items:center;font-size:39px;color:#e1b575;box-shadow:inset 0 0 0 5px #090606,0 0 17px #b6854245}
+.p64-overline,.p64-page-label{display:block;letter-spacing:.13em;text-transform:uppercase;font-family:Georgia,serif;font-size:clamp(9px,.9vw,12px);font-weight:bold}
+.p64-masthead .p64-overline{color:#c7a87d}
+.p64-masthead h1{font-family:Georgia,serif;font-weight:normal;font-size:clamp(29px,3.4vw,53px);line-height:1.07;letter-spacing:-.025em;margin:6px 0;color:#f8e2b9}
+.p64-masthead h1 em{font-style:italic;color:#e5ad7d}
+.p64-masthead p{font-style:italic;color:#d0b28b;font-size:clamp(12px,1.2vw,15px);margin:7px 0 0}
+.p64-network{position:absolute;right:0;top:0;border:1px solid #ae7f4b66;padding:7px 9px;background:#150b0ba8;color:#d5bca3;font-size:9px;letter-spacing:.07em;max-width:145px}
+.p64-network.is-connected{color:#f2c787}
+.p64-tabletop{position:relative;max-width:1450px;margin:auto;padding:0 1.4vw 35px}
+.p64-tabletop::after{content:"✧";position:absolute;left:0;bottom:-5px;color:#ad834a99;font-size:50px;pointer-events:none}
+.p64-book{border:12px solid #322016;border-radius:19px 12px 20px 12px;outline:2px solid #9a693a;box-shadow:0 0 0 5px #0d0806,0 0 0 8px #51371d,0 20px 45px #000c, inset 0 0 16px #231308;
+ display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);position:relative;overflow:hidden;align-items:stretch;
+ transform:rotate(-.15deg);background:#d9bb84}
+.p64-book:after{content:"";position:absolute;inset:5px;pointer-events:none;border:1px solid #89673f6e;border-radius:5px;z-index:4}
+.p64-spine{position:absolute;z-index:5;pointer-events:none;top:0;bottom:0;width:25px;left:calc(50% - 12px);background:linear-gradient(90deg,#4527193b,#3a2519b3 25%,#190d0ab3 47%,#f7dbab55 52%,#603c2599 65%,#36211511);box-shadow:0 0 9px #42271977}
+.p64-leaf{background:radial-gradient(ellipse at 50% 26%,#fae6b861,transparent 75%),linear-gradient(90deg,#6e4a23a8 0%,transparent 4%,transparent 96%,#79522d55 100%),url('/art/pass64/paper.webp') center/760px 900px repeat;
+ min-width:0;padding:clamp(22px,2.7vw,50px);box-shadow:inset 0 0 28px #70431d6b;position:relative;}
+.p64-leaf-left{border-right:1px solid #71512e;}
+.p64-leaf-right{border-left:1px solid #b78f55}
+.p64-leaf::after{content:"";pointer-events:none;position:absolute;inset:15px;border:1px solid #a0794a6b}
+.p64-page-label{color:#7e532a;margin-bottom:14px;text-align:center;font-size:11px}
+.p64-feature{border:1px solid #7f5934;padding:7px;box-shadow:0 3px 6px #67411e5c;background:#583719;position:relative;}
+.p64-feature-art{height:clamp(158px,16vw,260px);overflow:hidden;position:relative;}
+.p64-feature-art img{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(.9) contrast(1.06)}
+.p64-feature-art:after{content:"";position:absolute;inset:35% 0 0;background:linear-gradient(0deg,#150f0dee,transparent);pointer-events:none}
+.p64-feature-ribbon{position:absolute;z-index:1;bottom:12px;left:14px;padding:6px 10px;background:#1d1612e3;border:1px solid #d1a467;color:#f1d5a5;font-size:11px;letter-spacing:.1em}
+.p64-feature-copy{background:#201410;color:#f3dfb8;padding:19px 22px 21px;position:relative;border-top:1px solid #ba8348}
+.p64-feature-copy .p64-overline{color:#d7a76b;font-size:10px}
+.p64-feature-copy h2,.p64-feature-empty h2{font-size:clamp(27px,2.6vw,41px);line-height:1.12;letter-spacing:-.02em;font-weight:normal;color:#f3dfb8;margin:6px 0}
+.p64-feature-copy p{font-size:14px;font-style:italic;color:#d1b69a;margin:3px 0 18px}
+.p64-blood-button{display:inline-flex;justify-content:space-between;align-items:center;gap:35px;min-height:48px;padding:10px 18px;text-decoration:none;color:#ffe0b2!important;border:1px solid #c78861;box-shadow:inset 0 0 0 2px #5d1719,0 4px 10px #0005;
+ background:linear-gradient(180deg,#a73d3a,#621e23 55%,#44161d);font:600 15px Georgia,serif!important;text-transform:none;letter-spacing:0;transition:filter .2s,transform .2s;}
+.p64-blood-button:hover{filter:brightness(1.2);transform:translateY(-2px)}
+.p64-feature-empty{background:radial-gradient(circle at center,#624328,#23150f 80%);min-height:330px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;color:#e9ce9f}
+.p64-feature-empty p{font-size:14px;line-height:1.6;max-width:280px;color:#ddc5a0}
+.p64-feature-empty .p64-quiet-compass{font-size:58px;color:#c69454}
+.p64-ink-divider{text-align:center;color:#9f723f;font-size:20px;margin:18px 0 7px;position:relative}
+.p64-ink-divider:before,.p64-ink-divider:after{content:"";position:absolute;top:50%;width:38%;height:1px;background:linear-gradient(90deg,transparent,#936d41,transparent)}
+.p64-ink-divider:before{left:0}.p64-ink-divider:after{right:0}
+.p64-ledger-title{font:normal clamp(21px,2vw,29px) Georgia,serif;color:#51331e;margin:0 0 13px}
+.p64-ledger-title span{display:block;font:italic 12px Georgia,serif;color:#8b6544;margin-top:5px}
+.p64-desk .dashboard-command-grid{display:grid;grid-template-columns:1fr;gap:17px;margin:0;}
+.p64-desk :is(.panel,.dashboard-hero-card,.adventure-card){border:1px solid #9d774c;background:#f4e3bf40;color:var(--p64-ink);box-shadow:0 1px 0 #fff5,inset 0 0 8px #c29b6055}
+.p64-desk .panel-heading{background:#76502a19;border-bottom:1px solid #a58451;color:#613b25;letter-spacing:.09em;font:600 11px Georgia,serif;padding:12px 13px;min-height:0}
+.p64-desk .panel-body{padding:13px}
+.p64-desk .dashboard-empty-callout{border-color:#a5855e;min-height:100px;color:#4a2d1d}
+.p64-desk .dashboard-empty-callout :is(p,.eyebrow){color:#795436}
+.p64-desk .dashboard-journey-list{display:grid;gap:7px}
+.p64-desk .dashboard-journey-row{background:#f7e8cc88;border:1px solid #9e7a50;padding:12px;}
+.p64-desk .dashboard-journey-row .journey-row-main{color:#402819}
+.p64-desk .dashboard-journey-row .journey-row-main strong{font:normal 20px Georgia,serif;color:#452516}
+.p64-desk .dashboard-journey-row :is(.eyebrow,small,.journey-row-meta){color:#765336}
+.p64-desk .dashboard-join-form{display:grid;gap:12px}
+.p64-desk .dashboard-join-form label,.p64-desk .catalog-toolbar label,.p64-desk .catalog-hero-select{color:#684829;font:600 11px Georgia,serif}
+.p64-desk :is(input,select){border:1px solid #987348;background:#fcf0d8;color:#3c2519;border-radius:0;min-height:43px;padding:9px}
+.p64-desk input::placeholder{color:#91775b}
+.p64-desk .button{border:1px solid #886641;min-height:38px;padding:9px 11px;color:#654321;background:#efddba;box-shadow:inset 0 1px 0 #fff8;font:600 11px Georgia,serif;text-transform:none;letter-spacing:.01em}
+.p64-desk .button:hover:not(:disabled){background:#d2ae77;color:#322115}
+.p64-desk .button.button-primary{background:linear-gradient(180deg,#7b2929,#4d191d);color:#f8e7c8;border-color:#a56b4a}
+.p64-desk .button.button-primary:hover:not(:disabled){background:#a43e39;color:#fff4dc}
+.p64-desk .button:disabled{opacity:.58;cursor:not-allowed}
+.p64-desk .dashboard-section-header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:11px;margin-bottom:15px}
+.p64-desk .dashboard-section-header h2{font:normal clamp(25px,2.1vw,33px) Georgia,serif;letter-spacing:-.02em;color:#4a2f1f;margin:5px 0}
+.p64-desk .dashboard-section-header .eyebrow{font:700 10px Georgia,serif;color:#8e6239}
+.p64-desk .dashboard-section-header p{color:#77573a;font:italic 13px Georgia,serif;margin:3px 0}
+.p64-desk .dashboard-hero-browser{margin:0 0 22px}
+.p64-desk .dashboard-hero-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.p64-desk .dashboard-hero-card{position:relative;padding:13px;grid-template-columns:46px minmax(0,1fr);gap:7px 10px;align-items:start}
+.p64-desk .dashboard-hero-card.is-selected{border:2px solid #994b2e;box-shadow:inset 0 0 0 3px #e2c69b}
+.p64-hero-medallion{grid-row:span 2;width:43px;height:43px;display:grid;place-items:center;border:2px solid #a17842;border-radius:50%;background:radial-gradient(circle,#8a593b,#2a1810);color:#f0d8a8;font-size:22px;box-shadow:0 0 0 2px #e8d1a5}
+.p64-desk .dashboard-hero-copy .eyebrow{color:#8e552f;font-size:9px}
+.p64-desk .dashboard-hero-copy strong{font:normal 18px Georgia,serif;color:#4b2a1d}
+.p64-desk .dashboard-hero-copy p{font:italic 11px Georgia,serif;color:#745236;margin-top:3px}
+.p64-desk .dashboard-hero-vitals,.p64-desk .dashboard-hero-actions{grid-column:1/-1}
+.p64-desk .dashboard-hero-vitals{color:#735136}
+.p64-desk .dashboard-hero-vitals b{color:#a14b2f}
+.p64-desk .dashboard-adventure-browser{margin:0}
+.p64-desk .catalog-toolbar{grid-template-columns:minmax(0,1fr) minmax(120px,.55fr) 55px;background:#ae865d22;border:1px solid #ac885c;gap:6px;padding:9px}
+.p64-desk .catalog-result-count{border-color:#ad8759;color:#664123}
+.p64-desk .dashboard-adventure-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.p64-desk .dashboard-adventure-card{overflow:hidden;border:1px solid #8c6944;padding:0;display:flex;flex-direction:column}
+.p64-catalog-art{height:135px;border-bottom:2px solid #946e3e;position:relative;background:#493024;overflow:hidden}
+.p64-catalog-art img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .35s,filter .35s;filter:saturate(.84)}
+.p64-desk .dashboard-adventure-card:hover .p64-catalog-art img{transform:scale(1.045);filter:saturate(1.08)}
+.p64-desk .dashboard-adventure-card .panel-body{display:flex;flex-direction:column;align-items:flex-start;min-height:0;height:100%;padding:13px}
+.p64-desk .adventure-card-tags span{border:1px solid #a38563;color:#785739;background:#e1c79c9e;font:600 9px Georgia,serif;padding:4px 6px}
+.p64-desk .dashboard-adventure-card h3{color:#482b1b;font:normal 21px Georgia,serif;line-height:1.15;margin:11px 0 7px}
+.p64-desk .dashboard-adventure-card p{font:13px/1.55 Georgia,serif;color:#654831;margin:0 0 14px;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.p64-desk .dashboard-adventure-card .button{margin-top:auto}
+.p64-desk .catalog-hero-select{min-width:180px}
+.p64-desk .muted-copy,.p64-desk .system-notice{color:#6c472e}
+.p64-desk .empty-state{color:#61432d}
+.p64-desk .dashboard-system-section{max-width:1425px;margin:20px auto 0}
+.p64-desk .dashboard-system-panel{background:#22150edb;border:1px solid #947046;color:#e4c69b}
+.p64-desk .dashboard-system-panel .panel-heading{color:#e0bd88;background:#291a12;border-color:#6b492a}
+.p64-desk .dashboard-system-panel .dashboard-system-menu{grid-template-columns:repeat(3,minmax(0,1fr))}
+.p64-desk .dashboard-system-menu>a{background:#39271caf;border:1px solid #775635;min-height:65px;transition:background .2s,transform .2s}
+.p64-desk .dashboard-system-menu>a:hover{background:#594027;transform:translateY(-2px)}
+.p64-desk .dashboard-system-menu strong{color:#e2be88;font:600 13px Georgia,serif}
+.p64-desk .dashboard-system-menu span{color:#c5a987;font:12px/1.45 Georgia,serif}
+.p64-desk .p64-desk-scrap{position:absolute;bottom:1px;right:5%;color:#dfbe87;font:italic 13px Georgia,serif;letter-spacing:.025em;transform:rotate(-3deg)}
+/* Existing gameplay dialogs remain in place, but belong to this book's visual family. */
+.p64-desk .adventure-synopsis-modal{background:#e5cda3;color:#39291e;border:8px solid #40291b;box-shadow:0 25px 80px #000c}
+.p64-desk .adventure-synopsis-header{background:#503422;color:#f3d9b5}
+.p64-desk .adventure-synopsis-header h2{color:#fff1d6}
+.p64-desk .adventure-synopsis-body p{color:#3c291c}
+.p64-desk :is(.form-error,.system-notice){position:relative;z-index:8}
+@media(max-width:1270px){
+ .p64-masthead{padding-right:0;display:grid;justify-items:center;gap:8px}.p64-network{position:static}
+ .p64-leaf{padding:27px}.p64-desk .dashboard-hero-grid{grid-template-columns:1fr}
+ .p64-desk .dashboard-adventure-grid{grid-template-columns:1fr}.p64-catalog-art{height:180px}
+}
+@media(max-width:940px){
+ .p64-desk{padding:20px 15px}.p64-book{display:block;transform:none;border-width:8px}
+ .p64-spine{display:none}.p64-leaf{padding:clamp(24px,5vw,47px)}.p64-leaf-left{border-right:0;border-bottom:14px solid #3a2216}
+ .p64-leaf-right{border-left:0}.p64-desk .dashboard-hero-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .p64-desk .dashboard-adventure-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .p64-network{margin:0 auto}.p64-feature-art{height:clamp(210px,35vw,340px)}
+}
+@media(max-width:580px){
+ .p64-desk{padding:14px 8px 28px;margin:0 -10px;border-width:1px;box-shadow:inset 0 0 0 4px #100a08}
+ .p64-masthead{padding:11px 9px 2px;margin-bottom:18px}.p64-sigil{width:40px;height:40px;font-size:26px}
+ .p64-masthead h1{font-size:33px}.p64-masthead p{font-size:12px}
+ .p64-tabletop{padding:0 3px 28px}.p64-book{border:5px solid #38251b;border-radius:9px}
+ .p64-leaf{padding:22px 15px 27px;background-size:auto,auto,650px 770px}
+ .p64-leaf::after{inset:7px}.p64-page-label{font-size:9px}
+ .p64-feature-art{height:195px}.p64-feature-copy{padding:17px}.p64-feature-copy h2{font-size:30px}
+ .p64-feature-copy p{font-size:13px}.p64-feature-ribbon{font-size:9px}
+ .p64-desk .dashboard-hero-grid{grid-template-columns:1fr}
+ .p64-desk .dashboard-adventure-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .p64-catalog-art{height:120px}.p64-desk .dashboard-adventure-card .panel-body{padding:9px}
+ .p64-desk .dashboard-adventure-card h3{font-size:17px}.p64-desk .dashboard-adventure-card p{font-size:11px;-webkit-line-clamp:3}
+ .p64-desk .adventure-card-tags span{font-size:8px}.p64-desk .dashboard-adventure-card .button{font-size:10px;width:100%;padding:8px 4px}
+ .p64-desk .catalog-toolbar{grid-template-columns:1fr 1fr;gap:7px}.p64-desk .catalog-search-field{grid-column:1/-1}.p64-desk .catalog-result-count{min-height:43px}
+ .p64-desk .dashboard-system-panel .dashboard-system-menu{grid-template-columns:1fr 1fr}
+ .p64-desk .dashboard-command-grid .journey-row-actions{flex-wrap:wrap}
+ .p64-desk .catalog-hero-select{width:100%}.p64-desk .catalog-hero-select select{width:100%}
+ .p64-desk .p64-desk-scrap{font-size:11px}
+}
+@media(max-width:370px){.p64-desk .dashboard-adventure-grid{grid-template-columns:1fr}.p64-catalog-art{height:175px}.p64-desk .dashboard-system-panel .dashboard-system-menu{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.p64-desk *, .p64-desk *::before,.p64-desk *::after{transition:none!important;animation:none!important}}
+/* 64.2: The book is DOM content. Decor is independent, never a screenshot of buttons. */
+.p64-desk {
+ background:linear-gradient(0deg,rgba(9,6,5,.28),rgba(10,7,6,.40)),url('/art/pass64/desk-wood.webp') center/900px 980px repeat,#21130d;
+ overflow:clip;
+}
+.p64-tabletop::before{content:"";position:absolute;pointer-events:none;left:8%;right:8%;top:-110px;height:155px;background:url('/art/pass64/desk-props.webp') center/contain no-repeat;opacity:.86;filter:drop-shadow(0 8px 10px #000a)}
+.p64-book{box-shadow:0 0 0 5px #0c0806,0 0 0 9px #513b2c,0 26px 57px #000e,inset 0 0 20px #120909;}
+.p64-book::before{content:"";pointer-events:none;position:absolute;z-index:3;inset:0;opacity:.5;background:linear-gradient(105deg,#180c0b44,transparent 16%,transparent 83%,#180d0a65)}
+.p64-wardrobe-link{display:block;text-align:right;font:italic 14px Georgia,serif;color:#68401f!important;margin:-6px 0 15px;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:4px}
+.p64-wardrobe-link:hover{color:#7f252b!important}
+.p64-wardrobe-teaser{display:flex;align-items:center;gap:16px;border:1px double #916c42;padding:12px;margin-top:20px;background:#ccad7c55;color:#57351d!important;box-shadow:inset 0 0 0 3px #e9cfab77}
+.p64-wardrobe-teaser strong,.p64-wardrobe-teaser span{display:block}.p64-wardrobe-teaser strong{font:normal 22px Georgia,serif;color:#57341d}.p64-wardrobe-teaser span{font:italic 12px Georgia,serif;color:#77513a;margin-top:3px}
+.p64-wardrobe-teaser .p64-teaser-emblem{flex:0 0 auto;border:2px double #9e7441;padding:10px 14px;font-size:24px;color:#80542e}
+.p64-desk[data-platform-skin="wanderers-desk"] .p64-leaf{background-color:#efdab3;filter:none}
+.p64-desk[data-platform-skin="midnight-codex"]{--p64-wax:#6f222a;--p64-gold:#c29957;background-color:#120e0c}
+.p64-desk[data-platform-skin="midnight-codex"] .p64-book{border-color:#1b1515;outline-color:#aa8247;box-shadow:0 0 0 5px #100a08,0 0 0 10px #483324,0 26px 58px #000f}
+.p64-desk[data-platform-skin="midnight-codex"] .p64-leaf{background-blend-mode:normal,multiply,normal;background-color:#b78f65}
+.p64-desk[data-platform-skin="clear-journal"]{background:#34291e}
+.p64-desk[data-platform-skin="clear-journal"] .p64-leaf{background:#fff6e4;box-shadow:none}
+.p64-desk[data-platform-skin="clear-journal"] .p64-leaf :is(p,span,small){filter:none}
+.p64-desk[data-platform-skin="clear-journal"] .p64-book{transform:none}
+.p64-desk :is(input,select,textarea):focus-visible{outline:3px solid #92542a;outline-offset:3px}
+.p64-desk[data-reduced-motion="true"] *, .p64-desk[data-reduced-motion="true"] *::before,.p64-desk[data-reduced-motion="true"] *::after{animation:none!important;transition:none!important;transform:none!important}
+@media(max-width:940px){.p64-tabletop::before{height:110px;top:-72px}.p64-book{transform:none}.p64-wardrobe-teaser{margin-top:15px}}
+@media(max-width:580px){.p64-desk{overflow-x:clip}.p64-tabletop::before{display:none}.p64-wardrobe-link{text-align:center;font-size:13px}.p64-wardrobe-teaser{gap:10px}.p64-wardrobe-teaser strong{font-size:18px}.p64-wardrobe-teaser .p64-teaser-emblem{padding:8px 10px}}
+
+/* First-run help is a fold-out leaf in the book, not a detached page. */
+.p64-onboarding-bookmark{margin:16px 0 4px}
+.p64-onboarding-bookmark>.button{background:#d6b989;color:#59391c;border:1px dashed #885832;min-height:38px}
+.p64-onboarding-bookmark .first-run-guide{border:2px solid #886846;background:#f1dfbf}
+.p64-onboarding-bookmark .first-run-guide h2{font:normal 21px Georgia,serif;color:#50351e}

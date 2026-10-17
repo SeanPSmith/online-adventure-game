@@ -1,0 +1,17 @@
+/* Pass64 wardrobe controls: real preferences, no false buy interactions */
+.p64-wardrobe{margin:18px 0 28px;padding:clamp(18px,3vw,32px);background:linear-gradient(125deg,#281b16,#0f1217);border:1px solid #866642;color:#eadabe;box-shadow:inset 0 0 0 3px #120f10}
+.p64-wardrobe-heading h2{font:normal clamp(26px,3vw,38px) Georgia,serif;color:#f5dfb4;margin:8px 0}
+.p64-wardrobe-heading p{font:italic 15px/1.5 Georgia,serif;color:#c8b59c}
+.p64-wardrobe-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0}
+.p64-skin-card{border:2px solid #795b3b;padding:9px;color:#f7e2c2;background:#271914;display:flex;align-items:stretch;text-align:left;flex-direction:column;gap:5px;min-width:0;min-height:185px;border-radius:4px}
+.p64-skin-card:hover{border-color:#d8b276}.p64-skin-card.is-equipped{border-color:#efd08a;box-shadow:0 0 0 2px #5d3824,inset 0 0 0 1px #efcf8a}
+.p64-skin-card strong{font:normal 20px Georgia,serif;color:#f2dfbd}.p64-skin-card small{font:12px Georgia,serif;color:#c7b397}
+.p64-skin-thumbnail{height:105px;background:radial-gradient(ellipse,#6e422b,#1c130e);border:1px solid #a98656;display:grid;place-items:center}
+.p64-skin-thumbnail.is-wanderers-desk{background:linear-gradient(135deg,#cbab7a,#5e4326)}
+.p64-skin-thumbnail.is-midnight-codex{background:linear-gradient(135deg,#18171b,#63343a)}
+.p64-skin-thumbnail.is-clear-journal{background:linear-gradient(135deg,#fff4de,#cdbf9a)}
+.p64-skin-mini-book{display:grid;place-items:center;border:3px double #c5a472;background:linear-gradient(90deg,#ad8a62 48%,#674122 50%,#e8c18a 52%);width:70px;height:65px;color:#4e301c;font-size:25px;transform:rotate(-5deg);box-shadow:2px 5px 12px #0007}
+.p64-skin-status{margin-top:auto;padding:8px;border-top:1px solid #745235;color:#e5bf86;font-size:11px;letter-spacing:.09em;font-weight:700}
+.p64-wardrobe-reading{border:1px solid #805b3c;padding:14px;display:grid;gap:13px}.p64-wardrobe-reading legend{color:#e6be83;font:18px Georgia,serif;padding:0 7px}.p64-wardrobe-reading label{display:flex;align-items:center;gap:11px;font-size:13px;line-height:1.5}.p64-wardrobe-reading input{accent-color:#b37d48;width:18px;height:18px;flex-shrink:0}
+.p64-wardrobe-footnote{color:#cbb79b;font:italic 12px/1.5 Georgia,serif;margin:13px 0 0}
+@media(max-width:650px){.p64-wardrobe-choices{grid-template-columns:1fr}.p64-skin-card{min-height:0;display:grid;grid-template-columns:100px 1fr;grid-template-rows:auto auto 1fr;gap:4px 12px}.p64-skin-thumbnail{grid-row:1/4;height:105px}.p64-skin-card .p64-skin-status{margin-top:0;align-self:end}.p64-wardrobe{padding:17px 12px}}

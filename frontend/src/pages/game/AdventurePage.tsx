@@ -1,3 +1,6 @@
+import "./adventureWorldPass64.css";
+import { useAppearance } from "../../features/appearance/AppearanceContext";
+import { resolveAppearance } from "../../features/appearance/themeContract";
 import { NarratorVoicePicker } from "../../components/game/NarratorVoicePicker";
 import {
   useEffect,
@@ -87,6 +90,7 @@ function outcomeLabel(outcome: string) {
 
 export function AdventurePage() {
   const { roomId } = useParams();
+  const { preferences } = useAppearance();
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -94,6 +98,7 @@ export function AdventurePage() {
 
   const {
     adventures,
+    catalog,
     connected,
     startSolo,
     leaveAdventure,
@@ -106,6 +111,14 @@ export function AdventurePage() {
       ),
     [adventures, roomId],
   );
+
+  // Resolve by immutable catalog adventure ID, never a mutable display title.
+  // Author metadata is an allowlisted cosmetic ID; it cannot load arbitrary CSS.
+  const worldCatalogItem = catalog.find((item) => item.adventure_id === matchingAdventure?.adventure_id);
+  const worldSkin = resolveAppearance(preferences, worldCatalogItem
+    ? { adventureId: worldCatalogItem.adventure_id, metadata: worldCatalogItem.metadata,
+        tags: worldCatalogItem.tags, title: worldCatalogItem.title }
+    : { adventureId: matchingAdventure?.adventure_id, title: matchingAdventure?.adventure_title });
 
   const characterId =
     searchParams.get("hero")?.trim() ||
@@ -632,7 +645,7 @@ export function AdventurePage() {
           </div>
         </div>
       ) : null}
-      <div className="adventure-layout">
+      <div className="adventure-layout" data-world-skin={worldSkin.reader} data-reduced-motion={worldSkin.reducedMotion}>
         <section className="story-pane panel" ref={storyPaneRef}>
           <div className="scene-art">
             <pre>{theater.chapterReleased ? (scene?.ascii_art?.trim() || "SETTING THE STAGE_") : "THE NEXT CHAPTER IS SEALED_"}</pre>

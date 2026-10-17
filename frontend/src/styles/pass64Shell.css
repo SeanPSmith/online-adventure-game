@@ -1,0 +1,16 @@
+/* Shared platform chrome for the book-based player shell. Small and scoped; Admin/Arcade mechanics remain unmodified. */
+.game-site-shell.p64-shell:not(.is-adventure-mode){background:radial-gradient(ellipse at top,#423020,#160f0e 76%);min-height:100vh}
+.p64-shell .game-header{background:linear-gradient(120deg,#251710,#141014);border:1px solid #a07b4f;box-shadow:inset 0 0 0 2px #39291e,0 5px 22px #0009;color:#ead6b4;min-height:73px}
+.p64-shell .game-header .brand{gap:13px}
+.p64-shell .game-header .brand-mark{background:#523220;color:#f6d39c;border:2px double #bd9257;font:normal 24px Georgia,serif;transform:rotate(-7deg)}
+.p64-shell .game-header .brand strong{color:#efd3a3;font:normal clamp(18px,2vw,27px) Georgia,serif;letter-spacing:.01em}
+.p64-shell .game-header .brand small{color:#b79369;font:9px Georgia,serif;letter-spacing:.14em}
+.p64-shell .game-header .header-nav > a:not(.button),.p64-shell .game-header .header-system-menu > summary{color:#dbc39d;font:600 11px Georgia,serif;letter-spacing:.07em}
+.p64-shell .game-header .header-nav > a.active{background:#694127;border-color:#b18a57;color:#fff0d1}
+.p64-shell .game-header .header-user{border-left-color:#755537;color:#d1b58f}
+.p64-shell .game-header .header-user strong{color:#f5d7a6}
+.p64-shell .game-header :is(a,button,summary):focus-visible{outline:3px solid #f4c97c;outline-offset:3px}
+.p64-shell[data-platform-skin="clear-journal"]{background:#382b21}
+.p64-shell[data-platform-skin="clear-journal"] .game-header{background:#201d1a;color:#fff1d9}
+@media(max-width:700px){.p64-shell .game-header{margin:8px;gap:8px;padding:9px;flex-wrap:wrap}.p64-shell .game-header .brand-mark{width:37px;height:37px;font-size:18px}.p64-shell .game-header .header-nav{width:100%;display:flex;flex-wrap:nowrap;overflow-x:auto;gap:3px;padding-bottom:4px}.p64-shell .game-header .header-nav > a:not(.button),.p64-shell .game-header .header-system-menu > summary{min-height:44px;display:flex;align-items:center;white-space:nowrap;padding:10px 8px}.p64-shell .game-header .header-user{display:none}.p64-shell .game-main{padding:0 9px 20px}}
+@media(prefers-reduced-motion:reduce){.p64-shell .game-header .brand-mark{transform:none}}

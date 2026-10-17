@@ -1,28 +1,32 @@
 import { Link, NavLink, Outlet, useLocation } from "react-router";
 import { useAuth } from "../state/AuthContext";
+import { useAppearance } from "../features/appearance/AppearanceContext";
+import "../styles/pass64Shell.css";
 
 export function GameLayout() {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const { preferences } = useAppearance();
   const canAuthor = user?.permissions.includes("author") ?? false;
   const isAdmin = user?.permissions.includes("admin") ?? false;
   const isAdventureMode = location.pathname.startsWith("/game/adventure/");
 
   return (
-    <div className={`site-shell game-site-shell ${isAdventureMode ? "is-adventure-mode" : ""}`}>
+    <div className={`site-shell game-site-shell p64-shell ${isAdventureMode ? "is-adventure-mode" : ""}`} data-platform-skin={preferences.platformSkin}>
       <a className="skip-link" href="#main-content">SKIP TO CONTENT</a>
       <header className={`site-header game-header ${isAdventureMode ? "is-adventure-header" : ""}`}>
         <Link className="brand" to="/game">
           <span className="brand-mark">T2</span>
           <span>
             <strong>TALES OF TWO</strong>
-            <small>{isAdventureMode ? "LIVE ADVENTURE_" : "SHARED STORY SYSTEM_"}</small>
+            <small>{isAdventureMode ? "THE STORY UNFOLDS" : "A LIBRARY OF POSSIBILITIES"}</small>
           </span>
         </Link>
 
         <nav className="header-nav game-nav" aria-label="Primary navigation">
           <NavLink to="/game" end>HOME</NavLink>
           <NavLink to="/game/heroes">HEROES</NavLink>
+          <NavLink to="/account?tab=preferences#wardrobe">WARDROBE</NavLink>
           <NavLink to="/game/adventures">MY ADVENTURES</NavLink>
           <details className="header-system-menu">
             <summary>SYSTEM</summary>

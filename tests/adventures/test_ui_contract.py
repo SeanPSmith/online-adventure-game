@@ -329,7 +329,8 @@ def test_dashboard_pass_22_prioritizes_journey_hero_search_and_system_menu() -> 
     styles = read("styles/components.css")
     layout_styles = read("styles/layout.css")
 
-    assert 'title="WHAT HAPPENS NEXT?"' in home
+    assert 'className="p64-desk"' in home
+    assert 'aria-label="Continue your adventure"' in home
     assert 'title="CONTINUE JOURNEY"' in home
     assert 'YOUR HEROES' in home
     assert 'ADVENTURE LIBRARY' in home

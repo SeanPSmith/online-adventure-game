@@ -1,5 +1,6 @@
 import "./gameHomePass64.css";
 import "./deskFidelityPass64.css";
+import "./deskScrapbookPass64.css";
 import { useAppearance } from "../../features/appearance/AppearanceContext";
 import { FirstRunGuide } from "../../features/onboarding/FirstRunGuide";
 import { useEffect, useMemo, useState } from "react";
@@ -286,7 +287,10 @@ export function GameHomePage() {
         </span>
       </header>
 
-            <span className="p64-page-label">✦ &nbsp; THE OPEN CHRONICLE</span>
+            <div className="p64b-feature-heading">
+              <span className="p64-page-label">✦ &nbsp; THE OPEN CHRONICLE</span>
+              <span className="p64b-chapter-stamp" aria-hidden="true">FIELD NOTES · VOL. I</span>
+            </div>
             <section className="p64-feature" aria-label="Continue your adventure">
               {primaryJourney ? (
                 <>
@@ -328,7 +332,7 @@ export function GameHomePage() {
       />
             </div>
             <div className="p64-ink-divider" aria-hidden="true">✧</div>
-            <h2 className="p64-ledger-title">Your unfinished business <span>Quite the collection.</span></h2>
+            <h2 className="p64-ledger-title">Your unfinished business <span>It followed you home.</span></h2>
             <section className="dashboard-command-grid">
         <Panel title="CONTINUE JOURNEY" className="dashboard-journey-panel">
           {!directoryReady ? (
@@ -444,7 +448,8 @@ export function GameHomePage() {
             </section>
           </div>
           <div className="p64-leaf p64-leaf-right">
-            <span className="p64-page-label">✧ &nbsp; THE PEOPLE &amp; PLACES</span>
+            <span className="p64-page-label p64b-right-label">✧ &nbsp; THE PEOPLE &amp; PLACES</span>
+            <div className="p64b-corner-note" aria-hidden="true">Good company. <br /> Questionable plans. <span>✦</span></div>
             <Link className="p64-wardrobe-link" to="/account?tab=preferences#wardrobe">✦ Change your journal’s look ↗</Link>
             <section className="dashboard-hero-browser">
         <div className="dashboard-section-header">
@@ -476,7 +481,7 @@ export function GameHomePage() {
             const selected = hero.character_id === selectedHeroId;
 
             return (
-              <article className={`dashboard-hero-card ${selected ? "is-selected" : ""}`} key={hero.character_id}>
+              <article className={`dashboard-hero-card p64b-portrait ${selected ? "is-selected" : ""}`} key={hero.character_id}>
                 <span className="p64-hero-medallion" aria-hidden="true">{hero.name.slice(0, 1)}</span>
                 <div className="dashboard-hero-copy">
                   <span className="eyebrow">
@@ -513,7 +518,7 @@ export function GameHomePage() {
         </div>
       </section>
 
-      <section id="p64-library" className="dashboard-adventure-browser">
+      <section id="p64-library" className="dashboard-adventure-browser p64b-atlas">
         <div className="dashboard-section-header">
           <div>
             <span className="eyebrow">ADVENTURE LIBRARY</span>
@@ -571,9 +576,10 @@ export function GameHomePage() {
           </div>
         </div>
 
+        <div className="p64b-atlas-intro" aria-hidden="true"><span>PLACES TO GET LOST</span><span>✧</span><span>NO TWO ROADS ALIKE</span></div>
         <div className="adventure-catalog-grid dashboard-adventure-grid">
           {filteredCatalog.map((adventure) => (
-            <article className="adventure-card dashboard-adventure-card panel" key={adventure.adventure_id}>
+            <article className="adventure-card dashboard-adventure-card p64b-postcard panel" key={adventure.adventure_id}>
               <div className="p64-catalog-art"><img src={p64Cover(adventure.title, adventure.tags)} alt="" loading="lazy" /></div>
               <div className="panel-body">
                 <div className="adventure-card-tags">

@@ -1,0 +1,212 @@
+/* PASS 64.2b — The Collected Desk.
+ * A tactile scrapbook, not a stack of panels. Decorative layers never contain
+ * navigation or printed interface text; all actions remain semantic DOM controls.
+ * Imported after 64.2a so desktop art direction is isolated and reversible.
+ */
+.p64-desk{
+ --p64b-shadow: 0 15px 24px rgba(38,19,8,.28),0 3px 5px rgba(30,15,9,.22);
+ background-color:#170e0b;
+ padding-top:clamp(165px,13.2vw,215px);
+}
+.p64-desk .p64-tabletop{max-width:1280px;perspective:1900px}
+.p64-desk .p64-book{
+ position:relative;
+ display:grid;
+ grid-template-columns:minmax(0,1.04fr) minmax(0,.96fr);
+ align-items:stretch;
+ transform:rotate(-.45deg);
+ border-width:14px 19px 18px;
+ border-radius:20px 16px 23px 17px;
+ box-shadow:0 0 0 5px #130b09,0 0 0 9px #5e361f,0 0 0 11px #ae7e4980,0 45px 65px #020101d9;
+}
+.p64-desk .p64-book::after{inset:5px;border:1px solid #9f723b55}
+.p64-desk .p64-leaf{position:relative;min-width:0;padding:clamp(22px,2.4vw,36px)}
+.p64-desk .p64-leaf-left{padding-top:28px;transform-origin:right center;
+ background-image:linear-gradient(91deg,#7b543f36,transparent 6%,transparent 72%,#4d301448 100%),radial-gradient(ellipse at 40% 22%,#fff6dd99,transparent 73%),url('/art/pass64/paper.webp');
+}
+.p64-desk .p64-leaf-right{padding:clamp(22px,2.2vw,34px) clamp(24px,2.5vw,40px);
+ background-image:linear-gradient(88deg,#4a2b1a7a,transparent 6%,transparent 92%,#855e443d 100%),radial-gradient(ellipse at 45% 20%,#fff6e09c,transparent 69%),url('/art/pass64/paper.webp');
+}
+/* Stitched edge, page-thickness illusion, and real book gutter */
+.p64-desk .p64-book::before{z-index:1;inset:-9px;opacity:1;border-radius:16px;box-shadow:inset 0 0 0 3px #a5814b66,
+ inset 0 0 0 7px #291a13a6;
+ background:linear-gradient(90deg,#0006,transparent 3%,transparent 97%,#0007);}
+.p64-desk .p64-spine{z-index:3;width:33px;left:calc(50% + 2% - 16px);background:linear-gradient(90deg,transparent,#25120fa6 28%,#110908da 48%,#ebcf9852 58%,#5e3a2461 76%,transparent);pointer-events:none}
+.p64-desk .p64-leaf::before{content:"";position:absolute;pointer-events:none;inset:7px;z-index:0;border:1px solid #7a593027;box-shadow:inset 0 0 18px #74492122}
+.p64-desk .p64-leaf > *{position:relative;z-index:1}
+/* Real paper greeting and feature art become a deliberate asymmetrical spread. */
+.p64-desk .p64-masthead{width:88%;margin:0 auto 9px;padding:10px 13px 12px;
+ border:0;transform:rotate(-1.6deg);background:linear-gradient(165deg,#fff0d088,#d8af7650);
+ box-shadow:2px 5px 12px #77553124;
+}
+.p64-desk .p64-masthead .p64-sigil{font-size:16px;margin-bottom:0}
+.p64-desk .p64-masthead h1{font-size:clamp(25px,2.3vw,35px);margin:2px 0 5px}
+.p64-desk .p64-masthead .p64-overline{font-size:9px;line-height:1.2}
+.p64-desk .p64-masthead .p64-network{font-size:10px;margin:3px auto 0}
+.p64-desk .p64b-feature-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:14px -3px 13px;transform:rotate(-.5deg)}
+.p64-desk .p64b-feature-heading .p64-page-label{margin:0}
+.p64b-chapter-stamp{display:block;font:700 8px Georgia,serif;color:#946a48;letter-spacing:.12em;border:1px solid #ab805c75;padding:6px 7px;transform:rotate(4deg)}
+.p64-desk .p64-feature{margin:7px 8px 13px 0;padding:8px;border:0;
+ transform:rotate(-1.2deg);background:linear-gradient(#7a5331,#3b2216);
+ box-shadow:var(--p64b-shadow),0 0 0 1px #754c29,0 0 0 5px #e6c69d;
+ transition:transform .23s ease,box-shadow .23s ease;
+}
+.p64-desk .p64-feature:hover{transform:rotate(-.55deg) translateY(-2px)}
+.p64-desk .p64-feature::before{content:"";position:absolute;top:-9px;left:38%;height:26px;width:91px;z-index:5;
+ transform:rotate(3deg);background:linear-gradient(145deg,#e8d0a3c9,#c3a37a91);border:1px solid #8c79553d;box-shadow:0 2px 4px #0003;pointer-events:none}
+.p64-desk .p64-feature-art{height:clamp(300px,30vw,425px)}
+.p64-desk .p64-feature-copy{padding:25px 20px 18px}
+.p64-desk .p64-feature-copy h2{font-size:clamp(25px,2.35vw,36px);text-shadow:0 2px 5px #100908}
+.p64-desk .p64-feature-copy p{max-width:31rem}
+.p64-desk .p64-feature-ribbon{border:1px solid #b08c5f;color:#f3dfc2;background:#302013e6}
+.p64-desk .p64-blood-button{display:inline-flex;gap:10px;align-items:center;position:relative;border:1px solid #d89b6b;
+ box-shadow:0 4px 11px #0009,inset 0 1px #e0a18b5e;min-height:46px}
+.p64-desk .p64b-feature-heading::before{content:'✧';position:absolute;font-size:24px;color:#98633770;top:26px;left:-15px}
+/* Folded notes below the featured plate; preserve join, abandon, invite, recover. */
+.p64-desk .p64-onboarding-bookmark{margin:18px 0 6px;transform:rotate(.7deg)}
+.p64-desk .p64-ink-divider{margin:16px 0 9px}
+.p64-desk .p64-ledger-title{font-size:clamp(18px,1.6vw,24px);margin:0 0 12px;color:#583721;display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+.p64-desk .p64-ledger-title span{font:italic 12px Georgia,serif;color:#885a3b}
+.p64-desk .dashboard-command-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;margin:0 8px 0 0}
+.p64-desk .dashboard-command-grid .panel{position:relative;border:1px solid #aa8252;background:#e5c99bfa;
+ transform:rotate(.65deg);box-shadow:var(--p64b-shadow);overflow:visible}
+.p64-desk .dashboard-command-grid .panel::after{content:"";position:absolute;top:-8px;right:10%;width:72px;height:17px;background:#c9a97a9c;transform:rotate(5deg);pointer-events:none}
+.p64-desk .dashboard-command-grid .dashboard-join-panel{width:92%;justify-self:end;transform:rotate(-1.4deg);
+ background:linear-gradient(160deg,#f1dcb8,#cda67c);}
+.p64-desk .dashboard-command-grid .panel-heading{background:transparent!important;border-bottom:1px solid #a7804d88!important;color:#6f3d29}
+.p64-desk .dashboard-command-grid .dashboard-journey-list{max-height:380px;overflow:auto;overscroll-behavior:contain}
+/* The second page is a collected set of objects, not a two-column dashboard. */
+.p64-desk .p64b-right-label{display:block;margin:1px 0 9px;transform:rotate(-1deg)}
+.p64-desk .p64b-corner-note{pointer-events:none;z-index:2;position:absolute!important;right:15px;top:65px;max-width:118px;
+ padding:12px 8px 10px;text-align:center;transform:rotate(8deg);
+ background:linear-gradient(160deg,#e2cc9a,#c8ab7b);border:1px solid #9778517d;
+ box-shadow:1px 5px 12px #6b471f4d;font:italic 12px/1.2 Georgia,serif;color:#754a30}
+.p64-desk .p64b-corner-note span{display:block;margin-top:4px;color:#92542b}
+.p64-desk .p64-wardrobe-link{display:block;width:max-content;max-width:calc(100% - 130px);font-size:12px;
+ padding:8px 14px 9px;background:#7b3c38;color:#fff0d1!important;box-shadow:2px 3px 8px #38180f80;
+ border-radius:2px 0 8px 2px;transform:rotate(-2deg);text-decoration:none;margin:3px 0 20px}
+.p64-desk .p64-wardrobe-link:hover{background:#642527;color:#fff8e9!important}
+.p64-desk .dashboard-hero-browser{padding:7px 0 28px;margin-bottom:22px;border-bottom:0;position:relative}
+.p64-desk .dashboard-hero-browser::after{content:"✦   THE PARTY MANIFEST   ✦";display:block;position:absolute;bottom:0;left:6%;right:6%;text-align:center;font:9px Georgia,serif;letter-spacing:.23em;color:#946d4a;border-bottom:1px solid #a9865b80;padding-bottom:6px}
+.p64-desk .dashboard-hero-browser .dashboard-section-header{display:block;max-width:calc(100% - 120px);margin:0 0 12px}
+.p64-desk .dashboard-hero-browser .dashboard-section-header h2{font-size:clamp(21px,1.9vw,26px);max-width:240px;line-height:1.05}
+.p64-desk .dashboard-hero-browser .dashboard-section-header p{max-width:250px}
+.p64-desk .dashboard-hero-browser .dashboard-section-header .button{font-size:10px;padding:5px 9px;min-height:33px;margin-top:9px}
+.p64-desk .dashboard-hero-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 14px;
+ margin:16px 7px 9px 0;align-items:start}
+.p64-desk .dashboard-hero-card.p64b-portrait{position:relative;z-index:1;display:grid;grid-template-columns:50px minmax(0,1fr);
+ transform:rotate(-2.3deg);min-height:174px;padding:15px 12px 12px;
+ background:linear-gradient(160deg,#f6e9cd,#dabd8a);border:7px solid #ead5b0;
+ outline:1px solid #9c734e;box-shadow:0 13px 17px #67432970;transition:transform .22s,box-shadow .22s;}
+.p64-desk .dashboard-hero-card.p64b-portrait:nth-child(2n){transform:translateY(14px) rotate(3deg)}
+.p64-desk .dashboard-hero-card.p64b-portrait:nth-child(3n){transform:translateY(-4px) rotate(1.2deg)}
+.p64-desk .dashboard-hero-card.p64b-portrait:is(:hover,:focus-within){z-index:7;transform:translateY(-5px) rotate(0);box-shadow:0 15px 24px #4c2c1794}
+.p64-desk .dashboard-hero-card.p64b-portrait.is-selected{border-color:#f9eccd;outline:2px solid #a25d3f}
+.p64-desk .dashboard-hero-card.p64b-portrait::after{content:"";position:absolute;top:-15px;left:45%;width:35px;height:15px;transform:rotate(5deg);background:#d5b88caa;box-shadow:0 2px 3px #583b2361;pointer-events:none}
+.p64-desk .p64-hero-medallion{width:47px;height:55px;border-radius:3px;box-shadow:0 0 0 2px #826245,0 3px 7px #6244298c;
+ background:radial-gradient(circle at 33% 26%,#a47752,#43281c);font-size:22px}
+.p64-desk .dashboard-hero-card.p64b-portrait .dashboard-hero-copy strong{font-size:17px}
+.p64-desk .dashboard-hero-card.p64b-portrait .dashboard-hero-copy p{font-size:11px;line-height:1.25;max-height:3.8em;overflow:hidden}
+.p64-desk .dashboard-hero-card.p64b-portrait .dashboard-hero-vitals{font-size:9px;display:flex;gap:8px;flex-wrap:wrap}
+.p64-desk .dashboard-hero-card.p64b-portrait .dashboard-hero-actions{display:flex;gap:4px;flex-wrap:wrap;margin-top:3px}
+/* Adventure postcards stagger, but all buttons and complete descriptions remain interactive. */
+.p64-desk .p64b-atlas{position:relative;margin:12px 0 10px;padding:0 2px}
+.p64-desk .p64b-atlas>.dashboard-section-header{display:flex;align-items:flex-end;gap:12px;margin:0 0 12px}
+.p64-desk .p64b-atlas .dashboard-section-header h2{font-size:clamp(23px,2vw,29px)}
+.p64-desk .p64b-atlas .dashboard-section-header p{font-size:12px}
+.p64-desk .catalog-hero-select{min-width:130px}
+.p64-desk .catalog-hero-select select{max-width:200px}
+.p64-desk .catalog-toolbar{margin:2px 6px 11px;transform:rotate(-.7deg);background:#dcc095ae;border:1px dashed #af855b;
+ box-shadow:0 5px 8px #66432438}
+.p64b-atlas-intro{display:flex;align-items:center;justify-content:center;gap:16px;margin:6px 0 13px;
+ color:#98704b;font:700 9px Georgia,serif;letter-spacing:.13em;transform:rotate(1deg)}
+.p64b-atlas-intro span:nth-child(2){font-size:20px;color:#ad7b48}
+.p64-desk .dashboard-adventure-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:21px 13px;margin:0 5px 14px;align-items:start}
+.p64-desk .dashboard-adventure-card.p64b-postcard{position:relative;z-index:1;transform:rotate(-2deg);background:#f3e5c7!important;
+ padding:7px 7px 12px;border:0;overflow:visible;box-shadow:0 12px 17px #6340226e,0 0 0 1px #ba9965;
+ transition:transform .22s,box-shadow .22s}
+.p64-desk .dashboard-adventure-card.p64b-postcard:nth-child(2n){transform:translateY(10px) rotate(2.6deg)}
+.p64-desk .dashboard-adventure-card.p64b-postcard:nth-child(3n){transform:translateY(-2px) rotate(1.1deg)}
+.p64-desk .dashboard-adventure-card.p64b-postcard:is(:hover,:focus-within){z-index:5;transform:translateY(-5px) rotate(0);box-shadow:0 16px 28px #6041299c}
+.p64-desk .dashboard-adventure-card.p64b-postcard .p64-catalog-art{height:clamp(110px,11vw,176px);border:1px solid #b68c63}
+.p64-desk .dashboard-adventure-card.p64b-postcard .panel-body{padding:10px 5px 0}
+.p64-desk .dashboard-adventure-card.p64b-postcard h3{font-size:clamp(16px,1.5vw,20px);margin:7px 0 4px}
+.p64-desk .dashboard-adventure-card.p64b-postcard p{margin-bottom:10px;font-size:11px;line-height:1.35;-webkit-line-clamp:3}
+.p64-desk .dashboard-adventure-card.p64b-postcard .button{align-self:stretch;min-height:35px}
+.p64-desk .p64-wardrobe-teaser{width:72%;min-width:250px;margin:25px 0 10px auto;transform:rotate(-2deg);
+ background:linear-gradient(120deg,#ead7b5,#c69c6c);box-shadow:var(--p64b-shadow);border:1px dashed #a7794d}
+.p64-desk .p64-wardrobe-teaser .p64-teaser-emblem{font-size:22px;border-radius:50%}
+.p64-desk .dashboard-system-section{margin:22px auto 0;max-width:1150px;transform:rotate(-.4deg)}
+.p64-desk .dashboard-system-panel{background:linear-gradient(145deg,#2c1b13,#140f0c);border:5px ridge #754c2a}
+/* Functional UI stays flat when users opt for maximum clarity. */
+.p64-desk[data-platform-skin="clear-journal"] .p64-masthead,
+.p64-desk[data-platform-skin="clear-journal"] .p64-feature,
+.p64-desk[data-platform-skin="clear-journal"] .dashboard-command-grid .panel,
+.p64-desk[data-platform-skin="clear-journal"] .dashboard-hero-card.p64b-portrait,
+.p64-desk[data-platform-skin="clear-journal"] .dashboard-adventure-card.p64b-postcard,
+.p64-desk[data-platform-skin="clear-journal"] .catalog-toolbar{transform:none;box-shadow:none}
+.p64-desk[data-platform-skin="clear-journal"] .p64b-corner-note,
+.p64-desk[data-platform-skin="clear-journal"] .p64b-atlas-intro,
+.p64-desk[data-platform-skin="clear-journal"] .p64b-chapter-stamp{display:none}
+/* Tablet and phone: turn the spread into one journal, rather than overlap controls. */
+@media(max-width:1320px){
+ .p64-desk{padding-top:clamp(135px,12vw,190px)}
+ .p64-desk .p64-wardrobe-link{max-width:calc(100% - 92px)}
+ .p64-desk .p64b-corner-note{max-width:85px;font-size:10px;right:8px;top:74px}
+ .p64-desk .dashboard-hero-browser .dashboard-section-header{max-width:calc(100% - 90px)}
+}
+@media(max-width:1050px){
+ .p64-desk{padding-top:90px}
+ .p64-desk .p64-book{grid-template-columns:1fr;transform:none;max-width:720px;margin:auto}
+ .p64-desk .p64-spine{display:none}
+ .p64-desk .p64-leaf-left{border-radius:11px 11px 0 0;border-bottom:10px solid #472b1e}
+ .p64-desk .p64-leaf-right{border-radius:0 0 11px 11px}
+ .p64-desk .p64-feature-art{height:clamp(280px,44vw,430px)}
+ .p64-desk .dashboard-hero-browser .dashboard-section-header{max-width:calc(100% - 105px)}
+ .p64-desk .dashboard-adventure-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:640px){
+ .p64-desk{padding:35px 5px 28px;overflow-x:clip;background-size:auto 620px}
+ .p64-desk .p64-tabletop{padding:0 7px}
+ .p64-desk .p64-book{border-width:7px;border-radius:13px;outline:2px solid #80532d}
+ .p64-desk .p64-leaf{padding:23px 17px 26px}
+ .p64-desk .p64-masthead{width:100%;transform:none;padding:10px 6px;background:transparent;box-shadow:none}
+ .p64-desk .p64-masthead h1{font-size:clamp(26px,7vw,32px)}
+ .p64-desk .p64b-feature-heading{margin:6px 0 13px}
+ .p64-desk .p64b-chapter-stamp{font-size:7px;letter-spacing:0;padding:4px}
+ .p64-desk .p64-feature{margin:2px 1px 15px;transform:rotate(-.5deg);padding:5px}
+ .p64-desk .p64-feature-art{height:clamp(285px,83vw,390px)}
+ .p64-desk .p64-feature-copy{padding:17px 13px 14px}
+ .p64-desk .p64-feature-copy h2{font-size:clamp(22px,6.3vw,30px)}
+ .p64-desk .p64-onboarding-bookmark{transform:none}
+ .p64-desk .dashboard-command-grid{margin:0;gap:14px}
+ .p64-desk .dashboard-command-grid .dashboard-join-panel{width:100%;transform:none}
+ .p64-desk .p64-wardrobe-link{max-width:calc(100% - 112px);font-size:11px;margin-bottom:22px}
+ .p64-desk .p64b-corner-note{right:13px;top:53px;max-width:94px}
+ .p64-desk .dashboard-hero-browser .dashboard-section-header{max-width:calc(100% - 93px)}
+ .p64-desk .dashboard-hero-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 10px}
+ .p64-desk .dashboard-hero-card.p64b-portrait{grid-template-columns:1fr;min-height:0;padding:10px 9px;border-width:5px}
+ .p64-desk .p64-hero-medallion{width:43px;height:43px;grid-row:auto}
+ .p64-desk .dashboard-hero-card.p64b-portrait .dashboard-hero-copy{grid-column:1}
+ .p64-desk .dashboard-hero-card.p64b-portrait .dashboard-hero-copy strong{font-size:15px}
+ .p64-desk .dashboard-adventure-grid{gap:18px 12px}
+ .p64-desk .dashboard-adventure-card.p64b-postcard .p64-catalog-art{height:clamp(105px,34vw,160px)}
+ .p64-desk .dashboard-adventure-card.p64b-postcard .button{font-size:10px;padding:7px 4px}
+ .p64-desk .catalog-toolbar{transform:none;margin:2px 0 12px}
+ .p64-desk .p64-wardrobe-teaser{width:100%;min-width:0}
+}
+@media(max-width:410px){
+ .p64-desk .p64-leaf{padding:20px 11px 22px}
+ .p64-desk .dashboard-hero-grid{grid-template-columns:1fr;gap:13px}
+ .p64-desk .dashboard-hero-card.p64b-portrait{grid-template-columns:48px minmax(0,1fr);transform:none!important}
+ .p64-desk .p64-hero-medallion{grid-row:span 2}
+ .p64-desk .dashboard-adventure-grid{grid-template-columns:1fr;gap:15px}
+ .p64-desk .dashboard-adventure-card.p64b-postcard{transform:none!important}
+ .p64-desk .dashboard-adventure-card.p64b-postcard .p64-catalog-art{height:175px}
+ .p64-desk .p64b-corner-note{position:static!important;transform:rotate(2deg);margin:0 0 6px auto}
+ .p64-desk .p64-wardrobe-link{max-width:100%;margin-bottom:8px}
+ .p64-desk .dashboard-hero-browser .dashboard-section-header{max-width:100%}
+}
+@media(prefers-reduced-motion:reduce){
+ .p64-desk .p64-feature,.p64-desk .dashboard-hero-card.p64b-portrait,.p64-desk .dashboard-adventure-card.p64b-postcard{transition:none}
+}

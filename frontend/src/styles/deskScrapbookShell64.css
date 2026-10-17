@@ -1,0 +1,59 @@
+/* Pass 64.2b — navigation is now a set of bound-in leather bookmarks.
+   Same React links, route rules, permissions, and account menu. */
+@media (min-width:1321px){
+  .p64-shell.is-desk-home .game-header{
+    top:192px;left:max(8px,calc((100vw - 1545px)/2));width:124px;
+    padding:10px 4px;border:0;border-radius:0;background:transparent;
+    box-shadow:none;overflow:visible;
+  }
+  .p64-shell.is-desk-home .game-header .brand{
+    margin:0 0 17px;padding:15px 9px 14px;border:4px ridge #84572f;border-radius:7px;
+    background:linear-gradient(145deg,#382219,#170f0d);box-shadow:0 8px 16px #070303a8;text-shadow:0 1px 3px #000;
+    transform:rotate(-3deg);
+  }
+  .p64-shell.is-desk-home .game-header .brand strong{font-size:16px}
+  .p64-shell.is-desk-home .game-header .header-nav{display:flex;flex-direction:column;gap:6px;overflow:visible;align-items:stretch}
+  .p64-shell.is-desk-home .game-header .header-nav>a:not(.button),
+  .p64-shell.is-desk-home .game-header .header-system-menu>summary{
+    position:relative;display:flex;align-items:center;width:128px;min-height:43px;
+    padding:11px 8px 11px 14px;border:1px solid #a27846;border-left:4px solid #b28b50;
+    border-radius:2px 9px 8px 1px;box-shadow:2px 5px 10px #000b,inset 0 1px #aa855138;
+    background:linear-gradient(115deg,#5d3826,#24150f);color:#f5dfb9;font-size:11px;
+    transform:rotate(-2deg);transition:transform .18s,background .18s;
+  }
+  .p64-shell.is-desk-home .game-header .header-nav>a:nth-child(even){transform:rotate(1.8deg)}
+  .p64-shell.is-desk-home .game-header .header-nav>a:is(:hover,:focus-visible),
+  .p64-shell.is-desk-home .game-header .header-system-menu>summary:is(:hover,:focus-visible){transform:translateX(7px) rotate(0);background:#765035}
+  .p64-shell.is-desk-home .game-header .header-nav>a.active{background:linear-gradient(125deg,#863d2d,#42211d);color:#fff3da;border-color:#c9985c}
+  .p64-shell.is-desk-home .game-header .header-system-menu{width:128px}
+  .p64-shell.is-desk-home .game-header .header-system-menu>summary{list-style:none;cursor:pointer}
+  .p64-shell.is-desk-home .game-header .header-system-popover{top:0;left:134px;min-width:205px}
+  .p64-shell.is-desk-home .game-header .header-user{
+    border:0;margin-top:17px;padding:11px 5px;
+    background:#1a110def;border-top:2px solid #8b6440;transform:rotate(1deg);
+  }
+}
+@media(min-width:1321px) and (max-width:1480px){
+  .p64-shell.is-desk-home .game-header{width:92px;left:4px}
+  .p64-shell.is-desk-home .game-header .header-nav>a:not(.button),
+  .p64-shell.is-desk-home .game-header .header-system-menu>summary{width:94px;padding:9px 5px;font-size:9px}
+  .p64-shell.is-desk-home .game-header .header-system-menu{width:94px}
+  .p64-shell.is-desk-home .game-header .header-system-popover{left:100px}
+}
+@media(max-width:1320px){
+  .p64-shell.is-desk-home .game-header{
+    border-bottom:3px ridge #b18a5e;
+    background:linear-gradient(95deg,#21120e,#49301f 51%,#1a0f0d);
+  }
+  .p64-shell.is-desk-home .game-header .brand strong{letter-spacing:.015em}
+  .p64-shell.is-desk-home .game-header .header-nav>a:not(.button){border-radius:3px}
+}
+@media(max-width:700px){
+  .p64-shell.is-desk-home .game-header{padding:8px 9px 4px;background:linear-gradient(95deg,#2d1a13,#120c0a)}
+  .p64-shell.is-desk-home .game-header .brand{padding:6px 0 10px}
+  .p64-shell.is-desk-home .game-header .header-nav{
+    scrollbar-width:thin;scrollbar-color:#a77a4b #20100e;
+  }
+  .p64-shell.is-desk-home .game-header .header-nav>a:not(.button),
+  .p64-shell.is-desk-home .game-header .header-system-menu>summary{min-height:44px;font-size:11px}
+}

@@ -3,6 +3,7 @@ import { useAuth } from "../state/AuthContext";
 import { useAppearance } from "../features/appearance/AppearanceContext";
 import "../styles/pass64Shell.css";
 import "../styles/deskShellFidelityPass64.css";
+import "../styles/deskScrapbookShell64.css";
 
 export function GameLayout() {
   const { user, logout } = useAuth();

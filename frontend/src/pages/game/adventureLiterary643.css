@@ -1,0 +1,11 @@
+/* Pass 64.3A — literary typesetting only, no story/progression state changes. */
+.adventure-layout[data-world-skin] .story-pane .p643-story-prose{max-width:73ch;margin-inline:auto;font-family:Georgia,'Palatino Linotype','Book Antiqua',serif;font-size:clamp(16px,1.1vw,19px);line-height:1.75;letter-spacing:.005em;overflow-wrap:anywhere}
+.adventure-layout[data-world-skin] .story-pane .p643-story-prose p{margin:0 0 1.15em;line-height:inherit}
+.adventure-layout[data-world-skin] .story-pane .p643-story-prose[data-reading-typeface="typewriter"]{font-family:'American Typewriter','Courier New',monospace;font-size:clamp(15px,1vw,17px);line-height:1.85}
+.adventure-layout[data-world-skin] .story-pane .p643-story-prose[data-reading-typeface="plain"]{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;font-size:clamp(16px,1.07vw,19px);letter-spacing:normal;line-height:1.65}
+.adventure-layout[data-world-skin] .story-pane .p643-story-prose[data-decorative-initials="true"]:not([data-reading-typeface="plain"]) .p643-opening-paragraph::first-letter{font-family:'Palatino Linotype','Book Antiqua',Georgia,serif;font-size:3.2em;line-height:.82;float:left;padding:7px 9px 0 0;color:#865b37;font-weight:bold}
+.adventure-layout[data-world-skin="starward"] .story-pane .p643-story-prose .p643-opening-paragraph::first-letter{color:#67b8dc}
+.adventure-layout[data-world-skin="gothic"] .story-pane .p643-story-prose .p643-opening-paragraph::first-letter{color:#d18f9e}
+.adventure-layout[data-world-skin="plain"] .story-pane .p643-story-prose .p643-opening-paragraph::first-letter{float:none;font-size:inherit;padding:0;font-family:inherit;font-weight:inherit}
+@media(max-width:640px){.adventure-layout[data-world-skin] .story-pane .p643-story-prose{font-size:17px;max-width:100%}}
+@media(prefers-reduced-motion:reduce){.adventure-layout[data-world-skin] .story-pane .p643-story-prose{animation:none}}

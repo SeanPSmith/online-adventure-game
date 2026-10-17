@@ -1,10 +1,14 @@
 export interface StoryDisplayPreferences {
   wordReveal: boolean;
+  decorativeInitials: boolean;
+  readingTypeface: "literary" | "typewriter" | "plain";
 }
 
 const STORAGE_KEY = "tot:story-display";
 const DEFAULTS: StoryDisplayPreferences = {
   wordReveal: true,
+  decorativeInitials: true,
+  readingTypeface: "literary",
 };
 
 export function readStoryDisplayPreferences(): StoryDisplayPreferences {
@@ -12,6 +16,9 @@ export function readStoryDisplayPreferences(): StoryDisplayPreferences {
     const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "{}") as Partial<StoryDisplayPreferences>;
     return {
       wordReveal: typeof parsed.wordReveal === "boolean" ? parsed.wordReveal : DEFAULTS.wordReveal,
+      decorativeInitials: typeof parsed.decorativeInitials === "boolean" ? parsed.decorativeInitials : DEFAULTS.decorativeInitials,
+      readingTypeface: parsed.readingTypeface === "plain" || parsed.readingTypeface === "typewriter"
+        ? parsed.readingTypeface : "literary",
     };
   } catch {
     return { ...DEFAULTS };
@@ -21,7 +28,12 @@ export function readStoryDisplayPreferences(): StoryDisplayPreferences {
 export function writeStoryDisplayPreferences(
   preferences: StoryDisplayPreferences,
 ): StoryDisplayPreferences {
-  const normalized = { wordReveal: Boolean(preferences.wordReveal) };
+  const normalized: StoryDisplayPreferences = {
+    wordReveal: Boolean(preferences.wordReveal),
+    decorativeInitials: Boolean(preferences.decorativeInitials),
+    readingTypeface: preferences.readingTypeface === "plain" || preferences.readingTypeface === "typewriter"
+      ? preferences.readingTypeface : "literary",
+  };
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
   } catch {

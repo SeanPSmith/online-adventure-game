@@ -99,7 +99,7 @@ export function AppearanceWardrobe() {
       <label><input type="radio" name="p64-reader-mode" checked={preferences.readerMode === "plain"}
         onChange={() => updateAppearance({ readerMode: "plain", readerOverride: null })} /> Use the simpler, high-legibility Reader (overrides cosmetics)</label>
       <label className="p64-wardrobe-motion"><input type="checkbox" checked={preferences.reducedMotion}
-        onChange={(event) => updateAppearance({ reducedMotion: event.target.checked })} /> Reduce decorative motion and skip page turns</label>
+        onChange={(event) => updateAppearance({ reducedMotion: event.target.checked })} /> Reduce decorative motion and skip fades</label>
     </fieldset>
     <div className="p64-theme-workshop-header">
       <div><h3>Skin Workshop</h3><p>Paint your own pages. Keep your dice honest.</p></div>

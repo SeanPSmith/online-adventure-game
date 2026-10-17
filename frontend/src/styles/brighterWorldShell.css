@@ -1,0 +1,30 @@
+/* Shared flagship shell: photographic tabletop remains decorative; navigation is real. */
+.p64-shell.is-desk-home[data-platform-skin="brighter-world"]:not([data-installed-library-theme="true"]){background:#ddc7a9}
+@media(min-width:1321px){
+ .p64-shell.is-desk-home[data-platform-skin="brighter-world"]:not([data-installed-library-theme="true"]) .game-header{top:65px;background:transparent;width:117px;box-shadow:none;border:0;padding:0 3px;left:max(8px,calc((100vw - 1555px)/2))}
+ .p64-shell.is-desk-home[data-platform-skin="brighter-world"]:not([data-installed-library-theme="true"]) .game-header .brand{background:#f2e6cf;border:2px solid #c4b294;border-radius:4px;box-shadow:0 4px 9px #7460463d;text-shadow:none;padding:10px 5px;margin-bottom:10px;transform:rotate(-2deg)}
+ .p64-shell.is-desk-home[data-platform-skin="brighter-world"]:not([data-installed-library-theme="true"]) .game-header .brand strong{color:#3b3025;font:normal 16px Georgia,serif}
+ .p64-shell.is-desk-home[data-platform-skin="brighter-world"]:not([data-installed-library-theme="true"]) .game-header .brand small{color:#6e5a44}
+ .p64-shell.is-desk-home[data-platform-skin="brighter-world"]:not([data-installed-library-theme="true"]) .game-header .header-nav>a:not(.button),
+ .p64-shell.is-desk-home[data-platform-skin="brighter-world"]:not([data-installed-library-theme="true"]) .game-header .header-system-menu>summary{background:#f7ecd9;border:1px solid #bda889;border-left:4px solid #a69375;color:#382d24;box-shadow:0 2px 6px #725b414a;transform:rotate(-1deg);font:normal 11px Georgia,serif;min-height:42px}
+ .p64-shell.is-desk-home[data-platform-skin="brighter-world"]:not([data-installed-library-theme="true"]) .game-header .header-nav>a.active{background:#e2cba6;color:#382b1f}
+ .p64-shell.is-desk-home[data-platform-skin="brighter-world"]:not([data-installed-library-theme="true"]) .game-header .header-user{background:#eadaaf;box-shadow:0 2px 5px #765d4040;border-color:#b5a081}
+ .p64-shell.is-desk-home[data-platform-skin="brighter-world"]:not([data-installed-library-theme="true"]) .game-header .header-user :is(.eyebrow,strong){color:#433426}
+}
+@media(max-width:1320px){
+ .p64-shell.is-desk-home[data-platform-skin="brighter-world"]:not([data-installed-library-theme="true"]) .game-header{background:#f5e9d6;border-bottom:1px solid #b9a180;box-shadow:0 2px 9px #7c64422a;color:#3e3022}
+ .p64-shell.is-desk-home[data-platform-skin="brighter-world"]:not([data-installed-library-theme="true"]) .game-header .brand :is(strong,small){color:#352b24}
+ .p64-shell.is-desk-home[data-platform-skin="brighter-world"]:not([data-installed-library-theme="true"]) .game-header .header-nav>a:not(.button),
+ .p64-shell.is-desk-home[data-platform-skin="brighter-world"]:not([data-installed-library-theme="true"]) .game-header .header-system-menu>summary{color:#4d392b;background:transparent}
+ .p64-shell.is-desk-home[data-platform-skin="brighter-world"]:not([data-installed-library-theme="true"]) .game-header .header-nav>a.active{background:#e2ceb3;color:#35291f}
+}
+/* Route content naturally fades in on mount. No sheet overlay; NEVER animate the live Reader. */
+.p64-shell:not(.is-adventure-mode) .game-main > :first-child{animation:p643-arrive 155ms ease-out both}
+@keyframes p643-arrive{from{opacity:.72}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){.p64-shell:not(.is-adventure-mode) .game-main > :first-child{animation:none}}
+
+/* Story Display settings can be opened without the Adventure Reader chunk. */
+.p643-typeface-picker{border:1px solid var(--border-color,#8d7859);padding:12px;display:flex;gap:12px 20px;flex-wrap:wrap;margin:10px 0;min-width:0}
+.p643-typeface-picker legend{font-size:12px;font-weight:700;padding:0 6px}
+.p643-typeface-picker label{display:inline-flex;gap:8px;align-items:center;min-height:44px;cursor:pointer}
+.p643-typeface-picker input{accent-color:currentColor}

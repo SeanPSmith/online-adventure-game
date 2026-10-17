@@ -35,15 +35,15 @@ def test_reader_override_cannot_disrupt_turn_state():
     assert 'StoryReveal' in story
     assert 'useGameSocket' in story
 
-def test_book_turn_is_presentation_only():
+def test_storybook_navigation_uses_no_fake_page_overlay():
     layout = content("layouts/GameLayout.tsx")
-    turn = content("features/appearance/BookPageTurn.tsx")
-    assert '<BookPageTurn />' in layout
-    assert 'useLocation()' in turn
-    assert 'prefers-reduced-motion: reduce' in turn
-    assert 'path.startsWith("/game/heroes")' in turn
-    assert 'const lastPath = useRef(pathname);' in turn
-    assert 'pointer-events:none' in content("features/appearance/bookPageTurn.css")
+    shell = content("styles/brighterWorldShell.css")
+    assert '<BookPageTurn />' not in layout
+    assert 'import { BookPageTurn }' not in layout
+    assert 'brighterWorldShell.css' in layout
+    assert '@keyframes p643-arrive' in shell
+    assert 'prefers-reduced-motion:reduce' in shell
+    assert '.is-adventure-mode' in shell  # Live Reader is excluded from navigation fades.
 
 
 def test_workshop_uses_project_native_themed_selectors():

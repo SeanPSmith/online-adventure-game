@@ -8,6 +8,8 @@ interface StoryRevealProps {
   enabled: boolean;
   followNarration?: boolean;
   narrationCue?: NarrationCue | null;
+  decorativeInitials?: boolean;
+  readingTypeface?: "literary" | "typewriter" | "plain";
 }
 
 /** Emphasize explicit spoken dialogue without changing the authored text. */
@@ -19,7 +21,7 @@ function prefersReducedMotion() {
   return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
 }
 
-export function StoryReveal({ sceneId, text, enabled, followNarration = false, narrationCue = null }: StoryRevealProps) {
+export function StoryReveal({ sceneId, text, enabled, followNarration = false, narrationCue = null, decorativeInitials = true, readingTypeface = "literary" }: StoryRevealProps) {
   const paragraphs = useMemo(() => text.split(/\n{2,}/).filter(Boolean), [text]);
   const words = useMemo(() => paragraphs.map((paragraph) => paragraph.split(/(\s+)/)), [paragraphs]);
   const totalWords = useMemo(
@@ -62,13 +64,15 @@ export function StoryReveal({ sceneId, text, enabled, followNarration = false, n
 
   return (
     <div
-      className={`story-reveal ${animate && visibleWords < totalWords ? "is-unfurling" : ""}`}
+      className={`story-reveal p643-story-prose ${animate && visibleWords < totalWords ? "is-unfurling" : ""}`}
+      data-reading-typeface={readingTypeface}
+      data-decorative-initials={decorativeInitials}
       onClick={() => setVisibleWords(totalWords)}
     >
       <span className="sr-only">{text}</span>
       <div aria-hidden="true">
         {followNarration ? paragraphs.map((_, paragraphIndex) => (
-          <p key={`${sceneId}:synced:${paragraphIndex}`} className={isDialogueParagraph(paragraphs[paragraphIndex]) ? "story-dialogue-paragraph" : undefined}>
+          <p key={`${sceneId}:synced:${paragraphIndex}`} className={isDialogueParagraph(paragraphs[paragraphIndex]) ? "story-dialogue-paragraph" : paragraphIndex === 0 ? "p643-opening-paragraph" : undefined}>
             {syncSentences.map((sentence, sentenceIndex) => sentence.paragraph === paragraphIndex ? (
               <span
                 key={`${sceneId}:sentence:${sentenceIndex}`}
@@ -81,7 +85,7 @@ export function StoryReveal({ sceneId, text, enabled, followNarration = false, n
             ) : null)}
           </p>
         )) : words.map((tokens, paragraphIndex) => (
-          <p key={`${sceneId}:${paragraphIndex}`} className={isDialogueParagraph(paragraphs[paragraphIndex]) ? "story-dialogue-paragraph" : undefined}>
+          <p key={`${sceneId}:${paragraphIndex}`} className={isDialogueParagraph(paragraphs[paragraphIndex]) ? "story-dialogue-paragraph" : paragraphIndex === 0 ? "p643-opening-paragraph" : undefined}>
             {tokens.map((token, tokenIndex) => {
               if (!token.trim()) return token;
               const current = wordIndex++;

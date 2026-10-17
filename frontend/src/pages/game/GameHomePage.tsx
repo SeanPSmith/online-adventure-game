@@ -1,6 +1,7 @@
 import "./gameHomePass64.css";
 import "./deskFidelityPass64.css";
 import "./deskScrapbookPass64.css";
+import "./gameBrighterWorld.css";
 import { useAppearance } from "../../features/appearance/AppearanceContext";
 import { FirstRunGuide } from "../../features/onboarding/FirstRunGuide";
 import { useEffect, useMemo, useState } from "react";
@@ -286,6 +287,7 @@ export function GameHomePage() {
           {connected ? "✦ THE STORIES ARE AWAKE" : "✧ RECONNECTING TO THE ARCHIVE"}
         </span>
       </header>
+      <div className="p643-watercolor-vista" aria-hidden="true" />
 
             <div className="p64b-feature-heading">
               <span className="p64-page-label">✦ &nbsp; THE OPEN CHRONICLE</span>

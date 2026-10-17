@@ -1,5 +1,5 @@
 /** Pass 64: cosmetic presentation only. No rewards, dice or server state mutations. */
-export const PLATFORM_SKINS = ['wanderers-desk', 'midnight-codex', 'clear-journal'] as const;
+export const PLATFORM_SKINS = ['brighter-world', 'wanderers-desk', 'midnight-codex', 'clear-journal'] as const;
 export const WORLD_SKINS = ['fantasy', 'starward', 'gothic'] as const;
 export type PlatformSkinId = typeof PLATFORM_SKINS[number];
 export type WorldSkinId = typeof WORLD_SKINS[number];
@@ -29,11 +29,12 @@ export interface WorldAppearanceSource {
 }
 
 export const DEFAULT_APPEARANCE: Readonly<AppearancePreferences> = Object.freeze({
-  platformSkin: 'midnight-codex', readerMode: 'follow-world',
+  platformSkin: 'brighter-world', readerMode: 'follow-world',
   readerOverride: null, reducedMotion: false,
 });
 
 export const SKIN_MANIFEST = Object.freeze({
+  'brighter-world': { label: 'Brighter World', family: 'platform', material: 'sunlit watercolor / ivory / ink', edition: 1 },
   'wanderers-desk': { label: "The Wanderer's Desk", family: 'platform', material: 'oak / paper / brass', edition: 1 },
   'midnight-codex': { label: 'The Midnight Codex', family: 'platform', material: 'ebony / leather / gilt', edition: 1 },
   'clear-journal': { label: 'The Clear Journal', family: 'platform', material: 'accessible high-legibility paper', edition: 1 },
@@ -95,7 +96,7 @@ export function resolveAppearance(
   const worldDefault = worldSkinFromCatalog(source);
   const platform: PlatformSkinId = PLATFORM_SKINS.includes(prefs.platformSkin)
     || hasEntitlement(verifiedEntitlements, prefs.platformSkin, 'platform')
-    ? prefs.platformSkin : 'wanderers-desk';
+    ? prefs.platformSkin : 'brighter-world';
   let reader: WorldSkinId | 'plain' = worldDefault;
   if (prefs.readerMode === 'plain') reader = 'plain';
   if (prefs.readerMode === 'owned-skin' && prefs.readerOverride &&

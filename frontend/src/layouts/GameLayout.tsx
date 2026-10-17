@@ -7,7 +7,7 @@ import "../styles/deskScrapbookShell64.css";
 import "../styles/pass64_2cPerformance.css";
 import "../features/appearance/themePresentation.css";
 import { themeCssVars } from "../features/appearance/themePacks";
-import { BookPageTurn } from "../features/appearance/BookPageTurn";
+import "../styles/brighterWorldShell.css";
 import type { CSSProperties } from "react";
 
 export function GameLayout() {
@@ -58,7 +58,6 @@ export function GameLayout() {
         </div>
       </header>
 
-      <BookPageTurn />
       <main id="main-content" tabIndex={-1} className="game-main">
         <Outlet />
       </main>

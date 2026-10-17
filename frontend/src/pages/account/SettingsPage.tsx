@@ -1,3 +1,4 @@
+import "../../styles/brighterWorldShell.css";
 import { useEffect, useMemo, useState } from "react";
 import {
   readAudioPreferences, writeAudioPreferences, AUDIO_PREFERENCES_CHANGED, KOKORO_VOICES, NARRATION_PLAYBACK_SPEEDS,
@@ -575,13 +576,28 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
                 type="checkbox"
                 checked={storyDisplay.wordReveal}
                 onChange={(event) => {
-                  const next = writeStoryDisplayPreferences({ wordReveal: event.target.checked });
+                  const next = writeStoryDisplayPreferences({ ...storyDisplay, wordReveal: event.target.checked });
                   setStoryDisplay(next);
                 }}
               />
               <span>{storyDisplay.wordReveal ? "ON" : "OFF"}</span>
             </label>
           </div>
+          <div className="notification-setting-row">
+            <div><strong>ILLUMINATED INITIALS</strong><p>Open a new chapter with an ornamental first letter. Turn it off for simpler reading.</p></div>
+            <label className="terminal-toggle"><input type="checkbox" checked={storyDisplay.decorativeInitials}
+              onChange={event => setStoryDisplay(writeStoryDisplayPreferences({ ...storyDisplay, decorativeInitials: event.target.checked }))} />
+              <span>{storyDisplay.decorativeInitials ? "ON" : "OFF"}</span></label>
+          </div>
+          <fieldset className="p643-typeface-picker"><legend>STORY TYPEFACE</legend>
+            {(["literary", "typewriter", "plain"] as const).map(style => (
+              <label key={style}><input type="radio" name="story-typeface" value={style}
+                checked={storyDisplay.readingTypeface === style}
+                onChange={() => setStoryDisplay(writeStoryDisplayPreferences({ ...storyDisplay, readingTypeface: style }))} />
+                {style === "literary" ? "Novel" : style === "typewriter" ? "Typewriter" : "Plain / High legibility"}
+              </label>
+            ))}
+          </fieldset>
         </div>
       </Panel>
 

@@ -1,6 +1,7 @@
 import { themeCssVars } from "../../features/appearance/themePacks";
 import type { CSSProperties } from "react";
 import "./adventureWorldPass64.css";
+import "./adventureLiterary643.css";
 import { useAppearance } from "../../features/appearance/AppearanceContext";
 import { resolveAppearance } from "../../features/appearance/themeContract";
 import { NarratorVoicePicker } from "../../components/game/NarratorVoicePicker";
@@ -901,6 +902,8 @@ ${scene.body.slice(0, 260)}`}
                 <StoryReveal
                   sceneId={scene.id}
                   text={scene.body}
+                  decorativeInitials={storyPreferences.decorativeInitials && worldSkin.reader !== "plain"}
+                  readingTypeface={worldSkin.reader === "plain" ? "plain" : storyPreferences.readingTypeface}
                   enabled={storyPreferences.wordReveal && theater.phase === "none"}
                   followNarration={audioPreferences.narrationEnabled && followVoice && narration.cue?.kind === "story" && (narration.phase === "playing" || narration.phase === "paused")}
                   narrationCue={theater.chapterReleased && (narration.phase === "playing" || narration.phase === "paused") ? narration.cue : null}

@@ -34,6 +34,8 @@ export const router = createBrowserRouter([
         children: [
           // Pass 64.4D — isolated visual playground (no GameLayout header and no gameplay mutations).
           { path: "game/visual-playground", lazy: async () => ({ Component: (await import("./pages/game/VisualBookPlaygroundPage")).VisualBookPlaygroundPage }) },
+          // Pass 64.4E: independent, protected ink-mask laboratory. Not /game or the blank playground.
+          { path: "game/ink-lab", lazy: async () => ({ Component: (await import("./pages/game/VisualBookPlaygroundPage")).InkBookPlaygroundPage }) },
           {
             path: "game",
             element: <GameLayout />,

@@ -4,6 +4,7 @@ import { useAuth } from "../../state/AuthContext";
 import "./visualBookPlayground.css";
 import { InkLabBook } from "./InkLabBook";
 import { SpaceLab } from "./SpaceLab";
+import { InkspaceStorySurface } from "./InkspaceStoryPage";
 import { type LightingId } from "../../features/cosmetics/environmentCatalog";
 
 // PASS 64.4D: deliberately isolated playground, not a replacement for /game.
@@ -21,12 +22,17 @@ export function InkBookPlaygroundPage() {
   return <VisualBookPlaygroundShell inkLab />;
 }
 
+// PASS 64.4I: story surface remains in the isolated physical book shell.
+export function InkspaceStoryPlaygroundPage() {
+  return <VisualBookPlaygroundShell storyLab />;
+}
+
 // PASS 64.4F: separate preview, no content/gameplay changes.
 export function SpaceBookPlaygroundPage() {
   return <VisualBookPlaygroundShell spaceLab />;
 }
 
-function VisualBookPlaygroundShell({ inkLab = false, spaceLab = false }: { inkLab?: boolean; spaceLab?: boolean }) {
+function VisualBookPlaygroundShell({ inkLab = false, spaceLab = false, storyLab = false }: { inkLab?: boolean; spaceLab?: boolean; storyLab?: boolean }) {
   const { user } = useAuth();
   const [active, setActive] = useState<Tab>("Home");
   const [profileOpen, setProfileOpen] = useState(false);
@@ -35,7 +41,7 @@ function VisualBookPlaygroundShell({ inkLab = false, spaceLab = false }: { inkLa
   const username = user?.username || "Adventurer";
 
   return (
-    <div className={`vb-lab ${inkLab ? "has-ink" : ""} ${spaceLab ? "has-space" : ""}`} data-active-tab={active} data-lighting={lighting}>
+    <div className={`vb-lab ${inkLab ? "has-ink" : ""} ${spaceLab ? "has-space" : ""} ${storyLab ? "has-story" : ""}`} data-active-tab={active} data-lighting={lighting}>
       <a className="vb-skip" href="#vb-book">Skip navigation to book</a>
       <img
         className="vb-scene"
@@ -90,6 +96,7 @@ function VisualBookPlaygroundShell({ inkLab = false, spaceLab = false }: { inkLa
       </header>
       <main id="vb-book" className="vb-book-space" tabIndex={-1} aria-label={inkLab ? "Ink laboratory on ivory pages" : "Blank book for the visual playground"}>
         {inkLab ? <InkLabBook activeTab={active} /> : null}
+        {storyLab ? <InkspaceStorySurface activeTab={active} /> : null}
       </main>
       {spaceLab ? <SpaceLab onLightingChange={setLighting} /> : null}
     </div>

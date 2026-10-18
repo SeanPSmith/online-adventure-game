@@ -36,6 +36,8 @@ export const router = createBrowserRouter([
           { path: "game/visual-playground", lazy: async () => ({ Component: (await import("./pages/game/VisualBookPlaygroundPage")).VisualBookPlaygroundPage }) },
           // Pass 64.4E: independent, protected ink-mask laboratory. Not /game or the blank playground.
           { path: "game/ink-lab", lazy: async () => ({ Component: (await import("./pages/game/VisualBookPlaygroundPage")).InkBookPlaygroundPage }) },
+          // Pass 64.4I: isolated living-manuscript story surface; no game-state writes.
+          { path: "game/inkspace-story", lazy: async () => ({ Component: (await import("./pages/game/VisualBookPlaygroundPage")).InkspaceStoryPlaygroundPage }) },
           // Pass 64.4F: isolated cosmetic environment preview; does not mutate game or account.
           { path: "game/space-lab", lazy: async () => ({ Component: (await import("./pages/game/VisualBookPlaygroundPage")).SpaceBookPlaygroundPage }) },
           {

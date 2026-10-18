@@ -1,7 +1,7 @@
 /* Pass 64.4E: only page ink is masked. The photographic tabletop, physical
    pages, spine, lighting, header and menu NEVER acquire a mask/animation. */
 .vb-lab.has-ink .vb-book-space{pointer-events:auto}
-.ink-lab-spread {position:absolute;inset:7% 3.5% 1% 5.2%;display:grid;grid-template-columns:46% 49%;gap:5%;color:#382419;z-index:1;}
+.ink-lab-spread {position:absolute;inset:7% 12% 8% 10%;display:grid;grid-template-columns:44% 44%;gap:12%;color:#382419;z-index:1;}
 .ink-lab-leaf{min-width:0;position:relative}
 .ink-lab-type{position:absolute;inset:3% 8% 1% 2%;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;-webkit-mask-image:url('/art/pass64/ink-masks/ink-00.webp');mask-image:url('/art/pass64/ink-masks/ink-00.webp');-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;will-change:mask-image}
 .ink-lab-kicker,.ink-lab-overline{color:#916d4d;font:600 clamp(10px,.89vw,14px)/1.3 Georgia,serif;letter-spacing:.16em;text-transform:uppercase;margin:0 0 19px}
@@ -30,7 +30,7 @@
 .ink-lab-replay span{font-size:22px;margin-right:4px;vertical-align:-2px}
 .ink-lab-speed{font-size:clamp(11px,.8vw,13px);color:#8d7353}
 .ink-lab-speed span{padding-left:6px}
-@media(max-height:760px) and (min-width:861px){.ink-lab-spread{inset:5% 3% 0 5%}.ink-lab-kicker{margin-bottom:7px}.ink-lab-type h1{font-size:clamp(25px,2.6vw,42px);margin-bottom:9px}.ink-lab-rule{margin-bottom:15px}.ink-lab-prose{font-size:clamp(13px,1vw,16px)}.ink-lab-quote{font-size:17px}.ink-lab-overline{margin-bottom:7px}.ink-lab-controls{margin-top:2px}}
-@media(max-width:1250px) and (min-width:861px){.ink-lab-spread{inset:7% 2% 1% 5%}.ink-lab-type h1{font-size:clamp(27px,2.9vw,39px)}.ink-lab-prose{font-size:14px}.ink-lab-quote{font-size:15px}}
+@media(max-height:760px) and (min-width:861px){.ink-lab-spread{inset:5% 12% 8% 10%}.ink-lab-kicker{margin-bottom:7px}.ink-lab-type h1{font-size:clamp(25px,2.6vw,42px);margin-bottom:9px}.ink-lab-rule{margin-bottom:15px}.ink-lab-prose{font-size:clamp(13px,1vw,16px)}.ink-lab-quote{font-size:17px}.ink-lab-overline{margin-bottom:7px}.ink-lab-controls{margin-top:2px}}
+@media(max-width:1250px) and (min-width:861px){.ink-lab-spread{inset:7% 12% 8% 10%}.ink-lab-type h1{font-size:clamp(27px,2.9vw,39px)}.ink-lab-prose{font-size:14px}.ink-lab-quote{font-size:15px}}
 @media(max-width:860px){.vb-lab.has-ink{overflow-y:auto}.vb-lab.has-ink .vb-scene{position:fixed}.vb-lab.has-ink .vb-book-space{position:relative;top:0;left:auto;width:100%;height:auto;min-height:100vh;padding:116px 15px 30px;pointer-events:auto}.ink-lab-spread{position:relative;inset:auto;display:flex;flex-direction:column;gap:16px;max-width:560px;margin:auto;padding:28px 27px 32px;background:linear-gradient(155deg,#f7e8c9ed,#f0ddb4f5);box-shadow:0 8px 32px #1d0d0799;border:1px solid #b78b5a96;border-radius:4px}.ink-lab-type{position:relative;inset:auto;display:flex;min-height:340px;align-items:flex-start}.ink-lab-type h1{font-size:clamp(30px,7vw,46px)}.ink-lab-prose{font-size:17px}.ink-lab-quote{margin:22px auto 15px}.ink-lab-leaf--right{padding:10px 0}.ink-lab-illustration{height:280px;min-height:280px;flex:auto}.ink-lab-image img,.ink-lab-pigment img{height:88%}.ink-lab-overline{margin:0 auto 12px}.ink-lab-controls{margin:6px auto 0}}
 @media(prefers-reduced-motion:reduce){.ink-lab-type,.ink-lab-image,.ink-lab-pigment{will-change:auto}.ink-lab-pigment{display:none}}

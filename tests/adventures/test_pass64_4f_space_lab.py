@@ -49,13 +49,16 @@ def test_only_local_catalog_assets_and_no_billing_or_gameplay_mutations():
 
 def test_safe_zones_use_source_aligned_cover_coordinates():
     css = (SRC / "pages/game/spaceLab.css").read_text()
-    assert '177.68vh' in css and '56.28vw' in css
+    assert '177.6833vh' in css and '56.2799vw' in css
     assert '.space-safe-left' in css and '.space-safe-right' in css
+    assert '.space-scene-plane' in css and '.space-spine-guide' in css
     assert '.vb-lab.has-space .vb-scene' in css
     assert '@media(prefers-reduced-motion:reduce)' in css
     assert ART.is_file() and ART.stat().st_size > 100_000
     model = (SRC / "features/cosmetics/environmentCatalog.ts").read_text()
-    for coordinate in ('x: 0.225', 'x: 0.55', 'y: 0.355'):
+    assert 'validatesSpineAlignedSafeZones' in model
+    assert 'spineX: 0.523' in model
+    for coordinate in ('x: 0.267', 'x: 0.563', 'y: 0.258'):
         assert coordinate in model
 
 

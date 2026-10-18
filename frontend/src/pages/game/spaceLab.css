@@ -54,11 +54,25 @@
 .space-actions{display:flex;gap:8px;justify-content:space-between}
 .space-actions button{min-height:44px;padding:9px 13px;font:14px Georgia,serif;background:transparent;color:#65402b;border:1px solid #99734e;cursor:pointer}
 .space-actions .space-done{background:#4b3022;color:#fff0d1;border-color:#4b3022}
-/* Cover-aligned art guides: coordinates are percentages of 1672x941 source plate,
-   NOT percentages of cropped viewport. This stays correct under object-fit:cover. */
-.space-safe-plane{position:absolute;width:max(100vw,177.68vh);height:max(100vh,56.28vw);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:3}
-.space-safe-space{position:absolute;top:35.5%;height:47%;border:2px dashed #943f22bf;background:#fff4ce18;box-shadow:0 0 0 1px #fff2cfb2 inset;display:flex;justify-content:center;align-items:center;color:#73341d;font:italic 14px Georgia,serif;text-align:center}
-.space-safe-left{left:22.5%;width:23.3%}
-.space-safe-right{left:55%;width:23.5%}
-@media(max-width:860px){.space-workshop{top:81px;left:12px;right:12px;bottom:83px;width:auto;max-height:none;padding:18px;z-index:15}.space-workshop-launch{bottom:14px;left:14px;font-size:14px}.space-safe-plane{display:none}}
-@media(prefers-reduced-motion:reduce){.vb-lab.has-space .vb-scene{transition:none}}
+/* One projected coordinate plane for the photographed 1672×941 plate.
+   object-fit:cover with centered object-position uses these same dimensions. */
+.space-scene-plane{position:absolute;width:max(100vw,177.6833vh);height:max(100vh,56.2799vw);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:2;overflow:hidden}
+.space-overlay-prop{position:absolute;object-fit:contain;filter:drop-shadow(1px 5px 4px #20110872);transition:opacity 260ms ease;pointer-events:none}
+.space-overlay-prop.space-overlay-prop_left{transform:rotate(-12deg)}
+.space-overlay-prop.space-overlay-prop_right{transform:rotate(14deg)}
+.space-layout-guides{position:absolute;inset:0}
+.space-book-guide{position:absolute;outline:1px dotted #82492589;outline-offset:0;opacity:.8}
+.space-spine-guide{position:absolute;top:19.3%;height:73%;border-left:2px dashed #9a4222aa}
+.space-safe-space{position:absolute;border:2px dashed #864329d5;border-radius:15px 12px 15px 12px;background:#fff5ca18;box-shadow:0 0 0 1px #fff3cea3 inset;display:flex;justify-content:center;align-items:center;color:#753c2a;font:italic 14px Georgia,serif;text-align:center;transform:rotate(-.35deg);text-shadow:0 1px 1px #fce9c8}
+.space-safe-left{transform:rotate(-.35deg)}
+.space-safe-right{transform:rotate(.35deg)}
+.space-decor-caption{font:italic 12px/1.4 Georgia,serif;color:#825c3f;margin:-2px 0 10px}
+.space-resolution-props{display:block;margin-top:3px}
+.space-source-divider{flex-basis:100%;margin-top:5px;padding-top:7px;border-top:1px solid #b6906c55;font:600 12px Georgia,serif;color:#744a30}
+@media(max-width:860px){.space-workshop{top:81px;left:12px;right:12px;bottom:83px;width:auto;max-height:none;padding:18px;z-index:15}.space-workshop-launch{bottom:14px;left:14px;font-size:14px}.space-layout-guides{display:none}}
+@media(prefers-reduced-motion:reduce){.vb-lab.has-space .vb-scene,.space-overlay-prop{transition:none}}
+
+/* Keep isolated add-on inks in the same tonal light as the scene plate. */
+.vb-lab.has-space[data-lighting="light.sunlit"] .space-overlay-prop{filter:drop-shadow(1px 5px 4px #20110872)}
+.vb-lab.has-space[data-lighting="light.amber"] .space-overlay-prop{filter:sepia(.24) saturate(1.13) brightness(.84) contrast(1.03) drop-shadow(1px 5px 4px #20110872)}
+.vb-lab.has-space[data-lighting="light.moonlit"] .space-overlay-prop{filter:sepia(.09) hue-rotate(164deg) saturate(.70) brightness(.68) contrast(1.12) drop-shadow(1px 5px 4px #0c172788)}

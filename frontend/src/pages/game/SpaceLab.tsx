@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { TerminalSelect } from "../../components/ui/TerminalSelect";
 import {
-  DEMO_OWNED, PREVIEW_WORLDS, SCENE_COMPOSITING, FREE_DEFAULTS,
+  CATALOG, DEMO_OWNED, PREVIEW_WORLDS, SCENE_COMPOSITING, FREE_DEFAULTS, sceneRectStyle,
   resolveScene, resolvedLighting,
   type AppearanceMode, type LightingId,
 } from "../../features/cosmetics/environmentCatalog";
@@ -26,14 +26,17 @@ export function SpaceLab({ onLightingChange }: Props) {
   const [mode, setMode] = useState<AppearanceMode>("follow_world");
   const [worldId, setWorldId] = useState("brighter");
   const [myLighting, setMyLighting] = useState<LightingId>("light.amber");
+  const [myLeft, setMyLeft] = useState("prop.left.fern");
+  const [myRight, setMyRight] = useState("prop.right.ink");
+  const [followForProps, setFollowForProps] = useState<"world" | "mine">("mine");
   const [followForLight, setFollowForLight] = useState<"world" | "mine">("mine");
   const result = useMemo(() => resolveScene({
     mode,
     world: PREVIEW_WORLDS[worldId].recommendation,
-    mine: { ...FREE_DEFAULTS, lighting: myLighting },
-    slotSource: { lighting: followForLight },
+    mine: { ...FREE_DEFAULTS, lighting: myLighting, prop_left: myLeft, prop_right: myRight },
+    slotSource: { lighting: followForLight, prop_left: followForProps, prop_right: followForProps },
     owned: DEMO_OWNED,
-  }), [mode, worldId, myLighting, followForLight]);
+  }), [mode, worldId, myLighting, myLeft, myRight, followForLight, followForProps]);
   const light = resolvedLighting(result);
 
   useEffect(() => onLightingChange(light), [onLightingChange, light]);
@@ -46,19 +49,29 @@ export function SpaceLab({ onLightingChange }: Props) {
 
   return (
     <>
-      {showZones ? (
-        <div className="space-safe-plane" aria-hidden="true">
-          <div className="space-safe-space space-safe-left">Left reading area</div>
-          <div className="space-safe-space space-safe-right">Right reading area</div>
-        </div>
-      ) : null}
+      <div className="space-scene-plane" aria-hidden="true">
+        {(["prop_left", "prop_right"] as const).map((slot) => {
+          const item = result[slot].item;
+          if (!item?.asset || !item.anchorId) return null;
+          const anchor = SCENE_COMPOSITING.propAnchors[item.anchorId];
+          return <img className={`space-overlay-prop space-overlay-${slot}`} key={`${slot}:${item.id}`} src={item.asset} alt="" style={sceneRectStyle(anchor)} draggable={false}/>;
+        })}
+        {showZones ? (
+          <div className="space-layout-guides">
+            <span className="space-spine-guide" style={{left:`${SCENE_COMPOSITING.geometry.spineX * 100}%`}} />
+            <span className="space-book-guide" style={sceneRectStyle(SCENE_COMPOSITING.geometry.book)} />
+            <div className="space-safe-space space-safe-left" style={sceneRectStyle(SCENE_COMPOSITING.contentSafeZones.left)}>Left ink area</div>
+            <div className="space-safe-space space-safe-right" style={sceneRectStyle(SCENE_COMPOSITING.contentSafeZones.right)}>Right ink area</div>
+          </div>
+        ) : null}
+      </div>
       <button className="space-workshop-launch" type="button" aria-expanded={isOpen} aria-controls="space-workshop" onClick={() => setIsOpen(!isOpen)}>
         <span aria-hidden="true">✧</span> {isOpen ? "Close the workshop" : "Make this space yours"}
       </button>
       {isOpen ? (
         <aside id="space-workshop" className="space-workshop" aria-label="Environment workshop preview">
           <div className="space-workshop-heading">
-            <div><p className="space-kicker">PASS 64.4F · VISUAL LAB</p><h1>My reading space</h1></div>
+            <div><p className="space-kicker">PASS 64.4G · SCENE KIT</p><h1>My reading space</h1></div>
             <button type="button" aria-label="Close environment workshop" className="space-close" onClick={() => setIsOpen(false)}>×</button>
           </div>
           <p className="space-intro">Make the atmosphere your own. This is a temporary visual preview—not a store or saved account setting.</p>
@@ -93,18 +106,39 @@ export function SpaceLab({ onLightingChange }: Props) {
               </label>)}
             </div>
           </fieldset>
+          <fieldset className="space-decor-fieldset">
+            <legend>Little things, your way</legend>
+            <p className="space-decor-caption">Optional illustrated accents on fixed desk anchors. The teacup and compass already in the photo remain in place.</p>
+            {(["prop_left", "prop_right"] as const).map((slot) => {
+              const value = slot === "prop_left" ? myLeft : myRight;
+              const setValue = slot === "prop_left" ? setMyLeft : setMyRight;
+              return <div className="space-field-row" key={slot}>
+                <span className="space-field-label">{slot === "prop_left" ? "Left desk accent" : "Right desk accent"}</span>
+                <TerminalSelect
+                  ariaLabel={slot === "prop_left" ? "Choose left desk accent" : "Choose right desk accent"}
+                  className="space-world-select space-decor-select"
+                  value={value}
+                  options={Object.values(CATALOG).filter((item) => item.slot === slot).map((item) => ({value:item.id,label:item.label}))}
+                  onChange={setValue}
+                />
+              </div>;
+            })}
+          </fieldset>
           {mode === "custom_mix" ? (
             <fieldset className="space-source">
               <legend>For lighting, use</legend>
               <label><input type="radio" name="light-source" checked={followForLight === "world"} onChange={() => setFollowForLight("world")} /> World suggestion</label>
               <label><input type="radio" name="light-source" checked={followForLight === "mine"} onChange={() => setFollowForLight("mine")} /> My preferred light</label>
+              <span className="space-source-divider">Desk accents</span>
+              <label><input type="radio" name="prop-source" checked={followForProps === "world"} onChange={() => setFollowForProps("world")} /> World accents</label>
+              <label><input type="radio" name="prop-source" checked={followForProps === "mine"} onChange={() => setFollowForProps("mine")} /> My accents</label>
             </fieldset>
           ) : null}
-          <p className="space-resolution" role="status">Now showing: <strong>{result.lighting.item?.label}</strong> <span>({result.lighting.source})</span></p>
+          <p className="space-resolution" role="status">Now showing: <strong>{result.lighting.item?.label}</strong> <span>({result.lighting.source})</span><span className="space-resolution-props">Accents: {result.prop_left.item?.label} · {result.prop_right.item?.label}</span></p>
           <label className="space-guides"><input type="checkbox" checked={showZones} onChange={(event) => setShowZones(event.target.checked)} /> Show reading-safe zones</label>
-          <p className="space-technical">Safe zones are aligned to the {SCENE_COMPOSITING.imageWidth} × {SCENE_COMPOSITING.imageHeight} image plate. Lighting changes are real. Other props are baked into this first photo; independent prop swapping comes with the clean-plate scene kit.</p>
+          <p className="space-technical">Spine-aligned safe zones use the {SCENE_COMPOSITING.imageWidth} × {SCENE_COMPOSITING.imageHeight} image plate. Add-on accents really switch; original photographic props remain baked in until a separate clean-plate release.</p>
           <div className="space-actions">
-            <button type="button" onClick={() => {setMode("follow_world");setWorldId("brighter");setMyLighting("light.amber");setFollowForLight("mine");setShowZones(false);}}>Reset preview</button>
+            <button type="button" onClick={() => {setMode("follow_world");setWorldId("brighter");setMyLighting("light.amber");setFollowForLight("mine");setMyLeft("prop.left.fern");setMyRight("prop.right.ink");setFollowForProps("mine");setShowZones(false);}}>Reset preview</button>
             <button type="button" className="space-done" onClick={() => setIsOpen(false)}>View the book <span aria-hidden="true">↗</span></button>
           </div>
         </aside>

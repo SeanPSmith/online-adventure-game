@@ -20,6 +20,7 @@ export type CosmeticItem = Readonly<{
   published: boolean;
   layoutVersion: "living-book.1";
   asset?: string;
+  anchorId?: "desk_left_mid" | "desk_right_lower";
 }>;
 
 /** Only catalog-owned same-origin art URLs are ever rendered. */
@@ -34,22 +35,67 @@ export const CATALOG: Readonly<Record<string, CosmeticItem>> = {
   "ink.sepia": { id: "ink.sepia", slot: "ink_style", label: "Sepia Ink", free: true, published: true, layoutVersion: "living-book.1" },
   "type.literary": { id: "type.literary", slot: "typography", label: "Literary Serif", free: true, published: true, layoutVersion: "living-book.1" },
   "ornament.botanical": { id: "ornament.botanical", slot: "ornaments", label: "Botanical Marginalia", free: true, published: true, layoutVersion: "living-book.1" },
+  // Optional illustrated prop proofs; backgrounds already contain *baked* physical props.
+  "prop.left.none": { id: "prop.left.none", slot: "prop_left", label: "No extra ornament", free: true, published: true, layoutVersion: "living-book.1" },
+  "prop.left.fern": { id: "prop.left.fern", slot: "prop_left", label: "Pressed Fern", free: true, published: true, layoutVersion: "living-book.1", asset: "/art/pass64/scene-kit/pressed-fern.webp", anchorId: "desk_left_mid" },
+  "prop.left.seal": { id: "prop.left.seal", slot: "prop_left", label: "Crimson Wax Seal", free: true, published: true, layoutVersion: "living-book.1", asset: "/art/pass64/scene-kit/wax-seal.webp", anchorId: "desk_left_mid" },
+  "prop.right.none": { id: "prop.right.none", slot: "prop_right", label: "No extra ornament", free: true, published: true, layoutVersion: "living-book.1" },
+  "prop.right.ink": { id: "prop.right.ink", slot: "prop_right", label: "Ink Bottle", free: true, published: true, layoutVersion: "living-book.1", asset: "/art/pass64/scene-kit/ink-bottle.webp", anchorId: "desk_right_lower" },
+  "prop.right.flower": { id: "prop.right.flower", slot: "prop_right", label: "Pressed Wildflowers", free: true, published: true, layoutVersion: "living-book.1", asset: "/art/pass64/scene-kit/wildflowers.webp", anchorId: "desk_right_lower" },
   "light.sunlit": { id: "light.sunlit", slot: "lighting", label: "Golden Hour", free: true, published: true, layoutVersion: "living-book.1" },
   "light.amber": { id: "light.amber", slot: "lighting", label: "Amber Study", free: true, published: true, layoutVersion: "living-book.1" },
   "light.moonlit": { id: "light.moonlit", slot: "lighting", label: "Moonlit Desk", free: true, published: true, layoutVersion: "living-book.1" },
 } as const;
 
 /** Flat 4D image already contains physical props; those cannot be separately equipped yet. */
+/** Coordinates are normalized to the *full* 1672×941 photographic image,
+ * projected through object-fit: cover with center positioning. Each page has
+ * an intentionally wider OUTER margin than the gutter-side margin.
+ * The studio's guides and visual placement must share this one coordinate source.
+ */
 export const SCENE_COMPOSITING = {
   layoutVersion: "living-book.1",
   imageWidth: 1672, imageHeight: 941,
   cleanPlateAvailable: false,
   bakedProps: true,
+  geometry: {
+    book: { x: 0.155, y: 0.193, width: 0.762, height: 0.731 },
+    spineX: 0.523,
+    leftPage: { x: 0.194, y: 0.230, width: 0.320, height: 0.645 },
+    rightPage: { x: 0.535, y: 0.230, width: 0.347, height: 0.645 },
+  },
   contentSafeZones: {
-    left: { x: 0.225, y: 0.355, width: 0.233, height: 0.47 },
-    right: { x: 0.55, y: 0.355, width: 0.235, height: 0.47 },
+    left: { x: 0.267, y: 0.258, width: 0.217, height: 0.565 },
+    right: { x: 0.563, y: 0.258, width: 0.218, height: 0.565 },
+  },
+  propAnchors: {
+    desk_left_mid: { x: 0.055, y: 0.520, width: 0.091, height: 0.160 },
+    desk_right_lower: { x: 0.923, y: 0.638, width: 0.070, height: 0.163 },
   },
 } as const;
+
+export type SceneRect = Readonly<{ x: number; y: number; width: number; height: number }>;
+/** A single normalized scene projection drives safe-area markers and props. */
+export function sceneRectStyle(rect: SceneRect): Readonly<Record<"left" | "top" | "width" | "height", string>> {
+  return { left: `${rect.x * 100}%`, top: `${rect.y * 100}%`, width: `${rect.width * 100}%`, height: `${rect.height * 100}%` };
+}
+
+export function validatesSpineAlignedSafeZones(): boolean {
+  const { geometry: g, contentSafeZones: c } = SCENE_COMPOSITING;
+  const le = c.left.x + c.left.width;
+  const re = c.right.x + c.right.width;
+  const valid = [g.book, g.leftPage, g.rightPage, c.left, c.right, ...Object.values(SCENE_COMPOSITING.propAnchors)];
+  return valid.every((r) => r.x >= 0 && r.y >= 0 && r.width > 0 && r.height > 0 && r.x + r.width <= 1 && r.y + r.height <= 1) &&
+    g.leftPage.x < c.left.x && le < g.spineX && g.spineX < c.right.x && re < g.rightPage.x + g.rightPage.width &&
+    // Deliberately bias printable content toward the spine, away from exterior botanicals.
+    c.left.x - g.leftPage.x > g.spineX - le &&
+    (g.rightPage.x + g.rightPage.width - re) > c.right.x - g.spineX &&
+    c.left.y > g.leftPage.y && c.right.y > g.rightPage.y &&
+    c.left.y + c.left.height < g.leftPage.y + g.leftPage.height &&
+    c.right.y + c.right.height < g.rightPage.y + g.rightPage.height &&
+    Object.values(SCENE_COMPOSITING.propAnchors).every((r) =>
+      r.x + r.width < g.book.x || r.x > g.book.x + g.book.width);
+}
 
 export type SlotSelection = Partial<Record<CosmeticSlot, string>>;
 export type ItemSource = Partial<Record<CosmeticSlot, "world" | "mine">>;
@@ -58,12 +104,13 @@ export const FREE_DEFAULTS: Readonly<SlotSelection> = {
   environment: "environment.sunlit-desk", book_shell: "book.ivory-leather",
   paper_material: "paper.ivory", ink_style: "ink.sepia", typography: "type.literary",
   ornaments: "ornament.botanical", lighting: "light.sunlit",
+  prop_left: "prop.left.none", prop_right: "prop.right.none",
 };
 
 export const PREVIEW_WORLDS: Readonly<Record<string, { name: string; recommendation: SlotSelection }>> = {
   brighter: { name: "Brighter World", recommendation: { ...FREE_DEFAULTS, lighting: "light.sunlit" } },
-  lantern: { name: "Amber Library", recommendation: { ...FREE_DEFAULTS, lighting: "light.amber" } },
-  moonlit: { name: "Moonlit Folio", recommendation: { ...FREE_DEFAULTS, lighting: "light.moonlit" } },
+  lantern: { name: "Amber Library", recommendation: { ...FREE_DEFAULTS, lighting: "light.amber", prop_left: "prop.left.seal", prop_right: "prop.right.ink" } },
+  moonlit: { name: "Moonlit Folio", recommendation: { ...FREE_DEFAULTS, lighting: "light.moonlit", prop_left: "prop.left.fern", prop_right: "prop.right.flower" } },
 };
 
 export type ResolveInput = Readonly<{

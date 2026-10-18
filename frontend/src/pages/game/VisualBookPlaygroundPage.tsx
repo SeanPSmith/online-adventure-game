@@ -3,6 +3,8 @@ import { Link } from "react-router";
 import { useAuth } from "../../state/AuthContext";
 import "./visualBookPlayground.css";
 import { InkLabBook } from "./InkLabBook";
+import { SpaceLab } from "./SpaceLab";
+import { type LightingId } from "../../features/cosmetics/environmentCatalog";
 
 // PASS 64.4D: deliberately isolated playground, not a replacement for /game.
 // The image contains the physical desk and *blank* ivory book only. All menu
@@ -19,15 +21,21 @@ export function InkBookPlaygroundPage() {
   return <VisualBookPlaygroundShell inkLab />;
 }
 
-function VisualBookPlaygroundShell({ inkLab = false }: { inkLab?: boolean }) {
+// PASS 64.4F: separate preview, no content/gameplay changes.
+export function SpaceBookPlaygroundPage() {
+  return <VisualBookPlaygroundShell spaceLab />;
+}
+
+function VisualBookPlaygroundShell({ inkLab = false, spaceLab = false }: { inkLab?: boolean; spaceLab?: boolean }) {
   const { user } = useAuth();
   const [active, setActive] = useState<Tab>("Home");
   const [profileOpen, setProfileOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [lighting, setLighting] = useState<LightingId>("light.sunlit");
   const username = user?.username || "Adventurer";
 
   return (
-    <div className={`vb-lab ${inkLab ? "has-ink" : ""}`} data-active-tab={active}>
+    <div className={`vb-lab ${inkLab ? "has-ink" : ""} ${spaceLab ? "has-space" : ""}`} data-active-tab={active} data-lighting={lighting}>
       <a className="vb-skip" href="#vb-book">Skip navigation to book</a>
       <img
         className="vb-scene"
@@ -83,6 +91,7 @@ function VisualBookPlaygroundShell({ inkLab = false }: { inkLab?: boolean }) {
       <main id="vb-book" className="vb-book-space" tabIndex={-1} aria-label={inkLab ? "Ink laboratory on ivory pages" : "Blank book for the visual playground"}>
         {inkLab ? <InkLabBook activeTab={active} /> : null}
       </main>
+      {spaceLab ? <SpaceLab onLightingChange={setLighting} /> : null}
     </div>
   );
 }

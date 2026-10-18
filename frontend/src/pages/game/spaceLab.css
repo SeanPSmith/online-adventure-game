@@ -1,0 +1,64 @@
+/* Pass 64.4F: isolated, temporary environment-preview controls. No game CSS changed. */
+.vb-lab.has-space .vb-scene {transition:filter 460ms ease}
+.vb-lab.has-space[data-lighting="light.sunlit"] .vb-scene{filter:none}
+.vb-lab.has-space[data-lighting="light.amber"] .vb-scene{filter:sepia(.24) saturate(1.13) brightness(.84) contrast(1.03)}
+.vb-lab.has-space[data-lighting="light.moonlit"] .vb-scene{filter:sepia(.09) hue-rotate(164deg) saturate(.70) brightness(.68) contrast(1.12)}
+.vb-lab.has-space .vb-header{z-index:10}
+.vb-lab.has-space .vb-book-space{pointer-events:none}
+.space-workshop-launch {position:absolute;bottom:3.2%;left:2.4%;z-index:11;border:1px solid #d1af77;background:#2c1a13e9;color:#f9e7c6;box-shadow:0 4px 13px #241007a8;padding:12px 17px;font:16px Georgia,serif;cursor:pointer;min-height:44px}
+.space-workshop-launch span{font-size:23px;vertical-align:-2px;margin-right:7px;color:#e0ba7b}
+.space-workshop-launch:hover{background:#49301f}
+.space-workshop-launch:focus-visible,.space-workshop button:focus-visible,.space-workshop input:focus-visible,.space-workshop .terminal-select-trigger:focus-visible {outline:3px solid #cd9b56;outline-offset:3px}
+.space-workshop{position:absolute;z-index:12;top:14%;right:2.4%;bottom:3.3%;width:min(405px,42vw);max-height:770px;overflow-y:auto;overscroll-behavior:contain;padding:23px 23px 20px;background:linear-gradient(155deg,#fbecd3,#e8d3aa);color:#342416;border:2px solid #b58b5c;box-shadow:0 18px 55px #160a06af,inset 0 0 30px #ae7e4534;font:15px Georgia,serif}
+.space-workshop-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.space-kicker{letter-spacing:.18em;font:bold 10px Georgia,serif;color:#865b3d;margin:0 0 7px}
+.space-workshop h1{font:normal 32px/1.05 Georgia,serif;margin:0;color:#332014}
+.space-close{appearance:none;border:1px solid #a88c66;background:transparent;color:#38251a;font:25px Georgia,serif;width:39px;height:39px;cursor:pointer}
+.space-intro{font:italic 14px/1.45 Georgia,serif;margin:12px 0 20px;color:#715139}
+.space-workshop fieldset{border:0;padding:0;margin:0 0 17px;min-width:0}
+.space-workshop legend,.space-field-row .space-field-label{font:bold 12px/1.2 Georgia,serif;letter-spacing:.07em;text-transform:uppercase;color:#77533a;margin-bottom:8px;padding:0}
+.space-mode-options{display:grid;gap:5px}
+.space-mode{display:grid;grid-template-columns:19px 1fr;column-gap:8px;row-gap:2px;padding:9px;border:1px solid #ac8b6544;cursor:pointer;min-height:45px}
+.space-mode input{grid-row:span 2;align-self:center;accent-color:#7b3b29}
+.space-mode strong{font-size:15px;font-weight:600}
+.space-mode span{font-size:12px;opacity:.75}
+.space-mode.is-selected{background:#f9ecd3;border-color:#a57049}
+.space-field-row{display:flex;flex-direction:column;gap:5px;margin:0 0 17px}
+/* Reuse the app's keyboard-friendly themed dropdown; keep CRT defaults out of the book. */
+.space-field-row .space-field-label{display:block}
+.space-world-select{width:100%;position:relative;z-index:2}
+.space-world-select.is-open{z-index:8}
+.space-world-select .terminal-select-trigger{width:100%;min-height:44px;border:1px solid #b39a79;border-radius:0;background:#fff5e2;color:#322013;box-shadow:none;padding:9px 12px;font:15px Georgia,serif;cursor:pointer}
+.space-world-select .terminal-select-trigger b{color:#79513b}
+.space-world-select .terminal-select-trigger:hover,.space-world-select.is-open .terminal-select-trigger{border-color:#8c5937;box-shadow:inset 3px 0 0 #ae805d}
+.space-world-select .terminal-select-menu{z-index:20;top:calc(100% + 3px);background:#fff5e2;border:1px solid #b39a79;border-radius:0;box-shadow:0 8px 18px #38221670;max-height:218px;overflow-y:auto;padding:0}
+.space-world-select .terminal-select-menu button{min-height:44px;background:#fff5e2;color:#322013;border:0;border-bottom:1px solid #b39a7950;border-radius:0;box-shadow:none;font:15px Georgia,serif;padding:10px 12px}
+.space-world-select .terminal-select-menu button:hover,.space-world-select .terminal-select-menu button:focus-visible,.space-world-select .terminal-select-menu button.is-selected{background:#ead6b2;color:#382117;outline:none}
+.space-world-select .terminal-select-menu button b{color:#7b3b29}
+.space-swatches{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.space-swatch{display:flex;flex-direction:column;gap:6px;align-items:center;text-align:center;border:1px solid #ab8b625c;min-height:93px;padding:8px 3px;cursor:pointer;font-size:12px}
+.space-swatch.is-selected{background:#fff2d5;border-color:#8e5a38}
+.space-swatch input{position:absolute;opacity:0;width:1px;height:1px}
+.space-swatch:focus-within{outline:2px solid #a55d39;outline-offset:2px}
+.space-swatch-dot{display:block;border-radius:50%;width:34px;height:34px;box-shadow:0 1px 5px #3218066b,inset 0 0 0 1px #69452555}
+.space-swatch-sunlit{background:radial-gradient(circle at 35% 30%,#fff9d2,#d7a54b 80%)}
+.space-swatch-amber{background:radial-gradient(circle at 35% 30%,#ffd18f,#8f4d29 80%)}
+.space-swatch-moonlit{background:radial-gradient(circle at 35% 30%,#c5d7e1,#3c536e 80%)}
+.space-source{display:flex;gap:9px;flex-wrap:wrap}
+.space-source label{display:inline-flex;gap:5px;align-items:center;font-size:13px}
+.space-source input,.space-guides input{accent-color:#793e2e;width:17px;height:17px}
+.space-resolution{padding:8px 0;border-top:1px solid #ab865e88;border-bottom:1px solid #ab865e88;line-height:1.5;margin:9px 0;color:#765239}
+.space-resolution strong{color:#382115}.space-resolution span{font-style:italic;font-size:12px}
+.space-guides{display:flex;gap:8px;align-items:center;font-size:14px;cursor:pointer;min-height:42px}
+.space-technical{color:#795c44;font:italic 12px/1.4 Georgia,serif;margin:12px 0 16px}
+.space-actions{display:flex;gap:8px;justify-content:space-between}
+.space-actions button{min-height:44px;padding:9px 13px;font:14px Georgia,serif;background:transparent;color:#65402b;border:1px solid #99734e;cursor:pointer}
+.space-actions .space-done{background:#4b3022;color:#fff0d1;border-color:#4b3022}
+/* Cover-aligned art guides: coordinates are percentages of 1672x941 source plate,
+   NOT percentages of cropped viewport. This stays correct under object-fit:cover. */
+.space-safe-plane{position:absolute;width:max(100vw,177.68vh);height:max(100vh,56.28vw);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:3}
+.space-safe-space{position:absolute;top:35.5%;height:47%;border:2px dashed #943f22bf;background:#fff4ce18;box-shadow:0 0 0 1px #fff2cfb2 inset;display:flex;justify-content:center;align-items:center;color:#73341d;font:italic 14px Georgia,serif;text-align:center}
+.space-safe-left{left:22.5%;width:23.3%}
+.space-safe-right{left:55%;width:23.5%}
+@media(max-width:860px){.space-workshop{top:81px;left:12px;right:12px;bottom:83px;width:auto;max-height:none;padding:18px;z-index:15}.space-workshop-launch{bottom:14px;left:14px;font-size:14px}.space-safe-plane{display:none}}
+@media(prefers-reduced-motion:reduce){.vb-lab.has-space .vb-scene{transition:none}}

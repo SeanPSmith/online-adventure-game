@@ -32,6 +32,8 @@ export const router = createBrowserRouter([
       {
         element: <RequireAuth />,
         children: [
+          // Pass 64.4D — isolated visual playground (no GameLayout header and no gameplay mutations).
+          { path: "game/visual-playground", lazy: async () => ({ Component: (await import("./pages/game/VisualBookPlaygroundPage")).VisualBookPlaygroundPage }) },
           {
             path: "game",
             element: <GameLayout />,

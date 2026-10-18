@@ -3,6 +3,8 @@ import "./deskFidelityPass64.css";
 import "./deskScrapbookPass64.css";
 import "./gameBrighterWorld.css";
 import "./livingBook644.css";
+import "./livingBook644Fidelity.css";
+import "./livingBook644Ink.css";
 import "../../features/appearance/themeEditions.css";
 import { useAppearance } from "../../features/appearance/AppearanceContext";
 import { FirstRunGuide } from "../../features/onboarding/FirstRunGuide";
@@ -86,7 +88,7 @@ export function GameHomePage() {
   } = useGameSocket();
 
   const [starterCreating, setStarterCreating] = useState(false);
-  const [bookSpread, setBookSpread] = useState<"home" | "heroes" | "journeys" | "discover" | "tools">("home");
+  const [bookSpread, setBookSpread] = useState<"home" | "heroes" | "journeys" | "discover" | "wardrobe" | "tools">("home");
   const [inkLeaving, setInkLeaving] = useState(false);
   const inkTimeout = useRef<number | null>(null);
   useEffect(() => () => { if (inkTimeout.current !== null) window.clearTimeout(inkTimeout.current); }, []);
@@ -96,6 +98,10 @@ export function GameHomePage() {
     setInkLeaving(true);
     inkTimeout.current = window.setTimeout(() => { setBookSpread(next); setInkLeaving(false); inkTimeout.current = null; }, 120);
   }
+
+  // The scene, paper and binding stay mounted; only this manuscript layer is replaced.
+  // Route-independent navigation is already an SPA; no image-backed menu is required.
+  const spreadLabel = {home: "Home", heroes: "Heroes", journeys: "Journeys", discover: "Discover", wardrobe: "Wardrobe", tools: "More"}[bookSpread];
 
   const [heroes, setHeroes] = useState<Character[]>([]);
   const [heroError, setHeroError] = useState("");
@@ -283,7 +289,7 @@ export function GameHomePage() {
         <nav className="p644-toplinks" aria-label="Book navigation">
           <button type="button" aria-current={bookSpread === "home" ? "page" : undefined} onClick={() => openBookSpread("home")}>HOME</button>
           <button type="button" aria-current={bookSpread === "heroes" ? "page" : undefined} onClick={() => openBookSpread("heroes")}>HEROES</button>
-          <Link to="/account?tab=preferences#wardrobe">WARDROBE</Link>
+          <button type="button" aria-current={bookSpread === "wardrobe" ? "page" : undefined} onClick={() => openBookSpread("wardrobe")}>WARDROBE</button>
           <button type="button" aria-current={bookSpread === "journeys" ? "page" : undefined} onClick={() => openBookSpread("journeys")}>MY ADVENTURES</button>
           <button type="button" aria-current={bookSpread === "discover" ? "page" : undefined} onClick={() => openBookSpread("discover")}>DISCOVER</button>
           <button type="button" aria-current={bookSpread === "tools" ? "page" : undefined} onClick={() => openBookSpread("tools")}>SYSTEM</button>
@@ -295,11 +301,14 @@ export function GameHomePage() {
         <button type="button" aria-current={bookSpread === "journeys" ? "page" : undefined} onClick={() => openBookSpread("journeys")}><span aria-hidden="true">⚑</span>Journeys</button>
         <button type="button" aria-current={bookSpread === "heroes" ? "page" : undefined} onClick={() => openBookSpread("heroes")}><span aria-hidden="true">♟</span>Heroes</button>
         <button type="button" aria-current={bookSpread === "discover" ? "page" : undefined} onClick={() => openBookSpread("discover")}><span aria-hidden="true">⌖</span>Discover</button>
-        <Link to="/account?tab=preferences#wardrobe"><span aria-hidden="true">✦</span>Wardrobe</Link>
+        <button type="button" aria-current={bookSpread === "wardrobe" ? "page" : undefined} onClick={() => openBookSpread("wardrobe")}><span aria-hidden="true">✦</span>Wardrobe</button>
         <button type="button" aria-current={bookSpread === "tools" ? "page" : undefined} onClick={() => openBookSpread("tools")}><span aria-hidden="true">☷</span>More</button>
       </nav>
       <div className="p644-bound-book" aria-label="Living adventure book">
-        <div className="p644-pages p644-spread-content" data-ink-leaving={inkLeaving} key={bookSpread}>
+        <div className="p644-pages p644-spread-content">
+          <div className="p644-paper-leaf p644-paper-leaf-left" aria-hidden="true" />
+          <div className="p644-paper-leaf p644-paper-leaf-right" aria-hidden="true" />
+          <div className="p644-ink-layer" key={bookSpread} data-ink-leaving={inkLeaving}>
           {bookSpread === "home" ? (
             <>
               <section className="p644-page p644-page-left p644-home-left" aria-label="Featured story">
@@ -313,13 +322,13 @@ export function GameHomePage() {
               <section className="p644-page p644-page-right p644-home-right" aria-label="Heroes and adventures">
                 <div className="p644-section-caption"><span>✧ YOUR HEROES</span><button type="button" onClick={() => openBookSpread("heroes")}>View all →</button></div>
                 <div className="p644-featured-heroes">
-                  {playableHeroes.slice(0, 2).map((hero) => <div key={hero.character_id} className="p644-mini-hero"><button type="button" title={`Play as ${hero.name}`} className={`p644-painted-portrait ${selectedHeroId === hero.character_id ? "is-selected" : ""}`} onClick={() => !occupiedHeroIds.has(hero.character_id) && setSelectedHeroId(hero.character_id)} disabled={occupiedHeroIds.has(hero.character_id)}><span>{hero.name.slice(0,1)}</span></button><Link to={`/game/heroes/${encodeURIComponent(hero.character_id)}`}>{hero.name} ↗</Link><small>Level {hero.level} · {occupiedHeroIds.has(hero.character_id) ? "In a story" : selectedHeroId === hero.character_id ? "Selected" : "Available"}</small></div>)}
+                  {playableHeroes.slice(0, 2).map((hero) => <div key={hero.character_id} className="p644-mini-hero"><button type="button" title={`Play as ${hero.name}`} aria-label={`Select ${hero.name} as your Hero`} className={`p644-painted-portrait ${selectedHeroId === hero.character_id ? "is-selected" : ""}`} onClick={() => !occupiedHeroIds.has(hero.character_id) && setSelectedHeroId(hero.character_id)} disabled={occupiedHeroIds.has(hero.character_id)}><span>{hero.name.slice(0,1)}</span></button><Link to={`/game/heroes/${encodeURIComponent(hero.character_id)}`}>{hero.name} ↗</Link><small>Level {hero.level} · {occupiedHeroIds.has(hero.character_id) ? "In a story" : selectedHeroId === hero.character_id ? "Selected" : "Available"}</small></div>)}
                   {playableHeroes.length === 0 ? <Link className="p644-empty-inline" to="/game/heroes/new">Meet your first Hero →</Link> : null}
                 </div>
                 <div className="p644-section-caption"><span>✧ RECENT ADVENTURES</span><button type="button" onClick={() => openBookSpread("journeys")}>View all →</button></div>
                 <div className="p644-postcard-strip">
-                  {adventures.slice(0, 3).map((a) => <Link className="p644-story-postcard" key={`${a.room_code}:${a.character_id}`} to={`/game/adventure/${encodeURIComponent(a.room_code)}?hero=${encodeURIComponent(a.character_id)}`}><img alt="" src={p64Cover(a.adventure_title)} loading="lazy"/><strong>{a.adventure_title}</strong><small>{a.completed ? "Finished" : `Chapter ${a.turn_number}`}</small></Link>)}
-                  {adventures.length === 0 ? visibleCatalog.slice(0,3).map((a) => <button type="button" className="p644-story-postcard" key={a.adventure_id} onClick={() => { openBookSpread("discover"); setCatalogSearch(a.title); }}><img src={p64Cover(a.title, a.tags)} alt="" loading="lazy"/><strong>{a.title}</strong><small>Ready to begin</small></button>) : null}
+                  {adventures.slice(0, 3).map((a) => <Link className="p644-story-postcard" key={`${a.room_code}:${a.character_id}`} to={`/game/adventure/${encodeURIComponent(a.room_code)}?hero=${encodeURIComponent(a.character_id)}`}><img alt={`Illustrated cover for ${a.adventure_title}`} src={p64Cover(a.adventure_title)} loading="lazy"/><strong>{a.adventure_title}</strong><small>{a.completed ? "Finished" : `Chapter ${a.turn_number}`}</small></Link>)}
+                  {adventures.length === 0 ? visibleCatalog.slice(0,3).map((a) => <button type="button" className="p644-story-postcard" key={a.adventure_id} onClick={() => { openBookSpread("discover"); setCatalogSearch(a.title); }}><img src={p64Cover(a.title, a.tags)} alt={`Illustrated cover for ${a.title}`} loading="lazy"/><strong>{a.title}</strong><small>Ready to begin</small></button>) : null}
                 </div>
                 <div className="p644-section-caption"><span>✧ DISCOVER NEW WORLDS</span><button type="button" onClick={() => openBookSpread("discover")}>Browse all →</button></div>
                 <button className="p644-discover-note" type="button" onClick={() => openBookSpread("discover")}><span className="p644-small-landscape" aria-hidden="true"/><span><strong>New adventures await</strong><small>Strange places. Braver choices. Better company.</small><b>Explore the Library ↗</b></span></button>
@@ -597,7 +606,7 @@ export function GameHomePage() {
         <div className="adventure-catalog-grid dashboard-adventure-grid">
           {filteredCatalog.map((adventure) => (
             <article className="adventure-card dashboard-adventure-card p64b-postcard panel" key={adventure.adventure_id}>
-              <div className="p64-catalog-art"><img src={p64Cover(adventure.title, adventure.tags)} alt="" loading="lazy" /></div>
+              <div className="p64-catalog-art"><img src={p64Cover(adventure.title, adventure.tags)} alt={`Illustrated cover for ${adventure.title}`} loading="lazy" /></div>
               <div className="panel-body">
                 <div className="adventure-card-tags">
                   {(adventure.tags.length ? adventure.tags : ["ADVENTURE"]).slice(0, 4).map((tag) => (
@@ -630,6 +639,20 @@ export function GameHomePage() {
 
             </section>
           </> : null}
+          {bookSpread === "wardrobe" ? <>
+            <section className="p644-page p644-page-left p644-interior-page p644-tools-left" aria-label="Wardrobe illustrated page">
+              <div className="p644-spread-heading"><span className="p644-eyebrow">THE WARDROBE</span><h1>Dress for the story.</h1><p>Same Hero. Entirely different atmosphere.</p></div>
+              <div className="p644-tools-illustration" role="img" aria-label="Watercolor illustration representing the Wardrobe and its changing worlds" />
+            </section>
+            <section className="p644-page p644-page-right p644-interior-page p644-inner-scroll" aria-label="Your appearance settings">
+              <div className="p644-spread-heading"><span className="p644-eyebrow">CUSTOMIZE YOUR JOURNAL</span><h2>Make yourself at home.</h2><p>Pick a look for your library, and let your stories dress for their own worlds.</p></div>
+              <div className="p644-action-stack">
+                <Link className="p644-action-card" to="/account?tab=preferences#wardrobe">Open the Skin Workshop <span>Choose editions, day/night, and your personal skins.</span></Link>
+                <Link className="p644-action-card" to="/account?tab=preferences">Reading preferences <span>Typefaces, opening initials and a clean-reading option.</span></Link>
+              </div>
+              <p className="p644-bottom-script">A good book deserves a proper cover.</p>
+            </section>
+          </> : null}
           {bookSpread === "tools" ? <>
             <section className="p644-page p644-page-left p644-interior-page p644-tools-left" aria-label="The Wardrobe"><div className="p644-spread-heading"><span className="p644-eyebrow">THE WARDROBE</span><h1>Same soul.<br/>Different worlds.</h1><p>Find an outfit for your next chapter.</p></div><div className="p644-tools-illustration" aria-hidden="true"/><Link className="p644-primary-button" to="/account?tab=preferences#wardrobe">Explore your themes ↗</Link></section>
             <section className="p644-page p644-page-right p644-interior-page p644-inner-scroll" aria-label="System tools">
@@ -650,8 +673,10 @@ export function GameHomePage() {
               <div className="p644-account-actions"><Link to="/account">Account &amp; Preferences →</Link><button type="button" onClick={() => void logout()}>Sign out ↗</button></div>
             </section>
           </> : null}
+          </div>
         </div>
       </div>
+      <span className="sr-only" role="status">{spreadLabel} spread displayed</span>
       <div className="p644-bottom-marker" aria-hidden="true">✧ Two people · A thousand possibilities ✧</div>
       {pendingAdventure ? (
         <div

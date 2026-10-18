@@ -1,0 +1,127 @@
+/* Pass 64.4B: real material assets, still a live accessible React book. */
+/* Keep world, night, and custom skin editions independent of the Brighter World photographic asset set. */
+.p64-shell.is-desk-home[data-edition-family="brighter-world"][data-edition-mode="day"] .p64-desk > .p644-scene {
+  background-color: #846044!important;
+  background-image: url('/art/pass64/p644-tabletop-clean.webp')!important;
+  background-size: cover!important;
+  background-position: center!important;
+}
+/* The masthead is lettering ON THE TABLE, not another UI card laid across the photograph. */
+.p64-shell.is-desk-home .p644-topbar { z-index:19; top:.45%; height:9.2%; left:2.1%; right:2.4%; gap:1.2%; }
+.p64-shell.is-desk-home .p644-wordmark {
+  min-width:0; flex-shrink:0; border:0!important; background:transparent!important; padding:3px 6px!important;
+  box-shadow:none!important; text-shadow:0 2px 3px #190d09d9; color:#ffebc7!important;
+}
+.p64-shell.is-desk-home .p644-wordmark strong { color:#fff0cc!important;font-size:clamp(17px,1.8vw,31px);font-variant:small-caps;letter-spacing:.09em; }
+.p64-shell.is-desk-home .p644-wordmark small {color:#f4dbb1!important;font-size:clamp(7px,.67vw,10px)}
+.p64-shell.is-desk-home .p644-emblem { color:#e6bd78; }
+.p64-shell.is-desk-home .p644-toplinks {
+  border:0!important; flex:0 1 auto; background:linear-gradient(180deg,#fff2d9ed,#e5cfa6f2)!important;
+  box-shadow:0 4px 10px #25160e66!important; padding:7px clamp(8px,1.2vw,20px)!important;
+}
+.p64-shell.is-desk-home .p644-player-tag {background:#30231ccf!important;box-shadow:0 2px 7px #1d130e7b!important}
+/* The new physical page-edge render contains ONLY the book rims/gutter; its interior is transparent. */
+.p64-shell.is-desk-home[data-edition-family="brighter-world"][data-edition-mode="day"] .p644-bound-book {
+  inset:10.8% 2.3% 2.7% 14.4%; border:0!important;border-radius:12px!important;
+  background:#5f422a;box-shadow:0 12px 30px #2b160e98,0 0 0 1px #543722a6!important;
+  overflow:hidden;
+}
+.p64-shell.is-desk-home[data-edition-family="brighter-world"][data-edition-mode="day"] .p644-bound-book::before { display:none!important; }
+.p64-shell.is-desk-home[data-edition-family="brighter-world"][data-edition-mode="day"] .p644-bound-book::after {
+  content:"";position:absolute;z-index:9;inset:0;pointer-events:none;box-shadow:none!important;border:0!important;border-radius:0!important;
+  background:url('/art/pass64/p644-physical-book-edges.webp') center center/100% 100% no-repeat!important;
+}
+.p64-shell.is-desk-home[data-edition-family="brighter-world"][data-edition-mode="day"] .p644-page {
+  background-color:#f4e6cd;
+  background-image:linear-gradient(90deg,#94785120 0%,transparent 6%,transparent 92%,#7b573423 100%),url('/art/pass64/brighter-paper.webp');
+  box-shadow:inset 0 0 33px #79533327;
+}
+.p64-shell.is-desk-home[data-edition-family="brighter-world"][data-edition-mode="day"] .p644-page-left {background-image:linear-gradient(90deg,#ad81551b 0%,transparent 11%,transparent 91%,#6a452f28 100%),url('/art/pass64/brighter-paper.webp')}
+.p64-shell.is-desk-home[data-edition-family="brighter-world"][data-edition-mode="day"] .p644-page-right {background-image:linear-gradient(90deg,#906c4a3b 0%,transparent 11%,transparent 91%,#9a75483c 100%),url('/art/pass64/brighter-paper.webp')}
+/* Watercolor should dissolve into the paper, never look like a framed dashboard photo. */
+.p64-shell.is-desk-home .p644-watercolor-plate {
+  background-image:url('/art/pass64/p644-watercolor-clean.webp');
+  background-size:cover; background-position:center 46%;
+  mask-image:linear-gradient(to bottom,transparent 0%,#000 16%,#000 83%,transparent 99%);
+  opacity:.98;
+}
+.p64-shell.is-desk-home .p644-home-heading { padding-top:2.8%; min-height:21%; }
+.p64-shell.is-desk-home .p644-home-heading h1 {font:normal clamp(28px,3.18vw,49px)/1.02 Georgia,'Palatino Linotype',serif!important;letter-spacing:-.025em;}
+.p64-shell.is-desk-home .p644-home-heading h1 em {color:#873c39!important}
+.p64-shell.is-desk-home .p644-home-heading p {max-width:365px;line-height:1.33}
+/* Pinned photograph is paper, not a game card. It stays live for arbitrary journey titles. */
+.p64-shell.is-desk-home .p644-journey-note {
+  max-width:min(87%,440px);background:linear-gradient(155deg,#fff3d9f2,#f6e3c1f1)!important;
+  border:1px solid #d3b88b;box-shadow:3px 7px 16px #34201066,0 0 0 6px #f4e6cd24;
+  padding:clamp(11px,1.45vw,22px) clamp(13px,1.8vw,26px);
+}
+.p64-shell.is-desk-home .p644-journey-note::before {
+  content:"";width:65px;height:19px;position:absolute;left:42%;top:-10px;
+  background:#dcc295a6;border:1px solid #c5a87759;transform:rotate(2deg);pointer-events:none;
+}
+.p64-shell.is-desk-home .p644-primary-button {transition:transform .12s ease,box-shadow .12s ease;background:linear-gradient(180deg,#a64740,#702c2c)!important;box-shadow:0 3px 7px #2b1a1469}
+.p64-shell.is-desk-home .p644-primary-button:hover {transform:translateY(-1px);box-shadow:0 4px 9px #2b1a1470}
+/* Strong, recognizable visual hierarchy on the right leaf. Missing portraits use a clearly decorative
+   watercolor silhouette and the real character initial; they are NOT invented character identities. */
+.p64-shell.is-desk-home .p644-home-right {padding:4.5% 6.8% 6% 7.8%}
+.p64-shell.is-desk-home .p644-featured-heroes {gap:clamp(7px,.85vw,14px);flex-basis:29%;margin-bottom:12px}
+.p64-shell.is-desk-home .p644-mini-hero {
+  position:relative;min-height:0;overflow:hidden;align-items:stretch;padding:4px 5px 6px;
+  background:#f6ebd8ad!important;border:1px solid #cbb58d7b!important;box-shadow:0 2px 8px #694b3029;
+}
+.p64-shell.is-desk-home .p644-painted-portrait {
+  position:relative;display:block; width:100%;height:clamp(69px,12vh,145px);max-height:66%;
+  min-height:54px; border:3px solid #f2e4c6!important;border-radius:3px!important;outline:1px solid #b6a384!important;
+  background:linear-gradient(#f1e2c215,#7c5b3935),url('/art/pass64/p644-hero-portrait-fallback.webp') center 43%/cover no-repeat!important;
+  box-shadow:0 2px 6px #65462d57!important;text-align:left;
+}
+.p64-shell.is-desk-home .p644-painted-portrait span {
+  position:absolute;bottom:4px;left:5px;border:1px solid #aa854f;background:#efdfbcdd;color:#654124;
+  font:normal 17px Georgia,serif;padding:2px 6px;border-radius:50%;text-shadow:none;
+}
+.p64-shell.is-desk-home .p644-painted-portrait.is-selected {outline:2px solid #5b7966!important;outline-offset:0!important}
+.p64-shell.is-desk-home .p644-mini-hero a {padding:2px 3px 0;font-size:clamp(12px,1.13vw,17px)!important}
+.p64-shell.is-desk-home .p644-mini-hero small {padding:0 3px 2px}
+.p64-shell.is-desk-home .p644-featured-heroes:has(> .p644-mini-hero:only-child) {grid-template-columns:minmax(0,1fr) 1fr}
+.p64-shell.is-desk-home .p644-featured-heroes:has(> .p644-mini-hero:only-child)::after {content:"The next story might bring new company.";font:italic clamp(12px,1.1vw,16px)/1.4 Georgia,serif;display:flex;align-items:center;justify-content:center;padding:12px;color:#967b5e;transform:rotate(-4deg);text-align:center;}
+.p64-shell.is-desk-home .p644-story-postcard {background:#fff1dac7;transform:rotate(-.4deg);box-shadow:0 2px 6px #67482f35;}
+.p64-shell.is-desk-home .p644-story-postcard:nth-child(even){transform:rotate(.6deg)}
+.p64-shell.is-desk-home .p644-story-postcard img {height:70%;max-height:none;object-fit:cover;}
+.p64-shell.is-desk-home .p644-section-caption {border-bottom-color:#b9a3818a}
+.p64-shell.is-desk-home .p644-discover-note {background:#fff0d6c4!important;border:1px solid #c7ad88!important;box-shadow:0 4px 9px #67472e48;transform:rotate(.4deg)}
+.p64-shell.is-desk-home .p644-discover-note :is(strong,b,small) {color:#563b2b!important}
+/* Keep the physical tabs textured but readable, without a second ghost menu behind them. */
+.p64-shell.is-desk-home .p644-bookmarks {left:1.7%;top:26%}
+.p64-shell.is-desk-home .p644-bookmarks :is(button,a) {
+  border-color:#aa8963!important;background:linear-gradient(100deg,#f7e8cb,#ead0a9)!important;
+  box-shadow:1px 4px 7px #27180f99!important;letter-spacing:.01em;transition:transform .12s ease;
+}
+.p64-shell.is-desk-home .p644-bookmarks [aria-current="page"] {border-left-color:#873e35!important;background:linear-gradient(100deg,#f9ebcf,#eacfa9)!important}
+/* Respect reduced motion, and use only opacity for ink fade (blur repaints are costly on older GPUs). */
+.p64-shell.is-desk-home .p644-pages[data-ink-leaving="true"] {filter:none!important;opacity:0;}
+.p64-shell.is-desk-home .p644-pages {animation:p644b-ink-in .19s ease-out both}
+@keyframes p644b-ink-in {from{opacity:0}to{opacity:1}}
+@media (min-width:801px) and (max-height:760px) {
+ .p64-shell.is-desk-home .p644-featured-heroes {flex-basis:27%;margin-bottom:8px}
+ .p64-shell.is-desk-home .p644-painted-portrait {height:clamp(53px,10vh,95px)}
+ .p64-shell.is-desk-home .p644-home-heading {min-height:18%}
+ .p64-shell.is-desk-home .p644-journey-note {padding:10px 14px}
+ .p64-shell.is-desk-home .p644-home-right {padding-top:3.8%;padding-bottom:4.5%}
+}
+@media (max-width:800px) {
+ .p64-shell.is-desk-home .p644-topbar {top:0;left:0;right:0;height:61px}
+ .p64-shell.is-desk-home .p644-wordmark,.p64-shell.is-desk-home .p644-wordmark strong{color:#483024!important;text-shadow:none}
+ .p64-shell.is-desk-home .p644-wordmark small {color:#77583d!important}
+ .p64-shell.is-desk-home .p644-bound-book {border-radius:16px!important}
+ .p64-shell.is-desk-home[data-edition-family="brighter-world"][data-edition-mode="day"] .p644-bound-book {position:relative;inset:auto;width:100%;border:6px solid #573a27!important;box-shadow:0 8px 25px #29170f85!important}
+ .p64-shell.is-desk-home[data-edition-family="brighter-world"][data-edition-mode="day"] .p644-bound-book::after {display:none}
+ .p64-shell.is-desk-home .p644-mini-hero{min-height:0}
+ .p64-shell.is-desk-home .p644-painted-portrait{height:90px!important;max-height:none;width:100%}
+ .p64-shell.is-desk-home .p644-featured-heroes{min-height:146px;flex-basis:auto}
+ .p64-shell.is-desk-home .p644-home-right{padding:22px 18px 30px}
+ .p64-shell.is-desk-home .p644-watercolor-plate {background-position:center}
+ .p64-shell.is-desk-home .p644-bookmarks{left:0;top:auto}
+ .p64-shell.is-desk-home .p644-bookmarks :is(button,a){box-shadow:none!important;border:0!important;background:transparent!important}
+}
+@media (prefers-reduced-motion:reduce){.p64-shell.is-desk-home .p644-pages{animation:none!important}}
+.p64-desk[data-reduced-motion="true"] .p644-pages{animation:none!important}

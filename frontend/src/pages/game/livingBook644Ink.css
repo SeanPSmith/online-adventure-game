@@ -1,0 +1,172 @@
+/* Pass 64.4C — the book, binding, stage and paper stay; only its ink/content dissolves.
+   Styling is intentionally scoped to the player Home's living-book shell. */
+.p64-shell.is-desk-home .p644-pages {
+  display:block!important;
+  animation:none!important;
+  opacity:1!important;
+  filter:none!important;
+  isolation:isolate;
+}
+.p64-shell.is-desk-home .p644-paper-leaf {
+  position:absolute;
+  top:0;
+  bottom:0;
+  width:50%;
+  z-index:0;
+  pointer-events:none;
+  background-color:var(--p644-paper,#f6ead8);
+  background-image:linear-gradient(90deg,#ab8b5b18,transparent 13%,transparent 90%,#805c462a),url('/art/pass64/brighter-paper.webp');
+  background-size:auto,720px auto;
+  box-shadow:inset 0 0 26px #8b68402c;
+}
+.p64-shell.is-desk-home .p644-paper-leaf-left {left:0;}
+.p64-shell.is-desk-home .p644-paper-leaf-right {
+  right:0;
+  background-image:linear-gradient(90deg,#81604138,transparent 13%,transparent 87%,#a0846040),url('/art/pass64/brighter-paper.webp');
+}
+.p64-shell.is-desk-home[data-edition-mode="night"] .p644-paper-leaf{
+  background:var(--tot2-paper,#3b332e)!important;
+  box-shadow:inset 0 0 22px #08080845;
+}
+.p64-shell.is-desk-home .p644-ink-layer {
+  position:relative;
+  z-index:1;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  width:100%;
+  height:100%;
+  min-height:0;
+  opacity:1;
+  animation:p644c-ink-arrive 250ms ease-out both;
+  transform:translateZ(0);
+  will-change:opacity;
+}
+.p64-shell.is-desk-home .p644-ink-layer[data-ink-leaving="true"]{
+  opacity:0;
+  animation:none;
+  pointer-events:none;
+  transition:opacity 120ms ease-in;
+}
+@keyframes p644c-ink-arrive {from{opacity:0}to{opacity:1}}
+/* The page is a sheet of paper, not a panel. These leaves never animate. */
+.p64-shell.is-desk-home .p644-ink-layer > .p644-page {
+  background:transparent!important;
+  background-image:none!important;
+  box-shadow:none!important;
+  border:0!important;
+}
+/* Preserve enough whitespace for ink to breathe. Section heads sit on paper without panels. */
+.p64-shell.is-desk-home .p644-section-caption {
+  border:0!important;
+  border-bottom:1px solid color-mix(in srgb,var(--p644-ink,#382c24) 25%,transparent)!important;
+  margin-bottom:7px;
+  background:transparent!important;
+}
+.p64-shell.is-desk-home .p644-home-right {
+  gap:clamp(1px,.4vh,5px);
+}
+.p64-shell.is-desk-home .p644-mini-hero {
+  border:0!important;
+  box-shadow:none!important;
+  background:transparent!important;
+  padding:3px 4px 5px!important;
+}
+.p64-shell.is-desk-home .p644-featured-heroes {gap:clamp(8px,1vw,16px)}
+.p64-shell.is-desk-home .p644-painted-portrait {
+  box-shadow:0 3px 9px #38271830!important;
+}
+.p64-shell.is-desk-home .p644-story-postcard {
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+  transform:none!important;
+  padding:3px!important;
+}
+.p64-shell.is-desk-home .p644-story-postcard img {
+  border:1px solid #ad947064;
+  box-shadow:0 3px 7px #49331d38;
+}
+.p64-shell.is-desk-home .p644-story-postcard:hover img,
+.p64-shell.is-desk-home .p644-story-postcard:focus-visible img {
+  box-shadow:0 4px 13px #49331d6a;
+}
+.p64-shell.is-desk-home .p644-discover-note {
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  transform:none!important;
+  padding:5px 2px!important;
+  outline-offset:2px;
+}
+.p64-shell.is-desk-home .p644-discover-note .p644-small-landscape {
+  box-shadow:0 2px 7px #51382338;
+}
+.p64-shell.is-desk-home .p644-journey-note {
+  border:0!important;
+  border-radius:2px;
+  box-shadow:3px 5px 13px #49301d38!important;
+  background:#f8ebd6ec!important;
+}
+/* Graphical buttons: hand-inked ornament on a tactile but restrained printed label. */
+.p64-shell.is-desk-home .p644-primary-button {
+  background-color:#4b3a30!important;
+  background-image:url('/art/pass64/p644-ink-button-ornament.svg'),linear-gradient(180deg,#5a493c,#352c28)!important;
+  background-position:right 10px center,center!important;
+  background-size:23px 23px,cover!important;
+  background-repeat:no-repeat!important;
+  border:1px solid #80664a!important;
+  border-radius:2px!important;
+  box-shadow:0 2px 0 #b9a07d80,0 4px 9px #3622193d!important;
+  padding:10px 39px 10px 18px!important;
+  color:#fff1d9!important;
+  text-shadow:0 1px 0 #21171380;
+  transition:transform 120ms ease,box-shadow 120ms ease;
+}
+.p64-shell.is-desk-home .p644-primary-button:hover {
+  transform:translateY(-1px)!important;
+  box-shadow:0 2px 0 #b9a07d80,0 5px 10px #3622194d!important;
+}
+.p64-shell.is-desk-home .p644-primary-button:active {transform:translateY(1px)!important}
+/* Journeys / Discover / Heroes: remove stacked generic web panels; retain tactile inputs. */
+.p64-shell.is-desk-home .p644-ink-layer .p644-interior-page .panel,
+.p64-shell.is-desk-home .p644-ink-layer .p644-interior-page .dashboard-system-panel,
+.p64-shell.is-desk-home .p644-ink-layer .p644-interior-page .dashboard-journey-panel,
+.p64-shell.is-desk-home .p644-ink-layer .p644-interior-page .dashboard-section-header,
+.p64-shell.is-desk-home .p644-ink-layer .p644-interior-page .dashboard-system-section {
+  background:transparent!important;
+  box-shadow:none!important;
+  border:0!important;
+  border-radius:0!important;
+}
+.p64-shell.is-desk-home .p644-ink-layer .p644-interior-page :is(.dashboard-journey-row,.journey-row,.dashboard-hero-card,.dashboard-adventure-card,.dashboard-system-menu a) {
+  background:transparent!important;
+  box-shadow:none!important;
+  border:0!important;
+  border-bottom:1px solid #94795852!important;
+}
+/* Selection and data-entry controls still need discernible boundaries. */
+.p64-shell.is-desk-home .p644-ink-layer .p644-interior-page :is(input,.terminal-select-trigger,.button) {
+  border:1px solid #af9171!important;
+  background-color:#fcf5e8!important;
+  color:#35271e!important;
+}
+.p64-shell.is-desk-home .p644-ink-layer .p644-interior-page .button-primary {
+  background-color:#42372e!important;
+  color:#fff4dc!important;
+}
+/* Do not introduce an atmospheric video/canvas layer just to make ink move. */
+@media (max-width:800px){
+  .p64-shell.is-desk-home .p644-pages {height:auto!important;}
+  .p64-shell.is-desk-home .p644-paper-leaf {display:none!important;}
+  .p64-shell.is-desk-home .p644-ink-layer {display:block!important;height:auto!important;transform:none;animation-duration:150ms;will-change:auto;}
+  .p64-shell.is-desk-home .p644-ink-layer > .p644-page {
+    background-color:var(--p644-paper,#f5e7d0)!important;
+    background-image:url('/art/pass64/brighter-paper.webp')!important;
+    box-shadow:inset 0 0 17px #8c69462c!important;
+  }
+  .p64-shell.is-desk-home .p644-ink-layer .p644-discover-note {min-height:110px;}
+}
+@media (prefers-reduced-motion:reduce){
+  .p64-shell.is-desk-home .p644-ink-layer {animation:none!important;transition:none!important;will-change:auto!important}
+}
+.p64-desk[data-reduced-motion="true"] .p644-ink-layer {animation:none!important;transition:none!important;will-change:auto!important}

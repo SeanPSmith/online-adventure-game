@@ -16,8 +16,8 @@ def test_scrapbook_art_direction_is_real_dom_not_a_baked_image():
     assert 'import "./deskScrapbookPass64.css"' in HOME
     assert 'p64b-postcard' in HOME
     assert 'p64b-portrait' in HOME
-    assert 'p64b-feature-heading' in HOME
-    assert 'p64b-corner-note' in HOME
+    assert 'p644-home-heading' in HOME
+    assert 'p644-pinned-note' in HOME
     assert 'aria-label="Continue your adventure"' in HOME
     assert 'background:url(' not in HOME
 

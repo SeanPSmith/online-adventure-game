@@ -15,7 +15,7 @@ def test_brighter_world_is_available_without_erasing_previous_skins():
 def test_living_book_is_real_dom_and_illustration_is_decorative():
     home = read('pages/game/GameHomePage.tsx')
     css = read('pages/game/gameBrighterWorld.css')
-    assert 'p643-watercolor-vista' in home
+    assert 'p644-watercolor-plate' in home
     assert 'aria-hidden="true"' in home
     assert 'brighter-vista.webp' in css
     assert 'brighter-desk.webp' in css

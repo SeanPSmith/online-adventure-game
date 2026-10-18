@@ -1,0 +1,17 @@
+{
+  "pass": "64.4A",
+  "file_count": 9,
+  "source_baseline": "64.3B reconstructed from user uploaded source and ordered overlays",
+  "files": {
+    "frontend/src/pages/game/GameHomePage.tsx": "45804e77d14d53b034fbf22fdf5de51f19356a92dd49dc071e30adedcb47e621",
+    "frontend/src/pages/game/livingBook644.css": "8af06d081906fdd02d3218bc2834774de3d6c87dea608025dd4ac7b50ec2d41e",
+    "frontend/src/layouts/GameLayout.tsx": "913e2e0263f5a29691c02e53afc1cc5fdce24991b801e1df4dcb67254069bda1",
+    "frontend/public/art/pass64/p644-tabletop.webp": "52b9b996a24e3fe8f26983e13bf66c2d080d4a5592de5db1f40cfe95c265563e",
+    "frontend/public/art/pass64/p644-watercolor-scene.webp": "39b9b2645dfd63e6c088884920e69c44c97bfd658283e0403823d84c18f52d75",
+    "tests/adventures/test_pass64_2b_scrapbook_contract.py": "94e6ce471f8d13f668d900eeeaba467ab9e368a9125a469765e8576b23b42edd",
+    "tests/adventures/test_pass64_3a_living_storybook.py": "134080a26d27985f012ccd1f6361821f5da1905bd26556befeee23d19bc07dbf",
+    "tests/adventures/test_pass64_4_living_book.py": "ebefe01e4b807ab5524d9aab8392ccdf070493d311e3a45217bd1dcb6f1b9815",
+    "docs/PASS64_4A_LIVING_BOOK.md": "060f3f2385d583ba4f9ee9c39781f29b084695ad88b55bd9aee42f27f10221ba"
+  },
+  "notes": "This archive is a standard install-overlay.sh root-relative patch; source regression tests run locally but full project build is required on user Mac. Staging remains untouched."
+}

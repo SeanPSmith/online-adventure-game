@@ -10,6 +10,7 @@ import { themeCssVars } from "../features/appearance/themePacks";
 import { themeEditionCssVars } from "../features/appearance/themeEditions";
 import "../features/appearance/themeEditions.css";
 import "../styles/brighterWorldShell.css";
+import "../pages/game/livingBook644.css";
 import type { CSSProperties } from "react";
 
 export function GameLayout() {

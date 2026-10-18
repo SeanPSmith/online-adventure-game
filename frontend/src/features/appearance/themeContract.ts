@@ -1,4 +1,6 @@
 /** Pass 64: cosmetic presentation only. No rewards, dice or server state mutations. */
+import { normalizeEditionFamily, normalizeEditionLighting, type EditionFamily, type EditionLighting } from "./themeEditions";
+
 export const PLATFORM_SKINS = ['brighter-world', 'wanderers-desk', 'midnight-codex', 'clear-journal'] as const;
 export const WORLD_SKINS = ['fantasy', 'starward', 'gothic'] as const;
 export type PlatformSkinId = typeof PLATFORM_SKINS[number];
@@ -17,6 +19,9 @@ export interface AppearancePreferences {
   /** Optional choice applies only with a verified entitlement. */
   readerOverride: WorldSkinId | null;
   reducedMotion: boolean;
+  /** Presentation edition; not proof of ownership. V1 preferences migrate to the flagship. */
+  editionFamily: EditionFamily;
+  editionLighting: EditionLighting;
 }
 
 export interface WorldAppearanceSource {
@@ -31,6 +36,7 @@ export interface WorldAppearanceSource {
 export const DEFAULT_APPEARANCE: Readonly<AppearancePreferences> = Object.freeze({
   platformSkin: 'brighter-world', readerMode: 'follow-world',
   readerOverride: null, reducedMotion: false,
+  editionFamily: 'brighter-world', editionLighting: 'day',
 });
 
 export const SKIN_MANIFEST = Object.freeze({
@@ -67,6 +73,8 @@ export function normalizeAppearance(raw: unknown): AppearancePreferences {
     readerMode,
     readerOverride: worldSkinFromUnknown(obj.readerOverride),
     reducedMotion: obj.reducedMotion === true,
+    editionFamily: normalizeEditionFamily(obj.editionFamily),
+    editionLighting: normalizeEditionLighting(obj.editionLighting),
   };
 }
 export function worldSkinFromCatalog(source: WorldAppearanceSource | null | undefined): WorldSkinId {

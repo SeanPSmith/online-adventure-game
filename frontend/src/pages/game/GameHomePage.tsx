@@ -2,6 +2,7 @@ import "./gameHomePass64.css";
 import "./deskFidelityPass64.css";
 import "./deskScrapbookPass64.css";
 import "./gameBrighterWorld.css";
+import "../../features/appearance/themeEditions.css";
 import { useAppearance } from "../../features/appearance/AppearanceContext";
 import { FirstRunGuide } from "../../features/onboarding/FirstRunGuide";
 import { useEffect, useMemo, useState } from "react";

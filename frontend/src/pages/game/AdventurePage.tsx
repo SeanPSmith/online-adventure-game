@@ -1,4 +1,6 @@
 import { themeCssVars } from "../../features/appearance/themePacks";
+import { readerEditionFamily, themeEdition, themeEditionCssVars } from "../../features/appearance/themeEditions";
+import "../../features/appearance/themeEditions.css";
 import type { CSSProperties } from "react";
 import "./adventureWorldPass64.css";
 import "./adventureLiterary643.css";
@@ -93,7 +95,7 @@ function outcomeLabel(outcome: string) {
 
 export function AdventurePage() {
   const { roomId } = useParams();
-  const { preferences, readerTheme } = useAppearance();
+  const { preferences, readerTheme, edition } = useAppearance();
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -650,7 +652,9 @@ export function AdventurePage() {
       ) : null}
       <div className="adventure-layout" data-world-skin={worldSkin.reader} data-reduced-motion={worldSkin.reducedMotion}
         data-installed-reader-theme={Boolean(readerTheme && worldSkin.reader !== "plain")} data-theme-material={readerTheme?.material}
-        style={readerTheme && worldSkin.reader !== "plain" ? themeCssVars(readerTheme) as CSSProperties : undefined}>
+        data-reader-edition-family={!readerTheme && worldSkin.reader !== "plain" ? readerEditionFamily(worldSkin.reader) : undefined}
+        data-edition-mode={edition.mode}
+        style={(worldSkin.reader === "plain" ? undefined : readerTheme ? themeCssVars(readerTheme) : themeEditionCssVars(themeEdition(readerEditionFamily(worldSkin.reader), edition.mode))) as CSSProperties | undefined}>
         <section className="story-pane panel" ref={storyPaneRef}>
           <div className="scene-art">
             <pre>{theater.chapterReleased ? (scene?.ascii_art?.trim() || "SETTING THE STAGE_") : "THE NEXT CHAPTER IS SEALED_"}</pre>

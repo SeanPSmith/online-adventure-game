@@ -1,5 +1,7 @@
 import { useRef, useState, type ChangeEvent } from "react";
 import { useAppearance } from "./AppearanceContext";
+import { EDITION_FAMILIES, themeEdition, type EditionFamily } from "./themeEditions";
+import "./themeEditions.css";
 import { TerminalSelect } from "../../components/ui/TerminalSelect";
 import { SKIN_MANIFEST, PLATFORM_SKINS, resolveAppearance, type PlatformSkinId } from "./themeContract";
 import { contrastRatio, INCLUDED_PACKS, parseThemePack, THEME_FORMAT, themeFileName, type ThemePack, type ThemePalette, type ThemeTarget, type ThemeMaterial } from "./themePacks";
@@ -29,7 +31,7 @@ function slug(name: string) {
 }
 
 export function AppearanceWardrobe() {
-  const { preferences, updateAppearance, installedThemes, libraryTheme, readerTheme, equipTheme, installTheme, removeTheme } = useAppearance();
+  const { preferences, edition, updateAppearance, installedThemes, libraryTheme, readerTheme, equipTheme, installTheme, removeTheme } = useAppearance();
   const active = resolveAppearance(preferences, null);
   const [workshop, setWorkshop] = useState(false);
   const [name, setName] = useState("My Traveling Journal");
@@ -65,6 +67,35 @@ export function AppearanceWardrobe() {
       <h2 id="p64-wardrobe-title">Dress the story, not the odds.</h2>
       <p>A good jacket never saved anyone from a dragon. But it does improve the entrance.</p>
     </div>
+    <section className="p643b-editions" aria-labelledby="p643b-editions-heading">
+      <div className="p643b-editions-head">
+        <div><h3 id="p643b-editions-heading">Editions of your library</h3>
+          <p>Same stories, different surroundings. The atmosphere is yours to choose.</p></div>
+        <div className="p643b-daynight" role="group" aria-label="Tabletop lighting">
+          {(["day","night","system"] as const).map(mode => <button key={mode} type="button"
+            className={`button ${preferences.editionLighting === mode ? "is-active" : ""}`}
+            aria-pressed={preferences.editionLighting === mode}
+            onClick={() => updateAppearance({ editionLighting: mode })}>
+            {mode === "system" ? "AUTO" : mode === "day" ? "DAY" : "NIGHT"}
+          </button>)}
+        </div>
+      </div>
+      <div className="p643b-edition-gallery" role="group" aria-label="Choose your tabletop edition">
+        {EDITION_FAMILIES.map((family: EditionFamily) => {
+          const preview = themeEdition(family, edition.mode);
+          const selected = !libraryTheme && preferences.editionFamily === family;
+          return <button key={family} type="button" className="p643b-edition-card" aria-pressed={selected}
+            onClick={() => { equipTheme(null, "library"); updateAppearance({ editionFamily: family, platformSkin: "brighter-world" }); }}>
+            <span className="p643b-edition-art" style={{ backgroundColor: preview.colors.desk, backgroundImage: `linear-gradient(0deg, ${preview.colors.desk}cc, transparent), url("${preview.sceneAsset}")` }} aria-hidden="true">
+              <span style={{ background: preview.colors.paper, color: preview.colors.ink, borderColor: preview.colors.frame }}>Aa</span>
+            </span>
+            <strong>{preview.label}</strong><small>{preview.mode === "day" ? "Daylight edition" : "After-dark edition"} · {preview.paper}</small>
+            <span className="p643b-edition-state">{selected ? "EQUIPPED" : "PREVIEW & EQUIP"}</span>
+          </button>;
+        })}
+      </div>
+      <p className="p643b-edition-hint">Day and Night change lighting, inks and paper—not your Heroes, worlds or dice. Auto follows your device. Your earlier JSON palettes remain available below.</p>
+    </section>
     <h3 className="p64-theme-section-title">Original bindings</h3>
     <div className="p64-wardrobe-choices" role="group" aria-label="Choose your original library appearance">
       {PLATFORM_SKINS.map((id) => <button key={id} type="button" className={`p64-skin-card ${!libraryTheme && active.platform === id ? "is-equipped" : ""}`}

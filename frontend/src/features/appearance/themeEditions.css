@@ -1,0 +1,121 @@
+/* Pass 64.3B — curated day/night theme layers. These are presentation tokens only.
+   Preserve all server-authoritative controls, legacy V1 custom palettes and plain Reader. */
+.p64-shell[data-edition-family]:not([data-installed-library-theme="true"]){
+  --tot2-paper-edge:color-mix(in srgb,var(--tot2-frame) 45%,var(--tot2-paper));
+  --tot2-paper-shadow:color-mix(in srgb,var(--tot2-desk) 44%,transparent);
+}
+.p64-shell[data-edition-family]:not([data-installed-library-theme="true"]) .p64-desk{
+  background-color:var(--tot2-desk)!important;
+  background-image:linear-gradient(180deg,color-mix(in srgb,var(--tot2-desk) 12%,transparent),color-mix(in srgb,var(--tot2-desk) 56%,transparent)),var(--tot2-tabletop-art)!important;
+  color:var(--tot2-ink);font-family:var(--tot2-body);
+}
+.p64-shell[data-edition-family]:not([data-installed-library-theme="true"]) .p64-book{
+  border-color:var(--tot2-binding)!important;outline-color:var(--tot2-frame)!important;
+  box-shadow:0 0 0 3px var(--tot2-frame),0 15px 25px var(--tot2-paper-shadow)!important;
+}
+.p64-shell[data-edition-family]:not([data-installed-library-theme="true"]) .p64-leaf,
+.p64-shell[data-edition-family]:not([data-installed-library-theme="true"]) .p64-leaf-right{
+  background-color:var(--tot2-paper)!important;
+  background-image:linear-gradient(105deg,color-mix(in srgb,var(--tot2-paper) 85%,transparent),color-mix(in srgb,var(--tot2-paper) 92%,transparent) 14%,color-mix(in srgb,var(--tot2-paper) 92%,transparent) 90%,color-mix(in srgb,var(--tot2-paper) 84%,transparent)),url('/art/pass64/brighter-paper.webp')!important;
+  color:var(--tot2-ink);box-shadow:inset 0 0 18px var(--tot2-paper-shadow);
+}
+.p64-shell[data-edition-family]:not([data-installed-library-theme="true"]) .p643-watercolor-vista{
+  background-image:var(--tot2-scene-art)!important;
+  opacity:.94;
+}
+.p64-shell[data-edition-family]:not([data-installed-library-theme="true"]) .p64-masthead h1,
+.p64-shell[data-edition-family]:not([data-installed-library-theme="true"]) .p64-feature-copy h2,
+.p64-shell[data-edition-family]:not([data-installed-library-theme="true"]) .p64-leaf .dashboard-section-header h2{
+  font-family:var(--tot2-display)!important;color:var(--tot2-ink)!important;
+}
+.p64-shell[data-edition-family]:not([data-installed-library-theme="true"]) .p64-masthead h1 em{
+  color:var(--tot2-accent)!important;
+}
+.p64-shell[data-edition-family]:not([data-installed-library-theme="true"]) .p64-masthead p,
+.p64-shell[data-edition-family]:not([data-installed-library-theme="true"]) .p64-leaf .dashboard-section-header p,
+.p64-shell[data-edition-family]:not([data-installed-library-theme="true"]) .p64-page-label,
+.p64-shell[data-edition-family]:not([data-installed-library-theme="true"]) .p64-masthead .p64-overline{
+  color:var(--tot2-muted)!important;
+}
+.p64-shell[data-edition-family]:not([data-installed-library-theme="true"]) .p64-feature,
+.p64-shell[data-edition-family]:not([data-installed-library-theme="true"]) .dashboard-hero-card.p64b-portrait,
+.p64-shell[data-edition-family]:not([data-installed-library-theme="true"]) .dashboard-adventure-card.p64b-postcard,
+.p64-shell[data-edition-family]:not([data-installed-library-theme="true"]) .p64b-corner-note{
+  background:var(--tot2-paper)!important;color:var(--tot2-ink)!important;
+  border-color:var(--tot2-frame)!important;
+}
+.p64-shell[data-edition-family]:not([data-installed-library-theme="true"]) :is(.dashboard-hero-card.p64b-portrait,.dashboard-adventure-card.p64b-postcard) :is(h3,strong,small,p){color:var(--tot2-ink)!important}
+.p64-shell[data-edition-family]:not([data-installed-library-theme="true"]) .p64-blood-button,
+.p64-shell[data-edition-family]:not([data-installed-library-theme="true"]) .p64-wardrobe-link{
+  background:var(--tot2-accent)!important;color:var(--tot2-accent-text)!important;border-color:var(--tot2-frame)!important;
+}
+.p64-shell[data-edition-family]:not([data-installed-library-theme="true"]) .p64-wardrobe-link{padding:8px 12px;border-radius:3px}
+.p64-shell[data-edition-family]:not([data-installed-library-theme="true"]) .p64-feature-copy p{
+  color:var(--tot2-muted)!important;
+}
+.p64-shell[data-edition-family]:not([data-installed-library-theme="true"]) .dashboard-command-grid .panel,
+.p64-shell[data-edition-family]:not([data-installed-library-theme="true"]) :is(.catalog-toolbar,.dashboard-journey-row,.p64-wardrobe-teaser){
+  background:var(--tot2-paper)!important;color:var(--tot2-ink)!important;border-color:var(--tot2-frame)!important;
+}
+.p64-shell[data-edition-family]:not([data-installed-library-theme="true"]) :is(input,.terminal-select-trigger,.terminal-select-button){
+  background:var(--tot2-paper);color:var(--tot2-ink);border-color:var(--tot2-frame);
+}
+.p64-shell[data-edition-family="starward-folio"]:not([data-installed-library-theme="true"]) .p64-book{border-radius:6px!important}
+.p64-shell[data-edition-family="starward-folio"]:not([data-installed-library-theme="true"]) .p64-feature,
+.p64-shell[data-edition-family="starward-folio"]:not([data-installed-library-theme="true"]) .p64b-postcard{border-radius:2px!important}
+.p64-shell[data-edition-family="garden-table"]:not([data-installed-library-theme="true"]) .p64-leaf{background-image:radial-gradient(ellipse at 90% 8%,#7fa56e19,transparent 35%),linear-gradient(color-mix(in srgb,var(--tot2-paper) 90%,transparent),color-mix(in srgb,var(--tot2-paper) 90%,transparent)),url('/art/pass64/brighter-paper.webp')!important}
+.p64-shell[data-edition-family="ink-and-ash"]:not([data-installed-library-theme="true"]) .p64b-postcard{filter:saturate(.65)}
+.p64-shell[data-edition-mode="night"]:not([data-installed-library-theme="true"]) .p64-feature-copy,
+.p64-shell[data-edition-mode="night"]:not([data-installed-library-theme="true"]) .p64-masthead{
+  background:transparent;color:var(--tot2-ink);
+}
+/* Reader families intentionally follow the existing authoritative world-skin mapping. */
+.adventure-layout[data-reader-edition-family][data-world-skin]:not([data-installed-reader-theme="true"]){
+  background:var(--tot2-desk);border-color:var(--tot2-binding);
+  --text:var(--tot2-ink);--text-dim:var(--tot2-muted);
+}
+.adventure-layout[data-reader-edition-family][data-world-skin]:not([data-installed-reader-theme="true"]) .story-pane{
+  background:var(--tot2-paper)!important;color:var(--tot2-ink)!important;border-color:var(--tot2-frame)!important;
+  box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--tot2-frame) 30%,transparent);
+  font-family:var(--tot2-body);
+}
+.adventure-layout[data-reader-edition-family][data-world-skin]:not([data-installed-reader-theme="true"]) .story-pane :is(h1,h2,h3,.scene-title){font-family:var(--tot2-display)!important;color:var(--tot2-ink)!important}
+.adventure-layout[data-reader-edition-family][data-world-skin]:not([data-installed-reader-theme="true"]) .story-pane :is(p,.story-text,.scene-body,.scene-copy,.story-body,.narrative-text){color:var(--tot2-ink)!important}
+.adventure-layout[data-reader-edition-family][data-world-skin]:not([data-installed-reader-theme="true"]) .story-pane :is(.scene-meta,.eyebrow,.choice-area-heading){color:var(--tot2-muted)!important}
+.adventure-layout[data-reader-edition-family][data-world-skin]:not([data-installed-reader-theme="true"]) .choice-select-button{
+  background:var(--tot2-paper);color:var(--tot2-ink);border-color:var(--tot2-frame);box-shadow:none;
+}
+.adventure-layout[data-reader-edition-family][data-world-skin]:not([data-installed-reader-theme="true"]) .story-pane .button.button-primary{
+  background:var(--tot2-accent);color:var(--tot2-accent-text);border-color:var(--tot2-frame);
+}
+.adventure-layout[data-reader-edition-family][data-world-skin]:not([data-installed-reader-theme="true"]) .adventure-sidebar{
+  background:var(--tot2-binding);border-color:var(--tot2-frame);
+}
+.adventure-layout[data-reader-edition-family][data-world-skin]:not([data-installed-reader-theme="true"]) .adventure-sidebar .panel{
+  background:var(--tot2-paper);color:var(--tot2-ink);border-color:var(--tot2-frame);
+}
+.adventure-layout[data-reader-edition-family][data-world-skin]:not([data-installed-reader-theme="true"]) .adventure-sidebar .panel-heading{
+  background:var(--tot2-accent);color:var(--tot2-accent-text);border-color:var(--tot2-frame);
+}
+/* Theme Gallery stays scannable in both light and dark account shells. */
+.p643b-editions{margin:20px 0 28px;padding:17px;border:1px solid #a98e6e;border-radius:10px}
+.p643b-editions-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.p643b-editions h3{font:normal 1.5rem Georgia,serif;margin:0 0 5px}
+.p643b-editions-head p,.p643b-edition-hint{font-size:.86rem;line-height:1.55;opacity:.83}
+.p643b-daynight{display:flex;gap:4px;flex-wrap:wrap}
+.p643b-daynight .button{min-height:40px;font-size:.75rem}
+.p643b-daynight .button.is-active{outline:2px solid currentColor;outline-offset:2px}
+.p643b-edition-gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,178px),1fr));gap:13px;margin:17px 0 13px}
+.p643b-edition-card{display:flex;flex-direction:column;align-items:stretch;text-align:left;padding:9px;gap:7px;min-height:196px;border:1px solid #af9270;border-radius:7px;color:inherit;background:transparent;cursor:pointer}
+.p643b-edition-card[aria-pressed="true"]{outline:3px solid #b9894a;outline-offset:1px}
+.p643b-edition-card:focus-visible{outline:3px solid #7bcde2;outline-offset:3px}
+.p643b-edition-art{height:92px;border-radius:4px;border:1px solid #a78a65;background-size:cover;background-position:center;display:grid;place-items:center}
+.p643b-edition-art>span{width:55%;height:76%;display:grid;place-items:center;border:2px solid;font:normal 30px Georgia,serif;box-shadow:1px 2px 8px #0006}
+.p643b-edition-card strong{font:normal 1.08rem Georgia,serif}
+.p643b-edition-card small{opacity:.83;font-size:.75rem;line-height:1.3}
+.p643b-edition-state{font-size:.68rem;letter-spacing:.07em;opacity:.93;margin-top:auto}
+@media(prefers-reduced-motion:reduce){.p643b-edition-card{transition:none!important}}
+
+.p64-shell[data-edition-mode="night"]:not([data-installed-library-theme="true"]) .p64-desk{
+  background-image:linear-gradient(180deg,color-mix(in srgb,var(--tot2-desk) 62%,transparent),color-mix(in srgb,var(--tot2-desk) 88%,transparent)),var(--tot2-tabletop-art)!important;
+}

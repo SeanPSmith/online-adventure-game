@@ -7,20 +7,22 @@ import "../styles/deskScrapbookShell64.css";
 import "../styles/pass64_2cPerformance.css";
 import "../features/appearance/themePresentation.css";
 import { themeCssVars } from "../features/appearance/themePacks";
+import { themeEditionCssVars } from "../features/appearance/themeEditions";
+import "../features/appearance/themeEditions.css";
 import "../styles/brighterWorldShell.css";
 import type { CSSProperties } from "react";
 
 export function GameLayout() {
   const { user, logout } = useAuth();
   const location = useLocation();
-  const { preferences, libraryTheme } = useAppearance();
+  const { preferences, libraryTheme, edition } = useAppearance();
   const canAuthor = user?.permissions.includes("author") ?? false;
   const isAdmin = user?.permissions.includes("admin") ?? false;
   const isAdventureMode = location.pathname.startsWith("/game/adventure/");
   const isDeskHome = location.pathname === "/game";
 
   return (
-    <div className={`site-shell game-site-shell p64-shell ${isAdventureMode ? "is-adventure-mode" : ""} ${isDeskHome ? "is-desk-home" : ""}`} data-platform-skin={preferences.platformSkin} data-installed-library-theme={Boolean(libraryTheme)} data-theme-material={libraryTheme?.material} style={libraryTheme ? themeCssVars(libraryTheme) as CSSProperties : undefined}>
+    <div className={`site-shell game-site-shell p64-shell ${isAdventureMode ? "is-adventure-mode" : ""} ${isDeskHome ? "is-desk-home" : ""}`} data-platform-skin={preferences.platformSkin} data-edition-family={edition.family} data-edition-mode={edition.mode} data-installed-library-theme={Boolean(libraryTheme)} data-theme-material={libraryTheme?.material} style={(libraryTheme ? themeCssVars(libraryTheme) : themeEditionCssVars(edition)) as CSSProperties}>
       <a className="skip-link" href="#main-content">SKIP TO CONTENT</a>
       <header className={`site-header game-header ${isAdventureMode ? "is-adventure-header" : ""}`}>
         <Link className="brand" to="/game">

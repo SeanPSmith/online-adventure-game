@@ -1,10 +1,12 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useAuth } from "../../state/AuthContext";
 import { DEFAULT_APPEARANCE, normalizeAppearance, type AppearancePreferences } from "./themeContract";
+import { themeEdition, resolveEditionLighting, type ThemeEdition } from "./themeEditions";
 import { findTheme, importThemeJSON, INCLUDED_IDS, parseThemePack, type ThemePack, type ThemeTarget } from "./themePacks";
 
 type AppearanceContextValue = {
   preferences: AppearancePreferences;
+  edition: Readonly<ThemeEdition>;
   updateAppearance: (change: Partial<AppearancePreferences>) => void;
   installedThemes: readonly ThemePack[];
   libraryTheme: ThemePack | null;
@@ -52,6 +54,17 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
   const id = user?.user_id || "";
   const [preferences, setPreferences] = useState<AppearancePreferences>(() => safeLoad(id));
   const [local, setLocal] = useState<LocalThemes>(() => safeThemes(id));
+  const [systemDark, setSystemDark] = useState(() =>
+    typeof window !== "undefined" && typeof window.matchMedia === "function"
+      ? window.matchMedia("(prefers-color-scheme: dark)").matches : false);
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const onChange = () => setSystemDark(media.matches);
+    onChange();
+    media.addEventListener?.("change", onChange);
+    return () => media.removeEventListener?.("change", onChange);
+  }, []);
   useEffect(() => { setPreferences(safeLoad(id)); setLocal(safeThemes(id)); }, [id]);
   const saveLocal = (next: LocalThemes) => {
     if (!id) return;
@@ -62,6 +75,7 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
   };
   const value = useMemo<AppearanceContextValue>(() => ({
     preferences,
+    edition: themeEdition(preferences.editionFamily, resolveEditionLighting(preferences.editionLighting, systemDark)),
     updateAppearance: (change) => {
       if (!id) return;
       const next = normalizeAppearance({ ...preferences, ...change });
@@ -89,7 +103,7 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
         reader: local.reader === themeId ? null : local.reader });
     },
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [preferences, id, local]);
+  }), [preferences, id, local, systemDark]);
   return <Context.Provider value={value}>{children}</Context.Provider>;
 }
 export function useAppearance() {

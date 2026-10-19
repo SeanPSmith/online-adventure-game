@@ -48,18 +48,75 @@ def test_only_local_catalog_assets_and_no_billing_or_gameplay_mutations():
 
 
 def test_safe_zones_use_source_aligned_cover_coordinates():
-    css = (SRC / "pages/game/spaceLab.css").read_text()
+    """Check real page geometry rather than freezing an old Pass 64.4F inset.
+
+    Later manuscript passes intentionally widen the printable leaves, so the
+    original 0.267/0.563/0.258 coordinates are no longer the desired layout.
+    Assert the scene-to-book projection and the actual readable margins.
+    """
+    css = (SRC / "pages/game/spaceLab.css").read_text(encoding="utf-8")
+    scene = (SRC / "pages/game/SpaceLab.tsx").read_text(encoding="utf-8")
+    model = (SRC / "features/cosmetics/environmentCatalog.ts").read_text(encoding="utf-8")
+
+    # The projection is calibrated to the 1672x941 source image. This must
+    # remain scene-relative even as the numerical ink-safe bounds evolve.
     assert '177.6833vh' in css and '56.2799vw' in css
-    assert '.space-safe-left' in css and '.space-safe-right' in css
-    assert '.space-scene-plane' in css and '.space-spine-guide' in css
-    assert '.vb-lab.has-space .vb-scene' in css
-    assert '@media(prefers-reduced-motion:reduce)' in css
+    for token in ('.space-scene-plane', '.space-safe-space', '.space-spine-guide',
+                  '.vb-lab.has-space .vb-scene',
+                  '@media(prefers-reduced-motion:reduce)'):
+        assert token in css
     assert ART.is_file() and ART.stat().st_size > 100_000
-    model = (SRC / "features/cosmetics/environmentCatalog.ts").read_text()
+
+    # Either the 64.4G dashed-rectangle guides OR the optional 64.4G.2 SVG
+    # polygon renderer may be installed. Both must use the SAME source image
+    # geometry as Inkspace; mixing JSX from one renderer with CSS from the
+    # other is a real bug, not an acceptable compatibility variation.
+    for side in ('left', 'right'):
+        assert f'sceneRectStyle(SCENE_COMPOSITING.contentSafeZones.{side})' in scene
+    story = (SRC / 'pages/game/InkspaceStoryPage.tsx').read_text(encoding='utf-8')
+    assert 'sceneRectStyle(SCENE_COMPOSITING.contentSafeZones[side])' in story
+    has_polygon_markup = 'className="space-page-polygon"' in scene
+    has_polygon_css = '.space-page-polygon{' in css
+    assert has_polygon_markup == has_polygon_css, 'Space Lab guide markup/CSS versions must match'
+    if has_polygon_markup:
+        assert '<svg' in scene and '<polygon points={safeZonePolygonPoints(' in scene
+        assert 'viewBox="0 0 100 100"' in scene
+        assert 'vector-effect:non-scaling-stroke' in css
+        for side in ('left', 'right'):
+            assert f'safeZonePolygonPoints("{side}")' in scene
+    else:
+        assert 'safeZonePolygonPoints(' not in scene
+        assert 'border:2px dashed' in css, 'legacy guides must remain visible'
+
     assert 'validatesSpineAlignedSafeZones' in model
-    assert 'spineX: 0.523' in model
-    for coordinate in ('x: 0.267', 'x: 0.563', 'y: 0.258'):
-        assert coordinate in model
+    assert 'contentSafePolygons:' in model
+    spine = re.search(r'\bspineX:\s*([\d.]+)', model)
+    assert spine is not None
+    spine_x = float(spine.group(1))
+
+    def rect(name: str):
+        found = re.search(rf'\b{name}:\s*\{{\s*x:\s*([\d.]+),\s*y:\s*([\d.]+),\s*width:\s*([\d.]+),\s*height:\s*([\d.]+)', model)
+        assert found is not None, f'missing scene rectangle: {name}'
+        return tuple(float(value) for value in found.groups())
+
+    left_page, right_page = rect('leftPage'), rect('rightPage')
+    left, right = rect('left'), rect('right')
+    assert left_page[0] + left_page[2] < spine_x < right_page[0]
+    assert left[0] + left[2] < spine_x < right[0]
+    for page, ink in ((left_page, left), (right_page, right)):
+        assert page[0] < ink[0] < ink[0] + ink[2] < page[0] + page[2]
+        assert page[1] < ink[1] < ink[1] + ink[3] < page[1] + page[3]
+
+    # Both leaves may be different widths, but must keep comparable page-relative
+    # outer and gutter insets, with extra clearance for exterior botanicals.
+    lo = (left[0] - left_page[0]) / left_page[2]
+    lg = (left_page[0] + left_page[2] - left[0] - left[2]) / left_page[2]
+    ro = (right_page[0] + right_page[2] - right[0] - right[2]) / right_page[2]
+    rg = (right[0] - right_page[0]) / right_page[2]
+    assert 0 < lg < lo < 0.2
+    assert 0 < rg < ro < 0.2
+    assert abs(lo - ro) < 0.015
+    assert abs(lg - rg) < 0.015
 
 
 def test_same_origin_catalog_paths_and_no_external_scripts():

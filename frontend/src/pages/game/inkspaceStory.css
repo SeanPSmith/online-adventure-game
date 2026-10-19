@@ -17,7 +17,7 @@
 .inkspace-leaf--right{clip-path:polygon(7% 3%,51% 1%,97% 3%,100% 14%,99% 49%,99% 86%,94% 98%,49% 100%,4% 97%,1% 86%,0% 50%,3% 14%)}
 .inkspace-page-ink{
   width:100%;height:100%;min-width:0;overflow-y:auto;overscroll-behavior:contain;
-  padding:clamp(11px,1.05vw,18px) clamp(10px,1vw,17px);
+  padding:clamp(12px,1.05vw,18px) clamp(11px,1.02vw,17px);
   -webkit-mask-image:url('/art/pass64/ink-masks/ink-32.webp');mask-image:url('/art/pass64/ink-masks/ink-32.webp');
   -webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
   scrollbar-width:thin;scrollbar-color:#a6806240 transparent;
@@ -30,7 +30,7 @@
 .inkspace-rule:before,.inkspace-rule:after{content:"";height:1px;flex:1;background:linear-gradient(90deg,transparent,#a98b60)}
 .inkspace-rule:after{transform:rotate(180deg)}.inkspace-rule span{font-size:14px;padding:0 9px}
 .inkspace-opening,.inkspace-paragraph{margin:0 0 clamp(8px,1.35vh,14px);font:400 clamp(12px,1.02vw,17px)/1.46 Georgia,'Times New Roman',serif;text-align:left;hyphens:auto;text-wrap:pretty;letter-spacing:-.006em}
-.inkspace-dropcap{float:left;font:400 clamp(45px,4.05vw,70px)/.82 Georgia,serif;color:#7b2e24;text-shadow:0 1px 0 #fce7b5;margin:5px 7px 0 1px}
+.inkspace-dropcap{float:left;font:400 clamp(45px,4.05vw,70px)/.82 Georgia,serif;color:#7b2e24;text-shadow:0 1px 0 #fce7b5;margin:5px 8px 0 1px}
 .inkspace-opening--illuminated .inkspace-dropcap{font-weight:bold;color:#244f6a;text-shadow:-1px 0 #c69b49,0 2px #cb9e4e,1px 0 #b38d50;outline:1px solid #b69252a8;outline-offset:2px;margin:6px 11px 5px 3px}
 .inkspace-rubric{color:#983d33;font:italic 600 clamp(10px,.9vw,14px)/1.3 Georgia,serif;letter-spacing:.05em;margin:12px 0 9px}
 .inkspace-flora{position:absolute;right:0;top:-.32em;font:32px Georgia,serif;color:#678066;opacity:.32;pointer-events:none}
@@ -81,3 +81,16 @@
  .inkspace-motion{position:relative;align-self:center;right:auto;bottom:auto;padding:9px 14px;border:1px solid #dfbc91aa;background:#241409d9;color:#f6e5c5}
 }
 @media(prefers-reduced-motion:reduce){.inkspace-page-ink{will-change:auto}.inkspace-figure img{transition:none}}
+
+/* Pass 64.4I.2 — Wider, balanced manuscript composition. The leaf is
+ * projected from SCENE_COMPOSITING; no second set of image coordinates lives here.
+ * The photographic desk and page never animate. The mask remains on ink only. */
+@media (min-width:861px){
+  .inkspace-manuscript { padding-inline: clamp(0px,.20vw,3px); }
+  .inkspace-leaf--left .inkspace-page-ink { padding-right: clamp(13px,1.05vw,19px); }
+  .inkspace-leaf--right .inkspace-page-ink { padding-left: clamp(13px,1.05vw,19px); }
+  .inkspace-figure img { -webkit-mask-image: radial-gradient(ellipse 73% 59% at 50% 49%,#000 61%,transparent 99%); mask-image: radial-gradient(ellipse 73% 59% at 50% 49%,#000 61%,transparent 99%); }
+  .inkspace-figure--small img { max-height:clamp(68px,9.3vh,86px); }
+  .inkspace-stage--illuminated .inkspace-figure:not(.inkspace-figure--small) img { max-height:clamp(110px,18.5vh,180px); }
+  .inkspace-figure--small img { -webkit-mask-image: radial-gradient(ellipse 72% 55% at 50% 48%,#000 55%,transparent 100%); mask-image: radial-gradient(ellipse 72% 55% at 50% 48%,#000 55%,transparent 100%); }
+}

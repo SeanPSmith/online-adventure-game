@@ -64,9 +64,22 @@ export const SCENE_COMPOSITING = {
     leftPage: { x: 0.194, y: 0.230, width: 0.320, height: 0.645 },
     rightPage: { x: 0.535, y: 0.230, width: 0.347, height: 0.645 },
   },
+  // Readable *bounding rectangles* are the inner limits for future DOM ink.
+  // 64.4I.2: each leaf uses ~11.5% outer and ~6% gutter margin,
+  // preserving a protective inset from painted botanicals and binding.
+  // This expands the formerly cramped, approx 20% outer margin.
+  // Book pages are not identical widths, so normalize their outside and gutter
+  // margins as a FRACTION of each actual page instead of matching raw pixels.
   contentSafeZones: {
-    left: { x: 0.267, y: 0.258, width: 0.217, height: 0.565 },
-    right: { x: 0.563, y: 0.258, width: 0.218, height: 0.565 },
+    left: { x: 0.231, y: 0.250, width: 0.264, height: 0.590 },
+    right: { x: 0.556, y: 0.250, width: 0.286, height: 0.590 },
+  },
+  // Outline polygons are LOCAL percent coordinates within the safe bounding
+  // rectangles. These follow subtle photographed paper tapers, not an SVG
+  // warp applied to the text: actual HTML paragraphs stay flat and readable.
+  contentSafePolygons: {
+    left: [[3, 3], [48, 1], [93, 3], [97, 13], [99, 50], [96, 87], [92, 98], [50, 100], [3, 97], [0, 84], [1, 49], [0, 13]],
+    right: [[7, 3], [51, 1], [97, 3], [100, 14], [99, 49], [99, 86], [94, 98], [49, 100], [4, 97], [1, 86], [0, 50], [3, 14]],
   },
   propAnchors: {
     desk_left_mid: { x: 0.055, y: 0.520, width: 0.091, height: 0.160 },
@@ -75,6 +88,20 @@ export const SCENE_COMPOSITING = {
 } as const;
 
 export type SceneRect = Readonly<{ x: number; y: number; width: number; height: number }>;
+export type PageSide = "left" | "right";
+/** SVG renderer consumes only fixed, validated scene-owned points. */
+export function safeZonePolygonPoints(side: PageSide): string {
+  return SCENE_COMPOSITING.contentSafePolygons[side].map(([x, y]) => `${x},${y}`).join(" ");
+}
+
+/** Left/right printable margins measured in normalized LOCAL-page units. */
+export function pageMarginRatios(side: PageSide): Readonly<{ outer: number; gutter: number }> {
+  const p = SCENE_COMPOSITING.geometry[side === "left" ? "leftPage" : "rightPage"];
+  const c = SCENE_COMPOSITING.contentSafeZones[side];
+  return side === "left"
+    ? { outer: (c.x - p.x) / p.width, gutter: (p.x + p.width - c.x - c.width) / p.width }
+    : { outer: (p.x + p.width - c.x - c.width) / p.width, gutter: (c.x - p.x) / p.width };
+}
 /** A single normalized scene projection drives safe-area markers and props. */
 export function sceneRectStyle(rect: SceneRect): Readonly<Record<"left" | "top" | "width" | "height", string>> {
   return { left: `${rect.x * 100}%`, top: `${rect.y * 100}%`, width: `${rect.width * 100}%`, height: `${rect.height * 100}%` };
@@ -85,7 +112,13 @@ export function validatesSpineAlignedSafeZones(): boolean {
   const le = c.left.x + c.left.width;
   const re = c.right.x + c.right.width;
   const valid = [g.book, g.leftPage, g.rightPage, c.left, c.right, ...Object.values(SCENE_COMPOSITING.propAnchors)];
-  return valid.every((r) => r.x >= 0 && r.y >= 0 && r.width > 0 && r.height > 0 && r.x + r.width <= 1 && r.y + r.height <= 1) &&
+  const lm = pageMarginRatios("left"), rm = pageMarginRatios("right");
+  const polygonsValid = Object.values(SCENE_COMPOSITING.contentSafePolygons).every((points) =>
+    points.length >= 8 && points.every(([x, y]) => x >= 0 && x <= 100 && y >= 0 && y <= 100));
+  return polygonsValid &&
+    Math.abs(lm.outer - rm.outer) < 0.015 && Math.abs(lm.gutter - rm.gutter) < 0.015 &&
+    lm.outer > lm.gutter && rm.outer > rm.gutter &&
+    valid.every((r) => r.x >= 0 && r.y >= 0 && r.width > 0 && r.height > 0 && r.x + r.width <= 1 && r.y + r.height <= 1) &&
     g.leftPage.x < c.left.x && le < g.spineX && g.spineX < c.right.x && re < g.rightPage.x + g.rightPage.width &&
     // Deliberately bias printable content toward the spine, away from exterior botanicals.
     c.left.x - g.leftPage.x > g.spineX - le &&

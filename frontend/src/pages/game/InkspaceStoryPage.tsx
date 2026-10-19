@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { SCENE_COMPOSITING, sceneRectStyle } from "../../features/cosmetics/environmentCatalog";
 import { INKSPACE_MODES, INKSPACE_STORIES, type InkspaceMode, type InkspacePageArt, type InkspacePageContent } from "./inkspaceStorySamples";
 import "./inkspaceStory.css";
+import { preloadInkMasks, clearInkMask } from "./inkMaskAssets";
 
 // Derive the page side from existing scene geometry: older catalogs do not export PageSide.
 type PageSide = keyof typeof SCENE_COMPOSITING.contentSafeZones;
@@ -72,6 +73,10 @@ export function InkspaceStorySurface({ activeTab }: { activeTab: string }) {
   const mountedRef = useRef(false);
   const activeRef = useRef(selected);
   const [busy, setBusy] = useState(false);
+  const [maskStatus, setMaskStatus] = useState<"pending" | "ready" | "failed">("pending");
+  const replaySeenRef = useRef(replay);
+  const pendingRevealRef = useRef(false);
+  const revealAfterCommitRef = useRef<() => void>(() => {});
 
   useEffect(() => { setSelected(tabMode(activeTab)); }, [activeTab]);
   useEffect(() => { activeRef.current = selected; }, [selected]);
@@ -81,63 +86,107 @@ export function InkspaceStorySurface({ activeTab }: { activeTab: string }) {
     // The folio's two leaves absorb ink at subtly different rates.
     const leftStep = Math.round(progressRef.current * (MASK_FRAMES - 1));
     const rightStep = Math.round(clamp01((progressRef.current - 0.07) / 0.93) * (MASK_FRAMES - 1));
-    if (leftRef.current) { leftRef.current.style.maskImage = maskURL(leftStep); leftRef.current.style.webkitMaskImage = maskURL(leftStep); }
-    if (rightRef.current) { rightRef.current.style.maskImage = maskURL(rightStep); rightRef.current.style.webkitMaskImage = maskURL(rightStep); }
+    const leftMask = maskURL(leftStep);
+    const rightMask = maskURL(rightStep);
+    // Avoid reloading the same mask texture on RAF ticks between frame changes.
+    if (leftRef.current) {
+      if (leftRef.current.style.maskImage !== leftMask) leftRef.current.style.maskImage = maskURL(leftStep);
+      if (leftRef.current.style.webkitMaskImage !== leftMask) leftRef.current.style.webkitMaskImage = maskURL(leftStep);
+    }
+    if (rightRef.current) {
+      if (rightRef.current.style.maskImage !== rightMask) rightRef.current.style.maskImage = maskURL(rightStep);
+      if (rightRef.current.style.webkitMaskImage !== rightMask) rightRef.current.style.webkitMaskImage = maskURL(rightStep);
+    }
   }, []);
 
+  // Paint the first blank mask before the browser's first visible frame.
+  // Unlike a normal fade, the physical book and all its surrounding props stay still.
+  useLayoutEffect(() => {
+    if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) paint(0);
+  }, [paint]);
+
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const images: HTMLImageElement[] = [];
-    for (let i = 0; i < MASK_FRAMES; i += 1) {
-      const img = new Image(); img.src = `/art/pass64/ink-masks/ink-${String(i).padStart(2, "0")}.webp`; images.push(img);
+    let current = true;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setMaskStatus("ready");
+      return;
     }
-    return () => { images.length = 0; };
+    void preloadInkMasks().then((ok) => { if (current) setMaskStatus(ok ? "ready" : "failed"); });
+    return () => { current = false; };
   }, []);
+
+  useLayoutEffect(() => {
+    // React has now COMMITTED the replacement prose and art. Only then reveal
+    // it: a RAF queued directly after setDisplayed can run before that commit.
+    if (pendingRevealRef.current && displayed === displayedRef.current) {
+      pendingRevealRef.current = false;
+      paint(0);
+      revealAfterCommitRef.current();
+    }
+  }, [displayed, paint]);
 
   useEffect(() => {
     if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    rafRef.current = null;
+    let disposed = false;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduced) {
+    const replayRequested = replay !== replaySeenRef.current;
+    replaySeenRef.current = replay;
+    if (maskStatus === "pending" && !reduced) return;
+    if (reduced || maskStatus === "failed") {
+      pendingRevealRef.current = false;
       displayedRef.current = selected;
       setDisplayed(selected);
       setBusy(false);
       paint(1);
+      if (maskStatus === "failed") {
+        clearInkMask(leftRef.current); clearInkMask(rightRef.current);
+      }
       return;
     }
-    let disposed = false;
+
     const duration = quick ? 390 : 820;
     const animate = (from: number, to: number, ms: number, finish: () => void) => {
       const start = performance.now();
       const tick = (now: number) => {
         if (disposed) return;
-        const ratio = clamp01((now - start) / ms);
+        const ratio = clamp01((now - start) / Math.max(1, ms));
         paint(from + (to - from) * eased(ratio));
         if (ratio < 1) rafRef.current = requestAnimationFrame(tick);
         else { rafRef.current = null; finish(); }
       };
       rafRef.current = requestAnimationFrame(tick);
     };
+    const reveal = () => animate(progressRef.current, 1, duration * (1 - progressRef.current), () => {
+      if (!disposed) { paint(1); setBusy(false); }
+    });
+    revealAfterCommitRef.current = reveal;
     setBusy(true);
-    const reveal = () => animate(0, 1, duration, () => { if (!disposed) { paint(1); setBusy(false); } });
+
     if (!mountedRef.current) {
       mountedRef.current = true;
       paint(0);
       reveal();
     } else if (displayedRef.current !== selected) {
-      animate(progressRef.current, 0, duration * 0.65, () => {
+      // Changing direction midway always continues from the CURRENT ink mask.
+      animate(progressRef.current, 0, duration * .65 * progressRef.current, () => {
         if (disposed) return;
         paint(0);
-        // Swap copy only after the old page has fully dissolved.
-        displayedRef.current = activeRef.current;
-        setDisplayed(displayedRef.current);
-        rafRef.current = requestAnimationFrame(() => { if (!disposed) reveal(); });
+        pendingRevealRef.current = true;
+        displayedRef.current = selected;
+        setDisplayed(selected);
       });
     } else {
-      paint(0);
+      // Changing animation speed must not restart a partially drawn page.
+      if (replayRequested) paint(0);
       reveal();
     }
-    return () => { disposed = true; if (rafRef.current !== null) cancelAnimationFrame(rafRef.current); };
-  }, [selected, replay, quick, paint]);
+    return () => {
+      disposed = true;
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    };
+  }, [selected, replay, quick, maskStatus, paint]);
 
   const spread = INKSPACE_STORIES[displayed];
   return <div className={`inkspace-projection inkspace-stage--${spread.mode}`} aria-label="Living manuscript story surface">

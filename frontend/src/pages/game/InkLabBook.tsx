@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import "./inkLabBook.css";
+import { preloadInkMasks, clearInkMask } from "./inkMaskAssets";
 
 // PASS 64.4E — A deliberately isolated visual/motion experiment.
 // No gameplay, API calls, generated stories, route changes, or mutations.
@@ -63,9 +64,10 @@ type Tab = keyof typeof EXAMPLES;
 
 function setMask(element: HTMLElement | null, frame: number) {
   if (!element) return;
+  // Frames are fully decoded before playback; avoid duplicate mask invalidation.
   const value = maskUrl(frame);
-  element.style.webkitMaskImage = value;
-  element.style.maskImage = value;
+  if (element.style.webkitMaskImage !== value) element.style.webkitMaskImage = value;
+  if (element.style.maskImage !== value) element.style.maskImage = value;
 }
 
 export function InkLabBook({ activeTab }: { activeTab: Tab }) {
@@ -73,7 +75,7 @@ export function InkLabBook({ activeTab }: { activeTab: Tab }) {
   const textRef = useRef<HTMLDivElement>(null);
   const artRef = useRef<HTMLElement>(null);
   const rightRef = useRef<HTMLElement>(null);
-  const bloomRef = useRef<HTMLDivElement | null>(null);
+  const bloomRef = useRef<HTMLDivElement>(null);
   const frameRef = useRef<number | null>(null);
   const progressRef = useRef(0);
   const displayedRef = useRef<Tab>(activeTab);
@@ -81,6 +83,10 @@ export function InkLabBook({ activeTab }: { activeTab: Tab }) {
   const reducedRef = useRef(false);
   const [replayKey, setReplayKey] = useState(0);
   const [speed, setSpeed] = useState<"poetic" | "quick">("poetic");
+  const [maskStatus, setMaskStatus] = useState<"pending" | "ready" | "failed">("pending");
+  const replaySeenRef = useRef(replayKey);
+  const pendingRevealRef = useRef(false);
+  const revealAfterCommitRef = useRef<() => void>(() => {});
 
   const paint = useCallback((value: number) => {
     progressRef.current = Math.min(1, Math.max(0, value));
@@ -93,65 +99,80 @@ export function InkLabBook({ activeTab }: { activeTab: Tab }) {
     setMask(bloomRef.current, Math.min(FRAMES - 1, artFrame + 2));
   }, []);
 
+  useLayoutEffect(() => {
+    if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) paint(0);
+  }, [paint]);
+
   useEffect(() => {
-    // Ensure everything is in the image cache before anyone switches pages.
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const images: HTMLImageElement[] = [];
-    for (let i = 0; i < FRAMES; i += 1) {
-      const image = new Image();
-      image.src = `${MASK_ROOT}/ink-${String(i).padStart(2, "0")}.webp`;
-      images.push(image);
+    let current = true;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setMaskStatus("ready"); return;
     }
-    return () => { images.length = 0; };
+    void preloadInkMasks().then((ok) => { if (current) setMaskStatus(ok ? "ready" : "failed"); });
+    return () => { current = false; };
   }, []);
+
+  useLayoutEffect(() => {
+    if (pendingRevealRef.current && displayed === displayedRef.current) {
+      pendingRevealRef.current = false;
+      paint(0);
+      revealAfterCommitRef.current();
+    }
+  }, [displayed, paint]);
 
   useEffect(() => {
     wantedRef.current = activeTab;
     reducedRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
     frameRef.current = null;
-    if (reducedRef.current) {
+    let dead = false;
+    const replayRequested = replayKey !== replaySeenRef.current;
+    replaySeenRef.current = replayKey;
+    if (maskStatus === "pending" && !reducedRef.current) return;
+    if (reducedRef.current || maskStatus === "failed") {
+      pendingRevealRef.current = false;
       displayedRef.current = activeTab;
       setDisplayed(activeTab);
       paint(1);
+      if (maskStatus === "failed") {
+        [textRef.current, rightRef.current, artRef.current, bloomRef.current].forEach(clearInkMask);
+      }
       return;
     }
-
-    let dead = false;
     const duration = speed === "quick" ? 480 : 940;
     const start = (from: number, to: number, ms: number, complete: () => void) => {
       const started = performance.now();
       let lastFrame = -1;
       const tick = (now: number) => {
         if (dead) return;
-        const t = Math.min(1, (now - started) / ms);
-        const eased = t * t * (3 - 2 * t);
-        const p = from + (to - from) * eased;
+        const t = Math.min(1, (now - started) / Math.max(1, ms));
+        const p = from + (to - from) * t * t * (3 - 2 * t);
         const frame = Math.round(p * (FRAMES - 1));
         if (frame !== lastFrame || t === 1) { paint(p); lastFrame = frame; }
         if (t < 1) frameRef.current = requestAnimationFrame(tick);
-        else complete();
+        else { frameRef.current = null; complete(); }
       };
       frameRef.current = requestAnimationFrame(tick);
     };
-    const reveal = () => start(0, 1, duration, () => { frameRef.current = null; paint(1); });
+    const reveal = () => start(progressRef.current, 1, duration * (1 - progressRef.current), () => {
+      if (!dead) { frameRef.current = null; paint(1); }
+    });
+    revealAfterCommitRef.current = reveal;
     if (displayedRef.current === activeTab) {
-      // The initial visit or Replay: start on ivory, soak in over time.
-      const from = replayKey ? 0 : progressRef.current;
-      if (replayKey) paint(0);
-      start(from, 1, duration, () => { frameRef.current = null; paint(1); });
+      if (replayRequested) paint(0); // explicit replay only
+      reveal();
     } else {
-      // Exit -> change content *only once blank* -> reveal. No double-printed ghost.
-      start(progressRef.current, 0, duration * .66, () => {
+      // Always exit from the CURRENT progress and wait for committed content.
+      start(progressRef.current, 0, duration * .66 * progressRef.current, () => {
         if (dead) return;
         paint(0);
-        displayedRef.current = wantedRef.current;
-        setDisplayed(displayedRef.current);
-        frameRef.current = requestAnimationFrame(() => { if (!dead) reveal(); });
+        pendingRevealRef.current = true;
+        displayedRef.current = activeTab;
+        setDisplayed(activeTab);
       });
     }
-    return () => { dead = true; if (frameRef.current !== null) cancelAnimationFrame(frameRef.current); };
-  }, [activeTab, replayKey, speed, paint]);
+    return () => { dead = true; if (frameRef.current !== null) cancelAnimationFrame(frameRef.current); frameRef.current = null; };
+  }, [activeTab, replayKey, speed, maskStatus, paint]);
 
   const ex = EXAMPLES[displayed];
   return (

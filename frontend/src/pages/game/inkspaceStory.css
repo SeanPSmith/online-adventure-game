@@ -94,3 +94,32 @@
   .inkspace-stage--illuminated .inkspace-figure:not(.inkspace-figure--small) img { max-height:clamp(110px,18.5vh,180px); }
   .inkspace-figure--small img { -webkit-mask-image: radial-gradient(ellipse 72% 55% at 50% 48%,#000 55%,transparent 100%); mask-image: radial-gradient(ellipse 72% 55% at 50% 48%,#000 55%,transparent 100%); }
 }
+
+/* Pass 64.4I.5 — paintings own their transparency. The paper supplies all
+ * negative space; NO rectangle crop, radial border mask or faux vignette. */
+.inkspace-figure{display:flex;flex-direction:column;align-items:center;justify-content:center}
+.inkspace-figure img,
+.inkspace-stage--art-forward .inkspace-leaf--left .inkspace-figure img,
+.inkspace-stage--illuminated .inkspace-figure:not(.inkspace-figure--small) img {
+  width:100%;height:auto;object-fit:contain;object-position:center;
+  -webkit-mask-image:none;mask-image:none;
+  max-height:clamp(120px,22vh,225px);
+  filter:saturate(.87) contrast(1.02);
+}
+.inkspace-figure--small img {
+  max-height:clamp(66px,11vh,100px);
+  -webkit-mask-image:none;mask-image:none;
+  object-fit:contain;
+}
+.inkspace-stage--art-forward .inkspace-leaf--left .inkspace-figure img {max-height:clamp(150px,29vh,270px)}
+.inkspace-stage--illuminated .inkspace-figure:not(.inkspace-figure--small) img {max-height:clamp(106px,18.5vh,170px)}
+@media(max-height:800px) and (min-width:861px){
+  .inkspace-figure img{max-height:20vh}
+  .inkspace-figure--small img{max-height:9vh}
+}
+@media(max-width:860px){
+  .inkspace-figure img,
+  .inkspace-stage--art-forward .inkspace-leaf--left .inkspace-figure img,
+  .inkspace-stage--illuminated .inkspace-figure:not(.inkspace-figure--small) img {max-height:320px}
+  .inkspace-figure--small img {max-height:160px}
+}

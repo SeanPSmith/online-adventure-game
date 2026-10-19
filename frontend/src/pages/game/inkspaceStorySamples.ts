@@ -42,7 +42,7 @@ export const INKSPACE_STORIES: Readonly<Record<InkspaceMode, InkspaceStorySpread
       ],
       rubricLabel: "A NOTE IN THE MARGIN",
       artSecondary: {
-        src: "/art/pass64/inkspace/forgotten-crossroads.webp",
+        src: "/art/pass64/inkspace/forgotten-crossroads-cutout.png",
         alt: "An ink-and-watercolor sketch of a weathered crossroads sign below distant blue mountains.",
         placement: "ending",
       },
@@ -51,7 +51,7 @@ export const INKSPACE_STORIES: Readonly<Record<InkspaceMode, InkspaceStorySpread
     rightPage: {
       eyebrow: "THE WANDERER'S CODEX",
       artPrimary: {
-        src: "/art/pass64/inkspace/river-fortress.webp",
+        src: "/art/pass64/inkspace/river-fortress-cutout.png",
         alt: "Watercolor landscape of a ruined stone bridge, a misty waterfall, trees, and a distant fortress.",
         caption: "THE NORTHERN PASS · LEAF XVII",
         placement: "opening",
@@ -70,7 +70,7 @@ export const INKSPACE_STORIES: Readonly<Record<InkspaceMode, InkspaceStorySpread
       eyebrow: "THE ATLAS OF POSSIBILITIES", title: "Where the Mountains Keep Secrets",
       subtitle: "A page from the traveler's unfinished atlas.",
       artPrimary: {
-        src: "/art/pass64/p644-ink-lab-watercolor.webp",
+        src: "/art/pass64/inkspace/harbor-traveler-cutout.png",
         alt: "Painted sunlit fantasy coastline with mountains, a distant castle, a traveler, and their dog.",
         caption: "PLATE IV · BEYOND THE HARBOR",
         placement: "interlude",
@@ -87,7 +87,7 @@ export const INKSPACE_STORIES: Readonly<Record<InkspaceMode, InkspaceStorySpread
       ],
       callout: { label: "FIELD NOTE · NO. 04", text: "The map may be accurate. The wonder never is." },
       artSecondary: {
-        src: "/art/pass64/inkspace/forgotten-crossroads.webp",
+        src: "/art/pass64/inkspace/forgotten-crossroads-cutout.png",
         alt: "Hand-painted vignette of an old path and mountain signpost.",
         placement: "ending",
       },
@@ -110,7 +110,7 @@ export const INKSPACE_STORIES: Readonly<Record<InkspaceMode, InkspaceStorySpread
     rightPage: {
       eyebrow: "AN IMAGE IN THE MARGIN",
       artPrimary: {
-        src: "/art/pass64/inkspace/river-fortress.webp",
+        src: "/art/pass64/inkspace/river-fortress-cutout.png",
         alt: "An illuminated landscape vignette showing a stone bridge and misty tower among trees.",
         caption: "A ROAD THROUGH THE ANCIENT WOOD",
         placement: "opening",

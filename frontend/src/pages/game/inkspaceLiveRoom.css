@@ -1,0 +1,21 @@
+/* 64.4K opt-in production data bridge. All positioning derives from the approved 64.4J book. */
+.inkspace-live{z-index:75}
+.inkspace-live .vb-book-space{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.inkspace-live-header{z-index:9}
+.inkspace-live-compass{color:#e3c589;font-size:clamp(35px,4.1vw,63px);text-shadow:0 1px 5px #100907}
+.inkspace-live-menu a.vb-nav-item{text-decoration:none;display:grid;place-items:center;color:#342011!important}
+.inkspace-live-exit{flex:0 0 auto;cursor:pointer;appearance:none;border:1px solid #8c6343;color:#fbe4b4;background:#392217ea;padding:12px;font:600 12px Georgia,serif;white-space:nowrap}
+.inkspace-live-exit:focus-visible,.inkspace-live button:focus-visible{outline:3px solid #a84e2b;outline-offset:3px}
+.inkspace-live .reader-leaf{height:var(--reader-height)}
+.inkspace-live .reader-lock-intent{width:100%;background:#7b302a;color:#f9e4c2;border:1px solid #a26b41;cursor:pointer;padding:10px 12px;font:700 12px Georgia,serif;letter-spacing:.075em}
+.inkspace-live .reader-lock-intent:disabled{opacity:.55;cursor:default}
+.inkspace-live .reader-selected-caption{font:italic 12px/1.35 Georgia,serif;color:#673e30}
+.inkspace-live .reader-choices-explainer{font:italic 10px/1.35 Georgia,serif;color:#785944}
+.inkspace-live .reader-pager{top:88%}
+.inkspace-live .reader-choice-list button:disabled{opacity:.58;cursor:default}
+.inkspace-live .reader-choice-list button.is-chosen:disabled{opacity:1}
+.adventure-layout--reader-hidden{display:none!important}
+.inkspace-live-entry{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin:9px 0}
+.inkspace-live-entry button{background:#f3dfb5;color:#4e2c1a;border:1px solid #926c3e;padding:9px 13px;cursor:pointer;font:bold 12px Georgia,serif}
+@media(max-width:1120px) and (min-width:861px){.inkspace-live-menu{gap:1px;padding:5px 10px}.inkspace-live-menu a.vb-nav-item,.inkspace-live-menu button{font-size:10px}.inkspace-live-exit{font-size:10px;padding:8px}}
+@media(max-width:860px){.inkspace-live{position:fixed;overflow-y:auto}.inkspace-live-header{position:relative;height:auto;top:auto;left:auto;right:auto;padding:14px 10px}.inkspace-live .vb-book-space{position:relative;inset:auto;height:auto;min-height:100%;padding-top:12px;pointer-events:auto}.inkspace-live-menu{display:none}.inkspace-live .reader-stage{margin-top:0}.inkspace-live .reader-leaf{height:auto}.inkspace-live-exit{padding:8px;font-size:11px}.inkspace-live .reader-pager{top:auto}.inkspace-live .reader-choice-list button{font-size:15px}}

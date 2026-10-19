@@ -19,6 +19,9 @@ const projected = (side: Side): CSSProperties => {
 const prefersReducedMotion = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 function ManuscriptLeaf({ leaf, side, attach }: { leaf: ReaderLeaf; side: Side; attach: (el: HTMLDivElement | null) => void }) {
+  // The ReaderDocument schema permits spreads without illustrations.
+  // Narrow once so JSX never dereferences an optional art payload.
+  const artwork = leaf.art ? READER_DEMO.art : undefined;
   return (
     <section className={`reader-leaf reader-leaf--${side}`} style={projected(side)} aria-label={`${side} manuscript page ${leaf.index + 1}`}>
       <div className="reader-ink" ref={attach}>
@@ -28,9 +31,9 @@ function ManuscriptLeaf({ leaf, side, attach }: { leaf: ReaderLeaf; side: Side; 
           <p className="reader-subtitle">{READER_DEMO.subtitle}</p>
           <div className="reader-flourish" aria-hidden="true">✧ ─ ❦ ─ ✧</div>
         </header> : null}
-        {leaf.art ? <figure className="reader-art">
-          <img src={READER_DEMO.art.src} alt={READER_DEMO.art.alt} decoding="async" />
-          {READER_DEMO.art.caption ? <figcaption>{READER_DEMO.art.caption}</figcaption> : null}
+        {artwork ? <figure className="reader-art">
+          <img src={artwork.src} alt={artwork.alt} decoding="async" />
+          {artwork.caption ? <figcaption>{artwork.caption}</figcaption> : null}
         </figure> : null}
         <div className="reader-prose">
           {leaf.text.map((p, idx) => <p key={`${leaf.index}-${idx}`} className={leaf.index === 0 && idx === 0 ? "reader-lead" : ""}>{p}</p>)}

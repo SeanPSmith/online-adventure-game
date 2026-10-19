@@ -5,7 +5,7 @@ export type ReaderChoice = Readonly<{ id: string; label: string }>;
 export type ReaderDocument = Readonly<{
   id: string; eyebrow: string; title: string; subtitle: string;
   paragraphs: readonly string[];
-  art: Readonly<{ src: string; alt: string; caption?: string }>;
+  art?: Readonly<{ src: string; alt: string; caption?: string }>;
   choices?: readonly ReaderChoice[];
 }>;
 export type ReaderLeaf = Readonly<{
@@ -43,7 +43,7 @@ export function paginateReader(documentData: ReaderDocument, dims: ReaderDimensi
   const pages: { index: number; title: boolean; art: boolean; text: string[]; choices: boolean }[] = [];
   const newPage = () => {
     const index = pages.length;
-    const entry = { index, title: index === 0, art: index === 1, text: [] as string[], choices: false };
+    const entry = { index, title: index === 0, art: index === 1 && Boolean(documentData.art), text: [] as string[], choices: false };
     pages.push(entry);
     return entry;
   };

@@ -18,6 +18,8 @@ import { Link, useLocation, useNavigate, useParams, useSearchParams } from "reac
 import { Panel } from "../../components/ui/Panel";
 import { observeStoryTime, prepareStoryTime, stopStoryTimeEngine, keepStoryTimeAlive, type StoryTimeState } from "../../services/storyTimeEngine";
 import { RoomInviteButton } from "../../components/game/RoomInviteButton";
+import { InkspaceLiveRoom } from "./InkspaceLiveRoom";
+import "./inkspaceLiveRoom.css";
 import { ShareMomentButton } from "../../components/game/ShareMomentButton";
 import { ChoiceInspector } from "../../features/adventure/ChoiceInspector";
 import { LevelUpModal } from "../../features/adventure/LevelUpModal";
@@ -99,6 +101,13 @@ export function AdventurePage() {
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const bookRequested = searchParams.get("reader") === "book";
+  const changeBookView = (enabled: boolean) => {
+    const next = new URLSearchParams(searchParams);
+    if (enabled) next.set("reader", "book");
+    else next.delete("reader");
+    navigate({ pathname: location.pathname, search: next.toString() }, { replace: true });
+  };
   const { openModal, closeModal } = useModal();
 
   const {
@@ -618,6 +627,8 @@ export function AdventurePage() {
     live.submitChoice(selectedChoiceId);
   }
 
+  const bookReady = Boolean(bookRequested && live.status === "ready" && live.game?.started && scene && theater.chapterReleased && theater.phase === "none" && !live.game?.turn_pending && !live.game?.director_request_active && !live.game?.director_retry_required && !live.game?.pending_micro_event && !choiceLocked && !showDeath && !showLevelUp);
+
   if (!characterId) {
     return (
       <div className="adventure-route-message panel">
@@ -650,7 +661,31 @@ export function AdventurePage() {
           </div>
         </div>
       ) : null}
-      <div className="adventure-layout" data-world-skin={worldSkin.reader} data-reduced-motion={worldSkin.reducedMotion}
+      {bookReady && scene && <InkspaceLiveRoom
+        roomCode={normalizedRoomCode}
+        turnNumber={turnNumber}
+        adventureTitle={live.game?.adventure_title ?? matchingAdventure?.adventure_title ?? "The Chronicle"}
+        scene={scene}
+        hero={hero ?? partyHeroes.find((p) => p.character_id === characterId) ?? null}
+        playerName={localRoomPlayer?.name ?? "Adventurer"}
+        messages={live.messages}
+        selectedChoiceId={selectedChoiceId}
+        choiceLocked={choiceLocked}
+        lockPending={lockPending}
+        choicesBlocked={choicesBlocked}
+        connected={connected && live.status === "ready"}
+        onSelectChoice={selectChoice}
+        onLockChoice={lockChoice}
+        onSendChat={(message) => { if (connected && live.status === "ready") live.sendChat(message); }}
+        onClose={() => changeBookView(false)}
+      />}
+      {!bookReady && <div className="inkspace-live-entry">
+        {bookRequested ? <span className="muted-copy">Book view resumes after the current turn is released.</span> : null}
+        <button type="button" onClick={() => changeBookView(!bookRequested)}>
+          {bookRequested ? "USE STANDARD READER" : "OPEN LIVING BOOK · PREVIEW"}
+        </button>
+      </div>}
+      <div className={`adventure-layout ${bookReady ? "adventure-layout--reader-hidden" : ""}`} data-world-skin={worldSkin.reader} data-reduced-motion={worldSkin.reducedMotion}
         data-installed-reader-theme={Boolean(readerTheme && worldSkin.reader !== "plain")} data-theme-material={readerTheme?.material}
         data-reader-edition-family={!readerTheme && worldSkin.reader !== "plain" ? readerEditionFamily(worldSkin.reader) : undefined}
         data-edition-mode={edition.mode}

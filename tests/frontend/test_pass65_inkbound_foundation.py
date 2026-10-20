@@ -83,16 +83,19 @@ def test_inkbound_preview_is_not_exposed_as_public_or_game_route():
     assert 'path: "inkbound"' not in router
 
 
-def test_preview_uses_real_react_actions_and_the_existing_modal():
+def test_preview_keeps_real_interactive_controls_and_accessible_folio():
     code = (UI / "pages" / "game" / "InkboundFoundationPage.tsx").read_text()
-    assert "useModal()" in code
-    assert "openModal({" in code
-    assert "onClick={() => setChoice(index)}" in code
-    assert "onClick={() => setCommitted(true)}" in code
-    assert "preloadInkMasks()" not in code and "applyInkMask(" not in code
-    assert "inkbound-fade" in code
-    assert 'prefers-reduced-motion:reduce' in (UI / "pages" / "game" / "inkboundFoundation.css").read_text()
-    assert "import { useLiveAdventure" not in code and "socket.emit(" not in code
+    # The author-approved manuscript folio replaces the old generic modal.
+    assert 'role="dialog" aria-modal="true"' in code
+    assert 'event.key === "Escape"' in code
+    assert 'event.key === "Tab"' in code
+    assert 'ref={closePanelButton}' in code
+    assert 'setChosen(index)' in code and 'setCommitted(true)' in code
+    assert 'setPaper("ivory")' in code and 'setPaper("parchment")' in code
+    assert 'submitChat' in code and 'setNotes' in code
+    assert 'preloadInkMasks()' not in code and 'applyInkMask(' not in code
+    assert 'prefers-reduced-motion:reduce' in (UI / "pages" / "game" / "inkboundEditorial.css").read_text()
+    assert 'import { useLiveAdventure' not in code and 'socket.emit(' not in code
 
 
 def test_skin_is_scoped_and_preserves_live_game():

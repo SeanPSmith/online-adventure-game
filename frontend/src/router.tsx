@@ -4,6 +4,7 @@ import { PublicLayout } from "./layouts/PublicLayout";
 import { GameLayout } from "./layouts/GameLayout";
 import { AccountLayout } from "./layouts/AccountLayout";
 import { RequireAuth } from "./components/auth/RequireAuth";
+import { DevLabGate } from "./components/auth/DevLabGate";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { RouteErrorPage } from "./pages/RouteErrorPage";
 
@@ -32,25 +33,37 @@ export const router = createBrowserRouter([
       {
         element: <RequireAuth />,
         children: [
-          // Pass 64.4D — isolated visual playground (no GameLayout header and no gameplay mutations).
-          { path: "game/visual-playground", lazy: async () => ({ Component: (await import("./pages/game/VisualBookPlaygroundPage")).VisualBookPlaygroundPage }) },
-          // Pass 64.4E: independent, protected ink-mask laboratory. Not /game or the blank playground.
-          { path: "game/ink-lab", lazy: async () => ({ Component: (await import("./pages/game/VisualBookPlaygroundPage")).InkBookPlaygroundPage }) },
-          // Pass 64.4I: isolated living-manuscript story surface; no game-state writes.
-          { path: "game/inkspace-story", lazy: async () => ({ Component: (await import("./pages/game/VisualBookPlaygroundPage")).InkspaceStoryPlaygroundPage }) },
-          // Pass 64.4J: protected pagination/journal lab; no server gameplay or chat mutations.
-          { path: "game/inkspace-reader", lazy: async () => ({ Component: (await import("./pages/game/VisualBookPlaygroundPage")).InkspaceReaderPlaygroundPage }) },
-          // Pass 64.4L: compare floating tabletop instruments with the original attached-tab prototype.
-          { path: "game/tabletop-kit", lazy: async () => ({ Component: (await import("./pages/game/VisualBookPlaygroundPage")).TabletopInteractionPlaygroundPage }) },
-          // Pass 64.4F: isolated cosmetic environment preview; does not mutate game or account.
-          { path: "game/space-lab", lazy: async () => ({ Component: (await import("./pages/game/VisualBookPlaygroundPage")).SpaceBookPlaygroundPage }) },
+          // Temporary compatibility links for existing previews. All experiments now
+          // live behind the admin-gated /dev workshop; no old URL loads a lab.
+          { path: "game/visual-playground", element: <Navigate to="/dev/visual-playground" replace /> },
+          { path: "game/ink-lab", element: <Navigate to="/dev/ink-lab" replace /> },
+          { path: "game/inkspace-story", element: <Navigate to="/dev/inkspace-story" replace /> },
+          { path: "game/inkspace-reader", element: <Navigate to="/dev/inkspace-reader" replace /> },
+          { path: "game/tabletop-kit", element: <Navigate to="/dev/tabletop-kit" replace /> },
+          { path: "game/space-lab", element: <Navigate to="/dev/space-lab" replace /> },
+          {
+            // No unprotected production-visible lab routes. The gate requires
+            // authenticated administrator permission before rendering any preview.
+            element: <DevLabGate />,
+            children: [
+              { path: "dev", lazy: async () => ({ Component: (await import("./pages/game/DevWorkshopPage")).DevWorkshopPage }) },
+              { path: "dev/visual-playground", lazy: async () => ({ Component: (await import("./pages/game/VisualBookPlaygroundPage")).VisualBookPlaygroundPage }) },
+              { path: "dev/ink-lab", lazy: async () => ({ Component: (await import("./pages/game/VisualBookPlaygroundPage")).InkBookPlaygroundPage }) },
+              { path: "dev/inkspace-story", lazy: async () => ({ Component: (await import("./pages/game/VisualBookPlaygroundPage")).InkspaceStoryPlaygroundPage }) },
+              { path: "dev/inkspace-reader", lazy: async () => ({ Component: (await import("./pages/game/VisualBookPlaygroundPage")).InkspaceReaderPlaygroundPage }) },
+              { path: "dev/tabletop-kit", lazy: async () => ({ Component: (await import("./pages/game/VisualBookPlaygroundPage")).TabletopInteractionPlaygroundPage }) },
+              { path: "dev/space-lab", lazy: async () => ({ Component: (await import("./pages/game/VisualBookPlaygroundPage")).SpaceBookPlaygroundPage }) },
+              { element: <GameLayout />, children: [
+                { path: "dev/home-lab", lazy: async () => ({ Component: (await import("./pages/game/GameHomePage")).LivingBookHomeLabPage }) },
+              ] },
+            ],
+          },
           {
             path: "game",
             element: <GameLayout />,
             children: [
               { index: true, lazy: async () => ({ Component: (await import("./pages/game/GameHomePage")).GameHomePage }) },
-              // Pass 64.4N: real authenticated data/actions, isolated Living Book homepage proof.
-              { path: "home-lab", lazy: async () => ({ Component: (await import("./pages/game/GameHomePage")).LivingBookHomeLabPage }) },
+              { path: "home-lab", element: <Navigate to="/dev/home-lab" replace /> },
               { path: "adventure/:roomId", lazy: async () => ({ Component: (await import("./pages/game/AdventurePage")).AdventurePage }) },
               { path: "heroes", lazy: async () => ({ Component: (await import("./pages/heroes/HeroManagerPage")).HeroManagerPage }) },
               { path: "graveyard", lazy: async () => ({ Component: (await import("./pages/heroes/GraveyardPage")).GraveyardPage }) },

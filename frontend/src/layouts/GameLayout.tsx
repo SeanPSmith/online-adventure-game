@@ -20,7 +20,7 @@ export function GameLayout() {
   const canAuthor = user?.permissions.includes("author") ?? false;
   const isAdmin = user?.permissions.includes("admin") ?? false;
   const isAdventureMode = location.pathname.startsWith("/game/adventure/");
-  const isDeskHome = location.pathname === "/game" || location.pathname === "/game/home-lab";
+  const isDeskHome = location.pathname === "/game" || location.pathname === "/game/home-lab" || location.pathname === "/dev/home-lab";
 
   return (
     <div className={`site-shell game-site-shell p64-shell ${isAdventureMode ? "is-adventure-mode" : ""} ${isDeskHome ? "is-desk-home" : ""}`} data-platform-skin={preferences.platformSkin} data-edition-family={edition.family} data-edition-mode={edition.mode} data-installed-library-theme={Boolean(libraryTheme)} data-theme-material={libraryTheme?.material} style={(libraryTheme ? themeCssVars(libraryTheme) : themeEditionCssVars(edition)) as CSSProperties}>

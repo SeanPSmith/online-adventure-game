@@ -1,7 +1,6 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useState, type ReactNode } from "react";
 import { Link } from "react-router";
 import { useModal } from "../../state/ModalContext";
-import { applyInkMask, clearInkMask, preloadInkMasks, INK_MASK_FRAMES } from "./inkMaskAssets";
 import "./inkboundFoundation.css";
 
 /**
@@ -22,36 +21,6 @@ const story = [
   "The night is still young, but the road offers more than one way forward.",
 ];
 
-function useInkArrival(mode: PageMode, chapter: number) {
-  const artRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    let cancelled = false;
-    let frame = 0;
-    let raf = 0;
-    const element = artRef.current;
-    if (!element) return;
-    // Use the installed irregular ink mask frames, but never leave artwork
-    // invisible when the mask assets cannot decode or motion is reduced.
-    clearInkMask(element);
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    void preloadInkMasks().then((ready) => {
-      if (!ready || cancelled) { clearInkMask(element); return; }
-      const start = performance.now();
-      const run = (now: number) => {
-        if (cancelled) return;
-        const position = Math.min(1, (now - start) / 700);
-        const next = Math.min(INK_MASK_FRAMES - 1, Math.floor(position * (INK_MASK_FRAMES - 1)));
-        if (next !== frame || now === start) { applyInkMask(element, next); frame = next; }
-        if (position < 1) raf = requestAnimationFrame(run);
-        else clearInkMask(element);
-      };
-      raf = requestAnimationFrame(run);
-    });
-    return () => { cancelled = true; cancelAnimationFrame(raf); clearInkMask(element); };
-  }, [mode, chapter]);
-  return artRef;
-}
-
 function Feature({ image, title, children }: { image: string; title: string; children: ReactNode }) {
   return <article className="inkbound-feature">
     <img src={image} alt="" loading="lazy" className="inkbound-feature-art" />
@@ -67,7 +36,7 @@ export function InkboundFoundationPage() {
   const [choice, setChoice] = useState<number | null>(null);
   const [committed, setCommitted] = useState(false);
   const { openModal } = useModal();
-  const inkRef = useInkArrival(mode, chapter);
+
   const reset = useCallback((newMode: PageMode) => {
     setMode(newMode); setChoice(null); setCommitted(false); setChapter(1);
   }, []);
@@ -113,7 +82,7 @@ export function InkboundFoundationPage() {
               <Link to="/game" className="inkbound-text-link">Enter the actual game <span aria-hidden="true">↗</span></Link>
             </div>
           </div>
-          <div className="inkbound-landing-image" ref={inkRef}>
+          <div className="inkbound-landing-image inkbound-fade" key="frontispiece">
             <img src={`${art}/hero-vista.png`} alt="Two travelers looking across a misty mountain valley toward a ruined castle, rendered in black ink wash" />
           </div>
         </section>
@@ -128,7 +97,7 @@ export function InkboundFoundationPage() {
           <h1>{chapter === 1 ? "The Road North" : "Beyond the Lantern"}</h1>
           <div className="inkbound-ornament" aria-hidden="true"><span />✧<span /></div>
         </header>
-        <div className="inkbound-reader-art" ref={inkRef}>
+        <div className="inkbound-reader-art inkbound-fade" key={`chapter-${chapter}`}>
           <img src={`${art}/north-road.png`} alt="Two travelers overlook a mist-filled river valley beneath a ruined northern castle" />
         </div>
         <section className="inkbound-prose" aria-label="Chapter narration">

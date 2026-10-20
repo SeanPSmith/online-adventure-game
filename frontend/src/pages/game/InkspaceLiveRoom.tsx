@@ -42,6 +42,9 @@ const zone = (side: PageSide): CSSProperties => {
   return { "--reader-x": r.left, "--reader-y": r.top, "--reader-width": r.width, "--reader-height": r.height } as CSSProperties;
 };
 const reduced = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+// Masks remain available in the dev ink laboratory, but are disabled on the live reader.
+// Opacity avoids decode races, opaque flash frames, and stale mask overlays.
+const USE_INK_MASKS_IN_LIVE_READER = false;
 const inkURL = (n: number) => `url("/art/pass64/ink-masks/ink-${String(n).padStart(2, "0")}.webp")`;
 
 /** Retain the Director's prose exactly, only separating actual paragraph breaks. */
@@ -180,14 +183,23 @@ export function InkspaceLiveRoom(props: LiveInkspaceProps) {
   }, []);
   useEffect(() => {
     mounted.current = true;
-    void preloadInkMasks().then((ok) => { if (mounted.current) setReady(ok); });
+    if (USE_INK_MASKS_IN_LIVE_READER) {
+      void preloadInkMasks().then((ok) => { if (mounted.current) setReady(ok); });
+    } else {
+      setReady(true);
+    }
     return () => { mounted.current = false; if (animation.current !== null) cancelAnimationFrame(animation.current); };
   }, []);
   const setInk = useCallback((value: number) => {
     const image = inkURL(Math.round(Math.max(0, Math.min(1, value)) * 32));
     for (const node of refs.current) if (node) {
-      if (node.style.maskImage !== image) node.style.maskImage = image;
-      if (node.style.webkitMaskImage !== image) node.style.webkitMaskImage = image;
+      if (!USE_INK_MASKS_IN_LIVE_READER) {
+        clearInkMask(node);
+        node.style.opacity = String(Math.max(0, Math.min(1, value)));
+      } else {
+        if (node.style.maskImage !== image) node.style.maskImage = image;
+        if (node.style.webkitMaskImage !== image) node.style.webkitMaskImage = image;
+      }
     }
   }, []);
   const tween = useCallback((from: number, to: number, duration: number, done: () => void) => {
@@ -208,20 +220,20 @@ export function InkspaceLiveRoom(props: LiveInkspaceProps) {
     if (animation.current !== null) cancelAnimationFrame(animation.current);
     needReveal.current = false;
     setPage(0); setShown(0); setBusy(false);
-    for (const node of refs.current) clearInkMask(node);
+    for (const node of refs.current) { clearInkMask(node); if (node) node.style.opacity = "1"; }
   }, [doc.id, props.turnNumber]);
   const move = (next: number) => {
     if (busy || next < 0 || next > last || next === page) return;
     setPage(next);
     if (!ready || reduced()) { setShown(next); return; }
     setBusy(true);
-    tween(1, 0, 270, () => { needReveal.current = true; setShown(next); });
+    tween(1, 0, 430, () => { needReveal.current = true; setShown(next); });
   };
   useLayoutEffect(() => {
     if (!needReveal.current) return;
     needReveal.current = false;
     setInk(0);
-    tween(0, 1, 510, () => { if (mounted.current) setBusy(false); });
+    tween(0, 1, 620, () => { if (mounted.current) setBusy(false); });
   }, [shown, setInk, tween]);
   useEffect(() => { if (!ready) for (const node of refs.current) clearInkMask(node); }, [ready]);
   return <div className="vb-lab has-reader has-instruments inkspace-live" aria-label="Live illuminated manuscript reader">

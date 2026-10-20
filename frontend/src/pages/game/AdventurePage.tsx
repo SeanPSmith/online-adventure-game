@@ -19,6 +19,7 @@ import { Panel } from "../../components/ui/Panel";
 import { observeStoryTime, prepareStoryTime, stopStoryTimeEngine, keepStoryTimeAlive, type StoryTimeState } from "../../services/storyTimeEngine";
 import { RoomInviteButton } from "../../components/game/RoomInviteButton";
 import { InkspaceLiveRoom } from "./InkspaceLiveRoom";
+import { InkboundLiveRoom } from "./InkboundLiveRoom";
 import "./inkspaceLiveRoom.css";
 import { ShareMomentButton } from "../../components/game/ShareMomentButton";
 import { ChoiceInspector } from "../../features/adventure/ChoiceInspector";
@@ -102,6 +103,7 @@ export function AdventurePage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const bookRequested = searchParams.get("reader") === "book";
+  const inkboundRequested = searchParams.get("reader") === "inkbound";
   const changeBookView = (enabled: boolean) => {
     const next = new URLSearchParams(searchParams);
     if (enabled) next.set("reader", "book");
@@ -628,6 +630,7 @@ export function AdventurePage() {
     live.submitChoice(selectedChoiceId);
   }
 
+  const inkboundReady = Boolean(inkboundRequested && live.status === "ready" && live.game?.started && scene);
   const bookReady = Boolean(bookRequested && live.status === "ready" && live.game?.started && scene && theater.chapterReleased && theater.phase === "none" && !live.game?.turn_pending && !live.game?.director_request_active && !live.game?.director_retry_required && !live.game?.pending_micro_event && !choiceLocked && !showDeath && !showLevelUp);
 
   if (!characterId) {
@@ -662,6 +665,31 @@ export function AdventurePage() {
           </div>
         </div>
       ) : null}
+      {inkboundReady && scene && <InkboundLiveRoom
+        roomCode={normalizedRoomCode}
+        adventureTitle={live.game?.adventure_title ?? matchingAdventure?.adventure_title ?? "The Chronicle"}
+        turnNumber={turnNumber}
+        scene={scene}
+        chapterReleased={theater.chapterReleased && theater.phase === "none" && !live.game?.director_request_active && !live.game?.turn_pending}
+        playerName={localRoomPlayer?.name ?? "Adventurer"}
+        hero={hero ?? partyHeroes.find((p) => p.character_id === characterId) ?? null}
+        party={live.room?.players ?? []}
+        history={turnHistory}
+        messages={live.messages}
+        connected={connected && live.status === "ready"}
+        selectedChoiceId={selectedChoiceId}
+        choiceLocked={choiceLocked}
+        lockPending={lockPending}
+        choicesBlocked={choicesBlocked}
+        onSelectChoice={selectChoice}
+        onLockChoice={lockChoice}
+        onSendChat={(message) => { if (connected && live.status === "ready") live.sendChat(message); }}
+        notes={bookNotes}
+        onNotesChange={setBookNotes}
+        narrationEnabled={audioPreferences.narrationEnabled}
+        onToggleStoryTime={toggleStoryTime}
+        onClose={() => { const next = new URLSearchParams(searchParams); next.delete("reader"); navigate({pathname:location.pathname,search:next.toString()},{replace:true}); }}
+      />}
       {bookReady && scene && <InkspaceLiveRoom
         roomCode={normalizedRoomCode}
         turnNumber={turnNumber}
@@ -682,13 +710,16 @@ export function AdventurePage() {
         onNotesChange={setBookNotes}
         onClose={() => changeBookView(false)}
       />}
-      {!bookReady && <div className="inkspace-live-entry">
+      {!bookReady && !inkboundReady && <div className="inkspace-live-entry">
         {bookRequested ? <span className="muted-copy">Book view resumes after the current turn is released.</span> : null}
+        <button type="button" onClick={() => { const next = new URLSearchParams(searchParams); if (inkboundRequested) next.delete("reader"); else next.set("reader", "inkbound"); navigate({pathname:location.pathname, search: next.toString()}, {replace:true}); }}>
+          {inkboundRequested ? "USE STANDARD READER" : "OPEN INKBOUND READER · PREVIEW"}
+        </button>
         <button type="button" onClick={() => changeBookView(!bookRequested)}>
           {bookRequested ? "USE STANDARD READER" : "OPEN LIVING BOOK · PREVIEW"}
         </button>
       </div>}
-      <div className={`adventure-layout ${bookReady ? "adventure-layout--reader-hidden" : ""}`} data-world-skin={worldSkin.reader} data-reduced-motion={worldSkin.reducedMotion}
+      <div className={`adventure-layout ${bookReady || inkboundReady ? "adventure-layout--reader-hidden" : ""}`} data-world-skin={worldSkin.reader} data-reduced-motion={worldSkin.reducedMotion}
         data-installed-reader-theme={Boolean(readerTheme && worldSkin.reader !== "plain")} data-theme-material={readerTheme?.material}
         data-reader-edition-family={!readerTheme && worldSkin.reader !== "plain" ? readerEditionFamily(worldSkin.reader) : undefined}
         data-edition-mode={edition.mode}

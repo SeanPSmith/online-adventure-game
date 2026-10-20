@@ -89,8 +89,9 @@ def test_preview_uses_real_react_actions_and_the_existing_modal():
     assert "openModal({" in code
     assert "onClick={() => setChoice(index)}" in code
     assert "onClick={() => setCommitted(true)}" in code
-    assert "preloadInkMasks()" in code and "clearInkMask(element)" in code
-    assert 'prefers-reduced-motion: reduce' in code
+    assert "preloadInkMasks()" not in code and "applyInkMask(" not in code
+    assert "inkbound-fade" in code
+    assert 'prefers-reduced-motion:reduce' in (UI / "pages" / "game" / "inkboundFoundation.css").read_text()
     assert "import { useLiveAdventure" not in code and "socket.emit(" not in code
 
 

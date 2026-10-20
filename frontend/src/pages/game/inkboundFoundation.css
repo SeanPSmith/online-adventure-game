@@ -179,3 +179,8 @@ body:has(.inkbound) #modal-root .modal-panel .button {background:#26221d!importa
  .inkbound-feature-art {height:95px}
 }
 @media(prefers-reduced-motion:reduce){.inkbound *{animation-duration:0s!important;transition-duration:0s!important;scroll-behavior:auto!important}}
+
+/* 65.1 — stable browser-native fades; never step through ink-mask frames. */
+.inkbound-fade{animation:inkbound-opacity-in .7s ease both;-webkit-mask-image:none!important;mask-image:none!important}
+@keyframes inkbound-opacity-in{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){.inkbound-fade{animation:none}}

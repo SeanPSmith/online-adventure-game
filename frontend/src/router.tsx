@@ -40,6 +40,8 @@ export const router = createBrowserRouter([
           { path: "game/inkspace-story", lazy: async () => ({ Component: (await import("./pages/game/VisualBookPlaygroundPage")).InkspaceStoryPlaygroundPage }) },
           // Pass 64.4J: protected pagination/journal lab; no server gameplay or chat mutations.
           { path: "game/inkspace-reader", lazy: async () => ({ Component: (await import("./pages/game/VisualBookPlaygroundPage")).InkspaceReaderPlaygroundPage }) },
+          // Pass 64.4L: compare floating tabletop instruments with the original attached-tab prototype.
+          { path: "game/tabletop-kit", lazy: async () => ({ Component: (await import("./pages/game/VisualBookPlaygroundPage")).TabletopInteractionPlaygroundPage }) },
           // Pass 64.4F: isolated cosmetic environment preview; does not mutate game or account.
           { path: "game/space-lab", lazy: async () => ({ Component: (await import("./pages/game/VisualBookPlaygroundPage")).SpaceBookPlaygroundPage }) },
           {

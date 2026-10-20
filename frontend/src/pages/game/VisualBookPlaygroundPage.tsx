@@ -33,12 +33,17 @@ export function InkspaceReaderPlaygroundPage() {
   return <VisualBookPlaygroundShell readerLab />;
 }
 
+// PASS 64.4L: intentional floating instruments instead of faux bound tabs.
+export function TabletopInteractionPlaygroundPage() {
+  return <VisualBookPlaygroundShell instrumentsLab />;
+}
+
 // PASS 64.4F: separate preview, no content/gameplay changes.
 export function SpaceBookPlaygroundPage() {
   return <VisualBookPlaygroundShell spaceLab />;
 }
 
-function VisualBookPlaygroundShell({ inkLab = false, spaceLab = false, storyLab = false, readerLab = false }: { inkLab?: boolean; spaceLab?: boolean; storyLab?: boolean; readerLab?: boolean }) {
+function VisualBookPlaygroundShell({ inkLab = false, spaceLab = false, storyLab = false, readerLab = false, instrumentsLab = false }: { inkLab?: boolean; spaceLab?: boolean; storyLab?: boolean; readerLab?: boolean; instrumentsLab?: boolean }) {
   const { user } = useAuth();
   const [active, setActive] = useState<Tab>("Home");
   const [profileOpen, setProfileOpen] = useState(false);
@@ -47,7 +52,7 @@ function VisualBookPlaygroundShell({ inkLab = false, spaceLab = false, storyLab 
   const username = user?.username || "Adventurer";
 
   return (
-    <div className={`vb-lab ${inkLab ? "has-ink" : ""} ${spaceLab ? "has-space" : ""} ${storyLab ? "has-story" : ""} ${readerLab ? "has-reader" : ""}`} data-active-tab={active} data-lighting={lighting}>
+    <div className={`vb-lab ${inkLab ? "has-ink" : ""} ${spaceLab ? "has-space" : ""} ${storyLab ? "has-story" : ""} ${readerLab || instrumentsLab ? "has-reader" : ""} ${instrumentsLab ? "has-instruments" : ""}`} data-active-tab={active} data-lighting={lighting}>
       <a className="vb-skip" href="#vb-book">Skip navigation to book</a>
       <img
         className="vb-scene"
@@ -104,6 +109,7 @@ function VisualBookPlaygroundShell({ inkLab = false, spaceLab = false, storyLab 
         {inkLab ? <InkLabBook activeTab={active} /> : null}
         {storyLab ? <InkspaceStorySurface activeTab={active} /> : null}
         {readerLab ? <InkspaceReaderLab /> : null}
+        {instrumentsLab ? <InkspaceReaderLab floatingInstruments /> : null}
       </main>
       {spaceLab ? <SpaceLab onLightingChange={setLighting} /> : null}
     </div>

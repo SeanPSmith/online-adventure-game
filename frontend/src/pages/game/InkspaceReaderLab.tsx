@@ -3,6 +3,7 @@ import { SCENE_COMPOSITING, sceneRectStyle } from "../../features/cosmetics/envi
 import { clearInkMask, preloadInkMasks } from "./inkMaskAssets";
 import { paginateReader, READER_DEMO, type ReaderLeaf, type ReaderDimensions } from "./inkspaceReaderPagination";
 import "./inkspaceReaderLab.css";
+import { TabletopInstruments } from "./TabletopInstruments";
 
 type Side = keyof typeof SCENE_COMPOSITING.contentSafeZones;
 type JournalTab = "character" | "chat" | "notes";
@@ -101,7 +102,7 @@ function JournalSheet({ tab, close }: { tab: JournalTab; close: () => void }) {
 }
 
 /** Isolated 64.4J reader proof. Not connected to Director/gameplay APIs. */
-export function InkspaceReaderLab() {
+export function InkspaceReaderLab({ floatingInstruments = false }: { floatingInstruments?: boolean }) {
   const [size, setSize] = useState<ReaderDimensions>({ width: 405, height: 500, fontSize: 15 });
   const measureRef = useRef<HTMLDivElement | null>(null);
   const inkRefs = useRef<[HTMLDivElement | null, HTMLDivElement | null]>([null, null]);
@@ -182,13 +183,15 @@ export function InkspaceReaderLab() {
       <ManuscriptLeaf side="left" leaf={visible.left} attach={(el) => { inkRefs.current[0] = el; }} />
       <ManuscriptLeaf side="right" leaf={visible.right} attach={(el) => { inkRefs.current[1] = el; }} />
     </div>
-    <nav className="reader-journal-tabs" aria-label="Extra journal pages">
-      {JOURNAL_TABS.map((tab) => <button type="button" key={tab.id} className={`reader-tab reader-tab--${tab.id} ${journal === tab.id ? "is-open" : ""}`}
-        aria-label={`Open ${tab.label} journal`} aria-pressed={journal === tab.id} onClick={() => setJournal((was) => was === tab.id ? null : tab.id)}>
-        <span className="reader-tab-icon" aria-hidden="true">{tab.icon}</span><span>{tab.label}</span>
-      </button>)}
-    </nav>
-    {journal ? <JournalSheet tab={journal} close={() => setJournal(null)} /> : null}
+    {floatingInstruments ? <TabletopInstruments /> : <>
+      <nav className="reader-journal-tabs" aria-label="Extra journal pages">
+        {JOURNAL_TABS.map((tab) => <button type="button" key={tab.id} className={`reader-tab reader-tab--${tab.id} ${journal === tab.id ? "is-open" : ""}`}
+          aria-label={`Open ${tab.label} journal`} aria-pressed={journal === tab.id} onClick={() => setJournal((was) => was === tab.id ? null : tab.id)}>
+          <span className="reader-tab-icon" aria-hidden="true">{tab.icon}</span><span>{tab.label}</span>
+        </button>)}
+      </nav>
+      {journal ? <JournalSheet tab={journal} close={() => setJournal(null)} /> : null}
+    </>}
     <nav className="reader-pager" aria-label="Turn manuscript pages">
       <button type="button" onClick={() => goTo(index - 1)} disabled={busy || index <= 0}>← Previous</button>
       <span aria-live="polite" aria-atomic="true">Leaves {index * 2 + 17}–{index * 2 + 18} · {index + 1} / {spreads.length}</span>

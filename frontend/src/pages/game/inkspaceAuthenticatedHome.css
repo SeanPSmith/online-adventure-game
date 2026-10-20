@@ -1,0 +1,215 @@
+/* Pass 64.4N — authenticated Living Book home. Scoped exclusively to /game/home-lab.
+   The photographic desk and book are ONE stationary plate. Only selectable HTML,
+   actual network-backed Home data and separate PNG illustrations live above it. */
+.p64-shell.is-desk-home .p64n-scene-plane { display:contents; }
+.p64-shell.is-desk-home .p64-desk[data-home-lab="true"] > .p644-scene {
+  background:#39271d url('/art/pass64/pass64-4d-tabletop-book.webp') center center/cover no-repeat!important;
+}
+.p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p644-bookmarks{display:none!important}
+.p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p644-topbar{
+  top:1%;left:3.2%;right:3%;height:10%;gap:1.2%;z-index:24;
+}
+.p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p644-wordmark{
+  background:transparent!important;border:0!important;box-shadow:none!important;
+  padding:0!important;min-width:0!important;color:#ffedc9!important;
+}
+.p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p644-wordmark strong{
+  color:#ffebc6!important;font:400 clamp(20px,2.1vw,33px)/1.05 Georgia,serif!important;
+  letter-spacing:.055em;text-shadow:0 2px 7px #1c0b09!important;
+}
+.p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p644-wordmark small{
+  color:#ecd4ad!important;font-size:clamp(8px,.74vw,11px)!important;text-shadow:0 1px 3px #1c0b09;
+}
+.p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p644-emblem{color:#dcb875!important;font-size:clamp(30px,3.8vw,58px)}
+.p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p644-toplinks{
+  min-width:0;flex:1 1 auto;background:linear-gradient(180deg,#fff1d7f7,#dfc59bea)!important;
+  border:0!important;clip-path:polygon(1.6% 0,98.2% 0,100% 12%,98.7% 100%,.5% 98%,0 81%);
+  box-shadow:none!important;filter:drop-shadow(0 4px 3px #27170a82);padding:7px clamp(9px,1.1vw,20px);
+}
+.p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p644-toplinks button{
+  font:600 clamp(9px,.85vw,13px) Georgia,serif!important;letter-spacing:.015em!important;
+  color:#422c20!important;min-height:36px;
+}
+.p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p644-player-tag{
+  background:#2a1a14e6!important;border:1px solid #8f6e49;border-radius:3px;
+  box-shadow:0 3px 8px #1c0e0870;min-width:0;padding:9px 12px;color:#f6dfb9!important;
+}
+/* Source-aligned cover plane: remains exactly aligned when CSS background-size: cover crops. */
+.p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p64n-scene-plane{
+  display:block;position:absolute;left:50%;top:50%;z-index:5;
+  width:max(100vw,177.6833vh);height:max(100vh,56.2799vw);
+  transform:translate(-50%,-50%);pointer-events:none;
+}
+.p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p644-bound-book{
+  position:absolute!important;left:19.7%!important;top:23.5%!important;
+  width:65.2%!important;height:60.6%!important;inset:auto!important;
+  border:0!important;border-radius:0!important;background:transparent!important;
+  box-shadow:none!important;overflow:hidden!important;pointer-events:auto;
+}
+.p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p644-bound-book::before,
+.p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p644-bound-book::after,
+.p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p644-paper-leaf{display:none!important}
+.p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p644-pages{
+  display:block!important;height:100%!important;background:transparent!important;opacity:1!important;
+  animation:none!important;isolation:isolate;
+}
+.p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p644-ink-layer{
+  width:100%;height:100%;display:grid;grid-template-columns:1fr 1fr;gap:0;
+  overflow:hidden;min-height:0;animation:p64n-ink-appear .33s ease-out both;
+}
+.p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p644-ink-layer[data-ink-leaving='true']{
+  animation:none;opacity:0;transition:opacity .12s ease-in;
+}
+@keyframes p64n-ink-appear{from{opacity:0}to{opacity:1}}
+.p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p64n-leaf,
+.p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p644-interior-page{
+  background:transparent!important;box-shadow:none!important;border:0!important;
+  color:#3d2c21;min-width:0;overflow:hidden;height:100%;
+}
+.p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p64n-leaf-left{
+  padding:2.1% 6.5% 4% 9%;display:flex;flex-direction:column;position:relative;
+}
+.p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p64n-leaf-right{
+  padding:2% 7.7% 3.3% 7.1%;display:flex;flex-direction:column;gap:0;position:relative;
+}
+.p64n-intro{position:relative;z-index:2;text-align:center;flex:none;margin-bottom:1%;}
+.p64n-rubric{color:#9d5042;font:700 clamp(9px,.8vw,12px)/1.2 Georgia,serif;letter-spacing:.105em}
+.p64n-intro h1{font:normal clamp(26px,2.75vw,49px)/.98 Georgia,serif!important;letter-spacing:-.025em;color:#33221a!important;margin:3% 0 3%;}
+.p64n-intro h1 em{color:#8f3e3b;font-weight:400}
+.p64n-intro p{font:italic clamp(11px,1.04vw,16px)/1.3 Georgia,serif;color:#664b38;max-width:340px;margin:0 auto}
+.p64n-watercolor{
+  display:block;width:100%;min-height:0;height:39%;object-fit:contain;object-position:center;
+  margin:0 auto auto;filter:drop-shadow(0 2px 2px #442c1b15);pointer-events:none;
+}
+.p64n-continuation{position:relative;z-index:2;margin:0 0 1%;padding:8px clamp(8px,1vw,17px) 11px;
+  background:#f6e7cbc9;box-shadow:0 2px 12px #674a2b2a;border:1px solid #b99c7166;min-height:0;
+}
+.p64n-continuation h2{font:normal clamp(17px,1.83vw,27px)/1.08 Georgia,serif!important;color:#3c291e;margin:4px 0 3px;overflow-wrap:anywhere}
+.p64n-continuation p{font:italic clamp(10px,.9vw,13px)/1.3 Georgia,serif;color:#6d5143;margin:3px 0 8px;}
+.p64n-seal-action{display:inline-flex;align-items:center;gap:11px;background:#793d36!important;color:#ffefd5!important;
+  border:1px solid #b38464;border-radius:1px;font:600 clamp(11px,.95vw,14px) Georgia,serif;
+  padding:8px 13px;text-decoration:none!important;cursor:pointer;box-shadow:0 2px 5px #4b291f50;}
+.p64n-seal-action:hover{background:#5d2d2a!important}
+.p64n-leaf-footer{font:italic clamp(10px,.86vw,13px) Georgia,serif;color:#8b6947;text-align:center;margin-top:5px}
+.p64n-section-head{display:flex;align-items:center;justify-content:space-between;gap:6px;padding-bottom:5px;
+  border-bottom:1px solid #806f5b5c;margin:0 0 6px;flex:0 0 auto;}
+.p64n-section-head h2{font:700 clamp(10px,.9vw,13px) Georgia,serif!important;letter-spacing:.095em;
+  color:#55402e!important;margin:0;white-space:nowrap;}
+.p64n-section-head h2 span{color:#b58d5d;margin-right:4px}
+.p64n-section-head button{background:transparent!important;border:0!important;color:#794736!important;
+  font:normal clamp(10px,.75vw,12px) Georgia,serif;cursor:pointer;white-space:nowrap;padding:3px;}
+.p64n-heroes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(4px,.7vw,10px);
+  flex:0 0 25%;min-height:0;margin-bottom:2%;}
+.p64n-hero{display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;min-width:0;justify-content:center}
+.p64n-hero-medallion{height:clamp(45px,7.8vh,80px);width:clamp(45px,7.8vh,80px);display:grid;place-items:center;
+  border:3px double #9f7748;border-radius:50%;background:radial-gradient(circle at 35% 25%,#f3ddba,#9d825e 75%,#5c3c23);
+  font:400 clamp(25px,3vw,44px) Georgia,serif;color:#4d3325;cursor:pointer;box-shadow:0 2px 4px #4b2c1650}
+.p64n-hero-medallion.is-selected{outline:2px solid #56764f;outline-offset:2px}
+.p64n-hero-medallion:disabled{opacity:.65;cursor:not-allowed}
+.p64n-hero a{font:normal clamp(12px,1.03vw,16px) Georgia,serif;text-decoration:none;color:#483224;
+  max-width:100%;text-overflow:ellipsis;overflow:hidden;white-space:nowrap}
+.p64n-hero small{font:italic clamp(9px,.76vw,11px) Georgia,serif;color:#7e5a45;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.p64n-hero-vital{width:79%;height:4px;background:#a5876a50;overflow:hidden;margin-top:3px}
+.p64n-hero-vital span{display:block;background:#6b956d;height:100%}
+.p64n-empty-hero{grid-column:1 / -1;display:grid;place-items:center;text-align:center;color:#644b3b;font:italic 13px Georgia,serif}
+.p64n-empty-hero p{margin:3px 0}.p64n-empty-hero a{color:#884338}
+.p64n-journeys{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(5px,.65vw,12px);
+  flex:0 0 23%;min-height:0;overflow:hidden;margin-bottom:2%}
+.p64n-journey{color:#3b2a1f;text-decoration:none;display:flex;flex-direction:column;gap:2px;min-width:0;overflow:hidden}
+.p64n-journey img{width:100%;height:64%;object-fit:cover;border-radius:3px;box-shadow:0 1px 3px #50352240}
+.p64n-journey strong{font:600 clamp(10px,.84vw,13px)/1.1 Georgia,serif;color:#38281f;
+  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;}
+.p64n-journey small{font:italic clamp(9px,.72vw,11px) Georgia,serif;color:#775e4f;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.p64n-empty-adventures{grid-column:1 / -1;text-align:center;align-self:center;font:italic 13px Georgia,serif;color:#745b4b}
+.p64n-last-heading{margin-top:auto}
+.p64n-discovery{display:grid;grid-template-columns:38% 1fr;gap:12px;align-items:center;min-height:0;flex:0 0 18%;}
+.p64n-discovery img{width:100%;height:100%;object-fit:contain;min-height:0;}
+.p64n-discovery div{min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.p64n-discovery strong{font:normal clamp(13px,1.13vw,18px) Georgia,serif;color:#513326;}
+.p64n-discovery p{font:italic clamp(10px,.78vw,12px)/1.25 Georgia,serif;color:#6f5041;
+  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;margin:0;}
+.p64n-discovery button{border:0;background:transparent;color:#944335;cursor:pointer;
+  padding:2px 0;font:600 clamp(10px,.8vw,12px) Georgia,serif;}
+.p64n-footer-script{font:italic clamp(10px,.8vw,12px) Georgia,serif;color:#7f654f;text-align:right;margin:auto 0 0}
+.p64n-screenreader{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.p64-desk[data-home-lab="true"] .p644-bottom-marker{z-index:12;pointer-events:none}
+.p64-desk[data-home-lab="true"] .p644-topbar :is(a,button):focus-visible,
+.p64-desk[data-home-lab="true"] .p64n-leaf :is(a,button):focus-visible{outline:2px solid #956033!important;outline-offset:3px!important}
+/* Existing functional Hero / Join / Discover / System spreads remain available in the lab.
+   They use the same handlers and are deliberately not recast in this first Home-only pass. */
+.p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p644-interior-page{padding:5% 7% 6%!important;overflow-y:auto!important}
+@media (max-width:1260px) and (min-width:801px){
+  .p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p644-topbar{left:1.6%;right:1.3%;gap:6px}
+  .p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p644-wordmark strong{font-size:20px!important}
+  .p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p644-wordmark small{font-size:8px!important}
+  .p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p644-toplinks{padding:5px 6px;gap:4px}
+  .p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p644-toplinks button{font-size:9px!important;padding:6px 1px!important}
+  .p64n-intro h1{font-size:clamp(23px,2.5vw,36px)!important}
+}
+@media(max-height:750px) and (min-width:801px){
+  .p64n-intro h1{font-size:clamp(22px,2.5vw,36px)!important}
+  .p64n-watercolor{height:33%}
+  .p64n-continuation{padding:6px 9px}
+  .p64n-hero-medallion{height:50px;width:50px}
+  .p64n-heroes{flex-basis:23%}
+  .p64n-journeys{flex-basis:22%}
+}
+/* Mobile is a scrolling, accessible single-page journal. No cropped desktop spread. */
+@media(max-width:800px){
+  .p64-shell.is-desk-home:has(.p64-desk[data-home-lab="true"]){height:auto!important;max-height:none!important;min-height:100dvh!important;overflow:visible!important}
+  .p64-shell.is-desk-home:has(.p64-desk[data-home-lab="true"]) .game-main{height:auto!important;max-height:none!important;overflow:visible!important}
+  .p64-shell.is-desk-home .p64-desk[data-home-lab="true"]{height:auto!important;min-height:100dvh!important;overflow:visible!important}
+  .p64-shell.is-desk-home .p64-desk[data-home-lab="true"] > .p644-scene{height:auto!important;min-height:100dvh!important;overflow:visible!important;
+    padding:86px 12px 32px!important;background:#a57c59 url('/art/pass64/pass64-4d-tabletop-book.webp') center top/auto 100vh no-repeat!important}
+  .p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p644-topbar{height:auto!important;min-height:66px!important;top:0!important;left:0!important;right:0!important;
+    padding:8px 10px!important;background:#f8e8caed!important;position:absolute!important;flex-wrap:wrap;}
+  .p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p644-wordmark strong{color:#463325!important;text-shadow:none!important;font-size:19px!important}
+  .p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p644-wordmark small{color:#705b44!important;font-size:8px!important}
+  .p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p644-emblem{font-size:25px!important}
+  .p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p644-toplinks{display:flex!important;position:relative!important;order:3!important;
+    width:100%;flex-basis:100%;overflow-x:auto;min-height:42px;background:transparent!important;clip-path:none;filter:none;box-shadow:none;
+    justify-content:flex-start!important;}
+  .p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p644-toplinks button{font-size:10px!important;padding:6px 8px!important;min-height:34px}
+  .p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p644-player-tag{padding:7px!important;font-size:12px!important}
+  .p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p64n-scene-plane{display:contents!important;transform:none!important;}
+  .p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p644-bound-book{position:relative!important;inset:auto!important;left:auto!important;top:auto!important;
+    width:100%!important;height:auto!important;border:8px solid #684631!important;border-radius:15px!important;
+    background:#f2dfba!important;box-shadow:0 8px 22px #311e14b0!important;overflow:visible!important;}
+  .p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p644-ink-layer{display:block!important;height:auto!important;overflow:visible!important;}
+  .p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p644-pages{height:auto!important;}
+  .p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p64n-leaf,
+  .p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p644-interior-page{height:auto!important;padding:25px 21px!important;
+    background:#f8ecd4 url('/art/pass64/brighter-paper.webp') center/cover!important;box-shadow:inset 0 0 16px #8c634233!important;overflow:visible!important;}
+  .p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p64n-leaf-left{border-bottom:7px double #85654b!important;min-height:480px;}
+  .p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p64n-leaf-right{min-height:570px;}
+  .p64n-intro h1{font-size:clamp(29px,8vw,43px)!important}
+  .p64n-watercolor{height:225px;object-fit:contain;margin:8px auto;}
+  .p64n-continuation{margin:10px 0;padding:14px}
+  .p64n-section-head{margin-top:11px}
+  .p64n-heroes{min-height:148px;flex:auto;}
+  .p64n-hero-medallion{height:66px;width:66px}
+  .p64n-journeys{min-height:153px;flex:auto}
+  .p64n-journey img{min-height:86px}
+  .p64n-discovery{min-height:130px;flex:auto;}
+  .p64n-footer-script{margin-top:12px}
+  .p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p644-bottom-marker{display:none!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p644-ink-layer{animation:none!important;transition:none!important}
+}
+.p64-desk[data-reduced-motion='true'].p64-desk[data-home-lab="true"] .p644-ink-layer{animation:none!important;transition:none!important}
+/* Win over the earlier, edition-specific photographic Home selector. */
+.p64-shell.is-desk-home[data-edition-family="brighter-world"][data-edition-mode="day"] .p64-desk[data-home-lab="true"] > .p644-scene,
+.p64-shell.is-desk-home[data-edition-family="brighter-world"][data-edition-mode="night"] .p64-desk[data-home-lab="true"] > .p644-scene,
+.p64-shell.is-desk-home[data-edition-family] .p64-desk[data-home-lab="true"] > .p644-scene{
+  background:#39271d url('/art/pass64/pass64-4d-tabletop-book.webp') center center/cover no-repeat!important;
+}
+/* The shorthand previously inherited from the book overlay clears positional insets. */
+.p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p64n-scene-plane > .p644-bound-book{
+  inset:23.5% auto auto 19.7%!important;
+}
+@media(max-width:800px){
+  .p64-shell.is-desk-home .p64-desk[data-home-lab="true"] .p64n-scene-plane > .p644-bound-book{
+    inset:auto!important;
+  }
+}

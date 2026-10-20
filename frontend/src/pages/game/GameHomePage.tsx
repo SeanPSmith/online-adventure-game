@@ -5,6 +5,8 @@ import "./gameBrighterWorld.css";
 import "./livingBook644.css";
 import "./livingBook644Fidelity.css";
 import "./livingBook644Ink.css";
+import "./inkspaceAuthenticatedHome.css";
+import { InkspaceAuthenticatedHome } from "./InkspaceAuthenticatedHome";
 import "../../features/appearance/themeEditions.css";
 import { useAppearance } from "../../features/appearance/AppearanceContext";
 import { FirstRunGuide } from "../../features/onboarding/FirstRunGuide";
@@ -64,7 +66,11 @@ function advancementTotal(hero: Character) {
   );
 }
 
-export function GameHomePage() {
+export function LivingBookHomeLabPage() {
+  return <GameHomePage homeLab />;
+}
+
+export function GameHomePage({ homeLab = false }: { homeLab?: boolean } = {}) {
   const navigate = useNavigate();
   const { preferences } = useAppearance();
   const { user, logout } = useAuth();
@@ -276,7 +282,7 @@ export function GameHomePage() {
   }
 
   return (
-    <div className="p64-desk" data-platform-skin={preferences.platformSkin} data-reduced-motion={preferences.reducedMotion}>
+    <div className="p64-desk" data-home-lab={homeLab ? "true" : undefined} data-platform-skin={preferences.platformSkin} data-reduced-motion={preferences.reducedMotion}>
       <div className="p644-scene">
       {(latestError || heroError) ? (
         <div className="form-error p644-error" role="alert">
@@ -304,13 +310,22 @@ export function GameHomePage() {
         <button type="button" aria-current={bookSpread === "wardrobe" ? "page" : undefined} onClick={() => openBookSpread("wardrobe")}><span aria-hidden="true">✦</span>Wardrobe</button>
         <button type="button" aria-current={bookSpread === "tools" ? "page" : undefined} onClick={() => openBookSpread("tools")}><span aria-hidden="true">☷</span>More</button>
       </nav>
+      <div className="p64n-scene-plane">
       <div className="p644-bound-book" aria-label="Living adventure book">
         <div className="p644-pages p644-spread-content">
           <div className="p644-paper-leaf p644-paper-leaf-left" aria-hidden="true" />
           <div className="p644-paper-leaf p644-paper-leaf-right" aria-hidden="true" />
           <div className="p644-ink-layer" key={bookSpread} data-ink-leaving={inkLeaving}>
           {bookSpread === "home" ? (
-            <>
+            homeLab ? (
+              <InkspaceAuthenticatedHome
+                username={user?.username ?? "Adventurer"} connected={connected} directoryReady={directoryReady}
+                heroes={heroes} playableHeroes={playableHeroes} selectedHeroId={selectedHeroId}
+                occupiedHeroIds={occupiedHeroIds} adventures={adventures} catalog={visibleCatalog}
+                onChooseHero={setSelectedHeroId} onNavigate={openBookSpread}
+                onInspectAdventure={inspectAdventure}
+              />
+            ) : <>
               <section className="p644-page p644-page-left p644-home-left" aria-label="Featured story">
                 <div className="p644-home-heading"><span className="p644-ink-star" aria-hidden="true">✧</span><h1>Welcome back,<br/><em>troublemaker.</em></h1><p>The worlds have been behaving suspiciously well without you.</p></div>
                 <div className="p644-watercolor-plate" role="img" aria-label="Watercolor view across a sunlit fantasy coast" />
@@ -675,6 +690,7 @@ export function GameHomePage() {
           </> : null}
           </div>
         </div>
+      </div>
       </div>
       <span className="sr-only" role="status">{spreadLabel} spread displayed</span>
       <div className="p644-bottom-marker" aria-hidden="true">✧ Two people · A thousand possibilities ✧</div>

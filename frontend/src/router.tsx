@@ -49,6 +49,8 @@ export const router = createBrowserRouter([
             element: <GameLayout />,
             children: [
               { index: true, lazy: async () => ({ Component: (await import("./pages/game/GameHomePage")).GameHomePage }) },
+              // Pass 64.4N: real authenticated data/actions, isolated Living Book homepage proof.
+              { path: "home-lab", lazy: async () => ({ Component: (await import("./pages/game/GameHomePage")).LivingBookHomeLabPage }) },
               { path: "adventure/:roomId", lazy: async () => ({ Component: (await import("./pages/game/AdventurePage")).AdventurePage }) },
               { path: "heroes", lazy: async () => ({ Component: (await import("./pages/heroes/HeroManagerPage")).HeroManagerPage }) },
               { path: "graveyard", lazy: async () => ({ Component: (await import("./pages/heroes/GraveyardPage")).GraveyardPage }) },

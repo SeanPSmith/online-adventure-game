@@ -21,6 +21,7 @@ export type CosmeticItem = Readonly<{
   layoutVersion: "living-book.1";
   asset?: string;
   anchorId?: "desk_left_mid" | "desk_right_lower";
+  material?: "photographic-alpha" | "illustrated-alpha";
 }>;
 
 /** Only catalog-owned same-origin art URLs are ever rendered. */
@@ -38,8 +39,10 @@ export const CATALOG: Readonly<Record<string, CosmeticItem>> = {
   // Optional illustrated prop proofs; backgrounds already contain *baked* physical props.
   "prop.left.none": { id: "prop.left.none", slot: "prop_left", label: "No extra ornament", free: true, published: true, layoutVersion: "living-book.1" },
   "prop.left.fern": { id: "prop.left.fern", slot: "prop_left", label: "Pressed Fern", free: true, published: true, layoutVersion: "living-book.1", asset: "/art/pass64/scene-kit/pressed-fern.webp", anchorId: "desk_left_mid" },
+  "prop.left.seal-photo": { id: "prop.left.seal-photo", slot: "prop_left", label: "Photographic Crimson Wax Seal", free: true, published: true, layoutVersion: "living-book.1", asset: "/art/pass64/scene-kit/wax-seal-photographic.png", anchorId: "desk_left_mid", material: "photographic-alpha" },
   "prop.left.seal": { id: "prop.left.seal", slot: "prop_left", label: "Crimson Wax Seal", free: true, published: true, layoutVersion: "living-book.1", asset: "/art/pass64/scene-kit/wax-seal.webp", anchorId: "desk_left_mid" },
   "prop.right.none": { id: "prop.right.none", slot: "prop_right", label: "No extra ornament", free: true, published: true, layoutVersion: "living-book.1" },
+  "prop.right.compass-photo": { id: "prop.right.compass-photo", slot: "prop_right", label: "Photographic Brass Compass", free: true, published: true, layoutVersion: "living-book.1", asset: "/art/pass64/scene-kit/brass-compass-photographic.png", anchorId: "desk_right_lower", material: "photographic-alpha" },
   "prop.right.ink": { id: "prop.right.ink", slot: "prop_right", label: "Ink Bottle", free: true, published: true, layoutVersion: "living-book.1", asset: "/art/pass64/scene-kit/ink-bottle.webp", anchorId: "desk_right_lower" },
   "prop.right.flower": { id: "prop.right.flower", slot: "prop_right", label: "Pressed Wildflowers", free: true, published: true, layoutVersion: "living-book.1", asset: "/art/pass64/scene-kit/wildflowers.webp", anchorId: "desk_right_lower" },
   "light.sunlit": { id: "light.sunlit", slot: "lighting", label: "Golden Hour", free: true, published: true, layoutVersion: "living-book.1" },
@@ -58,6 +61,9 @@ export const SCENE_COMPOSITING = {
   imageWidth: 1672, imageHeight: 941,
   cleanPlateAvailable: false,
   bakedProps: true,
+  // V1 is a legacy photographed plate, NOT a clean prop-free scene.
+  // Independent alpha props are additive until proper object-free plate art exists.
+  physicalLayerOrder: ["photographic-plate", "baked-dressing", "anchored-alpha", "interactive-ink"] as const,
   geometry: {
     book: { x: 0.155, y: 0.193, width: 0.762, height: 0.731 },
     spineX: 0.523,
@@ -143,6 +149,7 @@ export const FREE_DEFAULTS: Readonly<SlotSelection> = {
 export const PREVIEW_WORLDS: Readonly<Record<string, { name: string; recommendation: SlotSelection }>> = {
   brighter: { name: "Brighter World", recommendation: { ...FREE_DEFAULTS, lighting: "light.sunlit" } },
   lantern: { name: "Amber Library", recommendation: { ...FREE_DEFAULTS, lighting: "light.amber", prop_left: "prop.left.seal", prop_right: "prop.right.ink" } },
+  photographic: { name: "Photographic Study", recommendation: { ...FREE_DEFAULTS, prop_left: "prop.left.seal-photo", prop_right: "prop.right.compass-photo", lighting: "light.sunlit" } },
   moonlit: { name: "Moonlit Folio", recommendation: { ...FREE_DEFAULTS, lighting: "light.moonlit", prop_left: "prop.left.fern", prop_right: "prop.right.flower" } },
 };
 

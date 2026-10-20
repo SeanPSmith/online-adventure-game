@@ -76,3 +76,28 @@
 .vb-lab.has-space[data-lighting="light.sunlit"] .space-overlay-prop{filter:drop-shadow(1px 5px 4px #20110872)}
 .vb-lab.has-space[data-lighting="light.amber"] .space-overlay-prop{filter:sepia(.24) saturate(1.13) brightness(.84) contrast(1.03) drop-shadow(1px 5px 4px #20110872)}
 .vb-lab.has-space[data-lighting="light.moonlit"] .space-overlay-prop{filter:sepia(.09) hue-rotate(164deg) saturate(.70) brightness(.68) contrast(1.12) drop-shadow(1px 5px 4px #0c172788)}
+
+/* Pass 64.4P: photographic material parity. The alpha-prop has no box; shadows
+   follow actual silhouette and use the scene's top-left sunlight direction. */
+.space-overlay-prop.is-photographic{
+  object-fit:contain;transform-origin:50% 60%;
+  filter:drop-shadow(3px 9px 5px rgba(31,14,7,.54)) drop-shadow(1px 2px 1px rgba(28,12,6,.36));
+  image-rendering:auto;
+}
+.space-overlay-prop_left.is-photographic{transform:rotate(-9deg)}
+.space-overlay-prop_right.is-photographic{transform:rotate(11deg)}
+.vb-lab.has-space[data-lighting="light.amber"] .space-overlay-prop.is-photographic{
+  filter:sepia(.10) saturate(1.08) brightness(.9) drop-shadow(3px 9px 6px #180a087c);
+}
+.vb-lab.has-space[data-lighting="light.moonlit"] .space-overlay-prop.is-photographic{
+  filter:saturate(.79) brightness(.79) contrast(1.06) drop-shadow(4px 8px 6px #061220aa);
+}
+/* Mood affects physical materials while preserving their visible grain. The
+   earlier 164-degree hue rotation looked like a blue filter, not moonlight. */
+.vb-lab.has-space[data-lighting="light.moonlit"] .vb-scene{
+  filter:sepia(.05) saturate(.78) brightness(.78) contrast(1.07);
+}
+.vb-lab.has-space[data-lighting="light.moonlit"]:after{
+  background:linear-gradient(135deg,rgba(20,32,47,.11),transparent 42%,rgba(9,16,30,.13));
+}
+@media(prefers-reduced-motion:reduce){.space-overlay-prop.is-photographic{transition:none}}

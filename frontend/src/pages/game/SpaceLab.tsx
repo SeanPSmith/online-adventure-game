@@ -26,8 +26,8 @@ export function SpaceLab({ onLightingChange }: Props) {
   const [mode, setMode] = useState<AppearanceMode>("follow_world");
   const [worldId, setWorldId] = useState("brighter");
   const [myLighting, setMyLighting] = useState<LightingId>("light.amber");
-  const [myLeft, setMyLeft] = useState("prop.left.fern");
-  const [myRight, setMyRight] = useState("prop.right.ink");
+  const [myLeft, setMyLeft] = useState("prop.left.seal-photo");
+  const [myRight, setMyRight] = useState("prop.right.compass-photo");
   const [followForProps, setFollowForProps] = useState<"world" | "mine">("mine");
   const [followForLight, setFollowForLight] = useState<"world" | "mine">("mine");
   const result = useMemo(() => resolveScene({
@@ -54,7 +54,7 @@ export function SpaceLab({ onLightingChange }: Props) {
           const item = result[slot].item;
           if (!item?.asset || !item.anchorId) return null;
           const anchor = SCENE_COMPOSITING.propAnchors[item.anchorId];
-          return <img className={`space-overlay-prop space-overlay-${slot}`} key={`${slot}:${item.id}`} src={item.asset} alt="" style={sceneRectStyle(anchor)} draggable={false}/>;
+          return <img className={`space-overlay-prop space-overlay-${slot} ${item.material === "photographic-alpha" ? "is-photographic" : "is-illustrated"}`} key={`${slot}:${item.id}`} src={item.asset} alt="" style={sceneRectStyle(anchor)} draggable={false}/>;
         })}
         {showZones ? (
           <div className="space-layout-guides">
@@ -71,7 +71,7 @@ export function SpaceLab({ onLightingChange }: Props) {
       {isOpen ? (
         <aside id="space-workshop" className="space-workshop" aria-label="Environment workshop preview">
           <div className="space-workshop-heading">
-            <div><p className="space-kicker">PASS 64.4G · SCENE KIT</p><h1>My reading space</h1></div>
+            <div><p className="space-kicker">PASS 64.4P · PHOTOGRAPHIC LAYERS</p><h1>My reading space</h1></div>
             <button type="button" aria-label="Close environment workshop" className="space-close" onClick={() => setIsOpen(false)}>×</button>
           </div>
           <p className="space-intro">Make the atmosphere your own. This is a temporary visual preview—not a store or saved account setting.</p>
@@ -108,7 +108,7 @@ export function SpaceLab({ onLightingChange }: Props) {
           </fieldset>
           <fieldset className="space-decor-fieldset">
             <legend>Little things, your way</legend>
-            <p className="space-decor-caption">Optional illustrated accents on fixed desk anchors. The teacup and compass already in the photo remain in place.</p>
+            <p className="space-decor-caption">Real transparent photo-cutout accents on calibrated desk anchors. Earlier scene objects remain in the photograph until a clean plate is approved.</p>
             {(["prop_left", "prop_right"] as const).map((slot) => {
               const value = slot === "prop_left" ? myLeft : myRight;
               const setValue = slot === "prop_left" ? setMyLeft : setMyRight;
@@ -136,9 +136,9 @@ export function SpaceLab({ onLightingChange }: Props) {
           ) : null}
           <p className="space-resolution" role="status">Now showing: <strong>{result.lighting.item?.label}</strong> <span>({result.lighting.source})</span><span className="space-resolution-props">Accents: {result.prop_left.item?.label} · {result.prop_right.item?.label}</span></p>
           <label className="space-guides"><input type="checkbox" checked={showZones} onChange={(event) => setShowZones(event.target.checked)} /> Show reading-safe zones</label>
-          <p className="space-technical">Spine-aligned safe zones use the {SCENE_COMPOSITING.imageWidth} × {SCENE_COMPOSITING.imageHeight} image plate. Add-on accents really switch; original photographic props remain baked in until a separate clean-plate release.</p>
+          <p className="space-technical">Spine-aligned safe zones use the {SCENE_COMPOSITING.imageWidth} × {SCENE_COMPOSITING.imageHeight} image plate. The photographic accent assets have real alpha and their own shadow layer. The legacy tabletop still contains baked-in objects; those are not individually removable.</p>
           <div className="space-actions">
-            <button type="button" onClick={() => {setMode("follow_world");setWorldId("brighter");setMyLighting("light.amber");setFollowForLight("mine");setMyLeft("prop.left.fern");setMyRight("prop.right.ink");setFollowForProps("mine");setShowZones(false);}}>Reset preview</button>
+            <button type="button" onClick={() => {setMode("follow_world");setWorldId("brighter");setMyLighting("light.amber");setFollowForLight("mine");setMyLeft("prop.left.seal-photo");setMyRight("prop.right.compass-photo");setFollowForProps("mine");setShowZones(false);}}>Reset preview</button>
             <button type="button" className="space-done" onClick={() => setIsOpen(false)}>View the book <span aria-hidden="true">↗</span></button>
           </div>
         </aside>

@@ -19,7 +19,9 @@
 .i653-eyebrow{font-family:var(--i65-type);font-size:11px;letter-spacing:.14em}
 .i653-handwriting,.i65 .i65-hand-note{font-family:var(--i65-hand);font-weight:500;letter-spacing:0!important;transform:none!important;font-size:clamp(20px,2vw,29px);line-height:1.14}
 .i653-hand-rule{transform:none!important}
-/* Dashboard is composed as a letter with an illustration laid across it, not a 45/55 card. */
+/* Dashboard: illustrations live outside the readable copy. Decorative figure
+   captions and arrows must not be absolutely positioned across controls.
+   When the composition has unused room, let the paper remain empty. */
 .i653-dashboard{padding:28px 0 65px;overflow:visible}
 .i653-note-top{padding:4px 4.8%;align-items:baseline}
 .i653-note-top .i653-handwriting{margin-right:5%;position:relative;top:4px}
@@ -29,9 +31,6 @@
 .i653-dashboard-lead h1 em{font-style:italic;font-weight:400}
 .i653-dashboard-lead p{font-size:clamp(19px,1.65vw,24px);line-height:1.5;width:min(100%,455px);margin:0 0 34px}
 .i653-dashboard-lead>img{position:absolute;z-index:1;top:7px;right:-5%;width:74%;height:540px;max-height:none;object-fit:contain;object-position:center right;pointer-events:none;margin:0;filter:none}
-.i654-plate-note{position:absolute;right:3%;bottom:0;z-index:3;font-family:var(--i65-hand);font-size:24px;color:var(--i65-small);display:flex;align-items:center;gap:13px;white-space:nowrap;pointer-events:none}
-.i654-plate-note span{font:11px var(--i65-type);letter-spacing:.04em}
-.i654-plate-note svg{width:60px;height:29px;opacity:.72}
 .i653-button-line{gap:27px}
 .i653-button-line .i653-main-link{border-bottom:1px solid var(--i65-ink);padding:0 0 9px;font-weight:600}
 .i653-dashboard-table{margin:45px 3.2% 0;border-top:0;display:flex;align-items:flex-start;gap:7.2%;padding:0 2.2% 30px}
@@ -145,7 +144,6 @@
   .i653-dashboard-lead>.i654-dashboard-letter{padding:350px 4% 0;width:min(100%,680px);text-align:left}
   .i653-dashboard-lead h1{font-size:clamp(52px,8.5vw,77px);max-width:550px}
   .i653-dashboard-lead p{font-size:19px;margin-bottom:15px}
-  .i654-plate-note{display:none}
   .i653-dashboard-table{margin:20px 0 0;display:block}
   .i653-dashboard-margin{border-top:1px solid var(--i654-soft-pencil);margin:20px 0;padding:15px;display:flex;flex-wrap:wrap;column-gap:30px;align-items:end}
   .i653-dashboard-margin:before{display:none}
@@ -194,12 +192,10 @@
 }
 @media(prefers-reduced-motion:reduce){.i65 .i653-screen{animation:none}}
 /* Correct specificity collisions with the older responsive atlas rules. */
-.i653-dashboard-lead>.i654-plate-note{left:auto;right:3%;bottom:-3px;width:auto;padding:0;margin:0;z-index:3}
 @media(max-width:640px){
   .i65 .i65-mast-nav{flex-wrap:wrap;overflow:visible;justify-content:flex-start;gap:2px 15px}
   .i65 .i65-mast-nav button{font-size:10px!important;padding:6px 0}
   .i653-dashboard-lead{display:flex;flex-direction:column;align-items:stretch}
   .i653-dashboard-lead>img{order:-1;flex:none;max-width:none}
   .i653-dashboard-lead>.i654-dashboard-letter{order:0}
-  .i653-dashboard-lead>.i654-plate-note{display:none}
 }

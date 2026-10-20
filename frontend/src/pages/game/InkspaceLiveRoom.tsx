@@ -8,6 +8,7 @@ import { SCENE_COMPOSITING, sceneRectStyle } from "../../features/cosmetics/envi
 import type { SceneChoice, ChatMessage, PartyHeroSnapshot } from "../../services/game";
 import type { Character } from "../../services/characters";
 import { clearInkMask, preloadInkMasks } from "./inkMaskAssets";
+import { LiveTabletopInstruments } from "./LiveTabletopInstruments";
 import { paginateReader, type ReaderDocument, type ReaderDimensions, type ReaderLeaf } from "./inkspaceReaderPagination";
 import "./visualBookPlayground.css";
 import "./inkspaceReaderLab.css";
@@ -31,6 +32,8 @@ export type LiveInkspaceProps = Readonly<{
   onSelectChoice: (choice: SceneChoice) => void;
   onLockChoice: () => void;
   onSendChat: (message: string) => void;
+  notes: string;
+  onNotesChange: (value: string) => void;
   onClose: () => void;
 }>;
 
@@ -159,7 +162,7 @@ export function InkspaceLiveRoom(props: LiveInkspaceProps) {
   const [shown, setShown] = useState(0);
   const [busy, setBusy] = useState(false);
   const [journal, setJournal] = useState<JournalTab | null>(null);
-  const [notes, setNotes] = useState("");
+  const [journalStyle, setJournalStyle] = useState<"floating" | "attached">("floating");
   const needReveal = useRef(false);
   const mounted = useRef(false);
   const spreads = useMemo(() => paginateReader(doc, dims), [doc, dims]);
@@ -221,7 +224,7 @@ export function InkspaceLiveRoom(props: LiveInkspaceProps) {
     tween(0, 1, 510, () => { if (mounted.current) setBusy(false); });
   }, [shown, setInk, tween]);
   useEffect(() => { if (!ready) for (const node of refs.current) clearInkMask(node); }, [ready]);
-  return <div className="vb-lab has-reader inkspace-live" aria-label="Live illuminated manuscript reader">
+  return <div className="vb-lab has-reader has-instruments inkspace-live" aria-label="Live illuminated manuscript reader">
     <img className="vb-scene" src="/art/pass64/pass64-4d-tabletop-book.webp" alt="Open ivory book on a wooden tabletop surrounded by stationery and botanical decorations" draggable={false} />
     <header className="vb-header inkspace-live-header">
       <Link className="vb-identity" to="/game" aria-label="Tales of Two · Adventure Hall">
@@ -242,13 +245,17 @@ export function InkspaceLiveRoom(props: LiveInkspaceProps) {
           <LiveLeaf side="left" leaf={visible.left} doc={doc} choices={props.scene.choices} selectedId={props.selectedChoiceId} locked={props.choiceLocked} pending={props.lockPending} blocked={props.choicesBlocked} onSelect={props.onSelectChoice} onLock={props.onLockChoice} attach={(node) => { refs.current[0] = node; }} />
           <LiveLeaf side="right" leaf={visible.right} doc={doc} choices={props.scene.choices} selectedId={props.selectedChoiceId} locked={props.choiceLocked} pending={props.lockPending} blocked={props.choicesBlocked} onSelect={props.onSelectChoice} onLock={props.onLockChoice} attach={(node) => { refs.current[1] = node; }} />
         </div>
-        <nav className="reader-journal-tabs" aria-label="Other journal sections">
+        <button type="button" className="reader-journal-style" aria-pressed={journalStyle === "attached"}
+          onClick={() => { setJournalStyle((value) => value === "floating" ? "attached" : "floating"); setJournal(null); }}>
+          {journalStyle === "floating" ? "Use attached journal tabs" : "Use floating instruments"}
+        </button>
+        {journalStyle === "attached" && <nav className="reader-journal-tabs" aria-label="Other journal sections">
           {(["character", "chat", "notes"] as const).map((tab) => <button type="button" key={tab} aria-label={`Open ${tab} journal`} aria-pressed={journal === tab}
             className={`reader-tab reader-tab--${tab} ${journal === tab ? "is-open" : ""}`} onClick={() => setJournal((v) => v === tab ? null : tab)}>
             <span className="reader-tab-icon" aria-hidden="true">{tab === "character" ? "♙" : tab === "chat" ? "✉" : "✎"}</span><span>{tab[0].toUpperCase() + tab.slice(1)}</span>
           </button>)}
-        </nav>
-        {journal && <LiveJournal key={journal} tab={journal} hero={props.hero} playerName={props.playerName} messages={props.messages} connected={props.connected} notes={notes} onNotesChange={setNotes} onSend={props.onSendChat} onClose={() => setJournal(null)} />}
+        </nav>}
+        {journalStyle === "attached" && journal && <LiveJournal key={journal} tab={journal} hero={props.hero} playerName={props.playerName} messages={props.messages} connected={props.connected} notes={props.notes} onNotesChange={props.onNotesChange} onSend={props.onSendChat} onClose={() => setJournal(null)} />}
         <nav className="reader-pager" aria-label="Turn manuscript pages">
           <button type="button" disabled={busy || page <= 0} onClick={() => move(page - 1)}>← Previous</button>
           <span aria-live="polite">TURN {props.turnNumber} · SPREAD {page + 1} / {spreads.length}</span>
@@ -256,6 +263,11 @@ export function InkspaceLiveRoom(props: LiveInkspaceProps) {
         </nav>
       </div>
     </main>
+    {journalStyle === "floating" && <LiveTabletopInstruments
+      hero={props.hero} playerName={props.playerName} messages={props.messages}
+      connected={props.connected} onSendChat={props.onSendChat}
+      notes={props.notes} onNotesChange={props.onNotesChange}
+    />}
     <span className="sr-only" role="status" aria-live="polite">{busy ? "Manuscript ink transitioning" : props.choiceLocked ? "Choice locked" : "Book ready"}</span>
   </div>;
 }

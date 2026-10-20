@@ -157,6 +157,7 @@ export function AdventurePage() {
   });
 
   const [chatText, setChatText] = useState("");
+  const [bookNotes, setBookNotes] = useState("");
   const [asciiPickerOpen, setAsciiPickerOpen] = useState(false);
   const [hero, setHero] = useState<Character | null>(null);
   const [heroError, setHeroError] = useState("");
@@ -677,6 +678,8 @@ export function AdventurePage() {
         onSelectChoice={selectChoice}
         onLockChoice={lockChoice}
         onSendChat={(message) => { if (connected && live.status === "ready") live.sendChat(message); }}
+        notes={bookNotes}
+        onNotesChange={setBookNotes}
         onClose={() => changeBookView(false)}
       />}
       {!bookReady && <div className="inkspace-live-entry">

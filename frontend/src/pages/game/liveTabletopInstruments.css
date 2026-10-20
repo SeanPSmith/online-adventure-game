@@ -1,0 +1,23 @@
+/* Pass 64.4M · Match the floating demo's materials without impersonating
+   leather tabs sewn into the book. The photographic plane never moves. */
+.inkspace-live.has-instruments .tti-root{z-index:8}
+.inkspace-live.has-instruments .tti-sheet{z-index:12;left:63%;top:23%;max-height:64%;background:linear-gradient(124deg,#f4e4c5,#fff1d4 55%,#e5c99d)}
+.inkspace-live.has-instruments .tti-tools{z-index:11}
+.inkspace-live.has-instruments .tti-live-stats{margin:2px 0 7px;max-height:150px;overflow:auto}
+.inkspace-live.has-instruments .tti-live-stats>div{display:flex;justify-content:space-between;text-transform:capitalize;gap:8px;border-bottom:1px solid #bb987488;padding:5px 0;font:12px Georgia,serif}
+.inkspace-live.has-instruments .tti-live-stats dd{margin:0;font-weight:bold}
+.inkspace-live.has-instruments .tti-meter{margin-bottom:13px}
+.inkspace-live.has-instruments .tti-messages p{overflow-wrap:anywhere}
+.inkspace-live.has-instruments .reader-journal-style{pointer-events:auto;z-index:6;position:absolute;left:44%;top:20%;appearance:none;color:#6d432c;background:#f1dcbbd9;border:1px solid #a78052;padding:5px 8px;font:italic 11px Georgia,serif;cursor:pointer}
+.inkspace-live.has-instruments .reader-journal-style:hover{background:#fff1d6}
+.inkspace-live.has-instruments .reader-journal-style:focus-visible{outline:3px solid #a84e2b;outline-offset:3px}
+@media(max-width:1100px) and (min-width:861px){
+  .inkspace-live.has-instruments .tti-sheet{left:61%;top:21%;max-height:67%}
+}
+@media(max-width:860px){
+  .inkspace-live.has-instruments .tti-tools{z-index:102}
+  .inkspace-live.has-instruments .tti-sheet{z-index:101;left:12px;top:76px;right:12px;max-height:calc(100dvh - 168px)}
+  .inkspace-live.has-instruments .reader-journal-style{position:relative;left:auto;top:auto;margin:0 auto 12px;display:block;width:max-content}
+  .inkspace-live.has-instruments .reader-stage{padding-bottom:100px}
+}
+@media(prefers-reduced-motion:reduce){.inkspace-live.has-instruments .tti-sheet{animation:none}}

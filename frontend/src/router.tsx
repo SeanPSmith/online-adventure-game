@@ -52,6 +52,7 @@ export const router = createBrowserRouter([
               { path: "dev/inkspace-story", lazy: async () => ({ Component: (await import("./pages/game/VisualBookPlaygroundPage")).InkspaceStoryPlaygroundPage }) },
               { path: "dev/inkspace-reader", lazy: async () => ({ Component: (await import("./pages/game/VisualBookPlaygroundPage")).InkspaceReaderPlaygroundPage }) },
               { path: "dev/tabletop-kit", lazy: async () => ({ Component: (await import("./pages/game/VisualBookPlaygroundPage")).TabletopInteractionPlaygroundPage }) },
+              { path: "dev/inkbound", lazy: async () => ({ Component: (await import("./pages/game/InkboundFoundationPage")).InkboundFoundationPage }) },
               { path: "dev/space-lab", lazy: async () => ({ Component: (await import("./pages/game/VisualBookPlaygroundPage")).SpaceBookPlaygroundPage }) },
               { element: <GameLayout />, children: [
                 { path: "dev/home-lab", lazy: async () => ({ Component: (await import("./pages/game/GameHomePage")).LivingBookHomeLabPage }) },

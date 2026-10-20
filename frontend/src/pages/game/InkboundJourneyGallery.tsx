@@ -3,13 +3,16 @@
  * Protected design workshop only. The dashboard and Hero index read REAL
  * account/game data; dice, results and intermission are explicitly illustrative
  * and may NEVER call backend roll/progression/Arcade endpoints.
+ * PREVIEW ONLY — THE SERVER OWNS every actual roll, modifier, HP and XP change.
  */
 import { useEffect, useState, type ReactNode } from "react";
+import { InkboundHeroFolio } from "./InkboundHeroFolio";
+import { InkboundOutcomePreview } from "./InkboundOutcomePreview";
 import { Link } from "react-router";
 import { listCharacters, type Character } from "../../services/characters";
 import { useGameSocket } from "../../state/GameSocketContext";
 
-type FolioPage = "dashboard" | "heroes" | "dice" | "intermission" | "result" | "arcade";
+type FolioPage = "dashboard" | "heroes" | "sheet" | "dice" | "intermission" | "result" | "arcade";
 type Step = "dice" | "intermission" | "result";
 export type { FolioPage };
 
@@ -17,6 +20,8 @@ type AtlasProps = {
   page: FolioPage;
   onNavigate: (page: FolioPage | "chapter") => void;
   selectedChoice?: string;
+  heroId?: string | null;
+  onSelectHero?: (heroId: string) => void;
 };
 const atlasArt = "/art/inkbound";
 const challenges = [
@@ -71,7 +76,7 @@ function Dashboard({ go }: { go: AtlasProps["onNavigate"] }) {
   </section>;
 }
 
-function Heroes() {
+function Heroes({onSelectHero}:{onSelectHero?: (heroId:string)=>void}) {
   const [heroes,setHeroes]=useState<Character[]>([]);
   const [state,setState]=useState<"loading"|"loaded"|"error">("loading");
   useEffect(() => { let live=true;listCharacters().then(data=>{if(live){setHeroes(data.characters);setState("loaded");}}).catch(()=>{if(live)setState("error");});return()=>{live=false;};},[]);
@@ -79,7 +84,7 @@ function Heroes() {
   return <section className="i653-screen i653-hero-hall" aria-label="Real Hero roster in Inkbound style">
     <ScreenHeader eyebrow="The hero hall · Account data" title="The people we become" subtitle="Your characters, preserved in ink and consequence." />
     <div className="i653-hero-intro"><p className="i653-intro"><span className="i653-dropcap" aria-hidden="true">E</span><span className="sr-only">E</span>very wanderer has a history. Some wear it proudly. Others leave it scattered beside the road.</p><span className="i653-handwriting">Drawn from your actual Hero Hall ↓</span></div>
-    {state==="error" ? <p role="status" className="i653-empty">Could not retrieve your Heroes. <Link to="/game/heroes">Open the Hero Hall ↗</Link></p> : state==="loading" ? <p role="status" className="i653-empty">Turning the pages of your Hero Hall…</p> : active.length ? <div className="i653-roster">{active.map((hero,i)=><article key={hero.character_id} className="i653-roster-entry"><span className="i653-roster-index">{String(i+1).padStart(2,"0")} /</span><div className="i653-roster-emblem" aria-hidden="true">✥</div><div className="i653-roster-bio"><h2>{hero.name}</h2><p>Level {hero.level} · {hero.bio || "Another story waiting to be told."}</p><div className="i653-meter-line"><span>HP {hero.health}/{hero.max_health}</span><span>XP {hero.experience}</span></div></div><Link to={`/game/heroes/${encodeURIComponent(hero.character_id)}`} aria-label={`Open ${hero.name}'s character sheet`}>View folio ↗</Link></article>)}</div> : <div className="i653-empty"><p>No living heroes yet. The first page is yours to write.</p><Link to="/game/heroes/new">Create a hero ↗</Link></div>}
+    {state==="error" ? <p role="status" className="i653-empty">Could not retrieve your Heroes. <Link to="/game/heroes">Open the Hero Hall ↗</Link></p> : state==="loading" ? <p role="status" className="i653-empty">Turning the pages of your Hero Hall…</p> : active.length ? <div className="i653-roster">{active.map((hero,i)=><article key={hero.character_id} className="i653-roster-entry"><span className="i653-roster-index">{String(i+1).padStart(2,"0")} /</span><div className="i653-roster-emblem" aria-hidden="true">✥</div><div className="i653-roster-bio"><h2>{hero.name}</h2><p>Level {hero.level} · {hero.bio || "Another story waiting to be told."}</p><div className="i653-meter-line"><span>HP {hero.health}/{hero.max_health}</span><span>XP {hero.experience}</span></div></div><button type="button" onClick={() => onSelectHero?.(hero.character_id)} aria-label={`Read ${hero.name}'s Inkbound folio`}>Read folio ↗</button></article>)}</div> : <div className="i653-empty"><p>No living heroes yet. The first page is yours to write.</p><Link to="/game/heroes/new">Create a hero ↗</Link></div>}
     <div className="i653-foot-links"><Link to="/game/heroes/new">Create a new hero ↗</Link><Link to="/game/graveyard">Visit the graveyard ↗</Link><Link to="/game/heroes">Full Hero Hall ↗</Link></div>
   </section>;
 }
@@ -93,18 +98,22 @@ function Dice({go,selectedChoice}:{go:AtlasProps["onNavigate"];selectedChoice?:s
 function Intermission({go}:{go:AtlasProps["onNavigate"]}) {return <section className="i653-screen i653-intermission" aria-label="Intermission visual preview"><ScreenHeader eyebrow="An interlude · Visual preview" title="While the ink dries" subtitle="The Director prepares the next chapter. Take a moment between pages."/><JourneySteps active="intermission" go={go}/>
   <div className="i653-interlude-body"><img src={`${atlasArt}/lantern-books.png`} alt="An ink sketch of a lantern resting beside a stack of travel books"/><div><FolioEyebrow>Between chapters</FolioEyebrow><h2>A little diversion?</h2><p>Intermission can hold a small game while the next passage is written. The page stays quiet; the story never leaks before it is ready.</p><div className="i653-word-game"><span>THE MISSING WORD</span><strong>F _ T E</strong><small>Fate waits in the missing letters.</small></div><div className="i653-button-line"><button className="i653-main-link" type="button" onClick={()=>go("arcade")}>Explore Arcade design ↗</button><button type="button" onClick={()=>go("result")}>View result page →</button></div></div></div><p className="i653-demo-watermark">VISUAL PREVIEW · ACTUAL ARCADE GAMES REMAIN IN THE LIVE GAME</p>
 </section>}
-function Result({go}:{go:AtlasProps["onNavigate"]}) {return <section className="i653-screen i653-result" aria-label="Resolution visual preview"><ScreenHeader eyebrow="The book of consequences · Visual preview" title="What became of it" subtitle="The roll is over. The record is written. The adventure continues."/><JourneySteps active="result" go={go}/>
-  <div className="i653-outcome"><div className="i653-outcome-mark"><InkDieSketch face="14" /><small>SUCCESS · SAMPLE</small></div><div><FolioEyebrow>Illustrative result · Not your live game</FolioEyebrow><h2>The lantern was no ordinary light.</h2><p>Through the bracken, a flicker answers your footsteps. Something knows you have come.</p><div className="i653-outcome-ledger"><div><span>The throw</span><strong>14 <small>/ d20</small></strong></div><div><span>Fortune</span><strong>+ 2</strong></div><div><span>Experience</span><strong>+ 15 XP</strong></div></div><p className="i653-handwriting">A good roll changes everything…</p><button type="button" className="i653-main-link" onClick={()=>go("chapter")}>Return to the story →</button></div></div><p className="i653-demo-watermark">ILLUSTRATIVE VALUES ONLY · THE SERVER OWNS ACTUAL HP, XP AND OUTCOMES</p>
-</section>}
+function Result({go,selectedChoice}:{go:AtlasProps["onNavigate"];selectedChoice?:string}) {
+  // This SVG remains in the atelier as a reusable hand-drawn die for future
+  // live modal integration. The overlay itself never issues or records rolls.
+  void InkDieSketch;
+  return <InkboundOutcomePreview choice={selectedChoice} onContinue={() => go("chapter")} />;
+}
 function Arcade({go}:{go:AtlasProps["onNavigate"]}) {return <section className="i653-screen i653-arcade" aria-label="Arcade visual exploration"><ScreenHeader eyebrow="The intermission collection · Design preview" title="Games in the margins" subtitle="A game between the pages, never in the way of the story."/>
   <div className="i653-arcade-intro"><img src={`${atlasArt}/camp-cups.png`} alt="Ink illustration of small cups resting by a campfire"/><p>Our Arcade already has real mechanics. We're planning a lighter, hand-printed presentation for those games—not replacing their working logic with static illustrations.</p></div>
   <div className="i653-arcade-index" aria-label="An illustrated index of intermission games">{challenges.map((item,index)=><article key={item.title}><span className="i653-arcade-num">{String(index+1).padStart(2,"0")}</span><span className="i653-arcade-glyph" aria-hidden="true">{item.glyph}</span><div><small>{item.type}</small><h2>{item.title}</h2><p>{item.description}</p></div></article>)}</div><div className="i653-foot-links"><Link to="/game/arcade">Open actual Arcade ↗</Link><button type="button" onClick={()=>go("intermission")}>Back to intermission ↗</button></div><p className="i653-demo-watermark">DESIGN PREVIEW · THE FOUR ENTRIES ABOVE ARE VISUAL CONCEPTS</p>
 </section>}
-export function InkboundJourneyGallery({page,onNavigate,selectedChoice}:AtlasProps) {
+export function InkboundJourneyGallery({page,onNavigate,selectedChoice,heroId,onSelectHero}:AtlasProps) {
   if(page==="dashboard")return <Dashboard go={onNavigate}/>;
-  if(page==="heroes")return <Heroes/>;
+  if(page==="heroes")return <Heroes onSelectHero={onSelectHero}/>;
+  if(page==="sheet")return <InkboundHeroFolio heroId={heroId ?? null} onBack={() => onNavigate("heroes")}/>;
   if(page==="dice")return <Dice go={onNavigate} selectedChoice={selectedChoice}/>;
   if(page==="intermission")return <Intermission go={onNavigate}/>;
-  if(page==="result")return <Result go={onNavigate}/>;
+  if(page==="result")return <Result go={onNavigate} selectedChoice={selectedChoice}/>;
   return <Arcade go={onNavigate}/>;
 }

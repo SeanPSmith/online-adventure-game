@@ -116,7 +116,7 @@ def test_custom_dice_and_game_states_are_preview_only():
     source = (BASE / 'InkboundJourneyGallery.tsx').read_text()
     assert 'function InkDieSketch' in source
     assert '<InkDieSketch />' in source
-    assert '<InkDieSketch face="14" />' in source
+    assert 'InkboundOutcomePreview' in source and 'function Result(' in source
     assert 'VISUAL PREVIEW' in source or 'Visual preview' in source
     for forbidden in ('submitChoice(', 'socket.emit(', 'rollDice(', 'applyOutcome(', 'fetch('):
         assert forbidden not in source

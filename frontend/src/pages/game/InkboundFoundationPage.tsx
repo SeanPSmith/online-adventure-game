@@ -4,6 +4,7 @@ import "./inkboundFoundation.css";
 import "./inkboundEditorial.css";
 import "./inkboundJourney.css";
 import "./inkboundSketchbook.css";
+import "./inkboundFolio.css";
 import { InkboundJourneyGallery, type FolioPage } from "./InkboundJourneyGallery";
 
 /**
@@ -35,6 +36,7 @@ function RuleTitle({ children }: { children: ReactNode }) { return <div classNam
 
 export function InkboundFoundationPage() {
   const [page, setPage] = useState<Page>("chapter");
+  const [folioHeroId, setFolioHeroId] = useState<string | null>(null);
   const [paper, setPaper] = useState<"ivory" | "parchment" | "slate" | "midnight">("ivory");
   const [panel, setPanel] = useState<Panel | null>(null);
   const [chosen, setChosen] = useState<number | null>(null);
@@ -83,7 +85,7 @@ export function InkboundFoundationPage() {
         <button type="button" className={page === "frontispiece" ? "is-current" : ""} onClick={() => changePage("frontispiece")}>Frontispiece</button>
         <button type="button" className={page === "chapter" ? "is-current" : ""} onClick={() => changePage("chapter")}>The story</button>
         <button type="button" className={page === "dashboard" ? "is-current" : ""} onClick={() => changePage("dashboard")}>Dashboard</button>
-        <button type="button" className={page === "heroes" ? "is-current" : ""} onClick={() => changePage("heroes")}>Heroes</button>
+        <button type="button" className={(page === "heroes" || page === "sheet") ? "is-current" : ""} onClick={() => changePage("heroes")}>Heroes</button>
         <button type="button" className={(["dice","intermission","result"] as Page[]).includes(page) ? "is-current" : ""} onClick={() => changePage("dice")}>The turn</button>
         <button type="button" className={page === "arcade" ? "is-current" : ""} onClick={() => changePage("arcade")}>Arcade</button>
         <button type="button" onClick={() => openPanel("journal")}>Journal</button>
@@ -95,7 +97,7 @@ export function InkboundFoundationPage() {
       </div>
     </header>
     <main id="i65-content" className="i65-canvas">
-      {page !== "frontispiece" && page !== "chapter" ? <InkboundJourneyGallery page={page} onNavigate={(next) => next === "chapter" ? nextChapter() : changePage(next)} selectedChoice={chosen === null ? undefined : choices[chosen].title} /> : page === "frontispiece" ? <>
+      {page !== "frontispiece" && page !== "chapter" ? <InkboundJourneyGallery page={page} onNavigate={(next) => next === "chapter" ? nextChapter() : changePage(next)} selectedChoice={chosen === null ? undefined : choices[chosen].title} heroId={folioHeroId} onSelectHero={(id) => { setFolioHeroId(id); changePage("sheet"); }} /> : page === "frontispiece" ? <>
         <section className="i65-frontispiece">
           <div className="i65-frontispiece-copy">
             <Caption>An interactive literary adventure</Caption>

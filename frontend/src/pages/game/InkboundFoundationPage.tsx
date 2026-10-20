@@ -2,6 +2,9 @@ import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "rea
 import { Link } from "react-router";
 import "./inkboundFoundation.css";
 import "./inkboundEditorial.css";
+import "./inkboundJourney.css";
+import "./inkboundSketchbook.css";
+import { InkboundJourneyGallery, type FolioPage } from "./InkboundJourneyGallery";
 
 /**
  * Pass 65.2 — Inkbound Editorial Atelier.
@@ -9,7 +12,7 @@ import "./inkboundEditorial.css";
  * starts or advances a real adventure, writes to backend services, or rolls
  * an authoritative die. The gameplay reader still owns actual game actions.
  */
-type Page = "frontispiece" | "chapter";
+type Page = "frontispiece" | "chapter" | FolioPage;
 type Panel = "hero" | "party" | "journal" | "chronicle" | "chat" | "inventory" | "dice" | "settings";
 type Note = { title: string; text: string };
 const art = "/art/inkbound";
@@ -32,7 +35,7 @@ function RuleTitle({ children }: { children: ReactNode }) { return <div classNam
 
 export function InkboundFoundationPage() {
   const [page, setPage] = useState<Page>("chapter");
-  const [paper, setPaper] = useState<"ivory" | "parchment">("ivory");
+  const [paper, setPaper] = useState<"ivory" | "parchment" | "slate" | "midnight">("ivory");
   const [panel, setPanel] = useState<Panel | null>(null);
   const [chosen, setChosen] = useState<number | null>(null);
   const [committed, setCommitted] = useState(false);
@@ -68,8 +71,8 @@ export function InkboundFoundationPage() {
     return () => document.removeEventListener("keydown", keydown);
   }, [panel]);
 
-  const changePage = (next: Page) => { setPage(next); setPanel(null); setChosen(null); setCommitted(false); };
-  const nextChapter = () => { setChapter(ch => ch + 1); setCommitted(false); setChosen(null); };
+  const changePage = (next: Page) => { setPage(next); setPanel(null); if (next === "frontispiece" || next === "chapter") {setChosen(null);setCommitted(false);} };
+  const nextChapter = () => { setChapter(ch => ch + 1); setCommitted(false); setChosen(null); setPage("chapter"); };
   const submitChat = (event: FormEvent) => { event.preventDefault(); const text = chatText.trim(); if (!text) return; setChatMessages(items => [...items, { from: "The Wanderer", text }]); setChatText(""); };
 
   return <div className="inkbound i65" data-ink-paper={paper}>
@@ -79,9 +82,12 @@ export function InkboundFoundationPage() {
       <nav aria-label="Inkbound design preview" className="i65-mast-nav">
         <button type="button" className={page === "frontispiece" ? "is-current" : ""} onClick={() => changePage("frontispiece")}>Frontispiece</button>
         <button type="button" className={page === "chapter" ? "is-current" : ""} onClick={() => changePage("chapter")}>The story</button>
+        <button type="button" className={page === "dashboard" ? "is-current" : ""} onClick={() => changePage("dashboard")}>Dashboard</button>
+        <button type="button" className={page === "heroes" ? "is-current" : ""} onClick={() => changePage("heroes")}>Heroes</button>
+        <button type="button" className={(["dice","intermission","result"] as Page[]).includes(page) ? "is-current" : ""} onClick={() => changePage("dice")}>The turn</button>
+        <button type="button" className={page === "arcade" ? "is-current" : ""} onClick={() => changePage("arcade")}>Arcade</button>
         <button type="button" onClick={() => openPanel("journal")}>Journal</button>
-        <button type="button" onClick={() => openPanel("hero")}>Hero</button>
-        <button type="button" onClick={() => openPanel("settings")}>Settings</button>
+        <button type="button" onClick={() => openPanel("settings")}>Paper & ink</button>
       </nav>
       <div className="i65-mast-actions">
         <button type="button" className="i65-volume" onClick={() => setNarration(s => !s)} aria-pressed={narration} title="Toggle preview narration preference">{narration ? "◖))" : "◖"}<span className="i65-hide-small"> {narration ? "Sound on" : "Sound off"}</span></button>
@@ -89,7 +95,7 @@ export function InkboundFoundationPage() {
       </div>
     </header>
     <main id="i65-content" className="i65-canvas">
-      {page === "frontispiece" ? <>
+      {page !== "frontispiece" && page !== "chapter" ? <InkboundJourneyGallery page={page} onNavigate={(next) => next === "chapter" ? nextChapter() : changePage(next)} selectedChoice={chosen === null ? undefined : choices[chosen].title} /> : page === "frontispiece" ? <>
         <section className="i65-frontispiece">
           <div className="i65-frontispiece-copy">
             <Caption>An interactive literary adventure</Caption>
@@ -122,17 +128,17 @@ export function InkboundFoundationPage() {
             </div>
             <section className="i65-choice-section" aria-label="Choose your path">
               <RuleTitle>What do you do?</RuleTitle>
-              <div className="i65-choice-row">
+              <div className="i65-choice-row" data-layout="manuscript">
                 {choices.map((c, index) => <button key={c.numeral} type="button" disabled={committed} className={`i65-choice ${chosen === index ? "is-selected" : ""}`} aria-pressed={chosen === index} onClick={() => setChosen(index)}>
                   <span className="i65-choice-number">{c.numeral}.</span><img src={c.image} alt="" /><span className="i65-choice-copy"><strong>{c.title}</strong><small>{c.detail}</small></span><span className="i65-choice-pointer" aria-hidden="true">↗</span>
                 </button>)}
               </div>
               <div className="i65-choice-response" aria-live="polite">
-                {committed ? <><em>Your choice is written in the margin.</em><button type="button" onClick={nextChapter}>Turn the page →</button></> : chosen !== null ? <><em>{choices[chosen].title}</em><button type="button" onClick={() => { setCommitted(true); openPanel("dice"); }}>Confirm this path →</button></> : <em>Three paths. None without consequence.</em>}
+                {committed ? <><em>Your choice is written in the margin.</em><button type="button" onClick={() => changePage("dice")}>See the roll →</button></> : chosen !== null ? <><em>{choices[chosen].title}</em><button type="button" onClick={() => { setCommitted(true); changePage("dice"); }}>Confirm this path →</button></> : <em>Three paths. None without consequence.</em>}
               </div>
             </section>
           </article>
-          <aside className="i65-marginalia" aria-label="Adventure utilities">
+          <aside className="i65-marginalia" aria-label="Adventure utilities"><div className="i654-margin-sketch" aria-hidden="true"><svg viewBox="0 0 150 43"><path d="M4 33 Q25 14 50 29 T103 21 Q119 15 140 5 M132 6 l8 -1 -2 10" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round"/></svg></div>
             <section className="i65-margin-section i65-margin-location">
               <Caption>From the cartographer</Caption><h2>The Ashen Vale</h2>
               <p>The mist holds its secrets. The northern road holds its promises.</p>
@@ -172,7 +178,7 @@ export function InkboundFoundationPage() {
         </footer>
       </>}
     </main>
-    <footer className="i65-page-footer"><span>✧ &nbsp; Some stories are better shared.</span><span>Inkbound Atelier · Interactive design preview · No game state saved</span></footer>
+    <footer className="i65-page-footer"><span>✧ &nbsp; Some stories are better shared.</span><span>Inkbound · Design workshop · Real account data only in Hall and Heroes; other scenes illustrative</span></footer>
     {panel && <div className="i65-folio-veil" onMouseDown={e => { if (e.target === e.currentTarget) dismiss(); }}>
       <section className="i65-folio" role="dialog" aria-modal="true" aria-label={`${panel} preview`}>
         <header className="i65-folio-head"><Caption>Tales of Two · A page from the folio</Caption><button type="button" ref={closePanelButton} onClick={dismiss} aria-label="Close folio">×</button></header>
@@ -185,7 +191,7 @@ export function InkboundFoundationPage() {
         {panel === "inventory" && <div className="i65-folio-content"><Caption>What the road has left you</Caption><div className="i65-detail-list"><div>Worn traveling cloak <b>Equipped</b></div><div>Old iron key <b>Quest item</b></div><div>Traveler's bread <b>× 2</b></div></div><p className="i65-annotation">A satchel tells the story of its owner.</p></div>}
         {panel === "dice" && <div className="i65-folio-content i65-dice-demo"><Caption>A visual state for dice, not a game roll</Caption><div className="i65-die" aria-hidden="true">⚄</div><p className="i65-folio-lede">The fates have not yet spoken.</p><p>In the real adventure, the server alone determines dice results and their consequences.</p><button type="button" className="i65-ink-button" onClick={dismiss}>Return to the page →</button></div>}
         {panel === "chat" && <div className="i65-folio-content"><Caption>The party's correspondence</Caption><div className="i65-chat-transcript" role="log" aria-label="Preview party messages">{chatMessages.map((m,i) => <p key={`${m.from}-${i}`}><b>{m.from}</b><span>{m.text}</span></p>)}</div><form className="i65-chat-send" onSubmit={submitChat}><label htmlFor="i65-chat-text">Your message</label><input id="i65-chat-text" value={chatText} onChange={e => setChatText(e.target.value)} maxLength={500} placeholder="A word to your companion…" /><button type="submit" disabled={!chatText.trim()}>Send ↗</button></form><p className="i65-honest-label">Preview correspondence; no message leaves this page.</p></div>}
-        {panel === "settings" && <div className="i65-folio-content"><Caption>Reader preferences</Caption><div className="i65-setting"><span>Paper tone</span><div className="i65-setting-options"><button type="button" aria-pressed={paper === "ivory"} onClick={() => setPaper("ivory")}>Fresh ivory</button><button type="button" aria-pressed={paper === "parchment"} onClick={() => setPaper("parchment")}>Warm parchment</button></div></div><div className="i65-setting"><span>Narration preference</span><button type="button" onClick={() => setNarration(s=>!s)} aria-pressed={narration}>{narration ? "Enabled" : "Disabled"}</button></div><p className="i65-honest-label">Preview settings only; no audio will play from this design workshop.</p></div>}
+        {panel === "settings" && <div className="i65-folio-content"><Caption>Reader preferences</Caption><div className="i65-setting"><span>Paper tone</span><div className="i65-setting-options"><button type="button" aria-pressed={paper === "ivory"} onClick={() => setPaper("ivory")}>Fresh ivory</button><button type="button" aria-pressed={paper === "parchment"} onClick={() => setPaper("parchment")}>Warm parchment</button><button type="button" aria-pressed={paper === "slate"} onClick={() => setPaper("slate")}>Slate · mid-ink</button><button type="button" aria-pressed={paper === "midnight"} onClick={() => setPaper("midnight")}>Midnight · dark e-ink</button></div></div><div className="i65-setting"><span>Narration preference</span><button type="button" onClick={() => setNarration(s=>!s)} aria-pressed={narration}>{narration ? "Enabled" : "Disabled"}</button></div><p className="i65-honest-label">Preview settings only; no audio will play from this design workshop.</p></div>}
       </section>
     </div>}
   </div>;

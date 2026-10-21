@@ -13,7 +13,7 @@ import "./inkboundFoundation.css";
 import "./inkboundLiveRoom.css";
 
 type Hero = Character | PartyHeroSnapshot;
-type Panel = "journal" | "notes" | "party" | "chat" | "hero" | "history" | null;
+type Panel = "menu" | "journal" | "notes" | "party" | "chat" | "hero" | "history" | null;
 export type InkboundLiveRoomProps = Readonly<{
   roomCode: string;
   paper: InkPaper;
@@ -106,22 +106,23 @@ export function InkboundLiveRoom(props: InkboundLiveRoomProps) {
   return <div className="inkbound inkbound-live" data-ink-paper={props.paper} aria-label="Inkbound adventure reader">
     <a className="inkbound-skip" href="#ibl-chapter">Skip to chapter</a>
     <header className="ibl-topbar">
-      <Link to="/game" className="ibl-brand">✧ <span>Tales of Two</span></Link>
+      <Link to="/game" className="ibl-brand"><span>Tales of Two</span></Link>
+      <span className="ibl-header-rule" aria-hidden="true" />
       <nav aria-label="Adventure navigation" className="ibl-nav">
-        <Link to="/game">Hall</Link><Link to="/game/heroes">Heroes</Link><Link to="/game/adventures">Adventures</Link>
-        <button type="button" onClick={() => toggle("journal")}>Journal</button>
+        <button type="button" onClick={() => toggle("journal")}>▤ <span>Journal</span></button>
+        <button type="button" onClick={() => toggle("party")}>♧ <span>Party</span></button>
         <button type="button" aria-pressed={props.narrationEnabled} onClick={props.onToggleStoryTime}>
-          {props.narrationEnabled ? "Sound on" : "Sound off"}
+          ◖)) <span>{props.narrationEnabled ? "Sound on" : "Sound off"}</span>
         </button>
-        <button type="button" onClick={props.onClose}>Classic view ↗</button>
+        <button type="button" onClick={() => toggle("menu")}>☰ <span>Menu</span></button>
       </nav>
     </header>
     <div className="ibl-layout">
       <main id="ibl-chapter" className="ibl-main" tabIndex={-1}>
-        <div className="ibl-meta"><span>Chapter · Turn {props.turnNumber}</span><span>{props.adventureTitle}</span><span>Room {props.roomCode}</span></div>
+        <div className="ibl-meta"><span>Chapter {props.turnNumber}</span><span>{props.adventureTitle}</span><span>Room {props.roomCode}</span></div>
         {props.chapterReleased ? <article className="ibl-chapter" key={`${props.roomCode}-${props.scene.id}-${props.turnNumber}`}>
           <h1>{props.scene.title}</h1>
-          <div className="ibl-flourish" aria-hidden="true">✦</div>
+          <div className="ibl-flourish" aria-hidden="true"><span />✧<span /></div>
           {props.illustrationSrc ? <figure className="ibl-chapter-illustration"><img src={props.illustrationSrc} alt="Ink illustration of travelers looking across a distant valley" /></figure> : props.scene.ascii_art?.trim() ? <pre aria-label="Scene illustration" className="ibl-scene-ascii">{props.scene.ascii_art.trim()}</pre> : null}
           <Prose sceneId={props.scene.id} body={props.scene.body} wordRevealEnabled={props.wordRevealEnabled ?? false} decorativeInitials={props.decorativeInitials ?? true} followNarration={props.followNarration ?? false} narrationCue={props.narrationCue ?? null} />
           <div className="ibl-section-heading"><span />What do you do?<span /></div>
@@ -142,6 +143,18 @@ export function InkboundLiveRoom(props: InkboundLiveRoomProps) {
           </div>
         </article> : <section className="ibl-sealed" role="status" aria-live="polite"><div className="ibl-flourish" aria-hidden="true">── ✧ ──</div><h1>The ink is settling</h1><p>The next chapter is still sealed. Your choices, dice results, and effects are being resolved.</p></section>}
       </main>
+      <section className="ibl-status-strip" aria-label="Current Hero and party status">
+        <button type="button" className="ibl-status-hero" onClick={() => toggle("hero")} aria-label="Open character sheet">
+          <span aria-hidden="true" className="ibl-status-mark">✧</span>
+          <span><strong>{props.hero?.name ?? props.playerName}</strong><small>Hero · Level {props.hero?.level ?? "–"}</small></span>
+        </button>
+        <div className="ibl-status-resource"><span>HP</span><div className="ibl-progress" aria-hidden="true"><span style={{width:`${healthy}%`}} /></div><strong>{props.hero ? `${props.hero.health}/${props.hero.max_health}` : "–"}</strong></div>
+        <div className="ibl-status-resource"><span>XP</span><div className="ibl-progress" aria-hidden="true"><span style={{width:`${Math.max(0,Math.min(100,xpPercent))}%`}} /></div><strong>{xp}</strong></div>
+        <button type="button" className="ibl-status-party" onClick={() => toggle("party")}>Party · {props.party.length} <span aria-hidden="true">↗</span></button>
+        <button type="button" className="ibl-status-party" onClick={() => toggle("chat")}>Chat{props.messages.length ? ` · ${props.messages.length}` : ""} <span aria-hidden="true">↗</span></button>
+      </section>
+      <details className="ibl-instruments-disclosure">
+        <summary>More from your adventure <span aria-hidden="true">＋</span></summary>
       <aside className="ibl-sidebar" aria-label="Adventure instruments">
         <section className="ibl-sidebar-section ibl-hero">
           <div className="ibl-sidebar-head"><h2>Hero</h2><button type="button" onClick={() => toggle("hero")}>Character sheet ↗</button></div>
@@ -159,16 +172,17 @@ export function InkboundLiveRoom(props: InkboundLiveRoomProps) {
           <button className="ibl-journal-link" type="button" onClick={() => toggle("notes")}>✎ &nbsp; Field notes <span>↗</span></button>
           <button className="ibl-journal-link" type="button" onClick={() => toggle("history")}>▤ &nbsp; Chronicle ({props.history.length}) <span>↗</span></button>
         </section>
-        {props.sessionUtilities && <section className="ibl-sidebar-section ibl-session-utilities" aria-label="Adventure controls">
-          <div className="ibl-sidebar-head"><h2>Adventure</h2></div>
-          <div className="ibl-utility-actions">{props.sessionUtilities}</div>
-        </section>}
+        <section className="ibl-sidebar-section ibl-session-utilities" aria-label="Adventure controls">
+          <div className="ibl-sidebar-head"><h2>Adventure tools</h2></div>
+          <button className="ibl-journal-link" type="button" onClick={() => toggle("menu")}>Open tools and preferences <span aria-hidden="true">↗</span></button>
+        </section>
         <section className="ibl-sidebar-section ibl-chat-section">
           <div className="ibl-sidebar-head"><h2>Party chat</h2><button type="button" onClick={() => toggle("chat")}>Expand ↗</button></div>
           <div className="ibl-chat-log" aria-label="Recent party messages" role="log">{props.messages.length ? props.messages.slice(-3).map((message) => <p key={message.id}><b>{message.player_name}</b>{message.text}</p>) : <p className="ibl-sidebar-note">Your fellow travelers have been quiet.</p>}</div>
           <form className="ibl-chat-form" onSubmit={send}><input aria-label="Message your party" maxLength={500} placeholder="Write to your party…" value={chatText} onChange={(event)=>setChatText(event.target.value)} disabled={!props.connected} /><button type="submit" disabled={!props.connected || !chatText.trim()} aria-label="Send message">→</button></form>
         </section>
       </aside>
+      </details>
     </div>
     <footer className="ibl-footer"><span>Some stories are better shared</span><span>{props.connected ? "Connected" : "Reconnecting"} · Turn {props.turnNumber}</span></footer>
     {panel && <div className="ibl-drawer-scrim" onMouseDown={(event) => { if (event.target === event.currentTarget) setPanel(null); }}>
@@ -183,6 +197,7 @@ export function InkboundLiveRoom(props: InkboundLiveRoomProps) {
         }}>
         <header><span className="ibl-kicker">Traveler's folio</span><button ref={closeButton} type="button" onClick={()=>setPanel(null)} aria-label="Close panel">×</button></header>
         <h2>{panel === "hero" ? "Character" : panel === "history" ? "Chronicle" : panel[0].toUpperCase()+panel.slice(1)}</h2>
+        {panel === "menu" && <nav className="ibl-drawer-menu" aria-label="Game menu"><Link to="/game">Adventure hall →</Link><Link to="/game/heroes">Heroes →</Link><Link to="/game/adventures">My adventures →</Link><button type="button" onClick={props.onClose}>Switch to Classic view →</button>{props.sessionUtilities && <section className="ibl-utility-actions" aria-label="In-game controls">{props.sessionUtilities}</section>}</nav>}
         {panel === "hero" && <><p>{props.hero?.name ?? props.playerName}</p>{props.hero && <p>Level {props.hero.level} · HP {props.hero.health}/{props.hero.max_health} · XP {props.hero.experience}</p>}<Link to={props.hero ? `/game/heroes/${encodeURIComponent(props.hero.character_id)}` : "/game/heroes"}>Open character sheet →</Link></>}
         {panel === "party" && props.party.map((p)=><p key={p.player_id}>{p.name} · {p.is_online ? "Online" : "Offline"}</p>)}
         {panel === "journal" && <><p>The story is shaped by every choice.</p><button onClick={()=>setPanel("notes")}>Open your notes →</button><button onClick={()=>setPanel("history")}>Open Chronicle →</button></>}

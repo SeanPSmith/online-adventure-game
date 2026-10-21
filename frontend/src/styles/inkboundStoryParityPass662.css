@@ -1,0 +1,168 @@
+/* Pass 66.2 — STORY PAGE, reference-first conversion.
+   This stylesheet intentionally affects only the real, started Inkbound reader.
+   Paper and interactive text are independent of the genuine-alpha panorama.
+   The game server, word reveal and story audio still own their existing state. */
+.inkbound-live{
+  --ibl-reading-width: 930px;
+  --ibl-page-width: 1320px;
+  overflow:visible!important;
+  background:var(--ia-paper)!important;
+  color:var(--ia-copy)!important;
+}
+.inkbound-live .ibl-topbar{
+  width:min(calc(100% - 8vw),var(--ibl-page-width));max-width:none;
+  min-height:79px;margin:0 auto;display:flex;align-items:center;gap:26px;
+  padding:6px 0;border:0!important;
+}
+.inkbound-live .ibl-brand{font-size:clamp(22px,2vw,28px)!important;letter-spacing:.13em;white-space:nowrap}
+.inkbound-live .ibl-header-rule{height:1px;flex:1;background:var(--ia-rule);min-width:36px}
+.inkbound-live .ibl-nav{display:flex;align-items:center;gap:0;flex-wrap:nowrap}
+.inkbound-live .ibl-nav button{
+  background:transparent!important;color:var(--ia-text)!important;border:0!important;
+  border-right:1px solid var(--ia-rule)!important;padding:5px clamp(9px,1.3vw,22px)!important;
+  display:flex;gap:7px;align-items:center;white-space:nowrap;
+  font:500 13px/1.25 "American Typewriter","Courier New",monospace!important;
+}
+.inkbound-live .ibl-nav button:last-child{border-right:0!important;padding-right:0!important}
+.inkbound-live .ibl-nav button:hover{text-decoration:underline;text-underline-offset:5px}
+.inkbound-live .ibl-layout{display:block!important;width:min(calc(100% - 8vw),var(--ibl-page-width));max-width:none;margin:0 auto}
+.inkbound-live .ibl-main{width:100%;min-width:0}
+.inkbound-live .ibl-meta{
+  display:flex;justify-content:center;align-items:center;gap:22px;padding:6px 0 0;
+  color:var(--ia-dim);font:600 12px/1.5 "American Typewriter","Courier New",monospace;
+  letter-spacing:.16em;text-transform:uppercase;
+}
+.inkbound-live .ibl-meta span:nth-child(2),
+.inkbound-live .ibl-meta span:nth-child(3){position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.inkbound-live .ibl-meta::before,.inkbound-live .ibl-meta::after{content:"";display:block;width:55px;height:1px;background:var(--ia-strong-rule)}
+.inkbound-live .ibl-chapter{padding:0!important;text-align:center;animation:ibl-chapter-enter .55s ease-out both}
+.inkbound-live .ibl-chapter h1{
+  max-width:1100px;margin:10px auto 8px;
+  color:var(--ia-text);font:400 clamp(47px,5.45vw,78px)/1.08 "Iowan Old Style",Georgia,serif!important;
+  letter-spacing:-.048em;text-wrap:balance;
+}
+.inkbound-live .ibl-flourish{display:flex;align-items:center;justify-content:center;gap:15px;margin:8px auto 0;opacity:.9;font:25px/1 Georgia,serif;color:var(--ia-text)}
+.inkbound-live .ibl-flourish span{height:1px;width:58px;background:var(--ia-strong-rule)}
+.inkbound-live .ibl-chapter-illustration{
+  display:flex;align-items:center;justify-content:center;
+  margin:2px auto 0;width:100%;max-width:none;min-height:0;line-height:0;
+}
+.inkbound-live .ibl-chapter-illustration img{
+  display:block;width:100%;height:auto;max-height:none!important;object-fit:contain;pointer-events:none;user-select:none;
+}
+.inkbound-live .ibl-prose{
+  width:min(100%,var(--ibl-reading-width));margin:-22px auto 18px;
+  color:var(--ia-copy);font:400 clamp(17px,1.39vw,20px)/1.62 "Iowan Old Style",Georgia,serif;
+  letter-spacing:.031em;text-align:left;text-wrap:pretty;
+}
+.inkbound-live .ibl-prose :is(p,.story-reveal p){color:var(--ia-copy);margin:0 0 16px}
+.inkbound-live .ibl-prose :is(.ibl-dropcap,.story-reveal-dropcap){color:var(--ia-text)}
+.inkbound-live .ibl-section-heading{
+  margin:23px auto 17px;justify-content:center;gap:20px;
+  color:var(--ia-text);font:600 11px/1.35 "American Typewriter","Courier New",monospace;
+  letter-spacing:.29em;text-transform:uppercase;
+}
+.inkbound-live .ibl-section-heading span{width:min(15vw,155px);background:var(--ia-strong-rule)}
+.inkbound-live .ibl-choices{
+  width:min(100%,1200px);margin:0 auto;display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;
+  border:0!important;
+}
+.inkbound-live .ibl-choice{
+  display:flex;align-items:center;gap:14px;min-width:0;min-height:105px;
+  padding:15px 18px!important;
+  border:1px solid var(--ia-strong-rule)!important;
+  background:transparent!important;box-shadow:none!important;
+  text-align:left;transition:background .18s ease,border-color .18s ease;
+}
+.inkbound-live .ibl-choice:hover:not(:disabled),.inkbound-live .ibl-choice.is-chosen{
+  background:var(--ia-wash)!important;border-color:var(--ia-text)!important;
+}
+.inkbound-live .ibl-choice.is-chosen:before{display:none}
+.inkbound-live .ibl-choice-index{min-width:27px;align-self:center;text-align:center;font:600 12px "American Typewriter","Courier New",monospace;color:var(--ia-dim)}
+.inkbound-live .ibl-choice-body{border-left:1px solid var(--ia-rule);padding:4px 0 4px 15px;gap:6px}
+.inkbound-live .ibl-choice-body strong{font:400 clamp(16px,1.35vw,19px)/1.35 "Iowan Old Style",Georgia,serif!important;color:var(--ia-text)}
+.inkbound-live .ibl-choice-body small{font:11px/1.38 "American Typewriter","Courier New",monospace;color:var(--ia-dim)!important}
+.inkbound-live .ibl-choice-arrow{font:24px Georgia,serif;align-self:center;color:var(--ia-text)}
+.inkbound-live .ibl-commit{margin:12px auto 14px;min-height:35px;color:var(--ia-dim);font-size:11px}
+.inkbound-live .ibl-commit button{font:600 12px "American Typewriter","Courier New",monospace}
+/* Like the reference's understated bottom ledger, but with functional live state. */
+.inkbound-live .ibl-status-strip{
+  border-top:1px solid var(--ia-strong-rule);border-bottom:1px solid var(--ia-rule);
+  display:flex;align-items:center;gap:clamp(16px,2.4vw,38px);flex-wrap:wrap;
+  margin:18px 0 0;padding:15px 0;
+  min-height:83px;color:var(--ia-text);
+}
+.inkbound-live .ibl-status-strip button{border:0;background:transparent;color:var(--ia-text);cursor:pointer}
+.inkbound-live .ibl-status-hero{display:flex;align-items:center;gap:14px;text-align:left;max-width:240px;min-width:165px}
+.inkbound-live .ibl-status-mark{font:42px Georgia,serif;line-height:1;color:var(--ia-text)}
+.inkbound-live .ibl-status-hero strong{display:block;color:var(--ia-text);font:400 17px/1.3 "Iowan Old Style",Georgia,serif}
+.inkbound-live .ibl-status-hero small{display:block;font:11px/1.5 "American Typewriter","Courier New",monospace;color:var(--ia-dim)}
+.inkbound-live .ibl-status-resource{display:flex;align-items:center;gap:12px;padding-left:clamp(12px,2vw,31px);border-left:1px solid var(--ia-rule)}
+.inkbound-live .ibl-status-resource>span{font:600 11px "American Typewriter","Courier New",monospace;color:var(--ia-dim)}
+.inkbound-live .ibl-status-resource .ibl-progress{width:clamp(45px,8.2vw,140px);height:8px;border-color:var(--ia-strong-rule)}
+.inkbound-live .ibl-status-resource .ibl-progress span{background:var(--ia-text)}
+.inkbound-live .ibl-status-resource strong{font:12px "American Typewriter","Courier New",monospace;color:var(--ia-text);white-space:nowrap}
+.inkbound-live .ibl-status-party{font:600 12px "American Typewriter","Courier New",monospace;white-space:nowrap;padding:7px 2px}
+.inkbound-live .ibl-status-party:first-of-type{margin-left:auto}
+.inkbound-live .ibl-instruments-disclosure{margin:18px auto 0;width:min(100%,1000px);border-bottom:1px solid var(--ia-rule)}
+.inkbound-live .ibl-instruments-disclosure>summary{list-style:none;padding:8px 2px 19px;cursor:pointer;color:var(--ia-dim);font:12px "American Typewriter","Courier New",monospace}
+.inkbound-live .ibl-instruments-disclosure>summary::-webkit-details-marker{display:none}
+.inkbound-live .ibl-instruments-disclosure>summary span{float:right;color:var(--ia-text)}
+.inkbound-live .ibl-sidebar{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 40px!important;margin:0!important;padding:5px 0 22px!important;border:0!important}
+.inkbound-live .ibl-sidebar-section{border:0!important;border-top:1px solid var(--ia-rule)!important;padding:16px 0!important;background:transparent!important}
+.inkbound-live .ibl-sidebar .ibl-chat-section{grid-column:1/-1}
+.inkbound-live .ibl-footer{width:min(calc(100% - 8vw),var(--ibl-page-width));margin:0 auto;padding:11px 0 24px;border:0!important}
+/* Tools and dialogs must be large and fully themed, without stealing the reading page. */
+.inkbound-live .ibl-drawer{width:min(96vw,760px)!important;max-width:none!important;padding:clamp(22px,4.2vw,58px)}
+.inkbound-live .ibl-drawer-menu{display:flex;flex-direction:column;gap:4px}
+.inkbound-live .ibl-drawer-menu>a,.inkbound-live .ibl-drawer-menu>button{color:var(--ia-text);background:transparent;border:0;border-bottom:1px solid var(--ia-rule);padding:14px 2px;text-align:left;font:400 20px "Iowan Old Style",Georgia,serif}
+.inkbound-live .ibl-drawer-menu .ibl-utility-actions{margin:20px 0;padding:20px 0;border-top:1px solid var(--ia-strong-rule)}
+.inkbound-live .ibl-drawer-menu :is(.terminal-select-trigger,button,input,textarea){color:var(--ia-text);border-color:var(--ia-strong-rule)}
+.inkbound-live :is(.ibl-nav button,.ibl-status-strip button,.ibl-instruments-disclosure>summary):focus-visible{outline:2px solid var(--ia-text);outline-offset:4px}
+.inkbound-live[data-ink-paper="phosphor"] :is(.ibl-meta,.ibl-nav button,.ibl-choice-body strong,.ibl-status-resource,.ibl-status-hero strong){font-family:"Courier Prime","Courier New",monospace!important}
+@media(max-width:950px){
+ .inkbound-live .ibl-nav{gap:0}
+ .inkbound-live .ibl-nav button{font-size:11px!important;padding-inline:10px!important}
+ .inkbound-live .ibl-choices{grid-template-columns:1fr!important;gap:9px}
+ .inkbound-live .ibl-choice{min-height:76px;padding:12px 15px!important}
+ .inkbound-live .ibl-prose{margin-top:0}
+}
+@media(max-width:650px){
+ .inkbound-live .ibl-topbar{width:calc(100% - 32px);min-height:64px;flex-wrap:wrap;gap:6px 12px;padding:14px 0 6px}
+ .inkbound-live .ibl-brand{font-size:22px!important}
+ .inkbound-live .ibl-header-rule{display:none}
+ .inkbound-live .ibl-nav{width:100%;justify-content:space-between;gap:0}
+ .inkbound-live .ibl-nav button{font-size:11px!important;padding:9px 4px!important;gap:3px}
+ .inkbound-live .ibl-layout{width:calc(100% - 32px)}
+ .inkbound-live .ibl-meta{padding-top:20px;font-size:10px}
+ .inkbound-live .ibl-chapter h1{font-size:clamp(38px,10.5vw,57px)!important;margin:12px auto}
+ .inkbound-live .ibl-chapter-illustration{margin:12px 0 0}
+ .inkbound-live .ibl-prose{font-size:17px;line-height:1.65;letter-spacing:.012em;margin:9px auto 20px}
+ .inkbound-live .ibl-section-heading{margin-top:26px}
+ .inkbound-live .ibl-section-heading span{width:35px}
+ .inkbound-live .ibl-choice-body strong{font-size:18px!important}
+ .inkbound-live .ibl-status-strip{gap:14px 18px;align-items:center}
+ .inkbound-live .ibl-status-hero{min-width:100%;border-bottom:1px solid var(--ia-rule);padding-bottom:9px}
+ .inkbound-live .ibl-status-resource{padding-left:0;border:0}
+ .inkbound-live .ibl-status-resource .ibl-progress{width:68px}
+ .inkbound-live .ibl-status-party:first-of-type{margin-left:0}
+ .inkbound-live .ibl-sidebar{grid-template-columns:1fr!important}
+ .inkbound-live .ibl-footer{width:calc(100% - 32px)}
+}
+@media(prefers-reduced-motion:reduce){
+ .inkbound-live .ibl-chapter{animation:none!important}
+ .inkbound-live .ibl-choice{transition:none!important}
+}
+/* Panorama placement: crop transparent padding only, never painted pixels.
+   The independent RGBA image stays unmasked and unstretched. */
+@media(min-width:951px){
+ .inkbound-live .ibl-chapter-illustration{height:min(39vw,495px);overflow:hidden}
+ .inkbound-live .ibl-chapter-illustration img{width:100%;height:100%;object-fit:cover;object-position:center center}
+ .inkbound-live .ibl-prose{margin-top:9px}
+}
+@media(min-width:951px){
+  /* The left-side tree and distant city rise alongside the heading, as in the approved plate.
+     The center of the illustration remains clear of the heading's reading measure. */
+  .inkbound-live .ibl-chapter-illustration{margin-top:-72px}
+}

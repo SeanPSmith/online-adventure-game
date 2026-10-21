@@ -704,7 +704,7 @@ export function AdventurePage() {
         roomCode={normalizedRoomCode}
         adventureTitle={live.game?.adventure_title ?? matchingAdventure?.adventure_title ?? "The Chronicle"}
         paper={inkPaper}
-        illustrationSrc={fantasyIllustration && turnNumber === 1 ? "/art/inkbound/north-road-editorial.png" : undefined}
+        illustrationSrc={fantasyIllustration ? (turnNumber === 1 ? "/art/inkbound/north-road-editorial.png" : "/art/inkbound/hero-vista.png") : undefined}
         turnNumber={turnNumber}
         scene={scene}
         chapterReleased={theater.chapterReleased && theater.phase === "none" && !live.game?.director_request_active && !live.game?.turn_pending}

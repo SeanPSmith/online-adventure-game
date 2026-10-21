@@ -54,7 +54,7 @@ export function TurnTheater({
     if (theater.phase !== "intermission" && !readyWithoutExit) return;
     // Resync requests a saved room snapshot; it does not regenerate text or
     // reroll dice. Keep normal 3-second transitions completely uninterrupted.
-    const timer = window.setTimeout(() => setShowResync(true), readyWithoutExit ? 10000 : 90000);
+    const timer = window.setTimeout(() => setShowResync(true), readyWithoutExit ? 10000 : 30000);
     return () => window.clearTimeout(timer);
   }, [theater.phase, readyWithoutExit]);
 

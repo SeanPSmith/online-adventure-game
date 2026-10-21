@@ -151,6 +151,24 @@ export function useTurnTheater({
     readyTimerRef.current = setInterval(tick, 80);
   }, [clearTimer, transition, finishIntermissionStoryReady]);
 
+  // Once the server has COMMITTED the new chapter, the page must not depend
+  // forever on an Arcade component's optional animation/close callback. Give
+  // the game time to save its score first, then advance exactly the same frozen
+  // receipt through resolution. A missing final receipt never triggers this.
+  useEffect(() => {
+    if (phase !== "story-ready" || countdownValue > 0 ||
+        !readyReceiptRef.current || readyReceiptRef.current.preliminary) return;
+    // The recovery clock uses the same platform-neutral timer API as the
+    // story-ready countdown. Keep it one-shot and cancel it on a phase change;
+    // the turn-flow simulator also exercises this path without a DOM/window.
+    const fallback = setInterval(() => {
+      clearInterval(fallback);
+      if (phaseRef.current === "story-ready" && readyReceiptRef.current &&
+          !readyReceiptRef.current.preliminary) finishIntermissionStoryReady();
+    }, 900);
+    return () => clearInterval(fallback);
+  }, [phase, countdownValue, activeIntermission, finishIntermissionStoryReady]);
+
   useEffect(() => {
     acknowledgedRef.current = readAcknowledgedReceipt(roomCode, characterId);
     lastLockSignalRef.current = "";

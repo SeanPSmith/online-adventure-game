@@ -24,14 +24,14 @@ def test_story_reference_production_screens_not_a_decorative_mockup():
     assert 'Only the server decides the outcome' in ROOM
     assert '<figure className="ibl-chapter-illustration">' in ROOM
     assert '<section className="ibl-status-strip"' in ROOM
-    assert '<details className="ibl-instruments-disclosure">' in ROOM
+    assert '<details className="ibl-instruments-disclosure" open>' in ROOM
     assert 'props.messages.map' in ROOM
     assert 'props.sessionUtilities' in ROOM
     for forbidden in ('window.confirm(', '<select', 'Math.random(', 'fetch('):
         assert forbidden not in ROOM
 
 
-def test_marginal_controls_stay_reachable_without_permanent_sidebar():
+def test_marginal_controls_stay_reachable_with_sticky_sidebar():
     for panel in ('menu','journal','party','chat','hero','history','notes'):
         assert f'"{panel}"' in ROOM
     assert 'panel === "menu"' in ROOM

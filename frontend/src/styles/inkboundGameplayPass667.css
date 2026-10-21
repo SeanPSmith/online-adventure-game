@@ -1,0 +1,60 @@
+/* Pass 66.7 — live gameplay readability & deterministic turn handoff.
+   The art remains genuinely transparent. Six themes supply inherited ink tokens. */
+@media (min-width: 901px) {
+  .inkbound-live .ibl-layout {
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) minmax(265px,315px)!important;
+    align-items:start;gap:clamp(22px,3vw,56px);
+    width:min(calc(100% - 6vw),1550px)!important;
+    min-height:0;
+  }
+  .inkbound-live .ibl-main {
+    grid-column:1;grid-row:1;min-width:0;
+    height:calc(100dvh - 120px);min-height:430px;
+    overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;
+    scrollbar-width:thin;scrollbar-color:var(--ia-strong-rule) transparent;
+    padding:0 clamp(5px,.8vw,12px) 45px 0;
+  }
+  .inkbound-live .ibl-instruments-disclosure {
+    grid-column:2;grid-row:1;margin:0!important;
+    position:sticky;top:14px;
+    align-self:start;max-height:calc(100dvh - 105px);min-height:0;
+    overflow-y:auto;overscroll-behavior:contain;
+    border-left:1px solid var(--ia-rule);border-bottom:0!important;
+    padding:5px 0 20px 22px;
+    width:100%!important;
+    scrollbar-width:thin;
+  }
+  .inkbound-live .ibl-instruments-disclosure>summary{display:none!important}
+  .inkbound-live .ibl-sidebar{display:flex!important;flex-direction:column;gap:0!important;padding:0!important}
+  .inkbound-live .ibl-sidebar-section{padding:14px 0!important;border-top:1px solid var(--ia-rule)!important}
+  .inkbound-live .ibl-sidebar .ibl-chat-section{grid-column:auto}
+  .inkbound-live .ibl-chapter-illustration{margin-top:10px}
+  .inkbound-live .ibl-prose{margin-top:0!important}
+  .inkbound-live .ibl-choices{grid-template-columns:1fr!important;max-width:930px}
+  .inkbound-live .ibl-choice{min-height:95px}
+  .inkbound-live .ibl-status-strip{width:min(calc(100% - 6vw),1550px);margin:12px auto 0!important}
+}
+@media (max-width: 900px) {
+  .inkbound-live .ibl-layout{display:flex!important;flex-direction:column;gap:0}
+  .inkbound-live .ibl-main{height:auto!important;max-height:none!important;overflow:visible!important;width:100%}
+  .inkbound-live .ibl-instruments-disclosure{width:100%!important;position:static;max-height:none}
+  .inkbound-live .ibl-sidebar{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  .inkbound-live .ibl-choices{grid-template-columns:1fr!important}
+  .inkbound-live .ibl-status-strip{width:calc(100% - 32px);margin:12px auto 0}
+}
+@media (max-width: 550px) {
+  .inkbound-live .ibl-sidebar{grid-template-columns:1fr!important}
+  .inkbound-live .ibl-choice{padding:16px 12px!important}
+}
+.inkbound-live .ibl-choice-statline{display:flex;flex-wrap:wrap;gap:5px 12px;margin-top:5px;
+  font:600 11px/1.5 "American Typewriter","Courier New",monospace;letter-spacing:.02em;
+  color:var(--ia-text)}
+.inkbound-live .ibl-choice-statline>span{white-space:nowrap}
+.inkbound-live .ibl-choice-statline>span+span:before{content:"·";margin-right:10px;color:var(--ia-dim)}
+.inkbound-live .ibl-choice-stakes{display:block;margin-top:4px;color:var(--ia-dim);
+  font:11px/1.5 "American Typewriter","Courier New",monospace}
+.inkbound-live .ibl-choice-body{gap:5px!important}
+.inkbound-live .ibl-choice-body small{font:13px/1.4 "Iowan Old Style",Georgia,serif!important}
+.inkbound-live .ibl-status-strip{position:relative;z-index:1}
+.inkbound-live .ibl-scene-ascii{display:none!important}

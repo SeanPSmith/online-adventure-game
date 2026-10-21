@@ -327,3 +327,43 @@ test('countdown rerenders do not overwrite the authoritative frozen roll', () =>
   h.endArcade();
   assert.equal(h.output().activeReceipt.results[0].check.roll,20);
 });
+
+// Pass 66.7.1: a committed turn must escape the Arcade even if its UI never
+// invokes onStoryReadyComplete. The retry/cleanup path must cancel the rescue.
+test('committed story-ready turn exits Arcade without its close callback', () => {
+  const h = harness(); h.render();
+  h.update({ game: h.game({ pending: true, intermission: arcade(1) }), turnReceipt: result(18) });
+  assert.equal(h.output().phase, 'intermission');
+  assert.equal(h.output().activeReceipt, null);
+  const committed = result(6, false);
+  h.update({ game: h.game({ turn: 2, final: committed }), turnReceipt: committed, lastTurn: committed });
+  assert.equal(h.output().phase, 'story-ready');
+  h.advance(3200);
+  assert.equal(h.output().activeReceipt, null);
+  assert.equal(h.output().chapterReleased, false);
+  // No h.endArcade() call: the guard must eventually release the frozen dice.
+  h.advance(1000);
+  assert.equal(h.output().phase, 'resolution');
+  assert.equal(h.output().activeIntermission, null);
+  assert.equal(h.output().activeReceipt.results[0].check.roll, 18);
+  assert.equal(h.output().chapterReleased, false);
+  h.advance(1200);
+  assert.equal(h.output().phase, 'resolution');
+  h.acknowledge();
+  assert.equal(h.output().phase, 'none');
+  assert.equal(h.output().chapterReleased, true);
+});
+
+test('Arcade rescue is cancelled when Director enters retry state', () => {
+  const h = harness(); h.render();
+  h.update({ game: h.game({ pending: true, intermission: arcade(1) }), turnReceipt: result(17) });
+  const committed = result(17, false);
+  h.update({ game: h.game({ turn: 2, final: committed }), turnReceipt: committed, lastTurn: committed });
+  assert.equal(h.output().phase, 'story-ready');
+  h.advance(3100);
+  h.update({ game: h.game({ turn: 2, pending: true, retry: true }) });
+  assert.equal(h.output().phase, 'retry');
+  h.advance(1500);
+  assert.equal(h.output().phase, 'retry');
+  assert.equal(h.output().activeReceipt, null);
+});

@@ -46,10 +46,15 @@ test('dice cycles apparent faces and settles only on the committed check', () =>
   assert.doesNotMatch(src,/setDisplayRoll\("\?"\)/);
 });
 
-test('the delayed re-sync control does not warn during typical writing', () => {
+test('re-sync stays optional during writing and never interrupts the story-ready countdown', () => {
   const src=read('frontend/src/features/adventure/TurnTheater.tsx');
-  assert.match(src,/readyWithoutExit \? 10000 : 90000/);
+  // Normal writing exposes recovery after 30 seconds; a stuck story-ready
+  // countdown exposes it after 10. Neither threshold triggers a reroll.
+  assert.match(src,/readyWithoutExit\s*\?\s*10000\s*:\s*30000/);
+  assert.match(src,/if \(theater\.phase !== "intermission" && !readyWithoutExit\) return;/);
+  assert.match(src,/return \(\) => window\.clearTimeout\(timer\);/);
   assert.match(src,/onClick=\{onSync\}/);
+  assert.match(src,/onSync=\{showResync \? onSync : undefined\}/);
 });
 
 test('narration never causes chapter words to vanish and restart', () => {

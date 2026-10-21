@@ -1,4 +1,5 @@
 import "./gameHomePass64.css";
+import { InkboundAuthenticatedDashboard } from "./InkboundAuthenticatedDashboard";
 import "./deskFidelityPass64.css";
 import "./deskScrapbookPass64.css";
 import "./gameBrighterWorld.css";
@@ -280,6 +281,34 @@ export function GameHomePage({ homeLab = false }: { homeLab?: boolean } = {}) {
 
     leaveAdventure(adventure.room_code, adventure.character_id);
   }
+
+  // Production home uses the real Inkbound dashboard. The legacy book remains
+  // available only in the protected development workshop while we verify the
+  // rest of the game's visual conversion. Both use the same authoritative data.
+  if (!homeLab) return (
+    <InkboundAuthenticatedDashboard
+      username={user?.username ?? "Adventurer"}
+      userId={user?.user_id ?? ""}
+      isAuthor={canAuthor}
+      isAdmin={isAdmin}
+      connected={connected}
+      directoryReady={directoryReady}
+      heroes={heroes}
+      catalog={catalog}
+      adventures={adventures}
+      selectedHeroId={selectedHeroId}
+      onSelectHero={setSelectedHeroId}
+      onCreate={(item, mode) => {
+        // Use the established game socket creation contract directly;
+        // navigation still happens through lastRoomEntry.
+        if (selectedHeroId) createRoom(selectedHeroId, item.adventure_id, mode);
+      }}
+      onJoin={(code) => { if (selectedHeroId) joinRoom(selectedHeroId, code); }}
+      onLogout={() => { void logout(); }}
+      error={latestError || heroError}
+      onDismissError={latestError ? clearError : undefined}
+    />
+  );
 
   return (
     <div className="p64-desk" data-home-lab={homeLab ? "true" : undefined} data-platform-skin={preferences.platformSkin} data-reduced-motion={preferences.reducedMotion}>

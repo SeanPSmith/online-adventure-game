@@ -1,10 +1,32 @@
 /* Pass 65.6 — REAL /game Inkbound homepage. Paper is a surface; illustrations
    are separate genuine-alpha files. No image masks, white baked mattes, random
    decorative captions, beveled cards, or floating marks across copy. */
-body:has(.inkbound-home) .game-site-shell.p64-shell.is-desk-home{background:transparent!important;min-height:100vh}
+/* Pass 65.6.2 — The old Living Book shell is a fixed, overflow-hidden viewport.
+   The real Inkbound dashboard is a long document: release ONLY its ancestor
+   shell and main from that constraint. Keep the bounded book and live adventure
+   layouts unchanged. Normal window scrolling must work at every breakpoint. */
+body:has(.inkbound-home) .game-site-shell.p64-shell.is-desk-home{
+  background:transparent!important;
+  height:auto!important;
+  min-height:100dvh!important;
+  max-height:none!important;
+  overflow:visible!important;
+  border:0!important;
+  box-shadow:none!important;
+}
 body:has(.inkbound-home) .game-site-shell.p64-shell.is-desk-home .game-header{display:none!important}
-body:has(.inkbound-home) .game-site-shell.p64-shell.is-desk-home .game-main{margin:0!important;padding:0!important;max-width:none!important;width:100%!important;background:transparent!important;min-height:100vh!important}
-body:has(.inkbound-home) .game-site-shell.p64-shell.is-desk-home{border:0!important;box-shadow:none!important}
+body:has(.inkbound-home) .game-site-shell.p64-shell.is-desk-home .game-main{
+  margin:0!important;
+  padding:0!important;
+  max-width:none!important;
+  width:100%!important;
+  background:transparent!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  overflow:visible!important;
+  flex:1 0 auto;
+}
 .inkbound-home{
  --paper:#f6f3ea;--paper-text:#252320;--paper-copy:#4d4943;--paper-dim:#766f66;
  --paper-rule:rgba(43,39,34,.20);--paper-strong-rule:rgba(43,39,34,.36);

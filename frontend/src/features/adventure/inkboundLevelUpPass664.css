@@ -1,0 +1,84 @@
+/* Pass 66.4 — the real, server-grounded Inkbound progression folio.
+   This styling is intentionally limited to the Inkbound branch, leaving
+   the original LevelUpModal/classic appearance unchanged. */
+.ilu-backdrop {
+  --ilu-paper:#f7f3e9; --ilu-ink:#28251f; --ilu-copy:#514b40;
+  --ilu-muted:#62594d;--ilu-rule:rgba(40,37,31,.24);--ilu-wash:rgba(40,37,31,.035);
+  position:fixed;inset:0;z-index:1550;display:grid;place-items:center;
+  padding:clamp(10px,3vw,30px);background:rgba(14,14,14,.67);
+  color:var(--ilu-ink);font-family:"Iowan Old Style","Baskerville",Georgia,serif;
+  overflow-y:auto;overscroll-behavior:contain;
+}
+.ilu-backdrop[data-ink-paper="cream"]{--ilu-paper:#eee7d9;--ilu-ink:#30291e;--ilu-copy:#504433;--ilu-muted:#665642;--ilu-rule:rgba(65,47,27,.28);--ilu-wash:rgba(65,47,27,.04)}
+.ilu-backdrop[data-ink-paper="parchment"]{--ilu-paper:#d9c6a4;--ilu-ink:#33271a;--ilu-copy:#413021;--ilu-muted:#58432f;--ilu-rule:rgba(65,43,25,.31);--ilu-wash:rgba(65,43,25,.055)}
+.ilu-backdrop[data-ink-paper="navy"]{--ilu-paper:#0b1725;--ilu-ink:#f4e9d6;--ilu-copy:#ded2bd;--ilu-muted:#c0b6a5;--ilu-rule:rgba(244,233,214,.31);--ilu-wash:rgba(244,233,214,.05);color-scheme:dark}
+.ilu-backdrop[data-ink-paper="phosphor"]{--ilu-paper:#06140c;--ilu-ink:#c6f9b1;--ilu-copy:#a9dfa1;--ilu-muted:#94bf8b;--ilu-rule:rgba(198,249,177,.31);--ilu-wash:rgba(150,255,143,.06);font-family:"Courier Prime","Courier New",monospace;color-scheme:dark}
+.ilu-backdrop[data-ink-paper="midnight"]{--ilu-paper:#141516;--ilu-ink:#f5f6f3;--ilu-copy:#d6d9d6;--ilu-muted:#b4bab6;--ilu-rule:rgba(245,246,243,.30);--ilu-wash:rgba(245,246,243,.05);color-scheme:dark}
+.ilu-backdrop .ilu-sheet,
+.game-site-shell:has(.inkbound-live) .ilu-backdrop .ilu-sheet {
+  width:min(930px,100%);max-width:100%;max-height:calc(100dvh - clamp(20px,6vw,60px));
+  box-sizing:border-box;overflow-y:auto;overscroll-behavior:contain;
+  background:var(--ilu-paper)!important;color:var(--ilu-ink)!important;
+  border:1px solid var(--ilu-rule)!important;border-radius:3px;
+  box-shadow:0 24px 75px rgba(0,0,0,.27);text-align:left;
+  padding:clamp(20px,3.8vw,42px) clamp(18px,4.7vw,56px) 28px;
+  scrollbar-color:var(--ilu-rule) var(--ilu-paper);
+}
+.ilu-sheet :is(h2,h3,h4,p,dt,dd,span,strong){color:inherit}
+.ilu-heading{text-align:center;position:relative;padding-bottom:12px}
+.ilu-eyebrow{display:flex;align-items:center;justify-content:center;gap:20px;
+  font:600 11px "American Typewriter","Courier New",monospace;letter-spacing:.32em;color:var(--ilu-copy)!important}
+.ilu-eyebrow::before,.ilu-eyebrow::after{content:"";width:62px;border-top:1px solid var(--ilu-rule)}
+.ilu-sheet .ilu-heading h2{font-family:inherit;font-size:clamp(44px,6.4vw,78px);font-weight:400;letter-spacing:-.055em;line-height:1.06;
+  color:var(--ilu-ink)!important;margin:11px 0 1px}
+.ilu-star{display:block;font-size:23px;color:var(--ilu-ink)!important}
+.ilu-main{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.08fr);gap:clamp(22px,4vw,48px);align-items:center}
+.ilu-art{min-width:0;align-self:stretch;display:flex;flex-direction:column;justify-content:center;align-items:center}
+.ilu-art img{width:115%;max-width:none;height:auto;object-fit:contain;display:block;pointer-events:none;user-select:none}
+.ilu-art-caption{font-size:13px;letter-spacing:.04em;color:var(--ilu-muted)!important;font-style:italic;text-align:center;margin:0 0 16px}
+.ilu-details{min-width:0;border-left:1px solid var(--ilu-rule);padding-left:clamp(22px,3vw,34px)}
+.ilu-sheet .ilu-details h3{font-family:inherit;font-weight:400;font-size:clamp(23px,2.8vw,37px);letter-spacing:-.025em;line-height:1.13;margin:8px 0 8px;color:var(--ilu-ink)!important;overflow-wrap:anywhere}
+.ilu-details h3 span{white-space:normal;font-size:.66em;color:var(--ilu-copy)!important}
+.ilu-subline{font-style:italic;font-size:14px;line-height:1.5;color:var(--ilu-muted)!important;margin:0 0 18px!important}
+.ilu-ledger{margin:0 0 18px}
+.ilu-ledger>div{border-bottom:1px solid var(--ilu-rule);padding:10px 0;display:flex;align-items:baseline;gap:18px;justify-content:space-between}
+.ilu-ledger dt{font-size:clamp(12px,1.3vw,14px);line-height:1.4;color:var(--ilu-copy)}
+.ilu-ledger dd{margin:0;font-size:clamp(14px,1.6vw,17px);text-align:right;white-space:nowrap;color:var(--ilu-ink);font-variant-numeric:tabular-nums}
+.ilu-ledger dd span{padding:0 5px;color:var(--ilu-muted)}
+.ilu-effects{border-bottom:1px solid var(--ilu-rule);padding:0 0 12px;margin:4px 0 16px}
+.ilu-sheet .ilu-effects h4{font:600 11px "American Typewriter","Courier New",monospace;letter-spacing:.16em;text-transform:uppercase;margin:0 0 8px;color:var(--ilu-copy)!important}
+.ilu-effect{padding:6px 0;max-width:100%;overflow-wrap:anywhere}
+.ilu-effect strong{display:block;font-weight:600;color:var(--ilu-ink)!important;font-size:15px}
+.ilu-effect p{font-size:13px;line-height:1.45;color:var(--ilu-copy)!important;font-style:italic;margin:3px 0!important}
+.ilu-progress{margin-top:16px}
+.ilu-progress-label{display:flex;justify-content:space-between;gap:12px;font:11px "American Typewriter","Courier New",monospace;letter-spacing:.11em;color:var(--ilu-ink)}
+.ilu-track{height:9px;border:1px solid var(--ilu-rule);margin-top:8px;background:var(--ilu-wash);overflow:hidden}
+.ilu-track>span{display:block;height:100%;background:var(--ilu-ink)}
+.ilu-progress p{color:var(--ilu-muted)!important;font-size:12px;line-height:1.35;margin:8px 0 0}
+.ilu-footer{margin-top:20px;text-align:center;padding-top:17px;border-top:1px solid var(--ilu-rule)}
+.ilu-footer p{font-style:italic;font-size:14px;color:var(--ilu-copy)!important;margin:0 0 15px}
+.ilu-action,.game-site-shell:has(.inkbound-live) .ilu-action{display:inline-flex;align-items:center;justify-content:center;gap:20px;
+  background:var(--ilu-ink)!important;color:var(--ilu-paper)!important;border:1px solid var(--ilu-ink)!important;
+  border-radius:2px;min-height:49px;min-width:min(300px,100%);max-width:100%;padding:12px 28px;
+  font:600 14px "American Typewriter","Courier New",monospace;letter-spacing:.045em;cursor:pointer}
+.ilu-action:is(:hover,:focus-visible){outline:2px solid var(--ilu-ink);outline-offset:3px}
+.ilu-action span{color:inherit!important}
+.ilu-backdrop[data-ink-paper="navy"] .ilu-art img,
+.ilu-backdrop[data-ink-paper="phosphor"] .ilu-art img,
+.ilu-backdrop[data-ink-paper="midnight"] .ilu-art img{filter:invert(1);opacity:.78}
+.ilu-backdrop[data-ink-paper="phosphor"] .ilu-sheet .ilu-heading h2{font-family:"Courier Prime","Courier New",monospace;text-shadow:0 0 12px rgba(144,255,125,.18);font-size:clamp(38px,5.6vw,64px);letter-spacing:-.06em}
+@media(max-width:720px){
+  .ilu-backdrop{padding:8px;align-items:start}
+  .ilu-backdrop .ilu-sheet,.game-site-shell:has(.inkbound-live) .ilu-backdrop .ilu-sheet{max-height:calc(100dvh - 16px);padding:20px 20px 28px;margin:auto}
+  .ilu-main{grid-template-columns:minmax(0,1fr);gap:8px}
+  .ilu-art{max-height:220px;overflow:hidden;justify-content:center}
+  .ilu-art img{max-height:210px;width:100%;object-fit:contain}
+  .ilu-art-caption{display:none}
+  .ilu-details{border-left:0;padding-left:0}
+  .ilu-sheet .ilu-details h3{margin-top:2px;font-size:clamp(23px,6vw,31px)}
+  .ilu-subline{margin-bottom:10px!important}
+  .ilu-ledger>div{padding:8px 0}
+  .ilu-footer{margin-top:15px}
+  .ilu-action{width:100%;min-width:0}
+}
+@media(prefers-reduced-motion:reduce){.ilu-backdrop *{transition:none!important;animation:none!important}}

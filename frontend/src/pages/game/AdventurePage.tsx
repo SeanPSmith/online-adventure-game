@@ -1594,6 +1594,7 @@ ${scene.body.slice(0, 260)}`}
         <LevelUpModal
           heroName={hero?.name ?? localRoomPlayer?.name ?? "Hero"}
           update={lastLocalProgression}
+          inkPaper={inkboundReady ? inkPaper : undefined}
           onContinue={() => setDismissedLevelUpKey(levelUpKey)}
         />
       ) : null}

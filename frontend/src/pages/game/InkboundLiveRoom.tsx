@@ -76,20 +76,33 @@ export function InkboundLiveRoom(props: InkboundLiveRoomProps) {
   const xp = props.hero?.experience ?? 0;
   const xpPercent = props.hero?.xp_progress_percent ?? 0;
   const closeButton = useRef<HTMLButtonElement>(null);
+  const panelOpener = useRef<HTMLElement | null>(null);
   const selected = props.scene.choices.find((choice) => choice.id === props.selectedChoiceId);
   const liveChoices = props.chapterReleased && !props.choicesBlocked && !props.choiceLocked;
   useEffect(() => {
     if (panel === "chat" && chatLog.current) chatLog.current.scrollTop = chatLog.current.scrollHeight;
   }, [panel, props.messages.length]);
   useEffect(() => { setPanel(null); }, [props.roomCode]);
-  useEffect(() => { if (panel) closeButton.current?.focus(); }, [panel]);
+  useEffect(() => {
+    if (!panel) return;
+    const oldOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeButton.current?.focus();
+    return () => {
+      document.body.style.overflow = oldOverflow;
+      if (panelOpener.current?.isConnected) panelOpener.current.focus();
+    };
+  }, [panel]);
   const send = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const text = chatText.trim();
     if (!text || !props.connected) return;
     props.onSendChat(text); setChatText("");
   };
-  const toggle = (next: NonNullable<Panel>) => setPanel((old) => old === next ? null : next);
+  const toggle = (next: NonNullable<Panel>) => {
+    if (!panel) panelOpener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    setPanel((old) => old === next ? null : next);
+  };
   return <div className="inkbound inkbound-live" data-ink-paper={props.paper} aria-label="Inkbound adventure reader">
     <a className="inkbound-skip" href="#ibl-chapter">Skip to chapter</a>
     <header className="ibl-topbar">

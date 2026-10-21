@@ -12,6 +12,7 @@ import "./styles/layout.css";
 import "./styles/components.css";
 import "./styles/accessibility.css";
 import "./styles/inkboundSystemPass660.css";
+import "./styles/inkboundLegibilityPass661.css";
 
 const root = document.getElementById("root");
 

@@ -1,0 +1,262 @@
+/* Pass 66.1 — cross-surface Inkbound legibility.
+   Only presentation: no dice, narration, room, or intermission state changes.
+   No art mattes, artificial wash overlays or decorative clutter. */
+
+/* The canonical tokens are on the authenticated shell. Child controls from the
+   older terminal/photographic eras should not drag their hardcoded colors into
+   an Inkbound surface, particularly the three dark editions. */
+.inkbound-system-shell {
+  accent-color: var(--ib-highlight);
+}
+.inkbound-system-shell :where(input,textarea,button,select) { color-scheme:inherit; }
+.inkbound-system-shell :where(input, textarea)::placeholder,
+.inkbound-global-dialog :where(input,textarea)::placeholder {
+  color:var(--ib-muted);opacity:1;
+}
+
+/* Account, Hero Hall, settings, author hub, history, rulebook and extra pages.
+   Keep open editorial composition; limit the normalization to interactive
+   elements and status/readout surfaces instead of recoloring entire descendants. */
+.inkbound-system-shell:not(.is-desk-home):not(.is-adventure-mode) :is(
+  .terminal-select-trigger, .terminal-select-menu, .terminal-select-menu button,
+  input:not([type="checkbox"]):not([type="radio"]), textarea,
+  .form-control, .form-input, .account-input
+) {
+  background:var(--ib-paper)!important;
+  color:var(--ib-text)!important;
+  border-color:var(--ib-line)!important;
+  opacity:1;
+}
+.inkbound-system-shell:not(.is-desk-home):not(.is-adventure-mode)
+  .terminal-select-menu button:is(:hover,:focus-visible,[aria-selected="true"]) {
+  background:var(--ib-wash)!important;color:var(--ib-text)!important;
+}
+.inkbound-system-shell:not(.is-desk-home):not(.is-adventure-mode)
+  :is(.system-notice,.status-line,.notice,.empty-state) {
+  background:var(--ib-wash)!important;color:var(--ib-copy)!important;
+  border-color:var(--ib-line)!important;
+}
+.inkbound-system-shell:not(.is-desk-home):not(.is-adventure-mode)
+  :is(.panel,.account-tab-content,.system-notice) :is(a,button):focus-visible {
+  outline:2px solid var(--ib-text);outline-offset:3px;
+}
+
+/* The real reader's contrast contract. The themed reader uses --ia- tokens;
+   avoid inherited terminal green, cream-only controls or pale secondary notes. */
+.inkbound-live,
+.inkbound-lobby {
+  color-scheme:light;
+  overflow-wrap:break-word;
+}
+.inkbound-live:is([data-ink-paper="navy"],[data-ink-paper="phosphor"],[data-ink-paper="midnight"]),
+.inkbound-lobby:is([data-ink-paper="navy"],[data-ink-paper="phosphor"],[data-ink-paper="midnight"]) {
+  color-scheme:dark;
+}
+.inkbound-live .ibl-sidebar,
+.inkbound-live .ibl-sidebar-section,
+.inkbound-live .ibl-chat-section,
+.inkbound-live .ibl-hero-name,
+.inkbound-live .ibl-chat-log,
+.inkbound-live .ibl-drawer,
+.inkbound-live .ibl-drawer-chat {
+  color:var(--ia-copy);
+}
+.inkbound-live .ibl-chat-log :is(p,span),
+.inkbound-live .ibl-drawer-chat :is(p,span),
+.inkbound-live .ibl-history-list :is(p,span) {
+  color:var(--ia-copy)!important;
+}
+.inkbound-live .ibl-chat-log b,
+.inkbound-live .ibl-drawer-chat b,
+.inkbound-live .ibl-history-list h3,
+.inkbound-live .ibl-hero-name strong,
+.inkbound-live .ibl-choice-body strong {
+  color:var(--ia-text)!important;
+}
+.inkbound-live :is(.ibl-chat-log,.ibl-drawer-chat,.ibl-history-list,.ibl-utility-actions) {
+  overflow-wrap:anywhere;
+}
+.inkbound-live .ibl-chat-form input,
+.inkbound-live .ibl-drawer :is(textarea,input),
+.inkbound-live .ibl-utility-actions .terminal-select-trigger {
+  color:var(--ia-text)!important;
+  background:var(--ia-paper)!important;
+  border:1px solid var(--ia-strong-rule)!important;
+  border-radius:0;
+  min-width:0;
+}
+.inkbound-live .ibl-chat-form :is(input,textarea)::placeholder,
+.inkbound-live .ibl-drawer :is(input,textarea)::placeholder {
+  color:var(--ia-dim);opacity:1;
+}
+.inkbound-live .ibl-drawer .ibl-kicker,
+.inkbound-live .ibl-drawer .ibl-sidebar-note,
+.inkbound-live .ibl-utility-label,
+.inkbound-live .ibl-choice-body small,
+.inkbound-live .ibl-choice-index,
+.inkbound-live .ibl-commit>span {
+  color:var(--ia-dim)!important;
+}
+.inkbound-live :is(.ibl-chat-form button,.ibl-drawer button,.ibl-drawer a,
+  .ibl-utility-actions button,.ibl-utility-actions a,.ibl-choice-arrow) {
+  color:var(--ia-text)!important;
+}
+.inkbound-live .ibl-choice:disabled {opacity:.78}
+.inkbound-live .ibl-choice:disabled .ibl-choice-body small {color:var(--ia-dim)!important}
+.inkbound-live .ibl-commit button:not(:disabled) {
+  background:var(--ia-text)!important;
+  color:var(--ia-paper)!important;
+  border-color:var(--ia-text)!important;
+}
+.inkbound-live .ibl-drawer .terminal-select-menu,
+.inkbound-live .narrator-voice-library,
+.inkbound-live .narrator-voice-picker .terminal-select-menu {
+  background:var(--ia-paper)!important;
+  color:var(--ia-text)!important;
+  border:1px solid var(--ia-strong-rule)!important;
+}
+.inkbound-live :is(.narrator-voice-library,.terminal-select-menu) button {
+  background:transparent!important;color:var(--ia-text)!important;
+}
+.inkbound-live :is(.narrator-voice-library,.terminal-select-menu) button:is(:hover,:focus-visible,[aria-selected="true"]) {
+  background:var(--ia-wash)!important;color:var(--ia-text)!important;
+}
+.inkbound-live :is(a,button,input,textarea):focus-visible,
+.inkbound-lobby :is(a,button,input,textarea):focus-visible {
+  outline:2px solid var(--ia-text)!important;
+  outline-offset:3px;
+}
+/* Preserve selectable narration. A truly hidden word must become visible on
+   its existing reveal timer; don't replace the StoryReveal engine with CSS. */
+.inkbound-live .ibl-prose .story-reveal-word.is-visible {opacity:1}
+.inkbound-live .ibl-prose .story-follow-sentence {color:var(--ia-copy)}
+/* Legacy audio-follow CSS used bright green on unrelated fantasy themes. */
+.inkbound-live .ibl-prose .story-follow-sentence.is-speaking {
+  color:var(--ia-text)!important;
+  background:var(--ia-wash)!important;
+  box-shadow:0 0 0 2px var(--ia-wash)!important;
+}
+
+
+/* The reader utilities are not the whole screen: a long settings list should
+   scroll within a folio rather than hiding the end of the game page. */
+.inkbound-live .ibl-drawer {
+  width:min(94vw,650px);
+  max-width:100%;max-height:100dvh;overflow-y:auto;
+  overscroll-behavior:contain;
+  background:var(--ia-paper)!important;color:var(--ia-copy)!important;
+}
+.inkbound-live .ibl-drawer>header {position:sticky;top:0;z-index:2;
+  padding:6px 0 10px;background:var(--ia-paper);border-bottom:1px solid var(--ia-rule)}
+.inkbound-live .ibl-drawer>header button {min-width:44px;min-height:44px}
+
+/* Shared dialog portal: deliberately wide for settings and invite workflows.
+   Avoid the old global span recolor changing icons, error/status emphasis or
+   the foreground of an explicitly ink-filled primary button. */
+#modal-root .inkbound-global-dialog.modal-panel {
+  min-width:0;
+  scrollbar-gutter:stable;
+  overscroll-behavior:contain;
+}
+#modal-root .inkbound-global-dialog :is(.modal-body,.modal-footer,.panel-heading) {
+  background:var(--ib-paper)!important;color:var(--ib-copy)!important;
+  border-color:var(--ib-line)!important;
+}
+#modal-root .inkbound-global-dialog :is(.terminal-select-trigger,.terminal-select-menu,
+  .terminal-select-menu button,input,textarea) {
+  background:var(--ib-paper)!important;
+  color:var(--ib-text)!important;
+  border-color:var(--ib-line)!important;
+}
+#modal-root .inkbound-global-dialog .terminal-select-menu button:is(:hover,:focus-visible,[aria-selected="true"]) {
+  background:var(--ib-wash)!important;
+}
+#modal-root .inkbound-global-dialog :is(.modal-body,.modal-footer) :is(p,small,label) {
+  color:var(--ib-copy)!important;
+}
+#modal-root .inkbound-global-dialog :is(.modal-body,.modal-footer) :is(h1,h2,h3,strong) {
+  color:var(--ib-text)!important;
+}
+#modal-root .inkbound-global-dialog .button-primary,
+#modal-root .inkbound-global-dialog button.button-primary {
+  background:var(--ib-highlight)!important;
+  color:var(--ib-button-ink)!important;
+  border-color:var(--ib-highlight)!important;
+}
+#modal-root .inkbound-global-dialog .button-primary * {color:inherit!important}
+
+/* Live server turn: only theatre chrome, labels and score readouts are themed.
+   DO NOT restyle .intermission-game-feedback-host descendants: each Arcade
+   board owns its contrast, coordinate system, touch controls and game art. */
+.turn-theater-overlay.inkbound-turn-theater {
+  color-scheme:light;
+  --ib-action-bg:var(--ia-text);
+  --ib-action-fg:var(--ia-paper);
+}
+.turn-theater-overlay.inkbound-turn-theater:is([data-ink-paper="navy"],
+  [data-ink-paper="phosphor"],[data-ink-paper="midnight"]) {color-scheme:dark}
+.inkbound-turn-theater :is(.turn-theater-stage,.turn-resolution-theater,
+  .intermission-runtime,.intermission-waiting) {
+  color:var(--ia-copy)!important;
+  background-color:var(--ia-paper)!important;
+  border-color:var(--ia-strong-rule)!important;
+}
+.inkbound-turn-theater :is(.theater-heading,.theater-results,.theater-result-card,
+  .theater-breakdown,.intermission-runtime-header,.intermission-party-strip,
+  .intermission-runtime-footer) {
+  color:var(--ia-copy);border-color:var(--ia-rule)!important;
+}
+.inkbound-turn-theater .intermission-party-strip>div,
+.inkbound-turn-theater .intermission-waiting {
+  color:var(--ia-copy)!important;background:var(--ia-paper)!important;
+}
+.inkbound-turn-theater :is(.intermission-runtime-header h2,.intermission-waiting h3,
+  .theater-heading h2,.turn-theater-stage h2,.theater-outcome) {
+  color:var(--ia-text)!important;
+}
+.inkbound-turn-theater :is(.intermission-runtime-footer,.intermission-skip,
+  .intermission-waiting p,.intermission-runtime-header .eyebrow) {
+  color:var(--ia-copy)!important;
+}
+.inkbound-turn-theater :is(.intermission-skip,.button):focus-visible {
+  outline:2px solid var(--ia-text)!important;outline-offset:3px;
+}
+.inkbound-turn-theater .intermission-skip {
+  background:transparent!important;
+  border:1px solid var(--ia-strong-rule)!important;
+  color:var(--ia-text)!important;
+  min-height:44px;
+  white-space:normal;
+}
+.inkbound-turn-theater .turn-theater-stage,
+.inkbound-turn-theater .turn-resolution-theater,
+.inkbound-turn-theater .intermission-runtime {
+  box-sizing:border-box;
+  width:min(100% - 24px,1080px);
+  max-width:calc(100vw - 24px);
+  max-height:calc(100dvh - 24px);
+  overflow:auto;
+  overflow-wrap:anywhere;
+}
+/* Secondary overlays for quick events, level-up and death. Scope to the active
+   manuscript page to avoid changing Classic View and independent Arcade games. */
+.game-site-shell:has(.inkbound-live) :is(.qte-modal,.hero-death-window,.level-up-modal) {
+  width:min(920px,calc(100vw - 28px));max-width:calc(100vw - 28px);
+  max-height:calc(100dvh - 28px);overflow-y:auto;
+  box-sizing:border-box;color-scheme:inherit;
+}
+.game-site-shell:has(.inkbound-live) :is(.qte-modal,.hero-death-window,.level-up-modal)
+  :is(input,textarea,button:not(.button-primary)) {
+  color:var(--ia-text);border-color:var(--ia-strong-rule);
+}
+@media(max-width:660px) {
+  .inkbound-live .ibl-drawer {width:100vw;padding:20px clamp(15px,5vw,30px)}
+  .inkbound-turn-theater .turn-theater-stage,
+  .inkbound-turn-theater .turn-resolution-theater,
+  .inkbound-turn-theater .intermission-runtime {width:calc(100vw - 16px);max-width:calc(100vw - 16px)}
+  #modal-root .inkbound-global-dialog.modal-panel {width:calc(100vw - 16px)}
+}
+@media(prefers-reduced-motion:reduce) {
+  .inkbound-live .ibl-drawer,
+  .inkbound-turn-theater :is(.turn-resolution-theater,.turn-theater-stage) {animation:none!important;transition:none!important}
+}

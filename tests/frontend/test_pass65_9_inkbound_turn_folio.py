@@ -57,7 +57,7 @@ def test_full_authoritative_receipt_is_still_visible():
 def test_all_six_palettes_and_motion_settings_are_inherited():
     css = CSS.read_text()
     inherited = (ROOT / 'frontend/src/pages/game/inkboundAdventurePass657.css').read_text()
-    for paper in ('chalk', 'ivory', 'cream', 'navy', 'phosphor', 'midnight'):
+    for paper in ('parchment', 'ivory', 'cream', 'navy', 'phosphor', 'midnight'):
         assert f'.inkbound-turn-theater[data-ink-paper="{paper}"]' in inherited
     for important in ('.inkbound-dice-illustration', '.theater-breakdown',
                       '.theater-outcome', '.theater-progression-card',

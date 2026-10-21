@@ -39,7 +39,7 @@ def test_pass657_styling_is_present_for_all_six_papers_and_turn_theater():
     assert CSS.is_file(), "Missing original Pass 65.7 Inkbound reader stylesheet"
     sheet = CSS.read_text(encoding="utf-8")
     assert len(sheet) > 15000, "Stylesheet must not be replaced with an empty placeholder"
-    for theme in ("chalk", "ivory", "cream", "navy", "phosphor", "midnight"):
+    for theme in ("parchment", "ivory", "cream", "navy", "phosphor", "midnight"):
         assert f'.inkbound-live[data-ink-paper="{theme}"]' in sheet
         assert f'.inkbound-turn-theater[data-ink-paper="{theme}"]' in sheet
     for surface in (".ibl-chapter", ".ibl-choices", ".ibl-drawer", ".turn-resolution-theater", ".intermission-runtime"):

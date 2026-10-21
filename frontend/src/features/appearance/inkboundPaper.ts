@@ -1,13 +1,13 @@
 /** Inkbound paper and ink — one player-scoped setting shared by /game and Account. */
 import { useCallback, useEffect, useState } from "react";
 
-export type InkPaper = "chalk" | "ivory" | "cream" | "navy" | "phosphor" | "midnight";
+export type InkPaper = "parchment" | "ivory" | "cream" | "navy" | "phosphor" | "midnight";
 export const INKBOUND_PAPERS: ReadonlyArray<{ id: InkPaper; name: string; description: string }> = [
-  { id: "chalk", name: "White", description: "Cool white paper · graphite ink" },
+  { id: "parchment", name: "Parchment", description: "Soft tan paper · espresso ink" },
   { id: "ivory", name: "Ivory", description: "Soft off-white · charcoal ink" },
   { id: "cream", name: "Cream", description: "Warm cream paper · dark espresso ink" },
-  { id: "navy", name: "Midnight blue", description: "Deep blue paper · pearl ink" },
-  { id: "phosphor", name: "Green phosphor", description: "Deep forest green · luminous ink" },
+  { id: "navy", name: "Midnight blue", description: "Ink-dark navy · warm cream lettering" },
+  { id: "phosphor", name: "Green phosphor", description: "CRT forest green · luminous monospaced ink" },
   { id: "midnight", name: "Midnight black", description: "Near-black paper · silver-white ink" },
 ];
 
@@ -17,8 +17,8 @@ export function inkPaperStorageKey(userId: string): string {
 }
 
 export function normalizeInkPaper(value: string | null): InkPaper | null {
-  // Preserve the user's previous selection after retiring the tan parchment option.
-  if (value === "parchment") return "cream";
+  // Migrate the retired cool-white preference to the nearest remaining pale-paper edition.
+  if (value === "chalk") return "ivory";
   return INKBOUND_PAPERS.some((candidate) => candidate.id === value) ? value as InkPaper : null;
 }
 

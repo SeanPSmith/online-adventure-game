@@ -12,7 +12,7 @@ COMPONENT = (ROOT / 'frontend/src/features/appearance/InkboundPaperPreferences.t
 HOME = (ROOT / 'frontend/src/pages/game/InkboundAuthenticatedDashboard.tsx').read_text()
 HOME_CSS = (ROOT / 'frontend/src/pages/game/inkboundAuthenticatedDashboard.css').read_text()
 ACCOUNT = (ROOT / 'frontend/src/pages/account/AccountPage.tsx').read_text()
-IDS = ('chalk', 'ivory', 'cream', 'navy', 'phosphor', 'midnight')
+IDS = ('parchment', 'ivory', 'cream', 'navy', 'phosphor', 'midnight')
 
 
 def test_all_six_themes_present_on_dashboard_and_swatches():
@@ -36,9 +36,9 @@ def test_account_preferences_is_owner_of_swatch_picker():
     assert '<select' not in HOME and '<select' not in COMPONENT
 
 
-def test_saved_preference_is_player_scoped_and_previous_tan_migrates():
+def test_saved_preference_is_player_scoped_and_previous_white_migrates():
     assert 'tot:inkbound:paper:${userId}' in THEMES
-    assert 'if (value === "parchment") return "cream";' in THEMES
+    assert 'if (value === "chalk") return "ivory";' in THEMES
     assert 'localStorage.setItem(inkPaperStorageKey(userId), value)' in THEMES
     assert 'useInkboundPaper(userId)' in HOME
     assert 'useInkboundPaper(user?.user_id ?? "")' in COMPONENT

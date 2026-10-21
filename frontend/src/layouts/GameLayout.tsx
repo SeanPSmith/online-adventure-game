@@ -1,5 +1,6 @@
 import { Link, NavLink, Outlet, useLocation } from "react-router";
 import { useAuth } from "../state/AuthContext";
+import { useInkboundPaper } from "../features/appearance/inkboundPaper";
 import { useAppearance } from "../features/appearance/AppearanceContext";
 import "../styles/pass64Shell.css";
 import "../styles/deskShellFidelityPass64.css";
@@ -15,6 +16,7 @@ import type { CSSProperties } from "react";
 
 export function GameLayout() {
   const { user, logout } = useAuth();
+  const [paper] = useInkboundPaper(user?.user_id ?? "");
   const location = useLocation();
   const { preferences, libraryTheme, edition } = useAppearance();
   const canAuthor = user?.permissions.includes("author") ?? false;
@@ -23,7 +25,7 @@ export function GameLayout() {
   const isDeskHome = location.pathname === "/game" || location.pathname === "/game/home-lab" || location.pathname === "/dev/home-lab";
 
   return (
-    <div className={`site-shell game-site-shell p64-shell ${isAdventureMode ? "is-adventure-mode" : ""} ${isDeskHome ? "is-desk-home" : ""}`} data-platform-skin={preferences.platformSkin} data-edition-family={edition.family} data-edition-mode={edition.mode} data-installed-library-theme={Boolean(libraryTheme)} data-theme-material={libraryTheme?.material} style={(libraryTheme ? themeCssVars(libraryTheme) : themeEditionCssVars(edition)) as CSSProperties}>
+    <div className={`site-shell game-site-shell p64-shell inkbound-system-shell ${isAdventureMode ? "is-adventure-mode" : ""} ${isDeskHome ? "is-desk-home" : ""}`} data-ink-paper={paper} data-platform-skin={preferences.platformSkin} data-edition-family={edition.family} data-edition-mode={edition.mode} data-installed-library-theme={Boolean(libraryTheme)} data-theme-material={libraryTheme?.material} style={(libraryTheme ? themeCssVars(libraryTheme) : themeEditionCssVars(edition)) as CSSProperties}>
       <a className="skip-link" href="#main-content">SKIP TO CONTENT</a>
       <header className={`site-header game-header ${isAdventureMode ? "is-adventure-header" : ""}`}>
         <Link className="brand" to="/game">
@@ -45,7 +47,7 @@ export function GameLayout() {
               <NavLink to="/game/graveyard">GRAVEYARD</NavLink>
               <NavLink to="/game/arcade">ARCADE</NavLink>
               <NavLink to="/game/rulebook">RULEBOOK</NavLink>
-              {canAuthor ? <a href="/author-console">AUTHOR</a> : null}
+              {canAuthor ? <NavLink to="/account/author">AUTHOR</NavLink> : null}
               {isAdmin ? <NavLink to="/admin">CONTROL ROOM</NavLink> : null}
               <NavLink to="/account">ACCOUNT</NavLink>
                   <button className="button button-quiet" type="button" onClick={() => void logout()}>

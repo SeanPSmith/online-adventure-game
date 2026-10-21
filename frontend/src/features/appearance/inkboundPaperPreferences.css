@@ -18,12 +18,20 @@
 .inkpaper-option:focus-visible{outline:2px solid #24231f;outline-offset:6px}
 .inkpaper-footnote{margin:27px 0 0;border-top:1px solid #d8d0be;padding-top:18px;font:13px/1.5 "American Typewriter","Courier New",monospace;color:#4d4940}
 .inkpaper-footnote a{text-decoration:underline;text-underline-offset:4px;color:inherit}
-.inkpaper-option[data-ink-paper="chalk"]{--paper:#f3f4f3;--paper-text:#212729;--paper-copy:#434e52;--paper-rule:rgba(33,39,41,.24)}
+.inkpaper-option[data-ink-paper="parchment"]{--paper:#d9c6a4;--paper-text:#33271a;--paper-copy:#413021;--paper-rule:rgba(33,39,41,.24)}
 .inkpaper-option[data-ink-paper="ivory"]{--paper:#f7f3e9;--paper-text:#28251f;--paper-copy:#514b40;--paper-rule:rgba(48,40,30,.19)}
-.inkpaper-option[data-ink-paper="cream"]{--paper:#eee2c9;--paper-text:#30271c;--paper-copy:#51422e;--paper-rule:rgba(55,40,22,.22)}
-.inkpaper-option[data-ink-paper="navy"]{--paper:#142536;--paper-text:#f3f6f4;--paper-copy:#dae4e9;--paper-rule:rgba(242,246,250,.30)}
-.inkpaper-option[data-ink-paper="phosphor"]{--paper:#102519;--paper-text:#c9ffb8;--paper-copy:#c1e6b9;--paper-rule:rgba(201,255,184,.30)}
+.inkpaper-option[data-ink-paper="cream"]{--paper:#eee7d9;--paper-text:#30291e;--paper-copy:#504433;--paper-rule:rgba(55,40,22,.22)}
+.inkpaper-option[data-ink-paper="navy"]{--paper:#0b1725;--paper-text:#f4e9d6;--paper-copy:#ded2bd;--paper-rule:rgba(242,246,250,.30)}
+.inkpaper-option[data-ink-paper="phosphor"]{--paper:#06140c;--paper-text:#c6f9b1;--paper-copy:#a9dfa1;--paper-rule:rgba(201,255,184,.30)}
 .inkpaper-option[data-ink-paper="midnight"]{--paper:#141516;--paper-text:#f5f6f3;--paper-copy:#ced2d0;--paper-rule:rgba(245,246,243,.30)}
 @media(max-width:850px){.inkpaper-options{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:520px){.inkpaper-preferences{padding:22px 17px}.inkpaper-options{grid-template-columns:1fr 1fr;gap:20px 11px}.inkpaper-sample{min-height:155px;padding:13px}.inkpaper-sample-title{font-size:20px}.inkpaper-option-name{font-size:12px}.inkpaper-option-description{font-size:11px}}
 @media(prefers-reduced-motion:reduce){.inkpaper-sample{transition:none}}
+
+
+/* 66.0 swatches follow final palette values; no image matte or false transparency. */
+.inkpaper-option[data-ink-paper="parchment"]{--paper:#d9c6a4;--paper-text:#33271a;--paper-copy:#413021;--paper-rule:rgba(65,43,25,.32)}
+.inkpaper-option[data-ink-paper="cream"]{--paper:#eee7d9;--paper-text:#30291e;--paper-copy:#504433;--paper-rule:rgba(65,47,27,.28)}
+.inkpaper-option[data-ink-paper="navy"]{--paper:#0b1725;--paper-text:#f4e9d6;--paper-copy:#ded2bd;--paper-rule:rgba(244,233,214,.29)}
+.inkpaper-option[data-ink-paper="phosphor"]{--paper:#06140c;--paper-text:#c6f9b1;--paper-copy:#a9dfa1;--paper-rule:rgba(198,249,177,.32)}
+.inkpaper-option[data-ink-paper="phosphor"] .inkpaper-sample-title{font-family:"Courier Prime","Courier New",monospace;text-shadow:0 0 10px rgba(144,255,125,.20)}

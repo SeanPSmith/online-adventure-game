@@ -36,7 +36,7 @@ class InkboundHomeContracts(unittest.TestCase):
         self.assertIn('encodeURIComponent(item.character_id)', HOME)
 
     def test_six_requested_paper_options_live_in_account_preferences(self):
-        for option in ('chalk', 'ivory', 'cream', 'navy', 'phosphor', 'midnight'):
+        for option in ('parchment', 'ivory', 'cream', 'navy', 'phosphor', 'midnight'):
             self.assertRegex(CSS, rf'\[data-ink-paper="{option}"\]')
             self.assertIn(f'id: "{option}"', THEMES)
         self.assertIn('aria-pressed={selectedPaper === paper.id}', PICKER)

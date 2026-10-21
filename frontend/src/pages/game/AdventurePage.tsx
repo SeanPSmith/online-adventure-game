@@ -724,6 +724,10 @@ export function AdventurePage() {
         notes={bookNotes}
         onNotesChange={setBookNotes}
         narrationEnabled={audioPreferences.narrationEnabled}
+        wordRevealEnabled={storyPreferences.wordReveal}
+        decorativeInitials={storyPreferences.decorativeInitials}
+        followNarration={audioPreferences.narrationEnabled && followVoice && narration.cue?.kind === "story" && (narration.phase === "playing" || narration.phase === "paused")}
+        narrationCue={theater.chapterReleased && (narration.phase === "playing" || narration.phase === "paused") ? narration.cue : null}
         onToggleStoryTime={toggleStoryTime}
         sessionUtilities={<>
           <button type="button" aria-pressed={audioPreferences.effectsEnabled} onClick={() => {

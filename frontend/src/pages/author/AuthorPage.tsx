@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Navigate } from "react-router";
+import { Link, Navigate } from "react-router";
 import { PageTitle } from "../../components/ui/PageTitle";
 import { Panel } from "../../components/ui/Panel";
 import {
@@ -56,10 +56,17 @@ export function AuthorPage() {
 
   return (
     <>
-      <PageTitle
-        eyebrow="AUTHOR"
-        title="THE STORY FACTORY"
-      />
+      <PageTitle eyebrow="THE WRITER’S DESK" title="Worlds waiting to be written" />
+      <div className="inkbound-author-intro">
+        <div>
+          <p>Begin with a world. Follow it with an adventure. All your drafts, versions,
+            AI proposals, previews, and publishing tools remain in the full studio.</p>
+          <Link className="inkbound-author-enter" to="/author-console">
+            Open Author Studio <span aria-hidden="true">→</span>
+          </Link>
+        </div>
+        <p className="inkbound-author-aside">The ink remembers what you write.</p>
+      </div>
 
       <Panel title="ADVENTURE DOCUMENTS">
         {loading ? <p className="muted-copy">OPENING THE WORKSHOP_</p> : null}
@@ -88,9 +95,8 @@ export function AuthorPage() {
         ) : null}
 
         <p className="muted-copy author-migration-note">
-          Read-only React bridge is live. The existing Python Author document,
-          versioning, preview, publish, generation, and archive APIs remain untouched;
-          the editor itself migrates after the player-facing game reaches parity.
+          Open Author Studio to edit, review AI proposals, autosave, version, preview,
+          and publish. This page lists your live documents; no authoring features were removed.
         </p>
       </Panel>
     </>

@@ -36,11 +36,11 @@ body:has(.inkbound-home) .game-site-shell.p64-shell.is-desk-home .game-main{
  background:var(--paper);color:var(--paper-text);font:400 16px/1.58 var(--paper-ser);
  min-height:100vh;width:100%;isolation:isolate;overflow-x:clip;color-scheme:light;
 }
-.inkbound-home[data-ink-paper="chalk"]{--paper:#f1f2f0;--paper-text:#222625;--paper-copy:#4f5654;--paper-dim:#69716f;--paper-rule:rgba(34,38,37,.20);--paper-strong-rule:rgba(34,38,37,.34)}
+.inkbound-home[data-ink-paper="parchment"]{--paper:#d9c6a4;--paper-text:#33271a;--paper-copy:#413021;--paper-dim:#604a34;--paper-rule:rgba(34,38,37,.20);--paper-strong-rule:rgba(34,38,37,.34)}
 .inkbound-home[data-ink-paper="ivory"]{--paper:#f7f3e9;--paper-text:#28251f;--paper-copy:#514b40;--paper-dim:#756c60;--paper-rule:rgba(48,40,30,.19);--paper-strong-rule:rgba(48,40,30,.34)}
-.inkbound-home[data-ink-paper="cream"]{--paper:#eee2c9;--paper-text:#30271c;--paper-copy:#51422e;--paper-dim:#69563c;--paper-rule:rgba(55,40,22,.22);--paper-strong-rule:rgba(55,40,22,.39)}
-.inkbound-home[data-ink-paper="navy"]{--paper:#142536;--paper-text:#f3f6f4;--paper-copy:#dae4e9;--paper-dim:#b5c4d0;--paper-rule:rgba(242,246,250,.26);--paper-strong-rule:rgba(242,246,250,.43);color-scheme:dark}
-.inkbound-home[data-ink-paper="phosphor"]{--paper:#102519;--paper-text:#c9ffb8;--paper-copy:#c1e6b9;--paper-dim:#aad19e;--paper-rule:rgba(201,255,184,.25);--paper-strong-rule:rgba(201,255,184,.43);color-scheme:dark}
+.inkbound-home[data-ink-paper="cream"]{--paper:#eee7d9;--paper-text:#30291e;--paper-copy:#504433;--paper-dim:#6a5a46;--paper-rule:rgba(55,40,22,.22);--paper-strong-rule:rgba(55,40,22,.39)}
+.inkbound-home[data-ink-paper="navy"]{--paper:#0b1725;--paper-text:#f4e9d6;--paper-copy:#ded2bd;--paper-dim:#c0b6a5;--paper-rule:rgba(242,246,250,.26);--paper-strong-rule:rgba(242,246,250,.43);color-scheme:dark}
+.inkbound-home[data-ink-paper="phosphor"]{--paper:#06140c;--paper-text:#c6f9b1;--paper-copy:#a9dfa1;--paper-dim:#94bf8b;--paper-rule:rgba(201,255,184,.25);--paper-strong-rule:rgba(201,255,184,.43);color-scheme:dark}
 .inkbound-home[data-ink-paper="midnight"]{--paper:#141516;--paper-text:#f5f6f3;--paper-copy:#ced2d0;--paper-dim:#adb2b0;--paper-rule:rgba(245,246,243,.26);--paper-strong-rule:rgba(245,246,243,.44);color-scheme:dark}
 .inkbound-home *{box-sizing:border-box}
 .inkbound-home button,.inkbound-home input{font:inherit}
@@ -81,7 +81,7 @@ body:has(.inkbound-home) .game-site-shell.p64-shell.is-desk-home .game-main{
 .inkbound-home:is([data-ink-paper="midnight"],[data-ink-paper="navy"],[data-ink-paper="phosphor"]) .i656-hero-ink{filter:invert(1) grayscale(1) contrast(.83) brightness(1.13);opacity:.75}
 .inkbound-home[data-ink-paper="phosphor"] .i656-hero-ink{filter:invert(1) sepia(.75) saturate(1.1) hue-rotate(55deg) contrast(.87);opacity:.77}
 .inkbound-home[data-ink-paper="cream"] .i656-hero-ink{mix-blend-mode:multiply;opacity:.88}
-.inkbound-home[data-ink-paper="chalk"] .i656-hero-ink{mix-blend-mode:multiply}
+.inkbound-home[data-ink-paper="parchment"] .i656-hero-ink{mix-blend-mode:multiply}
 .i656-bookmark-rule{height:36px;display:flex;align-items:center;gap:15px;color:var(--paper-text);font-size:22px;position:relative}
 .i656-bookmark-rule:after{content:"";width:100%;height:1px;background:var(--paper-rule)}
 .i656-section-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:22px;margin:30px 0 13px}

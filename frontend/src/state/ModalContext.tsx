@@ -9,6 +9,8 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
+import { useAuth } from "./AuthContext";
+import { useInkboundPaper } from "../features/appearance/inkboundPaper";
 
 interface ModalOptions {
   title: string;
@@ -25,6 +27,8 @@ interface ModalContextValue {
 const ModalContext = createContext<ModalContextValue | null>(null);
 
 export function ModalProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+  const [paper] = useInkboundPaper(user?.user_id ?? "");
   const [modal, setModal] = useState<ModalOptions | null>(null);
 
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -68,7 +72,8 @@ export function ModalProvider({ children }: { children: ReactNode }) {
               <dialog
                 ref={dialogRef}
                 tabIndex={-1}
-                className="modal-panel"
+                className="modal-panel inkbound-global-dialog"
+                data-ink-paper={paper}
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="global-modal-title"

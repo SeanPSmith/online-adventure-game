@@ -1,0 +1,141 @@
+
+/* PASS 66.0 — ONE INKBOUND SYSTEM. Theme primitives; avoid art/text collisions.
+   No image backgrounds, invented decoration or gameplay state changes. */
+.inkbound-system-shell,.inkbound-global-dialog{
+  --ib-paper:#f7f3e9;--ib-text:#28251f;--ib-copy:#514b40;
+  --ib-muted:#756c60;--ib-line:rgba(48,40,30,.25);--ib-wash:rgba(48,40,30,.055);
+  --ib-highlight:#322b21;--ib-button-ink:#f7f3e9;
+  --ib-serif:"Iowan Old Style","Baskerville",Georgia,serif;
+  --ib-mono:"American Typewriter","Courier New",monospace;
+  background-color:var(--ib-paper);color:var(--ib-text);color-scheme:light;
+}
+:where(.inkbound-system-shell,.inkbound-global-dialog)[data-ink-paper="ivory"]{
+  --ib-paper:#f7f3e9;--ib-text:#28251f;--ib-copy:#514b40;--ib-muted:#756c60;--ib-line:rgba(48,40,30,.25);--ib-wash:rgba(48,40,30,.055);--ib-highlight:#322b21;--ib-button-ink:#f7f3e9;color-scheme:light;
+}
+:where(.inkbound-system-shell,.inkbound-global-dialog)[data-ink-paper="cream"]{
+  --ib-paper:#eee7d9;--ib-text:#30291e;--ib-copy:#504433;--ib-muted:#6a5a46;--ib-line:rgba(65,47,27,.29);--ib-wash:rgba(67,46,25,.055);--ib-highlight:#35291a;--ib-button-ink:#eee7d9;color-scheme:light;
+}
+:where(.inkbound-system-shell,.inkbound-global-dialog)[data-ink-paper="parchment"]{
+  --ib-paper:#d9c6a4;--ib-text:#33271a;--ib-copy:#413021;--ib-muted:#604a34;--ib-line:rgba(65,43,25,.32);--ib-wash:rgba(65,43,25,.07);--ib-highlight:#33271a;--ib-button-ink:#f2e6ce;color-scheme:light;
+}
+:where(.inkbound-system-shell,.inkbound-global-dialog)[data-ink-paper="navy"]{
+  --ib-paper:#0b1725;--ib-text:#f4e9d6;--ib-copy:#ded2bd;--ib-muted:#c0b6a5;--ib-line:rgba(244,233,214,.28);--ib-wash:rgba(244,233,214,.07);--ib-highlight:#f4e9d6;--ib-button-ink:#0b1725;color-scheme:dark;
+}
+:where(.inkbound-system-shell,.inkbound-global-dialog)[data-ink-paper="phosphor"]{
+  --ib-paper:#06140c;--ib-text:#c6f9b1;--ib-copy:#a9dfa1;--ib-muted:#94bf8b;--ib-line:rgba(198,249,177,.32);--ib-wash:rgba(150,255,143,.06);--ib-highlight:#c6f9b1;--ib-button-ink:#06140c;color-scheme:dark;
+  --ib-serif:"Courier Prime","American Typewriter","Courier New",monospace;
+  --ib-mono:"Courier Prime","Courier New",monospace;
+}
+:where(.inkbound-system-shell,.inkbound-global-dialog)[data-ink-paper="midnight"]{
+  --ib-paper:#141516;--ib-text:#f5f6f3;--ib-copy:#d6d9d6;--ib-muted:#b4bab6;--ib-line:rgba(245,246,243,.28);--ib-wash:rgba(245,246,243,.065);--ib-highlight:#f5f6f3;--ib-button-ink:#141516;color-scheme:dark;
+}
+/* Reader palettes are existing reader variables; override in one place. */
+:where(.inkbound-home,.inkbound-live,.inkbound-lobby,.inkbound-turn-theater)[data-ink-paper="parchment"]{
+  --paper:#d9c6a4;--paper-text:#33271a;--paper-copy:#413021;--paper-dim:#604a34;--paper-rule:rgba(65,43,25,.27);--paper-strong-rule:rgba(65,43,25,.43);
+  --ia-paper:#d9c6a4;--ia-text:#33271a;--ia-copy:#413021;--ia-dim:#604a34;--ia-rule:rgba(65,43,25,.27);--ia-strong-rule:rgba(65,43,25,.43);--ia-wash:rgba(65,43,25,.07);
+}
+:where(.inkbound-home,.inkbound-live,.inkbound-lobby,.inkbound-turn-theater)[data-ink-paper="cream"]{
+  --paper:#eee7d9;--paper-text:#30291e;--paper-copy:#504433;--paper-dim:#6a5a46;
+  --ia-paper:#eee7d9;--ia-text:#30291e;--ia-copy:#504433;--ia-dim:#6a5a46;
+}
+:where(.inkbound-home,.inkbound-live,.inkbound-lobby,.inkbound-turn-theater)[data-ink-paper="navy"]{
+  --paper:#0b1725;--paper-text:#f4e9d6;--paper-copy:#ded2bd;--paper-dim:#c0b6a5;
+  --ia-paper:#0b1725;--ia-text:#f4e9d6;--ia-copy:#ded2bd;--ia-dim:#c0b6a5;
+}
+:where(.inkbound-home,.inkbound-live,.inkbound-lobby,.inkbound-turn-theater)[data-ink-paper="phosphor"]{
+  --paper:#06140c;--paper-text:#c6f9b1;--paper-copy:#a9dfa1;--paper-dim:#94bf8b;
+  --ia-paper:#06140c;--ia-text:#c6f9b1;--ia-copy:#a9dfa1;--ia-dim:#94bf8b;
+  font-family:"Courier Prime","Courier New",monospace;
+}
+/* Some old adventure styles apply palette to the containing shell using :has. */
+.game-site-shell:has(.inkbound-live[data-ink-paper="parchment"],.inkbound-lobby[data-ink-paper="parchment"]){--ia-paper:#d9c6a4;--ia-text:#33271a;--ia-copy:#413021;--ia-dim:#604a34}
+.game-site-shell:has(.inkbound-live[data-ink-paper="cream"],.inkbound-lobby[data-ink-paper="cream"]){--ia-paper:#eee7d9;--ia-text:#30291e;--ia-copy:#504433;--ia-dim:#6a5a46}
+.game-site-shell:has(.inkbound-live[data-ink-paper="navy"],.inkbound-lobby[data-ink-paper="navy"]){--ia-paper:#0b1725;--ia-text:#f4e9d6;--ia-copy:#ded2bd;--ia-dim:#c0b6a5}
+.game-site-shell:has(.inkbound-live[data-ink-paper="phosphor"],.inkbound-lobby[data-ink-paper="phosphor"]){--ia-paper:#06140c;--ia-text:#c6f9b1;--ia-copy:#a9dfa1;--ia-dim:#94bf8b}
+/* Primary app pages (dashboard and active room keep their own editorial design). */
+.inkbound-system-shell:is(.inkbound-account-shell,.game-site-shell:not(.is-desk-home):not(.is-adventure-mode)){
+  min-height:100dvh!important;height:auto!important;max-height:none!important;overflow:visible!important;
+  background:var(--ib-paper)!important;color:var(--ib-text);
+  --bg:var(--ib-paper);--bg-deep:var(--ib-paper);--bg-elevated:var(--ib-paper);
+  --text:var(--ib-text);--text-dim:var(--ib-copy);--green:var(--ib-text);
+  --green-soft:var(--ib-text);--green-muted:var(--ib-muted);--green-dim:var(--ib-muted);
+  --green-line:var(--ib-line);--green-line-dim:var(--ib-line);
+  --structure-soft:var(--ib-text);--structure-line:var(--ib-line);--structure-line-dim:var(--ib-line);
+  --border:1px solid var(--ib-line);
+}
+.inkbound-system-shell:is(.inkbound-account-shell,.game-site-shell:not(.is-desk-home):not(.is-adventure-mode)) :is(.site-header,.game-header){
+  background:var(--ib-paper)!important;color:var(--ib-text)!important;
+  box-shadow:none!important;backdrop-filter:none;border:0!important;
+  border-bottom:1px solid var(--ib-line)!important;margin:0 clamp(14px,4vw,76px);
+  padding:20px 0;min-height:84px;
+}
+.inkbound-system-shell:is(.inkbound-account-shell,.game-site-shell:not(.is-desk-home):not(.is-adventure-mode)) :is(.account-main,.game-main){
+  height:auto!important;max-height:none!important;overflow:visible!important;
+  width:min(100% - 32px,1440px);max-width:none;margin:0 auto;padding:clamp(24px,4.5vw,76px) 0 100px;
+}
+.inkbound-system-shell :is(.brand strong,.page-title h1){color:var(--ib-text)!important;font-family:var(--ib-serif);font-weight:400;letter-spacing:-.025em}
+.inkbound-system-shell .brand-mark{background:transparent;border:0;font-family:var(--ib-serif);font-weight:400;color:var(--ib-text)}
+.inkbound-system-shell :is(.brand small,.eyebrow,.header-nav a,.header-nav button){color:var(--ib-muted)!important;font-family:var(--ib-mono)}
+.inkbound-system-shell .header-nav a.active{color:var(--ib-text)!important;border-bottom:1px solid var(--ib-text);border-top:0;border-left:0;border-right:0}
+.inkbound-system-shell:not(.is-desk-home):not(.is-adventure-mode) :is(.page-title,.panel,.account-command-bar,.account-tab-content,.account-tabs){
+  background:transparent!important;box-shadow:none!important;color:var(--ib-text);border-radius:0!important;
+}
+.inkbound-system-shell:not(.is-desk-home):not(.is-adventure-mode) .page-title{
+  border:0!important;border-bottom:1px solid var(--ib-line)!important;padding:0 0 24px;min-height:0;margin-bottom:24px;
+}
+.inkbound-system-shell:not(.is-desk-home):not(.is-adventure-mode) :is(.panel,.account-tab-content){border:0!important;border-bottom:1px solid var(--ib-line)!important;margin-bottom:20px}
+.inkbound-system-shell:not(.is-desk-home):not(.is-adventure-mode) :is(.panel-heading,.panel-body){background:transparent!important;color:var(--ib-text)!important;border-color:var(--ib-line)!important}
+.inkbound-system-shell:not(.is-desk-home):not(.is-adventure-mode) :is(h1,h2,h3,strong){color:var(--ib-text)!important}
+.inkbound-system-shell:not(.is-desk-home):not(.is-adventure-mode) :is(p,small,label,.muted-copy){color:var(--ib-copy)}
+.inkbound-system-shell:not(.is-desk-home):not(.is-adventure-mode) :is(input,textarea,.terminal-select-trigger){
+  background:transparent!important;color:var(--ib-text)!important;border:1px solid var(--ib-line)!important;box-shadow:none!important;
+}
+.inkbound-system-shell:not(.is-desk-home):not(.is-adventure-mode) :is(button,.button,.icon-button){
+  font-family:var(--ib-mono);box-shadow:none!important;border-radius:0!important;
+}
+.inkbound-system-shell:not(.is-desk-home):not(.is-adventure-mode) :is(.button-primary,.button.button-primary){
+  background:var(--ib-highlight)!important;color:var(--ib-button-ink)!important;border:1px solid var(--ib-highlight)!important;
+}
+.inkbound-system-shell:not(.is-desk-home):not(.is-adventure-mode) :is(a,.button-quiet){color:var(--ib-text)}
+.inkbound-system-shell:not(.is-desk-home):not(.is-adventure-mode) :is(button,a,input,textarea):focus-visible{outline:2px solid var(--ib-text);outline-offset:3px}
+.inkbound-system-shell:not(.is-desk-home):not(.is-adventure-mode) .terminal-select-menu{background:var(--ib-paper)!important;color:var(--ib-text)!important;border-color:var(--ib-line)!important}
+.inkbound-system-shell:not(.is-desk-home):not(.is-adventure-mode) .terminal-select-menu button{background:transparent;color:var(--ib-text)}
+/* CRT edition: mono in functional chrome, luminous headers only. Not glowing narrative paragraphs. */
+.inkbound-system-shell[data-ink-paper="phosphor"] :is(.brand strong,.page-title h1){font-family:var(--ib-mono);text-shadow:0 0 13px rgba(144,255,125,.29)}
+:where(.inkbound-home,.inkbound-live,.inkbound-lobby)[data-ink-paper="phosphor"] :is(.i656-wordmark,.ibl-brand,.ibl-chapter h1,.ibl-sealed h1,.ibl-topbar h1){font-family:"Courier Prime","Courier New",monospace!important;text-shadow:0 0 12px rgba(144,255,125,.24)}
+/* Large author links are composition, not another boxed dashboard. */
+.inkbound-author-intro{display:flex;align-items:flex-end;justify-content:space-between;gap:30px;padding:10px 0 48px;max-width:1100px}
+.inkbound-author-intro>div{max-width:680px}
+.inkbound-author-intro p{font:clamp(18px,2vw,26px)/1.55 var(--ib-serif);color:var(--ib-copy)}
+.inkbound-author-enter{display:inline-flex;gap:22px;align-items:center;font:600 17px/1.5 var(--ib-mono);text-decoration:none;border-bottom:1px solid var(--ib-text);padding:10px 0;color:var(--ib-text)}
+.inkbound-author-aside{max-width:190px;font-style:italic!important;font-size:16px!important;color:var(--ib-muted)!important}
+/* All global dialogs are paper-bound, wide enough for real settings and longer text. */
+#modal-root .inkbound-global-dialog.modal-panel{
+  box-sizing:border-box;position:fixed;width:min(960px,calc(100vw - 32px));max-width:none;
+  max-height:calc(100dvh - 32px);margin:auto;padding:0;
+  border:1px solid var(--ib-line)!important;border-radius:1px!important;
+  background:var(--ib-paper)!important;color:var(--ib-text)!important;
+  box-shadow:0 24px 70px rgba(0,0,0,.28)!important;overflow:auto;
+}
+#modal-root .inkbound-global-dialog :is(.panel-heading,.modal-body,.modal-footer){background:transparent!important;border-color:var(--ib-line)!important;color:var(--ib-text)!important}
+#modal-root .inkbound-global-dialog :is(.panel-heading strong,.modal-body h1,.modal-body h2,.modal-body h3){color:var(--ib-text)!important;font-family:var(--ib-serif)}
+#modal-root .inkbound-global-dialog .panel-heading{padding:20px clamp(18px,4vw,44px)}
+#modal-root .inkbound-global-dialog .modal-body{padding:clamp(20px,3vw,42px)}
+#modal-root .inkbound-global-dialog .modal-footer{padding:18px clamp(18px,4vw,44px);flex-wrap:wrap}
+#modal-root .inkbound-global-dialog :is(p,label,span){color:var(--ib-copy)}
+#modal-root .inkbound-global-dialog :is(button,.button,a){color:var(--ib-text);background:transparent;border-color:var(--ib-line);box-shadow:none}
+#modal-root .inkbound-global-dialog :is(.button-primary,.button.button-primary){background:var(--ib-highlight)!important;color:var(--ib-button-ink)!important;border-color:var(--ib-highlight)!important}
+#modal-root .inkbound-global-dialog :is(input,textarea){background:transparent!important;color:var(--ib-text)!important;border:1px solid var(--ib-line)!important;max-width:100%}
+#modal-root .inkbound-global-dialog :is(a,button,input,textarea):focus-visible{outline:2px solid var(--ib-text);outline-offset:3px}
+.inkbound-turn-theater :is(.turn-resolution-theater,.intermission-runtime,.turn-theater-stage){width:min(980px,calc(100vw - 32px))!important;max-width:calc(100vw - 32px);max-height:calc(100dvh - 32px);overflow:auto}
+.inkbound-live .ibl-prose .story-reveal{font:inherit;color:inherit}
+.inkbound-live .ibl-prose .story-reveal p{font:inherit;color:var(--ia-copy);letter-spacing:inherit}
+.inkbound-live .ibl-prose .story-reveal-skip{color:var(--ia-text);border-bottom:1px solid var(--ia-rule);padding:5px 0;font:12px var(--ib-mono,"Courier New",monospace)}
+@media(max-width:760px){
+  .inkbound-author-intro{display:block;padding:10px 0 30px}.inkbound-author-aside{display:none}
+  #modal-root .inkbound-global-dialog.modal-panel{width:calc(100vw - 18px);max-height:calc(100dvh - 18px)}
+  .inkbound-system-shell .site-header{flex-wrap:wrap}
+}
+@media(prefers-reduced-motion:reduce){
+  .inkbound-live .ibl-prose .story-reveal-word{opacity:1;transition:none}
+}

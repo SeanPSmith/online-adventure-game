@@ -1501,3 +1501,32 @@ dialog::backdrop {
 .author-ai-preview-changes pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 160px; overflow-y: auto; margin: 5px 0 12px; font-size: 12px; }
 
 .author-ai-card [hidden] { display: none !important; }
+
+
+/* PASS 66.0 — Inkbound skin for the real author editor. No author logic changes. */
+:root{--mono:"American Typewriter","Courier New",monospace;--sans:"Iowan Old Style",Georgia,serif;--radius:2px;
+ --bg:#f7f3e9;--panel:#f7f3e9;--panel2:#f3eee4;--line:rgba(48,40,30,.25);--text:#28251f;--muted:#756c60;--accent:#322b21;--accent-dim:#756c60;color-scheme:light}
+html[data-ink-paper="cream"]{--bg:#eee7d9;--panel:#eee7d9;--panel2:#e9ddca;--line:rgba(65,47,27,.29);--text:#30291e;--muted:#6a5a46;--accent:#35291a;--accent-dim:#6a5a46;color-scheme:light}
+html[data-ink-paper="parchment"]{--bg:#d9c6a4;--panel:#d9c6a4;--panel2:#d2bc95;--line:rgba(65,43,25,.32);--text:#33271a;--muted:#604a34;--accent:#33271a;--accent-dim:#604a34;color-scheme:light}
+html[data-ink-paper="navy"]{--bg:#0b1725;--panel:#0b1725;--panel2:#142639;--line:rgba(244,233,214,.28);--text:#f4e9d6;--muted:#c0b6a5;--accent:#f4e9d6;--accent-dim:#c0b6a5;color-scheme:dark}
+html[data-ink-paper="phosphor"]{--bg:#06140c;--panel:#06140c;--panel2:#0c2112;--line:rgba(198,249,177,.32);--text:#c6f9b1;--muted:#94bf8b;--accent:#c6f9b1;--accent-dim:#94bf8b;color-scheme:dark;--sans:"Courier Prime","Courier New",monospace;--mono:"Courier Prime","Courier New",monospace}
+html[data-ink-paper="midnight"]{--bg:#141516;--panel:#141516;--panel2:#1e2021;--line:rgba(245,246,243,.28);--text:#f5f6f3;--muted:#b4bab6;--accent:#f5f6f3;--accent-dim:#b4bab6;color-scheme:dark}
+html,body{background:var(--bg)!important;color:var(--text)!important}
+.topbar{background:var(--bg)!important;backdrop-filter:none;border-color:var(--line);padding:24px clamp(18px,3vw,54px)}
+.topbar h1,.sidebar h2,.editor h2,.dialog-card h2{font-family:var(--sans);font-weight:400;letter-spacing:-.035em;color:var(--text)}
+.sidebar{background:transparent;border-color:var(--line)}
+.shell{grid-template-columns:minmax(235px,285px) minmax(0,1fr)}
+:is(.editor,.workspace,.strength-panel,.world-link-panel,.generation-panel,.adventure-list-item,.dialog-card,.preview-card,.editor-header){background:transparent;box-shadow:none;border-color:var(--line);border-radius:0;color:var(--text)}
+:is(button,.button,.icon-button,input,textarea,select){border-radius:0!important;box-shadow:none!important}
+:is(input,textarea,select){background:var(--panel)!important;color:var(--text)!important;border:1px solid var(--line)!important}
+:is(.button.primary,button.primary){background:var(--accent)!important;color:var(--bg)!important;border:1px solid var(--accent)!important}
+:is(.button.subtle,button.subtle){background:transparent!important;color:var(--text)!important;border:1px solid var(--line)!important}
+:is(.section-kicker,.eyebrow,.editor-meta,.helper,.strength-note){color:var(--muted)!important}
+.dialog-card{padding:clamp(20px,3.5vw,46px)}
+dialog{width:min(940px,calc(100vw - 32px));max-width:calc(100vw - 32px);max-height:calc(100dvh - 32px);overflow:auto;background:var(--panel);border:1px solid var(--line);box-shadow:0 25px 70px rgba(0,0,0,.27);border-radius:0}
+#preview-dialog{width:min(1180px,calc(100vw - 32px))}
+#preview-content{background:var(--panel2);color:var(--text);border-color:var(--line);border-radius:0;max-height:60dvh}
+.toast{background:var(--panel);color:var(--text);border-color:var(--line);border-radius:0}
+html[data-ink-paper="phosphor"] .topbar h1{text-shadow:0 0 12px rgba(144,255,125,.23)}
+@media(max-width:900px){.shell{grid-template-columns:1fr}}
+@media(max-width:600px){.topbar{position:relative;flex-direction:column;align-items:flex-start;gap:10px}.topbar-actions{justify-content:flex-start}}

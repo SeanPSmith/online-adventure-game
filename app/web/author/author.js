@@ -4065,6 +4065,23 @@ function installTerminalSelects(root = document) {
    BOOT
 ========================================================= */
 
+function applyAuthorInkboundPaper(userId) {
+    // The editor is still Python-served; read the same authenticated account's
+    // browser-only paper preference without touching authoring data or APIs.
+    const storageKey = `tot:inkbound:paper:${userId}`;
+    const valid = new Set(["parchment", "ivory", "cream", "navy", "phosphor", "midnight"]);
+    const update = () => {
+        let saved = "ivory";
+        try { saved = localStorage.getItem(storageKey) || "ivory"; } catch { /* privacy mode */ }
+        const chosen = saved === "chalk" ? "ivory" : saved;
+        document.documentElement.dataset.inkPaper = valid.has(chosen) ? chosen : "ivory";
+    };
+    update();
+    window.addEventListener("storage", event => {
+        if (event.key === storageKey) update();
+    });
+}
+
 async function boot() {
     restoreReturnToGameRoute();
     installTerminalSelects();
@@ -4076,6 +4093,7 @@ async function boot() {
         ui.authorUser.textContent = (
             `${auth.user.username.toUpperCase()} // AUTHOR`
         );
+        applyAuthorInkboundPaper(auth.user.user_id);
 
         await refreshLibrary();
 

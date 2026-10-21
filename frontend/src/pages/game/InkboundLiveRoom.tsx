@@ -5,6 +5,8 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Link } from "react-router";
 import type { Character } from "../../services/characters";
+import { StoryReveal } from "../../features/adventure/StoryReveal";
+import type { NarrationCue } from "../../services/storyNarrator";
 import type { InkPaper } from "../../features/appearance/inkboundPaper";
 import type { ChatMessage, PartyHeroSnapshot, RoomPlayer, SceneChoice, TurnHistoryEntry } from "../../services/game";
 import "./inkboundFoundation.css";
@@ -37,16 +39,32 @@ export type InkboundLiveRoomProps = Readonly<{
   onNotesChange: (text: string) => void;
   onToggleStoryTime: () => void;
   narrationEnabled: boolean;
+  wordRevealEnabled?: boolean;
+  decorativeInitials?: boolean;
+  followNarration?: boolean;
+  narrationCue?: NarrationCue | null;
   sessionUtilities?: ReactNode;
   onClose: () => void;
 }>;
 
-function Prose({ body }: { body: string }) {
-  const paragraphs = body.trim().split(/\n\s*\n/).filter(Boolean);
+function Prose({ sceneId, body, wordRevealEnabled, decorativeInitials, followNarration, narrationCue }: {
+  sceneId: string;
+  body: string;
+  wordRevealEnabled: boolean;
+  decorativeInitials: boolean;
+  followNarration: boolean;
+  narrationCue: NarrationCue | null;
+}) {
   return <section aria-label="Story narration" className="ibl-prose">
-    {paragraphs.map((paragraph, index) => <p key={index} className={index === 0 ? "ibl-opening" : undefined}>
-      {index === 0 && paragraph.length > 0 ? <><span className="ibl-dropcap" aria-hidden="true">{paragraph[0]}</span><span className="sr-only">{paragraph[0]}</span>{paragraph.slice(1)}</> : paragraph}
-    </p>)}
+    <StoryReveal
+      sceneId={sceneId}
+      text={body}
+      enabled={wordRevealEnabled}
+      followNarration={followNarration}
+      narrationCue={narrationCue}
+      decorativeInitials={decorativeInitials}
+      readingTypeface="literary"
+    />
   </section>;
 }
 
@@ -92,7 +110,7 @@ export function InkboundLiveRoom(props: InkboundLiveRoomProps) {
           <h1>{props.scene.title}</h1>
           <div className="ibl-flourish" aria-hidden="true">✦</div>
           {props.illustrationSrc ? <figure className="ibl-chapter-illustration"><img src={props.illustrationSrc} alt="Ink illustration of travelers looking across a distant valley" /></figure> : props.scene.ascii_art?.trim() ? <pre aria-label="Scene illustration" className="ibl-scene-ascii">{props.scene.ascii_art.trim()}</pre> : null}
-          <Prose body={props.scene.body} />
+          <Prose sceneId={props.scene.id} body={props.scene.body} wordRevealEnabled={props.wordRevealEnabled ?? false} decorativeInitials={props.decorativeInitials ?? true} followNarration={props.followNarration ?? false} narrationCue={props.narrationCue ?? null} />
           <div className="ibl-section-heading"><span />What do you do?<span /></div>
           <div className="ibl-choices">
             {props.scene.choices.map((choice, index) => <button key={choice.id} type="button" className={`ibl-choice ${props.selectedChoiceId === choice.id ? "is-chosen" : ""}`}

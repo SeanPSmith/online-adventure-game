@@ -70,7 +70,7 @@ def test_existing_adventure_functionality_not_hidden_by_reader():
 
 def test_all_six_theme_lobby_and_device_breakpoints():
     css, lobby = text(CSS), text(LOBBY)
-    for palette in ('chalk', 'ivory', 'cream', 'navy', 'phosphor', 'midnight'):
+    for palette in ('parchment', 'ivory', 'cream', 'navy', 'phosphor', 'midnight'):
         assert f'.inkbound-lobby[data-ink-paper="{palette}"]' in css
     assert 'data-ink-paper={props.paper}' in lobby
     for surface in ('.ibl-lobby-art', '.ibl-lobby-synopsis', '.ibl-lobby-party-list',

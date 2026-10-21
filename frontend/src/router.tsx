@@ -82,6 +82,7 @@ export const router = createBrowserRouter([
               { path: "account", lazy: async () => ({ Component: (await import("./pages/account/AccountPage")).AccountPage }) },
               { path: "settings", element: <Navigate to="/account?tab=preferences" replace /> },
               { path: "author", lazy: async () => ({ Component: (await import("./pages/author/AuthorPage")).AuthorPage }) },
+              { path: "account/author", lazy: async () => ({ Component: (await import("./pages/author/AuthorPage")).AuthorPage }) },
               { path: "admin", lazy: async () => ({ Component: (await import("./pages/admin/AdminPage")).AdminPage }) },
             ],
           },

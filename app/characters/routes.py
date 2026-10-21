@@ -51,6 +51,15 @@ from app.persistence.store import (
 # ROUTER
 # =========================================================
 
+def _validated_appearance(appearance: dict) -> dict:
+    from app.characters.creation_routes import AppearanceAnswers
+    from pydantic import ValidationError
+    try:
+        return AppearanceAnswers.model_validate(appearance).model_dump()
+    except ValidationError as exc:
+        raise HTTPException(status_code=422, detail="Appearance details are too long or invalid.") from exc
+
+
 router = APIRouter(
     prefix=
         "/api/characters",
@@ -221,6 +230,8 @@ async def create_character(
 
                 bio=
                     payload.bio,
+                archetype=payload.archetype,
+                appearance=_validated_appearance(payload.appearance),
 
                 stats=
                     payload.stats,
@@ -494,6 +505,10 @@ async def delete_character(
         ) from error
     except CharacterValidationError as error:
         raise HTTPException(status_code=409, detail=str(error)) from error
+
+    from app.characters.creation_routes import delete_hero_portraits
+    import asyncio
+    await asyncio.to_thread(delete_hero_portraits, character_id)
 
     return CharacterDeleteResponse(
         message=

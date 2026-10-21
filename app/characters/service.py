@@ -132,6 +132,8 @@ class CharacterService:
             str,
             int,
         ],
+        archetype: str = "",
+        appearance: dict | None = None,
     ) -> Character:
 
         name = self.validate_name(
@@ -195,6 +197,8 @@ class CharacterService:
 
             bio=
                 bio,
+            archetype=str(archetype or "")[:80],
+            appearance=dict(appearance or {}),
 
             created_at=
                 now,

@@ -164,6 +164,8 @@ class Character:
     updated_at: datetime
 
     bio: str = ""
+    archetype: str = ""
+    appearance: dict = field(default_factory=dict)
 
 
     level: int = 1
@@ -269,6 +271,8 @@ class Character:
         self.unspent_talent_points = max(0, int(self.unspent_talent_points or 0))
         self.talents = list(dict.fromkeys(str(item).strip().lower() for item in (self.talents or []) if str(item).strip()))
         self.bio = str(self.bio or "").strip()[:800]
+        self.archetype = str(self.archetype or "").strip()[:80]
+        self.appearance = {str(k)[:40]: str(v)[:220] for k, v in (self.appearance or {}).items() if str(v).strip()}
         self.hero_status = self.hero_status if self.hero_status in {"active", "retired", "buried"} else "active"
         self.epitaph = str(self.epitaph or "").strip()[:160]
         self.progression_version = max(1, int(self.progression_version or 1))
@@ -455,6 +459,8 @@ class Character:
 
             "bio":
                 self.bio,
+            "archetype": self.archetype,
+            "appearance": dict(self.appearance),
 
             "created_at":
                 self.created_at.isoformat(),
@@ -611,6 +617,8 @@ class Character:
                 ),
 
             bio=str(data.get("bio", "") or ""),
+            archetype=str(data.get("archetype", "") or ""),
+            appearance=dict(data.get("appearance", {}) or {}),
 
             created_at=
                 datetime.fromisoformat(

@@ -5,6 +5,8 @@ export interface Character {
   owner_user_id: string;
   name: string;
   bio: string;
+  archetype: string;
+  appearance: Record<string, string>;
   created_at: string;
   updated_at: string;
   level: number;
@@ -128,10 +130,12 @@ export function createCharacter(
   bio: string,
   stats: Record<string, number>,
   skills: Record<string, number>,
+  archetype = "",
+  appearance: AppearanceAnswers | Record<string, string> = {},
 ) {
   return apiFetch<Character>("/api/characters", {
     method: "POST",
-    body: JSON.stringify({ name, bio, stats, skills }),
+    body: JSON.stringify({ name, bio, stats, skills, archetype, appearance }),
   });
 }
 
@@ -195,5 +199,34 @@ export function setHeroDisposition(characterId: string, action: "retire" | "rest
 export function deleteCharacter(characterId: string) {
   return apiFetch<{ message: string }>(`/api/characters/${encodeURIComponent(characterId)}`, {
     method: "DELETE",
+  });
+}
+
+export interface AppearanceAnswers {
+  species: string; gender: string; age: string; height: string; weight: string;
+  build: string; face: string; skin: string; hair: string; attire: string;
+  origin: string; calling: string; disposition: string; motivation: string;
+  defining_detail: string;
+}
+export interface HeroPortraitBook {
+  attempts_used: number;
+  max_attempts: number;
+  selected_attempt: number | null;
+  candidates: {attempt: number; url: string}[];
+}
+export function proposeHeroBiography(name: string, appearance: AppearanceAnswers, stats: Record<string, number>, skills: Record<string, number>) {
+  return apiFetch<{bio: string}>("/api/characters/creation-proposal", {
+    method: "POST", body: JSON.stringify({name, appearance, stats, skills}),
+  });
+}
+export function getHeroPortraits(heroId: string) {
+  return apiFetch<HeroPortraitBook>(`/api/characters/${encodeURIComponent(heroId)}/portraits`);
+}
+export function generateHeroPortrait(heroId: string) {
+  return apiFetch<HeroPortraitBook>(`/api/characters/${encodeURIComponent(heroId)}/portrait/generate`, {method: "POST"});
+}
+export function chooseHeroPortrait(heroId: string, attempt: number) {
+  return apiFetch<HeroPortraitBook>(`/api/characters/${encodeURIComponent(heroId)}/portrait/select`, {
+    method: "POST", body: JSON.stringify({attempt}),
   });
 }

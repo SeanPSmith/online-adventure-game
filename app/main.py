@@ -100,6 +100,8 @@ from app.characters.routes import (
     router as character_router,
 )
 
+from app.characters.creation_routes import router as hero_creation_router
+
 from app.characters.service import (
     CharacterError,
     character_service,
@@ -463,6 +465,7 @@ fastapi_app.include_router(
 fastapi_app.include_router(
     character_router
 )
+fastapi_app.include_router(hero_creation_router)
 
 
 fastapi_app.mount(

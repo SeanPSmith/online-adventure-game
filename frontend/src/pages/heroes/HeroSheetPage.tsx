@@ -1,11 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router";
 import { PageTitle } from "../../components/ui/PageTitle";
+import "./quillairoHeroSheetPortrait.css";
 import { Panel } from "../../components/ui/Panel";
 import {
   advanceCharacter,
   getCharacter,
   getCreationRules,
+  getHeroPortraits,
+  chooseHeroPortrait,
+  generateHeroPortrait,
+  type HeroPortraitBook,
   listCharacterStories,
   updateCharacterProfile,
   type Character,
@@ -47,6 +52,7 @@ export function HeroSheetPage() {
   const [skillSpend, setSkillSpend] = useState<Record<string, number>>({});
   const [talentSpend, setTalentSpend] = useState<string[]>([]);
   const [bioDraft, setBioDraft] = useState("");
+  const [portraitBook, setPortraitBook] = useState<HeroPortraitBook | null>(null);
   const [editingBio, setEditingBio] = useState(false);
   const [error, setError] = useState("");
   const [working, setWorking] = useState(false);
@@ -66,6 +72,7 @@ export function HeroSheetPage() {
 
         setHero(heroValue);
         setBioDraft(heroValue.bio ?? "");
+        void getHeroPortraits(heroId).then(value => { if (alive) setPortraitBook(value); }).catch(() => { /* A saved Hero remains accessible if portrait storage is unavailable. */ });
         setRules(rulesValue);
         setStories(storyValue.stories);
         setError("");
@@ -261,6 +268,42 @@ export function HeroSheetPage() {
           </div>
         ) : null}
       />
+
+      {hero && (portraitBook?.candidates.length || Object.keys(hero.appearance || {}).length > 0) ? (
+        <section className="quill-hero-sheet-portrait" aria-label="Hero likeness">
+          <div className="qh-sheet-portrait-art">
+            {portraitBook?.selected_attempt ? (
+              <img src={`/api/characters/${encodeURIComponent(hero.character_id)}/portrait/${portraitBook.selected_attempt}`} alt={`Chosen illustrated portrait of ${hero.name}`} />
+            ) : portraitBook?.candidates[0] ? (
+              <img src={portraitBook.candidates[0].url} alt={`Unselected portrait candidate for ${hero.name}`} />
+            ) : <img src="/art/inkbound/hero-vista.png" alt="" aria-hidden="true" />}
+          </div>
+          <div className="qh-sheet-portrait-description">
+            <span className="qh-sheet-eyebrow">AN ILLUSTRATED LIFE</span>
+            <h2>{hero.name}</h2>
+            {hero.archetype && <p className="qh-sheet-class">{hero.archetype}</p>}
+            <p>{[hero.appearance?.species,hero.appearance?.gender,hero.appearance?.height,hero.appearance?.build].filter(Boolean).join(" · ")}</p>
+            {portraitBook && portraitBook.candidates.length > 0 ? (
+              <div className="qh-sheet-portrait-options">
+                {portraitBook.candidates.map(candidate => <button type="button" className="button" key={candidate.attempt} disabled={working || candidate.attempt === portraitBook.selected_attempt}
+                  onClick={() => {
+                    setWorking(true);
+                    void chooseHeroPortrait(hero.character_id, candidate.attempt).then(setPortraitBook)
+                      .catch(reason => setError(reason instanceof Error ? reason.message : "Could not choose portrait."))
+                      .finally(() => setWorking(false));
+                  }}>{candidate.attempt === portraitBook.selected_attempt ? "Selected drawing" : `Choose drawing ${candidate.attempt}`}</button>)}
+                {portraitBook.selected_attempt === null && portraitBook.attempts_used < portraitBook.max_attempts && <button className="button" type="button" disabled={working}
+                  onClick={() => {
+                    setWorking(true);
+                    void generateHeroPortrait(hero.character_id).then(setPortraitBook)
+                      .catch(reason => setError(reason instanceof Error ? reason.message : "Portrait generation unavailable."))
+                      .finally(() => setWorking(false));
+                  }}>Generate drawing {portraitBook.attempts_used + 1} of 3</button>}
+              </div>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
 
       {error ? <div className="form-error">{error}</div> : null}
 

@@ -91,6 +91,8 @@ class CreateCharacterRequest(
     )
 
     bio: str = Field(default="", max_length=800)
+    archetype: str = Field(default="", max_length=80)
+    appearance: dict[str, str] = Field(default_factory=dict)
 
     stats: dict[
         str,
@@ -129,6 +131,8 @@ class CharacterResponse(
     name: str
 
     bio: str = ""
+    archetype: str = ""
+    appearance: dict[str, str] = Field(default_factory=dict)
 
     created_at: str
 

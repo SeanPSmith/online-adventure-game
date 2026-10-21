@@ -1,0 +1,11 @@
+/* Portrait is an actual authenticated media response; never a composited screenshot. */
+.quill-hero-sheet-portrait{--qh-rule:var(--ib-line,rgba(75,66,51,.24));--qh-text:var(--ib-text,currentColor);--qh-copy:var(--ib-copy,currentColor);display:grid;grid-template-columns:minmax(160px,32%) minmax(0,1fr);gap:clamp(25px,5vw,70px);align-items:center;padding:clamp(24px,3vw,48px) 0;margin:10px 0 30px;border-top:1px solid var(--qh-rule);border-bottom:1px solid var(--qh-rule);color:var(--qh-text)}
+.qh-sheet-portrait-art img{display:block;width:100%;max-height:490px;object-fit:contain}
+[data-ink-paper="navy"] .qh-sheet-portrait-art img,[data-ink-paper="midnight"] .qh-sheet-portrait-art img{filter:invert(1)}
+[data-ink-paper="phosphor"] .qh-sheet-portrait-art img{filter:invert(1) sepia(1) saturate(1.4) hue-rotate(50deg)}
+.qh-sheet-portrait-description h2{font:400 clamp(38px,4vw,67px)/1.1 Georgia,serif;margin:12px 0;color:var(--qh-text)}
+.qh-sheet-portrait-description p{font:18px/1.55 Georgia,serif;color:var(--qh-copy)}
+.qh-sheet-portrait-description .qh-sheet-eyebrow{font:12px "American Typewriter",monospace;letter-spacing:.2em}
+.qh-sheet-portrait-description .qh-sheet-class{font-style:italic;font-size:22px}
+.qh-sheet-portrait-options{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}
+@media(max-width:640px){.quill-hero-sheet-portrait{grid-template-columns:1fr}.qh-sheet-portrait-art img{max-height:360px}}

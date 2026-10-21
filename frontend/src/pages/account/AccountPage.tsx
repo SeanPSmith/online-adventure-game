@@ -5,6 +5,7 @@ import { Panel } from "../../components/ui/Panel";
 import { SettingsPage } from "./SettingsPage";
 import { AppearanceWardrobe } from "../../features/appearance/AppearanceWardrobe";
 import { InkboundPaperPreferences } from "../../features/appearance/InkboundPaperPreferences";
+import "./quillairoSettingsPass665.css";
 import * as authApi from "../../services/auth";
 import { useAuth } from "../../state/AuthContext";
 import { useModal } from "../../state/ModalContext";
@@ -405,12 +406,12 @@ export function AccountPage() {
 
   return (
     <>
-      <PageTitle
+      {activeTab !== "preferences" ? <PageTitle
         eyebrow={`ACCOUNT CENTER // ${tabLabel}`}
         title={user?.username ? `PLAYER // ${user.username}` : "PLAYER ACCOUNT"}
-      />
+      /> : null}
 
-      <div className="account-command-bar">
+      {activeTab !== "preferences" ? <div className="account-command-bar">
         <div>
           <span className="eyebrow">ACCOUNT STATUS</span>
           <strong>{user?.is_active ? "ONLINE // ACTIVE" : "INACTIVE"}</strong>
@@ -423,7 +424,7 @@ export function AccountPage() {
           <span className="eyebrow">ACCESS</span>
           <strong>{user?.permissions.includes("admin") ? "ADMIN" : user?.permissions.includes("author") ? "AUTHOR" : "PLAYER"}</strong>
         </div>
-      </div>
+      </div> : null}
 
       <nav className="account-tabs" role="tablist" aria-label="Account settings sections">
         {ACCOUNT_TABS.map((tab) => (
@@ -443,9 +444,31 @@ export function AccountPage() {
         ))}
       </nav>
 
-      <section className="account-tab-content" role="tabpanel">
+      <section className={`account-tab-content${activeTab === "preferences" ? " quill-account-preferences" : ""}`} role="tabpanel">
         {activeTab === "profile" ? <ProfileTab /> : null}
-        {activeTab === "preferences" ? <><InkboundPaperPreferences /><AppearanceWardrobe /><SettingsPage section="preferences" /></> : null}
+        {activeTab === "preferences" ? <div className="quill-settings-page">
+          <aside className="quill-settings-intro" aria-label="Settings introduction">
+            <p className="quill-settings-kicker">THE READING ROOM / PREFERENCES</p>
+            <h1>Settings</h1>
+            <p className="quill-settings-tagline">Shape your journey.</p>
+            <p className="quill-settings-summary">Make this story your own. Choose how it looks, how it sounds, and how your companions find you.</p>
+            <nav className="quill-settings-index" aria-label="Settings sections">
+              <a href="#ink-settings-storytime">Story Time <span aria-hidden="true">↗</span></a>
+              <a href="#inkbound-paper">Paper &amp; Ink <span aria-hidden="true">↗</span></a>
+              <a href="#ink-settings-reading">Reading &amp; Display <span aria-hidden="true">↗</span></a>
+              <a href="#ink-settings-gameplay">Sound &amp; Gameplay <span aria-hidden="true">↗</span></a>
+              <a href="#ink-settings-notifications">Notifications <span aria-hidden="true">↗</span></a>
+            </nav>
+            <img className="quill-settings-art" src="/art/inkbound/north-road-editorial.png" alt="" loading="lazy" />
+            <p className="quill-settings-colophon">Different paths. The same wonder.</p>
+          </aside>
+          <div className="quill-settings-content">
+            <InkboundPaperPreferences />
+            <SettingsPage section="preferences" />
+            <SettingsPage section="notifications" />
+            <div className="quill-settings-wardrobe"><AppearanceWardrobe /></div>
+          </div>
+        </div> : null}
         {activeTab === "notifications" ? <SettingsPage section="notifications" /> : null}
         {activeTab === "security" ? <SecurityTab /> : null}
         {activeTab === "billing" ? <BillingTab /> : null}

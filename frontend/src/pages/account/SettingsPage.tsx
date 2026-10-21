@@ -78,10 +78,10 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
     }
   }
 
-  useEffect(() => observeStoryTime(setStoryTime), []);
+  useEffect(() => section === "notifications" ? undefined : observeStoryTime(setStoryTime), [section]);
   useEffect(() => {
-    if (audio.narrationEnabled && audio.storyTimeApproved) void prepareStoryTime().catch(() => {});
-  }, [audio.narrationEnabled, audio.storyTimeApproved]);
+    if (section !== "notifications" && audio.narrationEnabled && audio.storyTimeApproved) void prepareStoryTime().catch(() => {});
+  }, [section, audio.narrationEnabled, audio.storyTimeApproved]);
 
   async function seedVoicePreviews() {
     if (!isAdmin || seeding) return;
@@ -116,6 +116,7 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
   }
 
   useEffect(() => {
+    if (section === "preferences") return;
     let cancelled = false;
     void getNotificationSettings()
       .then((settings) => {
@@ -132,7 +133,7 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [section]);
 
   const pushSupported = permission !== "unsupported" && channels.pushAvailable;
   const pushStatus = useMemo(() => {
@@ -234,21 +235,22 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
   }
 
   return (
-    <>
+    <div className={`quill-settings-panels quill-settings-panels--${section}`} aria-label="Quillairo preferences">
       {section === "all" ? <PageTitle eyebrow="ACCOUNT" title="SETTINGS" /> : null}
 
       {section !== "preferences" ? (
+      <div className="quill-settings-block quill-settings-notifications" id="ink-settings-notifications">
       <Panel title="REAL-WORLD ADVENTURE NOTIFICATIONS">
         <div className="notification-settings-grid">
           <p className="muted-copy notification-settings-intro">
             In-app notices are local UI. Web Push, email, and SMS are server-delivered channels
-            designed for asynchronous co-op when Tales of Two is in another tab—or completely closed.
+            designed for asynchronous co-op when Quillairo is in another tab—or completely closed.
           </p>
 
           <div className="notification-setting-row">
             <div>
               <strong>IN-APP ACTIVITY ALERTS</strong>
-              <p>Show compact terminal notices while Tales of Two is already open.</p>
+              <p>Show compact terminal notices while Quillairo is already open.</p>
               <small>THIS SETTING APPLIES ONLY TO THIS BROWSER.</small>
             </div>
             <label className="terminal-toggle">
@@ -265,7 +267,7 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
             <div>
               <strong>WEB PUSH // DEVICE PING</strong>
               <p>
-                Register this browser with the Tales of Two push worker. Notifications can arrive
+                Register this browser with the Quillairo push worker. Notifications can arrive
                 after you close the game page, and tapping one routes back to the relevant room.
               </p>
               <small>{pushStatus}</small>
@@ -315,7 +317,7 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
             <div>
               <strong>SMS // AWS</strong>
               <p>
-                Optional text alerts. A number must be verified before Tales of Two will send gameplay SMS.
+                Optional text alerts. A number must be verified before Quillairo will send gameplay SMS.
               </p>
               <small>
                 {!channels.smsAvailable
@@ -390,7 +392,7 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
               />
               <span>
                 <strong>ROOM INVITE</strong>
-                <small>Another Tales of Two account directly invites you to a co-op room.</small>
+                <small>Another Quillairo account directly invites you to a co-op room.</small>
               </span>
             </label>
 
@@ -437,9 +439,11 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
           {status ? <div className="system-notice notification-settings-status">{status}</div> : null}
         </div>
       </Panel>
+      </div>
       ) : null}
 
       {section !== "notifications" ? (<>
+      <div className="quill-settings-block quill-settings-sound" id="ink-settings-gameplay">
       <Panel title="AUDIO // YOUR ADVENTURE, YOUR VOLUME">
         <div className="notification-settings-grid">
           <div className="notification-setting-row">
@@ -478,6 +482,8 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
         </div>
       </Panel>
 
+      </div>
+      <div className="quill-settings-block quill-settings-storytime" id="ink-settings-storytime">
       <Panel title="STORY TIME // YOUR STORYTELLER">
         <div className="notification-settings-grid">
           <div className="notification-setting-row">
@@ -563,6 +569,8 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
         </div>
       </Panel>
 
+      </div>
+      <div className="quill-settings-block quill-settings-reading" id="ink-settings-reading">
       <Panel title="STORY DISPLAY">
         <div className="notification-settings-grid">
           <div className="notification-setting-row">
@@ -601,12 +609,15 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
         </div>
       </Panel>
 
+      </div>
+      <div className="quill-settings-block quill-settings-footnote">
       <Panel title="PRESENTATION NOTES">
         <p className="muted-copy">
           Reduced-motion browser settings always override animated story reveal. Effects are optional and never replace visual game feedback.
         </p>
       </Panel>
+      </div>
       </>) : null}
-    </>
+    </div>
   );
 }

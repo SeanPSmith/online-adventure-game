@@ -15,8 +15,8 @@ export function AccountLayout() {
       <a className="skip-link" href="#main-content">SKIP TO CONTENT</a>
       <header className="site-header">
         <Link className="brand" to="/game">
-          <span className="brand-mark">T2</span>
-          <span><strong>TALES OF TWO</strong><small>ACCOUNT SYSTEM_</small></span>
+          <span className="brand-mark" aria-hidden="true">✧</span>
+          <span><strong>QUILLAIRO</strong><small>THE READING ROOM</small></span>
         </Link>
         <nav className="header-nav">
           <NavLink to="/account">ACCOUNT</NavLink>

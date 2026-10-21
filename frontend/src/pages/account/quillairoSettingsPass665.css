@@ -1,0 +1,103 @@
+/* Pass 66.5 — Settings page reference reconstruction.
+   Real React controls and real services. No composited screenshot UI.
+   The decorative landscape lives in an isolated transparent image element. */
+.inkbound-account-shell:has(.quill-settings-page) .account-main{width:min(100% - clamp(24px,5vw,100px),1540px);padding-top:26px}
+.inkbound-account-shell:has(.quill-settings-page) .account-tab-content.quill-account-preferences{padding:0!important;margin:0!important;border:0!important;background:transparent!important}
+.inkbound-account-shell:has(.quill-settings-page) .account-tabs{max-width:100%;display:flex;flex-wrap:wrap;gap:clamp(12px,2vw,32px);justify-content:center;margin:0 0 42px;padding:10px 0 16px;border-bottom:1px solid var(--ib-line)!important}
+.inkbound-account-shell:has(.quill-settings-page) .account-tabs button{width:auto;min-width:0;min-height:40px;padding:6px 5px!important;border:0!important;border-bottom:2px solid transparent!important;background:none!important;color:var(--ib-copy)!important;letter-spacing:.11em;font:600 11px/1.3 var(--ib-mono)}
+.inkbound-account-shell:has(.quill-settings-page) .account-tabs button[aria-selected="true"]{border-bottom-color:var(--ib-text)!important;color:var(--ib-text)!important}
+.inkbound-account-shell:has(.quill-settings-page) .account-tabs button small{display:none}
+.quill-settings-page{display:grid;grid-template-columns:minmax(238px,25%) minmax(0,1fr);gap:clamp(25px,3vw,60px);align-items:start;color:var(--ib-text)}
+.quill-settings-intro{border-right:1px solid var(--ib-line);padding:clamp(16px,2vw,32px) clamp(25px,2.5vw,45px) 0 0;min-height:780px;display:flex;flex-direction:column;position:relative;overflow:hidden}
+.quill-settings-kicker{margin:0 0 26px!important;font:600 11px/1.6 var(--ib-mono);letter-spacing:.19em;color:var(--ib-muted)!important}
+.quill-settings-intro h1{font:400 clamp(53px,6vw,91px)/.98 var(--ib-serif)!important;margin:0 0 24px;letter-spacing:-.055em}
+.quill-settings-tagline{font:italic clamp(20px,2vw,27px)/1.35 var(--ib-serif)!important;letter-spacing:.035em;margin:0 0 24px;color:var(--ib-text)!important}
+.quill-settings-summary{max-width:305px;font:17px/1.65 var(--ib-serif)!important;color:var(--ib-copy)!important;margin:0 0 33px}
+.quill-settings-index{display:flex;flex-direction:column;gap:0;max-width:310px;position:relative;z-index:1}
+.quill-settings-index a{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--ib-line);padding:11px 2px;color:var(--ib-text)!important;text-decoration:none;font:600 12px/1.4 var(--ib-mono);letter-spacing:.03em}
+.quill-settings-index a:hover{text-decoration:underline;text-underline-offset:4px}
+.quill-settings-art{margin:42px 0 12px -10%;width:120%;max-width:none;object-fit:contain;align-self:center;pointer-events:none;display:block}
+.quill-settings-colophon{margin:auto 0 20px!important;text-align:center;font:italic 15px/1.5 var(--ib-serif);letter-spacing:.07em;color:var(--ib-muted)!important}
+.inkbound-account-shell[data-ink-paper="navy"] .quill-settings-art,.inkbound-account-shell[data-ink-paper="midnight"] .quill-settings-art{filter:invert(1) grayscale(1);opacity:.72}
+.inkbound-account-shell[data-ink-paper="phosphor"] .quill-settings-art{filter:invert(1) sepia(1) saturate(1.7) hue-rotate(55deg);opacity:.65}
+.quill-settings-content{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"story paper" "story reading" "sound notifications" "wardrobe wardrobe" "notes notes";column-gap:clamp(23px,2.3vw,48px);row-gap:24px;align-items:start;min-width:0}
+/* The panels retain all their original event handlers and persistence. */
+.quill-settings-content>.quill-settings-panels{display:contents}
+.quill-settings-storytime{grid-area:story}
+.quill-settings-reading{grid-area:reading}
+.quill-settings-sound{grid-area:sound}
+.quill-settings-notifications{grid-area:notifications}
+.quill-settings-footnote{grid-area:notes}
+.quill-settings-wardrobe{grid-area:wardrobe;border-top:1px solid var(--ib-line);padding-top:30px;min-width:0}
+.quill-settings-content>.inkpaper-preferences{grid-area:paper;min-width:0}
+.quill-settings-content .quill-settings-block,.quill-settings-content .inkpaper-preferences{scroll-margin-top:40px}
+/* Remove the original dashboard card geometry. Section rhythm comes from typography and fine rules. */
+.quill-settings-content .quill-settings-block>.panel{margin:0!important;padding:0!important;border:0!important;box-shadow:none!important;background:transparent!important;min-width:0}
+.quill-settings-content .quill-settings-block>.panel>.panel-heading{display:block;background:transparent!important;border:0!important;border-bottom:1px solid var(--ib-line)!important;padding:11px 0 17px!important;color:var(--ib-text)!important;font:400 clamp(23px,2.2vw,34px)/1.14 var(--ib-serif)!important;letter-spacing:.025em;text-transform:none}
+.quill-settings-content .quill-settings-block>.panel>.panel-body{padding:15px 0!important;border:0!important;background:transparent!important;color:var(--ib-text)!important}
+.quill-settings-content .notification-settings-grid{display:flex!important;flex-direction:column;gap:0!important;padding:0!important;border:0!important;background:transparent!important}
+.quill-settings-content .notification-setting-row{display:flex!important;align-items:center;justify-content:space-between;gap:18px;padding:15px 1px!important;margin:0!important;border:0!important;border-bottom:1px solid var(--ib-line)!important;background:transparent!important;min-width:0}
+.quill-settings-content .notification-setting-row>div:first-child{min-width:0;flex:1}
+.quill-settings-content .notification-setting-row strong,.quill-settings-content .audio-setting-slider strong,.quill-settings-content .notification-event-option strong{font:600 14px/1.4 var(--ib-serif)!important;letter-spacing:.012em;color:var(--ib-text)!important}
+.quill-settings-content .notification-setting-row p,.quill-settings-content .notification-setting-row small,.quill-settings-content .audio-setting-slider small,.quill-settings-content .notification-event-option small{font:13px/1.55 var(--ib-serif)!important;color:var(--ib-muted)!important;margin:4px 0 0}
+.quill-settings-content .notification-setting-row small{display:block}
+.quill-settings-content .notification-setting-row>.terminal-toggle{flex:0 0 auto}
+/* Real accessible checkboxes styled as manuscript switches. Still native keyboard/assistive behavior. */
+.quill-settings-content .terminal-toggle{display:flex;align-items:center;justify-content:center;width:52px;height:28px;position:relative;cursor:pointer;flex-shrink:0}
+.quill-settings-content .terminal-toggle input[type="checkbox"]{appearance:none!important;position:absolute!important;inset:0;width:52px;height:28px;margin:0!important;border:1px solid var(--ib-line)!important;background:var(--ib-wash)!important;border-radius:30px!important;cursor:pointer;opacity:1!important;transition:background .18s}
+.quill-settings-content .terminal-toggle input[type="checkbox"]:checked{background:var(--ib-text)!important;border-color:var(--ib-text)!important}
+.quill-settings-content .terminal-toggle input[type="checkbox"]:after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--ib-muted);transition:transform .18s,background .18s}
+.quill-settings-content .terminal-toggle input[type="checkbox"]:checked:after{transform:translateX(24px);background:var(--ib-paper)}
+.quill-settings-content .terminal-toggle input:focus-visible{outline:2px solid var(--ib-text)!important;outline-offset:3px}
+.quill-settings-content .terminal-toggle input:disabled{opacity:.44!important;cursor:not-allowed}
+.quill-settings-content .terminal-toggle span{display:none!important}
+.quill-settings-content .audio-setting-slider{display:block;border-bottom:1px solid var(--ib-line);padding:13px 0;margin:0!important;min-width:0}
+.quill-settings-content .audio-setting-slider>span{display:flex;justify-content:space-between;gap:12px;color:var(--ib-text)}
+.quill-settings-content input[type="range"]{width:100%;max-width:100%;accent-color:var(--ib-text);background:transparent!important;border:0!important;padding:0!important;min-height:24px;cursor:pointer}
+.quill-settings-content .narrator-voice-picker{min-width:0;margin:12px 0 10px}
+.quill-settings-content .narrator-voice-current{display:flex;justify-content:space-between;align-items:center;width:100%;padding:12px 15px!important;border:1px solid var(--ib-line)!important;background:var(--ib-wash)!important;color:var(--ib-text)!important}
+.quill-settings-content .narrator-voice-library{max-width:100%;max-height:min(430px,60dvh);overflow:auto;background:var(--ib-paper)!important;border:1px solid var(--ib-line);padding:15px}
+.quill-settings-content .narrator-voice-option{display:flex;gap:10px;justify-content:space-between;align-items:center;border-bottom:1px solid var(--ib-line)}
+.quill-settings-content .narrator-voice-option button{white-space:normal;min-width:0;font-size:12px!important}
+.quill-settings-content .button-row{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 4px}
+.quill-settings-content .button-row button{padding:10px 12px!important;background:transparent!important;border:1px solid var(--ib-line)!important;color:var(--ib-text)!important;font-size:11px!important}
+.quill-settings-content .button-row button:hover{background:var(--ib-wash)!important}
+.quill-settings-content .button-row .button-primary{background:var(--ib-text)!important;color:var(--ib-paper)!important}
+.quill-settings-content .story-time-status,.quill-settings-content .system-notice{padding:11px 14px!important;margin:12px 0;background:var(--ib-wash)!important;color:var(--ib-copy)!important;border:1px solid var(--ib-line)!important;overflow-wrap:anywhere}
+.quill-settings-content .notification-event-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 15px;margin:16px 0}
+.quill-settings-content .notification-event-option{display:flex;gap:9px;align-items:start;padding:9px 0;background:transparent!important;border:0!important;min-width:0}
+.quill-settings-content .notification-event-option input{flex:0 0 auto;accent-color:var(--ib-text)}
+.quill-settings-content .notification-event-option span{min-width:0}
+.quill-settings-content .notification-phone-setup{display:flex;flex-direction:column;gap:8px;width:100%;max-width:300px}
+.quill-settings-content .notification-phone-line{display:flex;gap:8px;flex-wrap:wrap}
+.quill-settings-content .notification-phone-line input{flex:1 1 130px;width:100px;min-width:0;padding:8px!important;color:var(--ib-text)!important}
+.quill-settings-content .notification-phone-line button{font-size:10px!important;white-space:normal}
+.quill-settings-content .p643-typeface-picker{margin:18px 0 4px;padding:16px 0;border:0;border-top:1px solid var(--ib-line);display:flex;gap:17px;flex-wrap:wrap}
+.quill-settings-content .p643-typeface-picker legend{font:600 13px/1.4 var(--ib-mono);padding-right:10px;color:var(--ib-text)}
+.quill-settings-content .p643-typeface-picker label{display:inline-flex;gap:8px;align-items:center;font:13px/1.3 var(--ib-serif)}
+.quill-settings-content .p643-typeface-picker input{accent-color:var(--ib-text)}
+/* Theme cards become small page proofs. The real palette remains in the shared appearance service. */
+.quill-settings-content>.inkpaper-preferences{padding:0!important;margin:0!important;border:0!important;background:transparent!important;color:var(--ib-text)!important;font-family:var(--ib-serif)}
+.quill-settings-content .inkpaper-kicker{display:none}
+.quill-settings-content .inkpaper-preferences h2{font:400 clamp(23px,2.2vw,34px)/1.14 var(--ib-serif)!important;letter-spacing:.02em;color:var(--ib-text)!important;border-bottom:1px solid var(--ib-line);padding:11px 0 17px;margin:0 0 14px}
+.quill-settings-content .inkpaper-description{font:13px/1.55 var(--ib-serif);color:var(--ib-muted)!important;margin:0 0 18px}
+.quill-settings-content .inkpaper-options{grid-template-columns:repeat(3,minmax(0,1fr));gap:17px 11px}
+.quill-settings-content .inkpaper-sample{min-height:92px;padding:12px 9px;gap:8px}
+.quill-settings-content .inkpaper-sample-title{font:400 16px/1.25 Georgia,serif}
+.quill-settings-content .inkpaper-sample-lines{font-size:9px;line-height:1.4}
+.quill-settings-content .inkpaper-option-foot{margin:9px 0 3px}
+.quill-settings-content .inkpaper-option-name{font-size:11px;color:var(--ib-text)!important}
+.quill-settings-content .inkpaper-option-description{font-size:10px;line-height:1.35;color:var(--ib-muted)!important}
+.quill-settings-content .inkpaper-option-check{color:var(--ib-text)}
+.quill-settings-content .inkpaper-option[aria-pressed="true"] .inkpaper-sample{outline:2px solid var(--ib-text);outline-offset:3px}
+.quill-settings-content .inkpaper-footnote{border-color:var(--ib-line);color:var(--ib-copy);font-size:11px;padding-top:12px;margin:15px 0 0}
+.quill-settings-content .quill-settings-footnote .panel{border:0!important}
+.quill-settings-content .quill-settings-footnote .panel-heading{font-size:19px!important}
+.inkbound-account-shell[data-ink-paper="phosphor"] .quill-settings-intro h1{font-family:var(--ib-mono)!important;text-shadow:0 0 11px rgba(165,255,136,.20)}
+@media (max-width:1200px){.quill-settings-page{grid-template-columns:minmax(205px,25%) minmax(0,1fr)}.quill-settings-content{column-gap:23px}.quill-settings-content .inkpaper-options{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:950px){.quill-settings-page{grid-template-columns:1fr;gap:25px}.quill-settings-intro{border-right:0;border-bottom:1px solid var(--ib-line);min-height:0;padding:0 0 22px}.quill-settings-intro h1{margin-bottom:12px}.quill-settings-kicker{margin-bottom:10px!important}.quill-settings-summary{max-width:580px;margin-bottom:14px}.quill-settings-index{max-width:none;display:flex;flex-direction:row;flex-wrap:wrap;gap:10px 20px}.quill-settings-index a{border:0;padding:5px 0}.quill-settings-art,.quill-settings-colophon{display:none}.quill-settings-content{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+@media (max-width:720px){.inkbound-account-shell:has(.quill-settings-page) .account-tabs{justify-content:flex-start;gap:9px 14px;margin-bottom:22px}.quill-settings-content{display:flex;flex-direction:column;gap:25px}.quill-settings-content>*{width:100%;min-width:0}.quill-settings-content .quill-settings-panels{display:contents}.quill-settings-storytime{order:0}.quill-settings-content>.inkpaper-preferences{order:1}.quill-settings-reading{order:2}.quill-settings-sound{order:3}.quill-settings-notifications{order:4}.quill-settings-wardrobe{order:5}.quill-settings-footnote{order:6}.quill-settings-content .inkpaper-options{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:430px){.quill-settings-content .inkpaper-options{grid-template-columns:repeat(2,minmax(0,1fr))}.quill-settings-content .notification-setting-row{align-items:flex-start}.quill-settings-content .notification-event-grid{grid-template-columns:1fr}.quill-settings-content .notification-setting-row strong{font-size:13px}.quill-settings-index{font-size:11px}}
+@media(prefers-reduced-motion:reduce){.quill-settings-content .terminal-toggle input[type="checkbox"],.quill-settings-content .terminal-toggle input[type="checkbox"]:after{transition:none}}
+/* The CRT monospace alphabet is wider than the literary serif: scale this title to its margin. */
+.inkbound-account-shell[data-ink-paper="phosphor"] .quill-settings-intro h1{font:400 clamp(38px,3.3vw,50px)/1.08 var(--ib-mono)!important;letter-spacing:-.075em;overflow-wrap:normal}

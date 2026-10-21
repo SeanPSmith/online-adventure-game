@@ -14,6 +14,7 @@ import "./styles/accessibility.css";
 import "./styles/inkboundSystemPass660.css";
 import "./styles/inkboundLegibilityPass661.css";
 import "./styles/inkboundStoryParityPass662.css";
+import "./styles/inkboundWaitingPass663.css";
 
 const root = document.getElementById("root");
 

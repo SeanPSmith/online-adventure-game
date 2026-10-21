@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { IntermissionResult } from "../../services/game";
 import type { InkPaper } from "../appearance/inkboundPaper";
+import { InkboundWaitingFolio, type WaitingHero } from "./InkboundWaitingFolio";
 import { IntermissionRuntime } from "./IntermissionRuntime";
 import type { TurnTheaterState } from "./useTurnTheater";
 import { TurnResolutionTheater } from "./TurnResolutionTheater";
@@ -25,8 +26,12 @@ export function TurnTheater({
   onSubmitIntermissionScore,
   onRetry,
   onSync,
+  choiceLabel, hero, partyCount,
 }: {
   inkPaper?: InkPaper;
+  choiceLabel?: string | null;
+  hero?: WaitingHero | null;
+  partyCount?: number;
   theater: TurnTheaterState;
   playerId: string | null;
   intermissionResult: IntermissionResult | null;
@@ -35,6 +40,14 @@ export function TurnTheater({
   onSync: () => void;
 }) {
   const [showResync, setShowResync] = useState(false);
+  const [writingSeconds, setWritingSeconds] = useState(0);
+  useEffect(() => {
+    if (theater.phase !== "intermission") return;
+    const start = performance.now();
+    setWritingSeconds(0);
+    const timer = window.setInterval(() => setWritingSeconds((performance.now() - start) / 1000), 250);
+    return () => window.clearInterval(timer);
+  }, [theater.phase, theater.activeIntermission?.turn_number]);
   const readyWithoutExit = theater.phase === "story-ready" && theater.countdownValue === 0;
   useEffect(() => {
     setShowResync(false);
@@ -73,15 +86,33 @@ export function TurnTheater({
           result={intermissionResult}
           storyReady={theater.phase === "story-ready"}
           storyReadySeconds={theater.countdownValue}
+          inkPaper={inkPaper}
+          choiceLabel={choiceLabel}
+          hero={hero}
+          partyCount={partyCount}
+          onSync={showResync && inkPaper ? onSync : undefined}
           onSubmitScore={onSubmitIntermissionScore}
           onStoryReadyComplete={theater.finishIntermissionStoryReady}
         />
-        {showResync ? (
+        {showResync && !inkPaper ? (
           <div className="system-notice" role="status">
             <p>THE STORY IS TAKING LONGER THAN EXPECTED. YOU CAN RESTORE THE ROOM STATE WITHOUT RELOADING OR REROLLING.</p>
             <button className="button" type="button" onClick={onSync}>RE-SYNC STORY</button>
           </div>
         ) : null}
+      </div>
+    );
+  }
+
+  if (inkPaper) {
+    return (
+      <div className={`turn-theater-overlay is-${theater.phase} inkbound-turn-theater ibw-overlay`} data-ink-paper={inkPaper}>
+        <InkboundWaitingFolio paper={inkPaper} elapsedSeconds={writingSeconds}
+          storyReady={theater.phase === "story-ready"} readySeconds={theater.countdownValue}
+          choiceLabel={choiceLabel} hero={hero} partyCount={partyCount}
+          retryMessage={theater.phase === "retry" ? theater.retryMessage : undefined}
+          onRetry={theater.phase === "retry" ? onRetry : undefined}
+          onSync={showResync ? onSync : undefined} />
       </div>
     );
   }

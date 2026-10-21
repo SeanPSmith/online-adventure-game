@@ -6,6 +6,8 @@ import {
   useRef,
   useState,
 } from "react";
+import type { InkPaper } from "../appearance/inkboundPaper";
+import { InkboundWaitingFolio, type WaitingHero } from "./InkboundWaitingFolio";
 import type {
   IntermissionResult,
   StoryAdvancingPayload,
@@ -36,7 +38,13 @@ export function IntermissionRuntime({
   storyReadySeconds,
   onSubmitScore,
   onStoryReadyComplete,
+  inkPaper, choiceLabel, hero, partyCount, onSync,
 }: {
+  inkPaper?: InkPaper;
+  choiceLabel?: string | null;
+  hero?: WaitingHero | null;
+  partyCount?: number;
+  onSync?: () => void;
   payload: StoryAdvancingPayload;
   playerId: string | null;
   result: IntermissionResult | null;
@@ -167,6 +175,12 @@ export function IntermissionRuntime({
 
   // Do not sneak an unpublished fallback cabinet into an empty live catalog.
   // The Director may keep writing, but no Arcade game is publicly available.
+  if (inkPaper && (payload.game_id === "intermission_wait" || mode === "waiting")) {
+    return <InkboundWaitingFolio paper={inkPaper} elapsedSeconds={elapsedSeconds}
+      storyReady={storyReady} readySeconds={storyReadySeconds} choiceLabel={choiceLabel}
+      hero={hero} partyCount={partyCount} onSync={onSync} />;
+  }
+
   if (payload.game_id === "intermission_wait") {
     return (
       <div className="intermission-runtime" role="status" aria-live="polite">

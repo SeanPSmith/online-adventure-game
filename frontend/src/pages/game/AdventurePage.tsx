@@ -1622,6 +1622,16 @@ ${scene.body.slice(0, 260)}`}
 
       <TurnTheater
         inkPaper={inkboundReady ? inkPaper : undefined}
+        choiceLabel={choiceLocked ? (live.choiceAccepted?.choice_label ?? selectedChoice?.label) : null}
+        hero={(() => {
+          const current = partyHeroes.find((item) => item.character_id === characterId);
+          return current ? {
+            name: current.name, level: current.level,
+            health: current.health, maxHealth: current.max_health,
+            xpPercent: current.xp_progress_percent,
+          } : null;
+        })()}
+        partyCount={live.room?.players.length}
         theater={theater}
         playerId={live.playerId}
         intermissionResult={live.intermissionResult}

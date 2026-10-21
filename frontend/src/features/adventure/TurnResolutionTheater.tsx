@@ -33,6 +33,24 @@ export function buildAsciiD20(number: number | string) {
 `;
 }
 
+/** An ink drawing, not a bitmap or a reroll: the displayed face is cosmetic until the authoritative result settles. */
+function InkboundDiceFace({ number, rolling }: { number: number | string; rolling: boolean }) {
+  return (
+    <svg className={`inkbound-dice-illustration ${rolling ? "is-rolling" : ""}`}
+      viewBox="0 0 260 258" xmlns="http://www.w3.org/2000/svg"
+      role="img" aria-label={rolling ? "Dice rolling" : `D20 rolled ${number}`}>
+      <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+        <path strokeWidth="2.15" d="M129 17 230 79 231 178 130 239 27 179 28 79Z" />
+        <path strokeWidth="1.3" d="M129 17 131 57 28 79 78 130 27 179 130 239 181 131 231 178 230 79 131 57 181 131 78 130 131 57" />
+        <path strokeWidth="1.15" d="M129 17 78 130 130 239 181 131 129 17 M28 79 230 79 M27 179 231 178" opacity=".54" />
+        <path strokeWidth=".65" opacity=".30" d="M34 81 79 126 126 59 M180 137 224 175 133 234 M132 24 225 81 M33 177 80 133" />
+        <path strokeWidth=".75" opacity=".45" d="M20 58 17 48 M237 59 244 50 M241 195 249 204 M24 200 15 212 M129 3v8 M128 246v10" />
+      </g>
+      <text x="130" y="150" textAnchor="middle" fill="currentColor" className="inkbound-dice-number">{number}</text>
+    </svg>
+  );
+}
+
 function CheckBreakdown({ result, rolling }: { result: TurnResult; rolling: boolean }) {
   const check = result.check;
   if (!check) return null;
@@ -79,12 +97,14 @@ function AnimatedResultCard({
   complete,
   onDone,
   soundId,
+  inkbound,
 }: {
   result: TurnResult;
   active: boolean;
   complete: boolean;
   onDone: () => void;
   soundId: string;
+  inkbound: boolean;
 }) {
   const [rolling, setRolling] = useState(active && Boolean(result.check));
   const [displayRoll, setDisplayRoll] = useState<number | string>(active && !complete ? "—" : result.check ? result.check.roll : "—");
@@ -162,9 +182,13 @@ function AnimatedResultCard({
 
       {result.check ? (
         <div className="theater-dice-stage">
-          <pre className={`theater-d20 ${rolling ? "is-rolling" : ""}`}>
-            {buildAsciiD20(displayRoll)}
-          </pre>
+          {inkbound ? (
+            <InkboundDiceFace number={displayRoll} rolling={rolling} />
+          ) : (
+            <pre className={`theater-d20 ${rolling ? "is-rolling" : ""}`}>
+              {buildAsciiD20(displayRoll)}
+            </pre>
+          )}
           <CheckBreakdown result={result} rolling={!settled} />
         </div>
       ) : (
@@ -247,9 +271,11 @@ function ProgressionSummary({ update }: { update: HeroProgressionUpdate }) {
 export function TurnResolutionTheater({
   receipt,
   onContinue,
+  inkbound = false,
 }: {
   receipt: TurnResolvedPayload;
   onContinue: () => void;
+  inkbound?: boolean;
 }) {
   const results = receipt.results ?? [];
   const turnIdentity = receiptKey(receipt);
@@ -290,11 +316,11 @@ export function TurnResolutionTheater({
     : [];
 
   return (
-    <div className={`turn-resolution-theater ${criticalNow ? "is-critical-pulse" : ""}`}>
+    <div className={`turn-resolution-theater ${criticalNow ? "is-critical-pulse" : ""} ${inkbound ? "is-inkbound-manuscript" : ""}`}>
       <header className="theater-heading">
         <div>
           <span className="eyebrow">AUTHORITATIVE TURN RECEIPT</span>
-          <h2>LET'S SEE HOW THAT WENT.</h2>
+          <h2>{inkbound ? "The Dice Have Spoken" : "LET'S SEE HOW THAT WENT."}</h2>
         </div>
         <span>{receipt.preliminary ? "RESULTS READY // STORY WRITING" : "SERVER RESOLVED"}</span>
       </header>
@@ -310,6 +336,7 @@ export function TurnResolutionTheater({
               complete={index < activeIndex || finished}
               onDone={finishCurrent}
               soundId={`${turnIdentity}:${result.player_id}:${result.choice_id}`}
+              inkbound={inkbound}
               key={`${result.player_id}:${result.choice_id}`}
             />
           );

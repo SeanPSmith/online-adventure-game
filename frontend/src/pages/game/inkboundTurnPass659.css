@@ -1,0 +1,245 @@
+/* Pass 65.9 — The Turn Folio. A manuscript presentation for real server-owned
+   receipts and the Arcade intermission shell. No artificial paper image,
+   feathered mask, random ornaments, or modification to any game board. */
+.inkbound-turn-theater .turn-resolution-theater.is-inkbound-manuscript {
+  width: min(850px, 100%);
+  max-height: calc(100dvh - 28px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  border: 1px solid var(--ia-strong-rule);
+  padding: clamp(25px, 4.5vw, 62px);
+  background: var(--ia-paper);
+  color: var(--ia-copy);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, .28);
+}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-heading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 0 0 clamp(20px, 3vw, 37px);
+  margin: 0;
+  border-bottom: 1px solid var(--ia-rule);
+  background: none;
+  text-align: center;
+}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-heading h2 {
+  font: 400 clamp(34px, 5.2vw, 63px)/1.12 "Iowan Old Style", Georgia, serif;
+  letter-spacing: -.035em;
+  text-wrap: balance;
+  margin-top: 12px;
+  color: var(--ia-text);
+}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-heading > span {
+  font: 11px/1.55 "American Typewriter", "Courier New", monospace;
+  letter-spacing: .01em;
+  text-align: center;
+  color: var(--ia-dim);
+}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-heading .eyebrow {
+  font-size: 10px;
+  letter-spacing: .18em;
+}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-results { display: block; }
+.inkbound-turn-theater .is-inkbound-manuscript .theater-result-card {
+  padding: 23px 0 28px;
+  border: 0;
+  border-bottom: 1px solid var(--ia-rule);
+  background: transparent;
+  opacity: 1;
+}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-result-card > header {
+  align-items: start;
+  padding-bottom: 10px;
+  border-color: var(--ia-rule);
+  flex-wrap: wrap;
+  gap: 8px 28px;
+}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-result-card > header strong {
+  font-size: clamp(18px, 2vw, 24px);
+  line-height: 1.3;
+}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-result-card > header > span {
+  padding-top: 4px;
+  font-size: 11px;
+  color: var(--ia-dim);
+  letter-spacing: .04em;
+}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-dice-stage {
+  grid-template-columns: minmax(190px, .95fr) minmax(190px, 1.05fr);
+  gap: clamp(20px, 4vw, 55px);
+  padding: 20px 4px 12px;
+  align-items: center;
+}
+.inkbound-turn-theater .inkbound-dice-illustration {
+  display: block;
+  width: min(100%, 245px);
+  height: auto;
+  justify-self: center;
+  overflow: visible;
+  color: var(--ia-text);
+  background: none;
+  filter: none;
+}
+.inkbound-turn-theater .inkbound-dice-number {
+  font: 400 42px/1 "Iowan Old Style", Georgia, serif;
+  letter-spacing: -.04em;
+}
+/* A gentle tilt is restricted to the die itself; text never jitters. */
+.inkbound-turn-theater .inkbound-dice-illustration.is-rolling {
+  animation: inkbound-die-turn .58s ease-in-out infinite alternate;
+  transform-origin: 50% 50%;
+}
+@keyframes inkbound-die-turn {
+  from { transform: rotate(-5deg) scale(.985); }
+  to { transform: rotate(5deg) scale(1.015); }
+}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-breakdown { gap: 0; }
+.inkbound-turn-theater .is-inkbound-manuscript .theater-breakdown > div {
+  min-height: 34px;
+  padding: 7px 0;
+  border: 0;
+  border-bottom: 1px solid var(--ia-rule);
+  color: var(--ia-copy);
+  font: 12px/1.5 "American Typewriter", "Courier New", monospace;
+  text-transform: none;
+}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-breakdown > div strong {
+  font-size: 14px;
+  color: var(--ia-text);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-breakdown > div.is-total {
+  margin-top: 9px;
+  padding-top: 14px;
+  border: 0;
+  border-top: 1px solid var(--ia-strong-rule);
+}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-breakdown > div.is-total strong { font-size: 22px; }
+.inkbound-turn-theater .is-inkbound-manuscript .theater-outcome {
+  margin-top: 0;
+  padding: 13px 0 0;
+  border-top: 0;
+  color: var(--ia-text);
+  font: 400 clamp(27px, 3.6vw, 42px)/1.18 "Iowan Old Style", Georgia, serif;
+  letter-spacing: .06em;
+  text-transform: capitalize;
+}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-outcome:is(.failure,.critical-failure) {
+  text-decoration: none;
+  font-style: italic;
+}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-finale-stage {
+  gap: 21px;
+  border: 0;
+  margin: 0;
+  padding: 22px 0 0;
+}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-resolution-copy {
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-resolution-copy p {
+  max-width: 64ch;
+  color: var(--ia-copy);
+  font: 17px/1.8 "Iowan Old Style", Georgia, serif;
+  margin-top: 10px;
+}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-progression-grid {
+  display: block;
+  border-top: 1px solid var(--ia-rule);
+  border-bottom: 1px solid var(--ia-rule);
+}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-progression-card {
+  padding: 21px 0;
+  border: 0;
+  border-bottom: 1px solid var(--ia-rule);
+  background: none;
+  gap: 11px;
+}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-progression-card:last-child { border-bottom: 0; }
+.inkbound-turn-theater .is-inkbound-manuscript .theater-progression-line {
+  align-items: baseline;
+  color: var(--ia-copy);
+  font: 13px/1.5 "American Typewriter", "Courier New", monospace;
+}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-progression-line strong {
+  color: var(--ia-text);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-reward-ledger {
+  border: 0;
+  border-left: 1px solid var(--ia-rule);
+  background: none;
+  padding-left: 15px;
+  font-size: 12px;
+  color: var(--ia-copy);
+}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-fallen {
+  color: var(--ia-text);
+  border-top: 1px solid var(--ia-strong-rule);
+  padding-top: 15px;
+}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-continue {
+  justify-self: center;
+  width: auto;
+  min-width: min(100%, 280px);
+  padding: 14px 30px;
+  margin: 3px auto 0;
+}
+/* Intermission is the blank verso of the page, with the *actual* Arcade game
+   inside it. We deliberately do not override minigame boards or canvases. */
+.inkbound-turn-theater .intermission-runtime {
+  border: 1px solid var(--ia-strong-rule);
+  background: var(--ia-paper);
+  color: var(--ia-copy);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, .28);
+  max-height: calc(100dvh - 28px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.inkbound-turn-theater .intermission-runtime-header {
+  background: none;
+  border-bottom: 1px solid var(--ia-rule);
+}
+.inkbound-turn-theater .intermission-runtime-readout :is(strong,span) { font-variant-numeric: tabular-nums; }
+.inkbound-turn-theater .intermission-runtime-footer {
+  background: none;
+  border-top: 1px solid var(--ia-rule);
+  color: var(--ia-copy);
+}
+.inkbound-turn-theater .intermission-skip {
+  background: none;
+  color: var(--ia-text);
+  border: 0;
+  border-bottom: 1px solid var(--ia-strong-rule);
+  text-transform: none;
+  font: 13px "American Typewriter", "Courier New", monospace;
+}
+.inkbound-turn-theater .intermission-waiting { background: none; color: var(--ia-copy); }
+.inkbound-turn-theater .intermission-waiting :is(h3,p) { color: var(--ia-copy); }
+.inkbound-turn-theater .turn-theater-stage { border: 1px solid var(--ia-strong-rule); }
+.inkbound-turn-theater .turn-theater-stage > strong { color: var(--ia-text); }
+.inkbound-turn-theater .system-notice { background: var(--ia-paper); color: var(--ia-copy); border-color: var(--ia-rule); }
+@media (max-width: 680px) {
+  .inkbound-turn-theater .turn-resolution-theater.is-inkbound-manuscript {
+    padding: 26px 21px 28px;
+    max-height: calc(100dvh - 16px);
+  }
+  .inkbound-turn-theater .is-inkbound-manuscript .theater-dice-stage {
+    grid-template-columns: minmax(0,1fr);
+    gap: 6px;
+  }
+  .inkbound-turn-theater .inkbound-dice-illustration { width: min(75%, 210px); }
+  .inkbound-turn-theater .is-inkbound-manuscript .theater-heading h2 { font-size: clamp(32px, 9vw, 43px); }
+  .inkbound-turn-theater .is-inkbound-manuscript .theater-result-card > header { flex-direction: column; }
+  .inkbound-turn-theater .is-inkbound-manuscript .theater-continue { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .inkbound-turn-theater .inkbound-dice-illustration.is-rolling { animation: none !important; }
+  .inkbound-turn-theater .is-inkbound-manuscript { animation: none !important; }
+}

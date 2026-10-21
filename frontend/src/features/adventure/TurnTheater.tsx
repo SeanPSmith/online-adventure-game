@@ -52,6 +52,7 @@ export function TurnTheater({
       <div className={`turn-theater-overlay is-resolution ${inkPaper ? "inkbound-turn-theater" : ""}`} data-ink-paper={inkPaper} role="dialog" aria-modal="true">
         <TurnResolutionTheater
           receipt={theater.activeReceipt}
+          inkbound={Boolean(inkPaper)}
           onContinue={theater.acknowledgeResolution}
         />
       </div>
@@ -90,20 +91,20 @@ export function TurnTheater({
       <div className="turn-theater-stage">
         {theater.phase === "intermission" ? (
           <>
-            <span className="eyebrow">THE STORY TURNS</span>
+            <span className="eyebrow">{inkPaper ? "BETWEEN THE PAGES" : "THE STORY TURNS"}</span>
             <div className="ascii-hourglass" aria-hidden="true">
               <span>[\\]</span><span>[|]</span><span>[/]</span><span>[-]</span>
             </div>
-            <h2>THE NEXT CHAPTER IS TAKING SHAPE_</h2>
-            <p>THE STORY DIRECTOR IS WRITING WHAT HAPPENS NEXT_</p>
+            <h2>{inkPaper ? "A page is being written" : "THE NEXT CHAPTER IS TAKING SHAPE_"}</h2>
+            <p>{inkPaper ? "Your choices are settled. The next chapter is on its way." : "THE STORY DIRECTOR IS WRITING WHAT HAPPENS NEXT_"}</p>
           </>
         ) : null}
 
         {theater.phase === "story-ready" ? (
           <>
-            <span className="eyebrow">STORY READY</span>
+            <span className="eyebrow">{inkPaper ? "THE NEXT PAGE" : "STORY READY"}</span>
             <pre className="turn-theater-countdown">{asciiCountdown(theater.countdownValue)}</pre>
-            <strong>THE CONSEQUENCES HAVE ARRIVED_</strong>
+            <strong>{inkPaper ? "The chronicle continues shortly" : "THE CONSEQUENCES HAVE ARRIVED_"}</strong>
           </>
         ) : null}
 

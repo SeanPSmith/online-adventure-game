@@ -1,0 +1,29 @@
+/* Manuscript samples are real HTML + theme tokens, not images of UI. */
+.inkpaper-preferences{margin:0 0 26px;padding:clamp(24px,4vw,48px);border:1px solid rgba(175,167,139,.4);background:#f7f4ec;color:#24231f;font-family:Georgia,serif}
+.inkpaper-kicker{font:600 11px/1.4 "American Typewriter","Courier New",monospace;letter-spacing:.16em;text-transform:uppercase;margin:0 0 12px;color:#666257}
+.inkpaper-preferences h2{font:normal clamp(35px,3.5vw,52px)/1.1 Georgia,serif;letter-spacing:-.04em;color:#24231f;margin:0 0 12px}
+.inkpaper-description{font:17px/1.6 Georgia,serif;max-width:600px;margin:0 0 26px;color:#4d4940}
+.inkpaper-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(13px,2vw,26px)}
+.inkpaper-option{--paper:#f7f3e9;--paper-text:#28251f;--paper-copy:#514b40;--paper-rule:rgba(48,40,30,.22);appearance:none;text-align:left;border:0!important;border-radius:0!important;padding:0!important;min-width:0;background:transparent!important;color:#24231f;box-shadow:none!important;cursor:pointer}
+.inkpaper-sample{background:var(--paper);color:var(--paper-text);border:1px solid var(--paper-rule);min-height:180px;padding:clamp(16px,2.5vw,30px);display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:12px;transition:outline-color .15s}
+.inkpaper-sample-title{font:normal clamp(20px,2vw,30px)/1.15 Georgia,serif;letter-spacing:-.04em}
+.inkpaper-sample-rule{width:45%;height:1px;background:var(--paper-text);opacity:.55}
+.inkpaper-sample-lines{font:12px/1.6 "American Typewriter","Courier New",monospace;letter-spacing:.025em;color:var(--paper-copy)}
+.inkpaper-option-foot{display:flex;justify-content:space-between;align-items:center;gap:9px;margin:12px 0 3px}
+.inkpaper-option-name{font:600 14px/1.25 "American Typewriter","Courier New",monospace}
+.inkpaper-option-description{display:block;color:#645d51;font:12px/1.35 Georgia,serif}
+.inkpaper-option-check{font:600 18px/1 sans-serif;min-width:20px;color:#24231f}
+.inkpaper-option[aria-pressed="true"] .inkpaper-sample{outline:2px solid #3e3a31;outline-offset:3px}
+.inkpaper-option:hover .inkpaper-sample{border-color:var(--paper-text)}
+.inkpaper-option:focus-visible{outline:2px solid #24231f;outline-offset:6px}
+.inkpaper-footnote{margin:27px 0 0;border-top:1px solid #d8d0be;padding-top:18px;font:13px/1.5 "American Typewriter","Courier New",monospace;color:#4d4940}
+.inkpaper-footnote a{text-decoration:underline;text-underline-offset:4px;color:inherit}
+.inkpaper-option[data-ink-paper="chalk"]{--paper:#f3f4f3;--paper-text:#212729;--paper-copy:#434e52;--paper-rule:rgba(33,39,41,.24)}
+.inkpaper-option[data-ink-paper="ivory"]{--paper:#f7f3e9;--paper-text:#28251f;--paper-copy:#514b40;--paper-rule:rgba(48,40,30,.19)}
+.inkpaper-option[data-ink-paper="cream"]{--paper:#eee2c9;--paper-text:#30271c;--paper-copy:#51422e;--paper-rule:rgba(55,40,22,.22)}
+.inkpaper-option[data-ink-paper="navy"]{--paper:#142536;--paper-text:#f3f6f4;--paper-copy:#dae4e9;--paper-rule:rgba(242,246,250,.30)}
+.inkpaper-option[data-ink-paper="phosphor"]{--paper:#102519;--paper-text:#c9ffb8;--paper-copy:#c1e6b9;--paper-rule:rgba(201,255,184,.30)}
+.inkpaper-option[data-ink-paper="midnight"]{--paper:#141516;--paper-text:#f5f6f3;--paper-copy:#ced2d0;--paper-rule:rgba(245,246,243,.30)}
+@media(max-width:850px){.inkpaper-options{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.inkpaper-preferences{padding:22px 17px}.inkpaper-options{grid-template-columns:1fr 1fr;gap:20px 11px}.inkpaper-sample{min-height:155px;padding:13px}.inkpaper-sample-title{font-size:20px}.inkpaper-option-name{font-size:12px}.inkpaper-option-description{font-size:11px}}
+@media(prefers-reduced-motion:reduce){.inkpaper-sample{transition:none}}

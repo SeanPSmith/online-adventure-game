@@ -4,6 +4,7 @@ import { PageTitle } from "../../components/ui/PageTitle";
 import { Panel } from "../../components/ui/Panel";
 import { SettingsPage } from "./SettingsPage";
 import { AppearanceWardrobe } from "../../features/appearance/AppearanceWardrobe";
+import { InkboundPaperPreferences } from "../../features/appearance/InkboundPaperPreferences";
 import * as authApi from "../../services/auth";
 import { useAuth } from "../../state/AuthContext";
 import { useModal } from "../../state/ModalContext";
@@ -444,7 +445,7 @@ export function AccountPage() {
 
       <section className="account-tab-content" role="tabpanel">
         {activeTab === "profile" ? <ProfileTab /> : null}
-        {activeTab === "preferences" ? <><AppearanceWardrobe /><SettingsPage section="preferences" /></> : null}
+        {activeTab === "preferences" ? <><InkboundPaperPreferences /><AppearanceWardrobe /><SettingsPage section="preferences" /></> : null}
         {activeTab === "notifications" ? <SettingsPage section="notifications" /> : null}
         {activeTab === "security" ? <SecurityTab /> : null}
         {activeTab === "billing" ? <BillingTab /> : null}

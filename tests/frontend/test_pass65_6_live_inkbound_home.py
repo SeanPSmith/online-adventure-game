@@ -11,6 +11,8 @@ ROOT = Path(__file__).resolve().parents[2]
 HOME = (ROOT / 'frontend/src/pages/game/InkboundAuthenticatedDashboard.tsx').read_text()
 PARENT = (ROOT / 'frontend/src/pages/game/GameHomePage.tsx').read_text()
 CSS = (ROOT / 'frontend/src/pages/game/inkboundAuthenticatedDashboard.css').read_text()
+THEMES = (ROOT / 'frontend/src/features/appearance/inkboundPaper.ts').read_text()
+PICKER = (ROOT / 'frontend/src/features/appearance/InkboundPaperPreferences.tsx').read_text()
 
 
 class InkboundHomeContracts(unittest.TestCase):
@@ -28,16 +30,16 @@ class InkboundHomeContracts(unittest.TestCase):
                       'adventures: AdventureListItem[]', 'selectedHeroId: string',
                       'directoryReady: boolean', 'connected: boolean'):
             self.assertIn(field, HOME)
-        self.assertIn('getStoredPaper(userId)', HOME)
-        self.assertIn('tot:inkbound:paper:', HOME)
+        self.assertIn('useInkboundPaper(userId)', HOME)
+        self.assertIn('tot:inkbound:paper:', THEMES)
         self.assertIn('encodeURIComponent(item.room_code)', HOME)
         self.assertIn('encodeURIComponent(item.character_id)', HOME)
 
-    def test_four_requested_paper_options(self):
-        for option in ('chalk', 'ivory', 'parchment', 'midnight'):
+    def test_six_requested_paper_options_live_in_account_preferences(self):
+        for option in ('chalk', 'ivory', 'cream', 'navy', 'phosphor', 'midnight'):
             self.assertRegex(CSS, rf'\[data-ink-paper="{option}"\]')
-            self.assertIn(f'id: "{option}"', HOME)
-        self.assertIn('aria-pressed={item.id === paper}', HOME)
+            self.assertIn(f'id: "{option}"', THEMES)
+        self.assertIn('aria-pressed={selectedPaper === paper.id}', PICKER)
 
     def test_coop_lobby_mechanics_unchanged(self):
         self.assertIn('onCreate(selectedStory,mode)', HOME)

@@ -8,16 +8,11 @@ import { Link } from "react-router";
 import { TerminalSelect } from "../../components/ui/TerminalSelect";
 import type { Character } from "../../services/characters";
 import type { AdventureCatalogItem, AdventureListItem } from "../../services/game";
+import { useInkboundPaper } from "../../features/appearance/inkboundPaper";
 import "./inkboundAuthenticatedDashboard.css";
 
-export type InkPaper = "chalk" | "ivory" | "parchment" | "midnight";
 type Page = "home" | "worlds" | "heroes" | "journeys" | "join";
-const papers: { id: InkPaper; name: string; description: string }[] = [
-  { id: "chalk", name: "White", description: "Cool white / graphite" },
-  { id: "ivory", name: "Ivory", description: "Cream / charcoal" },
-  { id: "parchment", name: "Parchment", description: "Tan / dark umber" },
-  { id: "midnight", name: "Midnight", description: "Near-black / pale ink" },
-];
+
 const HIDDEN_INTERNAL_ADVENTURES = new Set(["old_chapel", "windroad_lantern"]);
 const homeArt = "/art/inkbound/north-road-editorial.png";
 function storyCover(title: string, tags: string[]) {
@@ -37,13 +32,6 @@ function journeyHref(item: AdventureListItem) {
 }
 function usableHero(hero: Character) {
   return hero.is_alive && hero.hero_status === "active";
-}
-function getStoredPaper(userId: string): InkPaper {
-  try {
-    const value = window.localStorage.getItem(`tot:inkbound:paper:${userId}`);
-    if (papers.some((paper) => paper.id === value)) return value as InkPaper;
-  } catch { /* Ephemeral preference still works in private browsing. */ }
-  return "ivory";
 }
 export type InkboundDashboardProps = {
   username: string;
@@ -70,8 +58,7 @@ export function InkboundAuthenticatedDashboard({
   onLogout, error, onDismissError,
 }: InkboundDashboardProps) {
   const [page, setPage] = useState<Page>("home");
-  const [paper, setPaper] = useState<InkPaper>(() => getStoredPaper(userId));
-  const [showPaper, setShowPaper] = useState(false);
+  const [paper] = useInkboundPaper(userId);
   const [needle, setNeedle] = useState("");
   const [filter, setFilter] = useState("ALL");
   const [roomCode, setRoomCode] = useState("");
@@ -104,7 +91,6 @@ export function InkboundAuthenticatedDashboard({
   ];
   const filterOptions = tags.map((tag) => ({ value: tag, label: tag === "ALL" ? "All worlds" : tag }));
 
-  useEffect(() => { setPaper(getStoredPaper(userId)); }, [userId]);
   useEffect(() => {
     if (!selectedStory) return;
     modalCloseRef.current?.focus();
@@ -122,10 +108,6 @@ export function InkboundAuthenticatedDashboard({
     return () => document.removeEventListener("keydown", onKey);
   }, [selectedStory]);
 
-  function changePaper(next: InkPaper) {
-    setPaper(next);
-    try { window.localStorage.setItem(`tot:inkbound:paper:${userId}`, next); } catch { /* Optional storage. */ }
-  }
   function inspect(item: AdventureCatalogItem) {
     modalOpener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setMode("coop"); setSelectedStory(item);
@@ -146,11 +128,6 @@ export function InkboundAuthenticatedDashboard({
           {navigation.map((item) => <button key={item.id} type="button" aria-current={page === item.id ? "page" : undefined} onClick={() => setPage(item.id)}>{item.label}</button>)}
         </nav>
         <div className="i656-header-tools">
-          <div className="i656-paper-wrap"><button className="i656-paper-button" type="button" aria-expanded={showPaper} onClick={() => setShowPaper((was) => !was)}>Paper &amp; ink <span aria-hidden="true">⌄</span></button>
-            {showPaper && <div className="i656-paper-menu" role="group" aria-label="Paper and ink theme">
-              {papers.map((item) => <button key={item.id} type="button" className={item.id === paper ? "active" : ""} aria-pressed={item.id === paper} onClick={() => { changePaper(item.id); setShowPaper(false); }}><i data-swatch={item.id}/><span>{item.name}<small>{item.description}</small></span></button>)}
-            </div>}
-          </div>
           <Link to="/account" className="i656-account">{username} ↗</Link>
         </div>
       </header>
@@ -198,7 +175,7 @@ export function InkboundAuthenticatedDashboard({
         {page === "journeys" && <section className="i656-interior" aria-label="My adventures"><div className="i656-interior-intro"><p className="i656-eyebrow">The story so far</p><h1>Journeys, open<br/><em>and remembered.</em></h1><p>Your adventures are preserved in the record, even after the final page.</p></div><div className="i656-chapter-list">{adventures.map((item, index) => <Link to={journeyHref(item)} key={`${item.room_code}:${item.character_id}`} className="i656-chapter-entry"><span className="i656-entry-index">{String(index+1).padStart(2,"0")}</span><span className="i656-entry-copy"><strong>{item.adventure_title}</strong><small>{item.character_name} · {item.scene_title || "A story in progress"}</small></span><span className="i656-entry-side">{item.completed ? "Finished" : item.director_retry_required ? "Needs recovery" : `Chapter ${Math.max(1,item.turn_number)}`} ↗</span></Link>)}{!adventures.length && <p className="i656-empty-line">Your journal has no chapters yet.</p>}</div><Link className="i656-text-link" to="/game/adventures">Full adventure archive ↗</Link></section>}
         {page === "join" && <section className="i656-interior i656-join" aria-label="Join a friend"><div className="i656-interior-intro"><p className="i656-eyebrow">Two perspectives · One story</p><h1>Better with<br/><em>someone beside you.</em></h1><p>Ask your companion for their six-character room code. Choose your Hero, then step into the same adventure.</p></div><form className="i656-join-form" onSubmit={enterRoom}><div className="i656-choice-field"><span className="i656-field-label">Your Hero</span><TerminalSelect className="i656-select" ariaLabel="Hero used to join the adventure" value={selectedHeroId} onChange={onSelectHero} options={heroOptions} disabled={!freeHeroes.length}/></div><label>Room code<input value={roomCode} onChange={(event) => setRoomCode(event.target.value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0,6))} placeholder="ABC123" maxLength={6} autoComplete="off" /></label><button className="i656-primary-action" type="submit" disabled={!canEnter || roomCode.length !== 6}>Join the adventure →</button>{!connected && <p className="i656-muted">Waiting for a connection to the game server.</p>}</form></section>}
       </main>
-      <footer className="i656-footer"><span>✧ &nbsp; Some stories are better shared.</span><nav aria-label="More game pages"><Link to="/game/arcade">Arcade</Link><Link to="/game/rulebook">Rulebook</Link>{isAuthor && <a href="/author-console">Create</a>}{isAdmin && <Link to="/admin">Admin</Link>}<Link to="/account">Account</Link><button type="button" onClick={onLogout}>Sign out</button></nav></footer>
+      <footer className="i656-footer"><span>✧ &nbsp; Some stories are better shared.</span><nav aria-label="More game pages"><Link to="/game/arcade">Arcade</Link><Link to="/game/rulebook">Rulebook</Link>{isAuthor && <a href="/author-console">Create</a>}{isAdmin && <Link to="/admin">Admin</Link>}<Link to="/account?tab=preferences#inkbound-paper">Paper &amp; Ink</Link><Link to="/account">Account</Link><button type="button" onClick={onLogout}>Sign out</button></nav></footer>
     </div>
     {selectedStory && <div className="i656-veil" onMouseDown={(event) => { if(event.target===event.currentTarget) closeInspect(); }}><section className="i656-dialog" role="dialog" aria-modal="true" aria-labelledby="i656-story-title"><div className="i656-dialog-head"><p className="i656-eyebrow">Before the first chapter</p><button ref={modalCloseRef} type="button" onClick={closeInspect} aria-label="Close story introduction">×</button></div><h2 id="i656-story-title">{selectedStory.title}</h2><p>{synopsis(selectedStory)}</p><fieldset className="i656-mode"><legend>How will you travel?</legend><label><input type="radio" name="i656-mode" checked={mode==="solo"} onChange={() => setMode("solo")}/> On my own</label><label><input type="radio" name="i656-mode" checked={mode==="coop"} onChange={() => setMode("coop")}/> With a companion</label></fieldset><div className="i656-dialog-hero i656-choice-field"><span className="i656-field-label">Your Hero</span><TerminalSelect className="i656-select" ariaLabel="Hero used to enter the lobby" value={selectedHeroId} onChange={onSelectHero} options={heroOptions} disabled={!freeHeroes.length}/></div><p className="i656-muted">{mode === "coop" ? "You will enter a co-op lobby. Invite your friend and begin only when both players are ready." : "You will enter the solo lobby, then choose when to begin Chapter One."}</p><div className="i656-dialog-actions"><button type="button" onClick={closeInspect}>Not yet</button><button className="i656-primary-action" type="button" disabled={!canEnter} onClick={() => { onCreate(selectedStory,mode); closeInspect(); }}>Enter the lobby →</button></div></section></div>}
   </div>;

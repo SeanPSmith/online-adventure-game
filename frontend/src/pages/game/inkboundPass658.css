@@ -1,0 +1,88 @@
+/* Pass 65.8 — The first page and the instruments restored.
+   No decorative overlays over readable copy; all art is independent alpha PNG. */
+.inkbound-lobby[data-ink-paper="chalk"]{--ia-paper:#f1f2f0;--ia-text:#222625;--ia-copy:#4f5654;--ia-dim:#69716f;--ia-rule:rgba(34,38,37,.20);--ia-strong-rule:rgba(34,38,37,.34);--ia-wash:rgba(34,38,37,.055)}
+.inkbound-lobby[data-ink-paper="ivory"]{--ia-paper:#f7f3e9;--ia-text:#28251f;--ia-copy:#514b40;--ia-dim:#756c60;--ia-rule:rgba(48,40,30,.19);--ia-strong-rule:rgba(48,40,30,.34);--ia-wash:rgba(48,40,30,.055)}
+.inkbound-lobby[data-ink-paper="cream"]{--ia-paper:#eee2c9;--ia-text:#30271c;--ia-copy:#51422e;--ia-dim:#69563c;--ia-rule:rgba(55,40,22,.22);--ia-strong-rule:rgba(55,40,22,.39);--ia-wash:rgba(55,40,22,.065)}
+.inkbound-lobby[data-ink-paper="navy"]{--ia-paper:#142536;--ia-text:#f3f6f4;--ia-copy:#dae4e9;--ia-dim:#b5c4d0;--ia-rule:rgba(242,246,250,.26);--ia-strong-rule:rgba(242,246,250,.43);--ia-wash:rgba(242,246,250,.08);color-scheme:dark}
+.inkbound-lobby[data-ink-paper="phosphor"]{--ia-paper:#102519;--ia-text:#c9ffb8;--ia-copy:#c1e6b9;--ia-dim:#aad19e;--ia-rule:rgba(201,255,184,.25);--ia-strong-rule:rgba(201,255,184,.43);--ia-wash:rgba(201,255,184,.075);color-scheme:dark}
+.inkbound-lobby[data-ink-paper="midnight"]{--ia-paper:#141516;--ia-text:#f5f6f3;--ia-copy:#ced2d0;--ia-dim:#adb2b0;--ia-rule:rgba(245,246,243,.26);--ia-strong-rule:rgba(245,246,243,.44);--ia-wash:rgba(245,246,243,.07);color-scheme:dark}
+.game-site-shell:has(.inkbound-lobby){min-height:100dvh!important;height:auto!important;max-height:none!important;overflow:visible!important;background:var(--page-paper,#f7f3e9)!important}
+.game-site-shell:has(.inkbound-lobby)>.site-header{display:none!important}
+.game-site-shell:has(.inkbound-lobby)>.game-main{height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;width:100%!important;max-width:none!important;padding:0!important;margin:0!important;display:block!important}
+.game-site-shell:has(.inkbound-lobby) .inkspace-live-entry{display:none}
+.inkbound-lobby{background:var(--ia-paper);color:var(--ia-copy);min-height:100dvh;height:auto;overflow:visible;padding-bottom:25px;font-family:"Iowan Old Style",Baskerville,Georgia,serif}
+.inkbound-lobby .ibl-topbar{width:min(92%,1450px);min-height:76px;border-bottom:1px solid var(--ia-rule);margin-inline:auto}
+.inkbound-lobby .ibl-brand,.inkbound-lobby .ibl-nav :is(button,a){color:var(--ia-text)!important}
+.ibl-lobby-main{width:min(90%,1280px);margin:0 auto;padding:clamp(30px,4vw,65px) 0 55px}
+.ibl-lobby-intro{text-align:center;max-width:850px;margin-inline:auto}
+.ibl-lobby-kicker{color:var(--ia-dim);font:600 11px/1.5 "American Typewriter","Courier New",monospace;letter-spacing:.21em;text-transform:uppercase}
+.ibl-lobby-intro h1{color:var(--ia-text);font:400 clamp(44px,6vw,91px)/1.1 "Iowan Old Style",Baskerville,Georgia,serif;letter-spacing:-.037em;margin:16px 0 12px;overflow-wrap:anywhere}
+.ibl-lobby-subtitle{font:italic clamp(16px,1.8vw,20px) Georgia,serif;letter-spacing:.02em;margin:0;color:var(--ia-dim)}
+.ibl-lobby-art{line-height:0;margin:4px auto 22px;width:min(100%,1180px);pointer-events:none}
+.ibl-lobby-art img{display:block;width:100%;height:auto;max-height:clamp(250px,35vw,500px);object-fit:contain}
+.inkbound-lobby:is([data-ink-paper="navy"],[data-ink-paper="midnight"]) .ibl-lobby-art img{filter:invert(1) grayscale(1) brightness(1.13) contrast(.84);opacity:.85}
+.inkbound-lobby[data-ink-paper="phosphor"] .ibl-lobby-art img{filter:invert(1) sepia(.75) saturate(1.1) hue-rotate(55deg) contrast(.87);opacity:.78}
+.ibl-lobby-open-space{height:clamp(32px,7vw,100px)}
+.ibl-lobby-synopsis{max-width:790px;margin:15px auto clamp(28px,4vw,62px);border-top:1px solid var(--ia-rule);padding-top:24px;text-align:center}
+.ibl-lobby-synopsis p{color:var(--ia-copy);font:clamp(18px,1.6vw,23px)/1.65 "Iowan Old Style",Georgia,serif;margin:16px auto 0;white-space:pre-line}
+.ibl-lobby-preparation{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(285px,.8fr);gap:clamp(40px,7vw,105px);border-top:1px solid var(--ia-rule);padding:clamp(26px,3vw,47px) 0 0;align-items:start}
+.ibl-lobby-roster h2{font:400 clamp(28px,3vw,39px)/1.22 "Iowan Old Style",Georgia,serif;color:var(--ia-text);margin:0 0 10px}
+.ibl-lobby-roster>p{color:var(--ia-dim);font:15px/1.6 Georgia,serif;margin:0 0 23px}
+.ibl-lobby-party-list{max-width:530px}
+.ibl-lobby-player{border-bottom:1px solid var(--ia-rule);min-height:64px;display:flex;align-items:center;gap:15px;padding:12px 2px}
+.ibl-lobby-player-mark{font:27px Georgia,serif;color:var(--ia-text)}
+.ibl-lobby-player span:nth-child(2){display:flex;flex:1;flex-direction:column;gap:3px;min-width:0}
+.ibl-lobby-player strong{font:500 20px/1.3 "Iowan Old Style",Georgia,serif;color:var(--ia-text);overflow-wrap:anywhere}
+.ibl-lobby-player small{font:11px "American Typewriter","Courier New",monospace;color:var(--ia-dim)}
+.ibl-lobby-player em{font:13px Georgia,serif;color:var(--ia-copy)}
+.ibl-lobby-absent{font:italic 15px/1.5 Georgia,serif;color:var(--ia-dim);padding-left:37px}
+.ibl-lobby-invite{display:inline-block;padding:14px 0;border:0;border-bottom:1px solid var(--ia-strong-rule);margin:12px 0 0;background:none;color:var(--ia-text);font:600 15px "American Typewriter","Courier New",monospace;cursor:pointer}
+.ibl-lobby-actions{display:flex;flex-direction:column;gap:12px;align-items:stretch}
+.ibl-lobby-narrator{border:0;border-bottom:1px solid var(--ia-rule);padding:14px 0;display:flex;justify-content:space-between;background:none;color:var(--ia-text);font:15px "American Typewriter","Courier New",monospace;cursor:pointer}
+.ibl-lobby-narrator strong{font-weight:600}
+.ibl-lobby-narrator-name{font:13px Georgia,serif;color:var(--ia-dim);margin:0}
+.ibl-lobby-begin{margin-top:24px;border:1px solid var(--ia-text);padding:17px 20px;min-height:54px;background:var(--ia-text);color:var(--ia-paper);font:600 14px "American Typewriter","Courier New",monospace;letter-spacing:.065em;cursor:pointer;transition:opacity .2s ease}
+.ibl-lobby-begin:hover:not(:disabled){opacity:.84}
+.ibl-lobby-begin:disabled{opacity:.55;cursor:not-allowed}
+.ibl-lobby-wait{font:italic 17px Georgia,serif;color:var(--ia-copy);border-top:1px solid var(--ia-rule);padding-top:20px}
+.ibl-lobby-status{font:13px/1.5 Georgia,serif;color:var(--ia-dim);margin:4px 0 0}
+.inkbound-lobby .ibl-footer{width:min(92%,1450px);border-color:var(--ia-rule);color:var(--ia-dim)}
+/* Restore formerly hidden session actions to the running Inkbound reader. */
+.inkbound-live .ibl-session-utilities{border-top:1px solid var(--ia-rule)}
+.inkbound-live .ibl-utility-actions{display:flex;flex-direction:column;align-items:stretch;gap:4px}
+.inkbound-live .ibl-utility-actions>button,.inkbound-live .ibl-utility-actions>.button,.inkbound-live .ibl-utility-actions :is(a){font:12px/1.5 "American Typewriter","Courier New",monospace!important;letter-spacing:.015em;border:0!important;border-bottom:1px solid var(--ia-rule)!important;background:transparent!important;color:var(--ia-copy)!important;text-align:left;min-height:39px;padding:9px 0!important;text-transform:none;box-shadow:none;white-space:normal}
+.inkbound-live .ibl-utility-actions :is(button,a):disabled{opacity:.48}
+.inkbound-live .ibl-utility-actions :is(button,a):hover:not(:disabled){color:var(--ia-text)!important;text-decoration:underline;text-underline-offset:4px}
+.inkbound-live .ibl-utility-label{font:11px/1.6 "American Typewriter","Courier New",monospace;color:var(--ia-dim);margin:7px 0}
+.inkbound-live .ibl-utility-actions :is(.narrator-voice-picker,.narrator-voice-select){max-width:100%;min-width:0}
+/* Manuscript treatment for the actual server-driven QTE/progression states. */
+.game-site-shell:has(.inkbound-live) :is(.qte-modal,.hero-death-window,.level-up-modal){max-height:calc(100dvh - 24px);overflow:auto;background:var(--ia-paper)!important;border:1px solid var(--ia-strong-rule)!important;color:var(--ia-copy)!important;box-shadow:0 20px 70px rgba(0,0,0,.26);font-family:"Iowan Old Style",Georgia,serif}
+.game-site-shell:has(.inkbound-live) :is(.qte-modal,.hero-death-window,.level-up-modal) :is(h1,h2,h3,strong){color:var(--ia-text)}
+.game-site-shell:has(.inkbound-live) :is(.qte-modal,.hero-death-window,.level-up-modal) :is(p,small,span){color:var(--ia-copy)}
+.game-site-shell:has(.inkbound-live) :is(.hero-death-window,.level-up-modal) :is(.eyebrow,.level-up-kicker){font:600 11px "American Typewriter","Courier New",monospace;letter-spacing:.12em;color:var(--ia-dim)}
+.game-site-shell:has(.inkbound-live) :is(.qte-modal,.hero-death-window,.level-up-modal) .button-primary{background:var(--ia-text);color:var(--ia-paper);border-color:var(--ia-text)}
+.game-site-shell:has(.inkbound-live) :is(.hero-death-window,.level-up-modal) pre{color:var(--ia-text);background:none;border:0}
+.game-site-shell:has(.inkbound-live) :is(.level-up-jump,.level-up-stats,.hero-death-causes){border-color:var(--ia-rule);background:transparent;color:var(--ia-copy)}
+.inkbound-lobby :is(a,button):focus-visible,.inkbound-live .ibl-utility-actions :is(button,a):focus-visible{outline:2px solid var(--ia-text);outline-offset:4px}
+@media(max-width:780px){.ibl-lobby-preparation{grid-template-columns:minmax(0,1fr);gap:34px}.ibl-lobby-main{width:min(92%,680px)}.ibl-lobby-synopsis{text-align:left}.ibl-lobby-intro h1{font-size:clamp(40px,10vw,65px)}.ibl-lobby-art{margin-top:16px}.inkbound-lobby .ibl-topbar{padding-block:12px;min-height:auto;flex-wrap:wrap;gap:8px}.inkbound-lobby .ibl-nav{width:100%}}
+@media(max-width:440px){.ibl-lobby-main{padding-top:35px}.ibl-lobby-synopsis p{font-size:18px}.ibl-lobby-art img{max-height:300px}.ibl-lobby-player strong{font-size:18px}}
+@media(prefers-reduced-motion:reduce){.ibl-lobby-begin{transition:none}}
+/* Global modal portals are outside the reader DOM; carry paper tokens explicitly.
+   This overrides the original ivory-only modal rules in inkboundFoundation.css. */
+body:has(.inkbound-lobby[data-ink-paper="chalk"],.inkbound-live[data-ink-paper="chalk"]) #modal-root{--ia-paper:#f1f2f0;--ia-text:#222625;--ia-copy:#4f5654;--ia-dim:#69716f;--ia-rule:rgba(34,38,37,.20);--ia-wash:rgba(34,38,37,.055);--ia-strong-rule:rgba(34,38,37,.34)}
+body:has(.inkbound-lobby[data-ink-paper="ivory"],.inkbound-live[data-ink-paper="ivory"]) #modal-root{--ia-paper:#f7f3e9;--ia-text:#28251f;--ia-copy:#514b40;--ia-dim:#756c60;--ia-rule:rgba(48,40,30,.19);--ia-wash:rgba(48,40,30,.055);--ia-strong-rule:rgba(48,40,30,.34)}
+body:has(.inkbound-lobby[data-ink-paper="cream"],.inkbound-live[data-ink-paper="cream"]) #modal-root{--ia-paper:#eee2c9;--ia-text:#30271c;--ia-copy:#51422e;--ia-dim:#69563c;--ia-rule:rgba(55,40,22,.22);--ia-wash:rgba(55,40,22,.065);--ia-strong-rule:rgba(55,40,22,.39)}
+body:has(.inkbound-lobby[data-ink-paper="navy"],.inkbound-live[data-ink-paper="navy"]) #modal-root{--ia-paper:#142536;--ia-text:#f3f6f4;--ia-copy:#dae4e9;--ia-dim:#b5c4d0;--ia-rule:rgba(242,246,250,.26);--ia-wash:rgba(242,246,250,.08);--ia-strong-rule:rgba(242,246,250,.43);color-scheme:dark}
+body:has(.inkbound-lobby[data-ink-paper="phosphor"],.inkbound-live[data-ink-paper="phosphor"]) #modal-root{--ia-paper:#102519;--ia-text:#c9ffb8;--ia-copy:#c1e6b9;--ia-dim:#aad19e;--ia-rule:rgba(201,255,184,.25);--ia-wash:rgba(201,255,184,.075);--ia-strong-rule:rgba(201,255,184,.43);color-scheme:dark}
+body:has(.inkbound-lobby[data-ink-paper="midnight"],.inkbound-live[data-ink-paper="midnight"]) #modal-root{--ia-paper:#141516;--ia-text:#f5f6f3;--ia-copy:#ced2d0;--ia-dim:#adb2b0;--ia-rule:rgba(245,246,243,.26);--ia-wash:rgba(245,246,243,.07);--ia-strong-rule:rgba(245,246,243,.44);color-scheme:dark}
+body:has(.inkbound-lobby,.inkbound-live) #modal-root .modal-panel{background:var(--ia-paper)!important;color:var(--ia-copy)!important;border:1px solid var(--ia-strong-rule)!important;font-family:"Iowan Old Style",Georgia,serif!important;box-shadow:0 18px 65px rgba(0,0,0,.3)!important}
+body:has(.inkbound-lobby,.inkbound-live) #modal-root .modal-panel .panel-heading{border-bottom:1px solid var(--ia-rule)!important}
+body:has(.inkbound-lobby,.inkbound-live) #modal-root .modal-panel .panel-heading strong{color:var(--ia-text)!important;font:400 clamp(26px,3vw,40px) "Iowan Old Style",Georgia,serif!important}
+body:has(.inkbound-lobby,.inkbound-live) #modal-root .modal-panel :is(.icon-button,.modal-body,.modal-body p,.modal-body small){color:var(--ia-copy)!important}
+body:has(.inkbound-lobby,.inkbound-live) #modal-root .modal-panel .modal-body :is(input,textarea){background:transparent!important;color:var(--ia-text)!important;border:1px solid var(--ia-strong-rule)!important}
+body:has(.inkbound-lobby,.inkbound-live) #modal-root .modal-panel :is(.room-invite-code-block,.room-invite-url,.system-notice){background:var(--ia-wash)!important;color:var(--ia-text)!important;border-color:var(--ia-rule)!important}
+body:has(.inkbound-lobby,.inkbound-live) #modal-root .modal-panel :is(.button,.button-primary){background:var(--ia-text)!important;color:var(--ia-paper)!important;border-color:var(--ia-text)!important}
+body:has(.inkbound-lobby,.inkbound-live) #modal-root .modal-panel :is(button,input):focus-visible{outline:2px solid var(--ia-text);outline-offset:4px}
+/* A real voice-library popup needs the same readable ink as its enclosing page. */
+.inkbound-live .narrator-voice-library{background:var(--ia-paper);border:1px solid var(--ia-strong-rule);color:var(--ia-copy);box-shadow:0 12px 35px rgba(0,0,0,.18)}
+.inkbound-live .narrator-voice-library :is(label,span,strong,button){color:var(--ia-text)}

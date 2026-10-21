@@ -20,6 +20,7 @@ import { observeStoryTime, prepareStoryTime, stopStoryTimeEngine, keepStoryTimeA
 import { RoomInviteButton } from "../../components/game/RoomInviteButton";
 import { InkspaceLiveRoom } from "./InkspaceLiveRoom";
 import { InkboundLiveRoom } from "./InkboundLiveRoom";
+import { InkboundLobby } from "./InkboundLobby";
 import "./inkspaceLiveRoom.css";
 import { ShareMomentButton } from "../../components/game/ShareMomentButton";
 import { ChoiceInspector } from "../../features/adventure/ChoiceInspector";
@@ -46,6 +47,10 @@ import {
 import { createAutoReadGate } from "../../services/storyAutoReadGate";
 import { readStoryDisplayPreferences, type StoryDisplayPreferences } from "../../services/storyPreferences";
 import { useGameSocket } from "../../state/GameSocketContext";
+import { useAuth } from "../../state/AuthContext";
+import { useInkboundPaper } from "../../features/appearance/inkboundPaper";
+import "./inkboundAdventurePass657.css";
+import "./inkboundPass658.css";
 import { useLiveAdventure } from "../../state/useLiveAdventure";
 import { useModal } from "../../state/ModalContext";
 import {
@@ -98,12 +103,17 @@ function outcomeLabel(outcome: string) {
 
 export function AdventurePage() {
   const { roomId } = useParams();
+  const { user } = useAuth();
+  const [inkPaper] = useInkboundPaper(user?.user_id ?? "");
   const { preferences, readerTheme, edition } = useAppearance();
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const bookRequested = searchParams.get("reader") === "book";
   const inkboundRequested = searchParams.get("reader") === "inkbound";
+  // Inkbound is the normal started-adventure reader; the classic UI remains an explicit fallback.
+  const classicRequested = searchParams.get("reader") === "classic";
+  const defaultInkbound = !classicRequested && !bookRequested;
   const changeBookView = (enabled: boolean) => {
     const next = new URLSearchParams(searchParams);
     if (enabled) next.set("reader", "book");
@@ -600,7 +610,7 @@ export function AdventurePage() {
       body: (
         <div className="modal-copy-stack">
           <p>This locks the journey to your Hero. A second Hero will no longer be able to join this room.</p>
-          <div className="system-notice">THE PRE-GENERATED OPENING WILL NOT CHANGE. YOU CAN START IMMEDIATELY AFTER SWITCHING.</div>
+          <div className="system-notice">The opening chapter is generated only after you begin the adventure.</div>
         </div>
       ),
       actions: (
@@ -630,7 +640,9 @@ export function AdventurePage() {
     live.submitChoice(selectedChoiceId);
   }
 
-  const inkboundReady = Boolean(inkboundRequested && live.status === "ready" && live.game?.started && scene);
+  const inkboundReady = Boolean((inkboundRequested || defaultInkbound) && live.status === "ready" && live.game?.started && scene);
+  const inkboundLobbyReady = Boolean((inkboundRequested || defaultInkbound) && live.status === "ready" && live.game && !live.game.started);
+  const fantasyIllustration = Boolean(worldCatalogItem?.tags?.some((tag) => /fantasy|medieval|fairy|sword/i.test(tag)));
   const bookReady = Boolean(bookRequested && live.status === "ready" && live.game?.started && scene && theater.chapterReleased && theater.phase === "none" && !live.game?.turn_pending && !live.game?.director_request_active && !live.game?.director_retry_required && !live.game?.pending_micro_event && !choiceLocked && !showDeath && !showLevelUp);
 
   if (!characterId) {
@@ -665,9 +677,33 @@ export function AdventurePage() {
           </div>
         </div>
       ) : null}
+      {inkboundLobbyReady && live.game && <InkboundLobby
+        roomCode={normalizedRoomCode}
+        paper={inkPaper}
+        title={live.game.adventure_title ?? matchingAdventure?.adventure_title ?? "Your next story"}
+        synopsis={live.game.adventure_synopsis ?? ""}
+        fantasyArtwork={fantasyIllustration}
+        playMode={live.room?.play_mode ?? "solo"}
+        players={live.room?.players ?? []}
+        readiness={readiness}
+        playerId={live.playerId}
+        isHost={Boolean(localRoomPlayer?.is_host)}
+        connected={connected && live.status === "ready"}
+        canBeginAdventure={canBeginAdventure}
+        chapterPreparing={Boolean(live.game.chapter_preparing)}
+        canStartSolo={Boolean(live.game.can_start_solo)}
+        onStartSolo={confirmSoloStart}
+        narratorEnabled={audioPreferences.narrationEnabled}
+        narratorName={narratorVoiceLabel(audioPreferences.narrationVoice)}
+        onToggleNarrator={toggleStoryTime}
+        onBeginAdventure={live.startAdventure}
+        onClassicView={() => { const next = new URLSearchParams(searchParams); next.set("reader", "classic"); navigate({ pathname: location.pathname, search: next.toString() }, { replace: true }); }}
+      />}
       {inkboundReady && scene && <InkboundLiveRoom
         roomCode={normalizedRoomCode}
         adventureTitle={live.game?.adventure_title ?? matchingAdventure?.adventure_title ?? "The Chronicle"}
+        paper={inkPaper}
+        illustrationSrc={fantasyIllustration && turnNumber === 1 ? "/art/inkbound/north-road-editorial.png" : undefined}
         turnNumber={turnNumber}
         scene={scene}
         chapterReleased={theater.chapterReleased && theater.phase === "none" && !live.game?.director_request_active && !live.game?.turn_pending}
@@ -688,7 +724,38 @@ export function AdventurePage() {
         onNotesChange={setBookNotes}
         narrationEnabled={audioPreferences.narrationEnabled}
         onToggleStoryTime={toggleStoryTime}
-        onClose={() => { const next = new URLSearchParams(searchParams); next.delete("reader"); navigate({pathname:location.pathname,search:next.toString()},{replace:true}); }}
+        sessionUtilities={<>
+          <button type="button" aria-pressed={audioPreferences.effectsEnabled} onClick={() => {
+            const next = writeAudioPreferences({ effectsEnabled: !audioPreferences.effectsEnabled });
+            setAudioPreferences(next);
+            if (next.effectsEnabled) { activateAudioFromGesture(); playSound("ui"); }
+          }}>{audioPreferences.effectsEnabled ? "Sound effects · on" : "Sound effects · off"}</button>
+          {audioPreferences.narrationEnabled && <>
+            <span className="ibl-utility-label">Narrator voice</span>
+            <NarratorVoicePicker value={audioPreferences.narrationVoice} onChange={(voice) => setAudioPreferences(writeAudioPreferences({ narrationVoice: voice }))} />
+            <button type="button" onClick={cycleNarrationSpeed}>Reading speed · {audioPreferences.narrationSpeed}×</button>
+            <button type="button" aria-pressed={audioPreferences.narrationDramaticPacing} onClick={() => setAudioPreferences(writeAudioPreferences({ narrationDramaticPacing: !audioPreferences.narrationDramaticPacing }))}>Dramatic pacing · {audioPreferences.narrationDramaticPacing ? "on" : "off"}</button>
+            <button type="button" onClick={narrateChapter} disabled={!connected || !narratorAvailable || !theater.chapterReleased || !scene?.body || Boolean(live.game?.pending_micro_event) || showDeath}>Read this chapter aloud →</button>
+            <button type="button" onClick={narrateChoices} disabled={!connected || !narratorAvailable || !theater.chapterReleased || !scene?.choices.length || Boolean(live.game?.pending_micro_event) || choiceLocked || showDeath}>Read choices aloud →</button>
+            {(narration.phase === "playing" || narration.phase === "loading" || narration.phase === "buffering") && <button type="button" onClick={pauseNarration}>Pause narration</button>}
+            {narration.phase === "paused" && <button type="button" onClick={() => { void resumeNarration(); }}>Resume narration</button>}
+            {narration.phase !== "idle" && <button type="button" onClick={stopNarration}>Stop narration</button>}
+            {storyTime.phase !== "ready" && <span className="ibl-utility-label" role="status">{storyTime.phase === "error" ? storyTime.message : "Connecting to Story Time…"}</span>}
+          </>}
+          {live.room?.play_mode === "coop" && localRoomPlayer?.is_host && live.room.player_count < live.room.max_players &&
+            <RoomInviteButton roomCode={normalizedRoomCode} adventureTitle={live.game?.adventure_title} className="ibl-utility-invite" label="Invite another player →" />}
+          {live.game?.can_start_solo && localRoomPlayer?.is_host && <button type="button" onClick={confirmSoloStart}>Continue as solo →</button>}
+          {live.game?.wrap_up_available && !live.game.wrap_up_active && <button type="button"
+            disabled={!connected || live.status !== "ready" || Boolean(live.playerId && live.game.wrap_up_votes.includes(live.playerId))}
+            onClick={live.requestWrapUp}>
+            {live.playerId && live.game.wrap_up_votes.includes(live.playerId) ? "Final chapter requested" : "Call the final chapter →"}
+          </button>}
+          {live.game?.wrap_up_active && <span className="ibl-utility-label" role="status">Final chapter · {live.game.wrap_up_turns_remaining} turns remaining</span>}
+          {theater.chapterReleased && scene?.body && <ShareMomentButton title={`${scene.title} — Tales of Two`}
+            text={`${live.game?.adventure_title ?? "Tales of Two"} // ${scene.title}\n${scene.body.slice(0,260)}`}
+            url={`${window.location.origin}/`} label="Share this moment →" />}
+        </>}
+        onClose={() => { const next = new URLSearchParams(searchParams); next.set("reader", "classic"); navigate({pathname:location.pathname,search:next.toString()},{replace:true}); }}
       />}
       {bookReady && scene && <InkspaceLiveRoom
         roomCode={normalizedRoomCode}
@@ -710,16 +777,16 @@ export function AdventurePage() {
         onNotesChange={setBookNotes}
         onClose={() => changeBookView(false)}
       />}
-      {!bookReady && !inkboundReady && <div className="inkspace-live-entry">
+      {!bookReady && !inkboundReady && !inkboundLobbyReady && <div className="inkspace-live-entry">
         {bookRequested ? <span className="muted-copy">Book view resumes after the current turn is released.</span> : null}
-        <button type="button" onClick={() => { const next = new URLSearchParams(searchParams); if (inkboundRequested) next.delete("reader"); else next.set("reader", "inkbound"); navigate({pathname:location.pathname, search: next.toString()}, {replace:true}); }}>
-          {inkboundRequested ? "USE STANDARD READER" : "OPEN INKBOUND READER · PREVIEW"}
+        <button type="button" onClick={() => { const next = new URLSearchParams(searchParams); if (inkboundRequested || defaultInkbound) next.set("reader", "classic"); else next.set("reader", "inkbound"); navigate({pathname:location.pathname, search: next.toString()}, {replace:true}); }}>
+          {inkboundRequested || defaultInkbound ? "USE CLASSIC READER" : "OPEN INKBOUND READER"}
         </button>
         <button type="button" onClick={() => changeBookView(!bookRequested)}>
           {bookRequested ? "USE STANDARD READER" : "OPEN LIVING BOOK · PREVIEW"}
         </button>
       </div>}
-      <div className={`adventure-layout ${bookReady || inkboundReady ? "adventure-layout--reader-hidden" : ""}`} data-world-skin={worldSkin.reader} data-reduced-motion={worldSkin.reducedMotion}
+      <div className={`adventure-layout ${bookReady || inkboundReady || inkboundLobbyReady ? "adventure-layout--reader-hidden" : ""}`} data-world-skin={worldSkin.reader} data-reduced-motion={worldSkin.reducedMotion}
         data-installed-reader-theme={Boolean(readerTheme && worldSkin.reader !== "plain")} data-theme-material={readerTheme?.material}
         data-reader-edition-family={!readerTheme && worldSkin.reader !== "plain" ? readerEditionFamily(worldSkin.reader) : undefined}
         data-edition-mode={edition.mode}
@@ -1549,6 +1616,7 @@ ${scene.body.slice(0, 260)}`}
       />
 
       <TurnTheater
+        inkPaper={inkboundReady ? inkPaper : undefined}
         theater={theater}
         playerId={live.playerId}
         intermissionResult={live.intermissionResult}

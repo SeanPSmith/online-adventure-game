@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { IntermissionResult } from "../../services/game";
+import type { InkPaper } from "../appearance/inkboundPaper";
 import { IntermissionRuntime } from "./IntermissionRuntime";
 import type { TurnTheaterState } from "./useTurnTheater";
 import { TurnResolutionTheater } from "./TurnResolutionTheater";
@@ -17,6 +18,7 @@ function asciiCountdown(value: number) {
 }
 
 export function TurnTheater({
+  inkPaper,
   theater,
   playerId,
   intermissionResult,
@@ -24,6 +26,7 @@ export function TurnTheater({
   onRetry,
   onSync,
 }: {
+  inkPaper?: InkPaper;
   theater: TurnTheaterState;
   playerId: string | null;
   intermissionResult: IntermissionResult | null;
@@ -46,7 +49,7 @@ export function TurnTheater({
 
   if (theater.phase === "resolution" && theater.activeReceipt) {
     return (
-      <div className="turn-theater-overlay is-resolution" role="dialog" aria-modal="true">
+      <div className={`turn-theater-overlay is-resolution ${inkPaper ? "inkbound-turn-theater" : ""}`} data-ink-paper={inkPaper} role="dialog" aria-modal="true">
         <TurnResolutionTheater
           receipt={theater.activeReceipt}
           onContinue={theater.acknowledgeResolution}
@@ -62,7 +65,7 @@ export function TurnTheater({
 
   if (intermissionVisible && theater.activeIntermission) {
     return (
-      <div className={`turn-theater-overlay is-${theater.phase} is-intermission-runtime`} role="dialog" aria-modal="true">
+      <div className={`turn-theater-overlay is-${theater.phase} is-intermission-runtime ${inkPaper ? "inkbound-turn-theater" : ""}`} data-ink-paper={inkPaper} role="dialog" aria-modal="true">
         <IntermissionRuntime
           payload={theater.activeIntermission}
           playerId={playerId}
@@ -83,7 +86,7 @@ export function TurnTheater({
   }
 
   return (
-    <div className={`turn-theater-overlay is-${theater.phase}`} role="status" aria-live="polite">
+    <div className={`turn-theater-overlay is-${theater.phase} ${inkPaper ? "inkbound-turn-theater" : ""}`} data-ink-paper={inkPaper} role="status" aria-live="polite">
       <div className="turn-theater-stage">
         {theater.phase === "intermission" ? (
           <>

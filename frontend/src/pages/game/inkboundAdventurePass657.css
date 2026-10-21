@@ -1,0 +1,135 @@
+/* Selected theme variables propagate from the reader to sibling, server-driven dialogs. */
+.game-site-shell:has(.inkbound-live[data-ink-paper="chalk"]){--ia-paper:#f1f2f0;--ia-text:#222625;--ia-copy:#4f5654;--ia-dim:#69716f;--ia-rule:rgba(34,38,37,.20);--ia-strong-rule:rgba(34,38,37,.34);--ia-wash:rgba(34,38,37,.055);--ia-scrim:rgba(15,19,18,.72)}
+.game-site-shell:has(.inkbound-live[data-ink-paper="ivory"]){--ia-paper:#f7f3e9;--ia-text:#28251f;--ia-copy:#514b40;--ia-dim:#756c60;--ia-rule:rgba(48,40,30,.19);--ia-strong-rule:rgba(48,40,30,.34);--ia-wash:rgba(48,40,30,.055);--ia-scrim:rgba(26,22,19,.76)}
+.game-site-shell:has(.inkbound-live[data-ink-paper="cream"]){--ia-paper:#eee2c9;--ia-text:#30271c;--ia-copy:#51422e;--ia-dim:#69563c;--ia-rule:rgba(55,40,22,.22);--ia-strong-rule:rgba(55,40,22,.39);--ia-wash:rgba(55,40,22,.065);--ia-scrim:rgba(33,24,16,.76)}
+.game-site-shell:has(.inkbound-live[data-ink-paper="navy"]){--ia-paper:#142536;--ia-text:#f3f6f4;--ia-copy:#dae4e9;--ia-dim:#b5c4d0;--ia-rule:rgba(242,246,250,.26);--ia-strong-rule:rgba(242,246,250,.43);--ia-wash:rgba(242,246,250,.08);--ia-scrim:rgba(2,8,15,.88);color-scheme:dark}
+.game-site-shell:has(.inkbound-live[data-ink-paper="phosphor"]){--ia-paper:#102519;--ia-text:#c9ffb8;--ia-copy:#c1e6b9;--ia-dim:#aad19e;--ia-rule:rgba(201,255,184,.25);--ia-strong-rule:rgba(201,255,184,.43);--ia-wash:rgba(201,255,184,.075);--ia-scrim:rgba(3,13,8,.9);color-scheme:dark}
+.game-site-shell:has(.inkbound-live[data-ink-paper="midnight"]){--ia-paper:#141516;--ia-text:#f5f6f3;--ia-copy:#ced2d0;--ia-dim:#adb2b0;--ia-rule:rgba(245,246,243,.26);--ia-strong-rule:rgba(245,246,243,.44);--ia-wash:rgba(245,246,243,.07);--ia-scrim:rgba(2,3,4,.90);color-scheme:dark}
+/* Pass 65.7 — live manuscript. Real choices, rolls and story states are never faked.
+   Paper is CSS; the panoramic drawing is a genuinely transparent PNG.
+   No radial image masks, blurred rectangles or decorative absolute captions. */
+.inkbound-live[data-ink-paper="chalk"],.inkbound-turn-theater[data-ink-paper="chalk"]{--ia-paper:#f1f2f0;--ia-text:#222625;--ia-copy:#4f5654;--ia-dim:#69716f;--ia-rule:rgba(34,38,37,.20);--ia-strong-rule:rgba(34,38,37,.34);--ia-wash:rgba(34,38,37,.055);--ia-scrim:rgba(15,19,18,.72)}
+.inkbound-live[data-ink-paper="ivory"],.inkbound-turn-theater[data-ink-paper="ivory"]{--ia-paper:#f7f3e9;--ia-text:#28251f;--ia-copy:#514b40;--ia-dim:#756c60;--ia-rule:rgba(48,40,30,.19);--ia-strong-rule:rgba(48,40,30,.34);--ia-wash:rgba(48,40,30,.055);--ia-scrim:rgba(26,22,19,.76)}
+.inkbound-live[data-ink-paper="cream"],.inkbound-turn-theater[data-ink-paper="cream"]{--ia-paper:#eee2c9;--ia-text:#30271c;--ia-copy:#51422e;--ia-dim:#69563c;--ia-rule:rgba(55,40,22,.22);--ia-strong-rule:rgba(55,40,22,.39);--ia-wash:rgba(55,40,22,.065);--ia-scrim:rgba(33,24,16,.76)}
+.inkbound-live[data-ink-paper="navy"],.inkbound-turn-theater[data-ink-paper="navy"]{--ia-paper:#142536;--ia-text:#f3f6f4;--ia-copy:#dae4e9;--ia-dim:#b5c4d0;--ia-rule:rgba(242,246,250,.26);--ia-strong-rule:rgba(242,246,250,.43);--ia-wash:rgba(242,246,250,.08);--ia-scrim:rgba(2,8,15,.88);color-scheme:dark}
+.inkbound-live[data-ink-paper="phosphor"],.inkbound-turn-theater[data-ink-paper="phosphor"]{--ia-paper:#102519;--ia-text:#c9ffb8;--ia-copy:#c1e6b9;--ia-dim:#aad19e;--ia-rule:rgba(201,255,184,.25);--ia-strong-rule:rgba(201,255,184,.43);--ia-wash:rgba(201,255,184,.075);--ia-scrim:rgba(3,13,8,.9);color-scheme:dark}
+.inkbound-live[data-ink-paper="midnight"],.inkbound-turn-theater[data-ink-paper="midnight"]{--ia-paper:#141516;--ia-text:#f5f6f3;--ia-copy:#ced2d0;--ia-dim:#adb2b0;--ia-rule:rgba(245,246,243,.26);--ia-strong-rule:rgba(245,246,243,.44);--ia-wash:rgba(245,246,243,.07);--ia-scrim:rgba(2,3,4,.90);color-scheme:dark}
+
+/* Correct old fixed-height Living Book constraints ONLY for an active Inkbound reader. */
+.game-site-shell:has(.inkbound-live){min-height:100dvh!important;height:auto!important;max-height:none!important;overflow:visible!important;background:var(--ia-paper,#f7f3e9)!important}
+.game-site-shell:has(.inkbound-live)>.game-main{height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;display:block!important}
+.game-site-shell:has(.inkbound-live) .inkspace-live-entry{display:none}
+.inkbound-live{--ink-paper:var(--ia-paper);--ink-dark:var(--ia-text);--ink-body:var(--ia-copy);--ink-muted:var(--ia-dim);--ink-line:var(--ia-strong-rule);--ink-rule:var(--ia-rule);background:var(--ia-paper);background-image:none;color:var(--ia-copy);font-family:"Iowan Old Style",Baskerville,Georgia,serif;overflow:visible;min-height:100dvh;padding:0 0 26px}
+.inkbound-live .ibl-topbar{min-height:76px;width:min(92%,1450px);border-bottom:1px solid var(--ia-rule)}
+.inkbound-live .ibl-brand{color:var(--ia-text)!important;font-family:"Iowan Old Style",Georgia,serif!important;font-size:clamp(22px,2.05vw,30px)!important;font-weight:500!important;letter-spacing:.10em}
+.inkbound-live .ibl-nav :is(a,button){color:var(--ia-text)!important;font:600 12px/1.3 "American Typewriter","Courier New",monospace!important;letter-spacing:.015em;text-transform:none}
+.inkbound-live .ibl-nav :is(a,button):hover{text-decoration:underline;text-underline-offset:5px}
+.inkbound-live .ibl-layout{width:min(92%,1450px);margin:0 auto;grid-template-columns:minmax(0,1fr) minmax(220px,250px);gap:clamp(32px,4.5vw,86px)}
+.inkbound-live .ibl-meta{color:var(--ia-dim);padding-top:25px;font:11px/1.55 "American Typewriter","Courier New",monospace;letter-spacing:.045em;text-transform:none;flex-wrap:wrap}
+.inkbound-live .ibl-chapter{padding-top:clamp(18px,3.4vw,46px);animation:ibl-chapter-enter .42s ease-out both}
+.inkbound-live .ibl-chapter h1{max-width:860px;font:400 clamp(43px,5.2vw,82px)/1.08 "Iowan Old Style",Georgia,serif!important;letter-spacing:-.032em;color:var(--ia-text);margin:0 auto 12px;text-wrap:balance}
+.inkbound-live .ibl-flourish{color:var(--ia-dim);opacity:.66;font-size:16px;line-height:1.2;letter-spacing:0;margin:14px 0 6px}
+.inkbound-live .ibl-chapter-illustration{margin:14px auto 28px;width:100%;max-width:1140px;min-width:0;line-height:0}
+.inkbound-live .ibl-chapter-illustration img{display:block;width:100%;height:auto;object-fit:contain;max-height:clamp(220px,32vw,485px);pointer-events:none;user-select:none}
+.inkbound-live:is([data-ink-paper="navy"],[data-ink-paper="midnight"]) .ibl-chapter-illustration img{filter:invert(1) grayscale(1) brightness(1.13) contrast(.84);opacity:.85}
+.inkbound-live[data-ink-paper="phosphor"] .ibl-chapter-illustration img{filter:invert(1) sepia(.75) saturate(1.1) hue-rotate(55deg) contrast(.87);opacity:.78}
+.inkbound-live .ibl-scene-ascii{border:0!important;box-shadow:none!important;background:none!important;color:var(--ia-dim);margin:12px auto 20px;font-family:"Courier New",monospace!important}
+.inkbound-live .ibl-prose{width:min(100%,790px);margin:clamp(28px,3vw,48px) auto 38px;text-align:left;color:var(--ia-copy);font:400 clamp(17px,1.36vw,20px)/1.76 "Iowan Old Style",Georgia,serif;letter-spacing:.012em}
+.inkbound-live .ibl-prose p{color:var(--ia-copy);margin-bottom:19px;text-wrap:pretty}
+.inkbound-live .ibl-dropcap{font:400 clamp(76px,7vw,110px)/.76 "Iowan Old Style",Georgia,serif;color:var(--ia-text);margin:10px 14px 0 0}
+.inkbound-live .ibl-section-heading{font:600 12px/1.3 "American Typewriter","Courier New",monospace;letter-spacing:.17em;color:var(--ia-text);gap:14px;margin:36px auto 18px}
+.inkbound-live .ibl-section-heading span{background:var(--ia-rule);width:12%}
+.inkbound-live .ibl-choices{width:min(100%,880px);margin:auto;display:flex;flex-direction:column;gap:0;border-top:1px solid var(--ia-rule)}
+.inkbound-live .ibl-choice{width:100%;min-height:85px;padding:17px 16px;gap:20px;background:transparent!important;border:0;border-bottom:1px solid var(--ia-rule);box-shadow:none!important;border-radius:0;transition:background-color .17s ease;position:relative}
+.inkbound-live .ibl-choice:hover:not(:disabled),.inkbound-live .ibl-choice.is-chosen{background:var(--ia-wash)!important}
+.inkbound-live .ibl-choice.is-chosen:before{content:"";position:absolute;inset:15px auto 15px 0;border-left:3px solid var(--ia-text)}
+.inkbound-live .ibl-choice-index{font:600 13px/1.4 "American Typewriter","Courier New",monospace;color:var(--ia-dim);align-self:center}
+.inkbound-live .ibl-choice-body strong{color:var(--ia-text);font:400 clamp(17px,1.4vw,21px)/1.3 "Iowan Old Style",Georgia,serif!important}
+.inkbound-live .ibl-choice-body small{color:var(--ia-dim);font:13px/1.4 "American Typewriter","Courier New",monospace}
+.inkbound-live .ibl-choice-arrow{font:26px Georgia,serif;color:var(--ia-text)}
+.inkbound-live .ibl-commit{margin:24px auto 34px;color:var(--ia-dim);font:13px/1.4 "American Typewriter","Courier New",monospace;min-height:52px}
+.inkbound-live .ibl-commit button{background:var(--ia-text);color:var(--ia-paper);border:1px solid var(--ia-text);border-radius:2px;padding:15px 25px;font:600 13px "American Typewriter","Courier New",monospace}
+.inkbound-live .ibl-commit button:hover:not(:disabled){opacity:.88}
+.inkbound-live .ibl-sealed{min-height:55dvh;padding:clamp(80px,10vw,160px) 20px;color:var(--ia-copy)}
+.inkbound-live .ibl-sealed h1{color:var(--ia-text);font-size:clamp(38px,5vw,66px)}
+.inkbound-live .ibl-sealed p{color:var(--ia-copy)}
+/* Functional character and chat instruments: open marginalia, not boxed dashboard cards. */
+.inkbound-live .ibl-sidebar{margin-top:32px;padding:0 0 20px 23px;border-left:1px solid var(--ia-rule);gap:0}
+.inkbound-live .ibl-sidebar-section{background:transparent;border:0;border-bottom:1px solid var(--ia-rule);padding:17px 0 24px;margin:0}
+.inkbound-live .ibl-sidebar-head h2{color:var(--ia-text);font:400 24px/1.25 "Iowan Old Style",Georgia,serif;margin-bottom:13px}
+.inkbound-live .ibl-sidebar-head button{color:var(--ia-dim);font:11px "American Typewriter","Courier New",monospace;white-space:normal}
+.inkbound-live .ibl-hero-name strong,.inkbound-live .ibl-party-list strong{color:var(--ia-text)}
+.inkbound-live .ibl-hero-name small,.inkbound-live .ibl-party-list small,.inkbound-live .ibl-sidebar-note,.inkbound-live .ibl-active-effects small{color:var(--ia-dim)}
+.inkbound-live .ibl-resource,.inkbound-live .ibl-active-effects>span{color:var(--ia-copy)}
+.inkbound-live .ibl-progress{border:1px solid var(--ia-strong-rule);height:7px}
+.inkbound-live .ibl-progress span{background:var(--ia-text)}
+.inkbound-live .ibl-party-avatar,.inkbound-live .ibl-avatar{border-color:var(--ia-rule);color:var(--ia-text)}
+.inkbound-live .ibl-journal-link{border-color:var(--ia-rule);color:var(--ia-copy)}
+.inkbound-live .ibl-chat-log b,.inkbound-live .ibl-drawer-chat b{color:var(--ia-text)}
+.inkbound-live .ibl-chat-form{border-color:var(--ia-rule)}
+.inkbound-live .ibl-chat-form input{color:var(--ia-text);background:transparent;border-color:var(--ia-rule)}
+.inkbound-live .ibl-chat-form input::placeholder{color:var(--ia-dim)}
+.inkbound-live .ibl-chat-form button{color:var(--ia-text)}
+.inkbound-live .ibl-footer{width:min(92%,1450px);border-color:var(--ia-rule);color:var(--ia-dim);font:11px "American Typewriter","Courier New",monospace;letter-spacing:.03em;text-transform:none}
+/* The folio inherits the selected theme and must remain readable, not a white paper overlay on dark ink. */
+.inkbound-live .ibl-drawer-scrim{background:var(--ia-scrim)}
+.inkbound-live .ibl-drawer{color:var(--ia-copy);background:var(--ia-paper);border:0;border-left:1px solid var(--ia-strong-rule);box-shadow:-12px 0 55px rgba(0,0,0,.18);padding:clamp(24px,4vw,45px)}
+.inkbound-live .ibl-drawer :is(h2,h3,button,a,strong){color:var(--ia-text)}
+.inkbound-live .ibl-drawer h2{font:400 clamp(35px,4vw,53px) "Iowan Old Style",Georgia,serif}
+.inkbound-live .ibl-drawer p,.inkbound-live .ibl-drawer label{color:var(--ia-copy)}
+.inkbound-live .ibl-drawer textarea{color:var(--ia-text);background:transparent;border:1px solid var(--ia-strong-rule)}
+.inkbound-live .ibl-history-list article{border-color:var(--ia-rule)}
+.inkbound-live :is(a,button,input,textarea):focus-visible{outline:2px solid var(--ia-text);outline-offset:4px}
+
+/* The real server turn sequence uses these paper variables. Its mechanics remain untouched. */
+.turn-theater-overlay.inkbound-turn-theater{background:var(--ia-scrim);color:var(--ia-copy);font-family:"Iowan Old Style",Georgia,serif;z-index:900}
+.turn-theater-overlay.inkbound-turn-theater:before{display:none}
+.inkbound-turn-theater .turn-theater-stage,.inkbound-turn-theater .turn-resolution-theater{background:var(--ia-paper);border:1px solid var(--ia-strong-rule);color:var(--ia-copy);box-shadow:0 15px 55px rgba(0,0,0,.20);max-height:calc(100dvh - 28px);overflow:auto}
+.inkbound-turn-theater .turn-theater-stage{min-height:min(60dvh,480px);width:min(780px,100%);gap:24px}
+.inkbound-turn-theater .turn-theater-stage h2{color:var(--ia-text);font:400 clamp(32px,4vw,54px) "Iowan Old Style",Georgia,serif}
+.inkbound-turn-theater .turn-theater-stage p{color:var(--ia-copy);font:17px/1.6 "Iowan Old Style",Georgia,serif}
+.inkbound-turn-theater .eyebrow{color:var(--ia-dim)!important;font:600 12px "American Typewriter","Courier New",monospace;letter-spacing:.13em}
+.inkbound-turn-theater .turn-theater-countdown{color:var(--ia-text);text-shadow:none}
+.inkbound-turn-theater .ascii-hourglass{color:var(--ia-text)}
+.inkbound-turn-theater .theater-heading{border-color:var(--ia-rule);padding:8px 2px 25px;gap:12px}
+.inkbound-turn-theater .theater-heading h2{color:var(--ia-text);font:400 clamp(30px,4.2vw,59px) "Iowan Old Style",Georgia,serif;letter-spacing:-.035em;text-transform:none}
+.inkbound-turn-theater .theater-heading>span{color:var(--ia-dim)}
+.inkbound-turn-theater .turn-resolution-theater{width:min(850px,100%);padding:clamp(22px,4vw,52px)}
+.inkbound-turn-theater .theater-results{gap:0}
+.inkbound-turn-theater .theater-result-card{border:0;border-bottom:1px solid var(--ia-rule);background:transparent;padding:20px 0;opacity:1;color:var(--ia-copy)}
+.inkbound-turn-theater .theater-result-card>header{border-color:var(--ia-rule);color:var(--ia-dim);font:12px "American Typewriter","Courier New",monospace}
+.inkbound-turn-theater .theater-result-card>header strong{color:var(--ia-text);font:400 20px/1.4 "Iowan Old Style",Georgia,serif}
+.inkbound-turn-theater .theater-d20{color:var(--ia-text);text-shadow:none}
+.inkbound-turn-theater .theater-breakdown>div{color:var(--ia-copy);border-color:var(--ia-rule);font:12px "American Typewriter","Courier New",monospace}
+.inkbound-turn-theater .theater-breakdown>div strong{color:var(--ia-text)}
+.inkbound-turn-theater .theater-breakdown>div.is-total{border:0;border-top:1px solid var(--ia-strong-rule);color:var(--ia-text)}
+.inkbound-turn-theater .theater-outcome{color:var(--ia-text);font:500 clamp(25px,3vw,38px) "Iowan Old Style",Georgia,serif;border-color:var(--ia-rule);text-shadow:none}
+.inkbound-turn-theater .theater-outcome:is(.failure,.critical-failure){text-decoration:underline;text-decoration-style:wavy;text-decoration-thickness:1px;text-underline-offset:6px}
+.inkbound-turn-theater .theater-outcome.critical-success{text-shadow:none}
+.inkbound-turn-theater .theater-finale-stage{border-color:var(--ia-rule)}
+.inkbound-turn-theater :is(.theater-progression-card,.theater-reward-ledger){background:transparent;border-color:var(--ia-rule);color:var(--ia-copy)}
+.inkbound-turn-theater .theater-progression-line{border-color:var(--ia-rule)}
+.inkbound-turn-theater .theater-progression-line strong{color:var(--ia-text)}
+.inkbound-turn-theater :is(.theater-resolution-copy,.theater-resolution-copy p){color:var(--ia-copy)}
+.inkbound-turn-theater .button.button-primary{background:var(--ia-text);color:var(--ia-paper);border-color:var(--ia-text);font:600 13px "American Typewriter","Courier New",monospace}
+.inkbound-turn-theater .button:not(.button-primary){border-color:var(--ia-strong-rule);color:var(--ia-text);background:transparent}
+/* Keep Arcade games' own rendering/canvas contrast, restyle only its outer intermission manuscript. */
+.inkbound-turn-theater.is-intermission-runtime{background:var(--ia-scrim)}
+.inkbound-turn-theater .intermission-runtime{background:var(--ia-paper);border:1px solid var(--ia-strong-rule);box-shadow:0 15px 55px rgba(0,0,0,.22);color:var(--ia-copy)}
+.inkbound-turn-theater .intermission-runtime-header{border-color:var(--ia-rule);color:var(--ia-copy);background:var(--ia-paper)}
+.inkbound-turn-theater .intermission-runtime-header h2{color:var(--ia-text);font:400 clamp(25px,3vw,37px) "Iowan Old Style",Georgia,serif}
+.inkbound-turn-theater .intermission-runtime-readout :is(strong,span){color:var(--ia-text)}
+.inkbound-turn-theater .intermission-party-strip{border-color:var(--ia-rule);background:var(--ia-rule)}
+.inkbound-turn-theater .intermission-party-strip>div{background:var(--ia-paper);color:var(--ia-text)}
+.inkbound-turn-theater .intermission-story-ready-bar{background:var(--ia-wash);border-color:var(--ia-strong-rule)}
+.inkbound-turn-theater .intermission-story-ready-bar>span{background:var(--ia-text)}
+.inkbound-turn-theater .intermission-runtime-footer{background:var(--ia-paper);border-color:var(--ia-rule);color:var(--ia-copy)}
+.inkbound-turn-theater :is(button,a,input,textarea):focus-visible{outline:2px solid var(--ia-text);outline-offset:3px}
+/* Other server-state modals retain their behavior; their chrome matches this reader. */
+.game-site-shell:has(.inkbound-live) :is(.qte-backdrop,.hero-death-backdrop,.level-up-backdrop){background:rgba(0,0,0,.78)}
+.game-site-shell:has(.inkbound-live) :is(.qte-modal,.hero-death-window,.level-up-modal){border:1px solid var(--ia-strong-rule);box-shadow:0 16px 55px rgba(0,0,0,.20);background:var(--ia-paper);color:var(--ia-copy)}
+.game-site-shell:has(.inkbound-live) :is(.hero-death-window,.level-up-modal) h2{color:var(--ia-text);font-family:"Iowan Old Style",Georgia,serif}
+@media(max-width:1050px){.inkbound-live .ibl-layout{grid-template-columns:minmax(0,1fr) 230px;gap:26px}.inkbound-live .ibl-sidebar{padding-left:17px}.inkbound-live .ibl-prose{width:100%}}
+@media(max-width:760px){.inkbound-live .ibl-layout{display:flex;flex-direction:column;gap:0}.inkbound-live .ibl-topbar{padding-block:12px;min-height:0}.inkbound-live .ibl-nav{gap:6px 16px;justify-content:flex-start}.inkbound-live .ibl-nav :is(a,button){font-size:11px!important}.inkbound-live .ibl-meta{padding-top:14px}.inkbound-live .ibl-chapter{padding-top:23px}.inkbound-live .ibl-chapter-illustration{margin:12px auto 28px}.inkbound-live .ibl-prose{margin:28px auto}.inkbound-live .ibl-sidebar{width:100%;order:2;display:flex;flex-direction:column;border-left:0;border-top:1px solid var(--ia-rule);margin-top:22px;padding:6px 0 0}.inkbound-live .ibl-sidebar-section{width:100%}.inkbound-live .ibl-choice{padding:16px 10px}.inkbound-live .ibl-footer{flex-wrap:wrap;gap:12px}.inkbound-turn-theater .theater-dice-stage{grid-template-columns:1fr}.inkbound-turn-theater .turn-resolution-theater{max-height:calc(100dvh - 28px)}}
+@media(max-width:440px){.inkbound-live .ibl-layout,.inkbound-live .ibl-topbar,.inkbound-live .ibl-footer{width:calc(100% - 36px)}.inkbound-live .ibl-brand{font-size:22px!important}.inkbound-live .ibl-chapter h1{font-size:clamp(39px,12vw,52px)}.inkbound-live .ibl-choice-body strong{font-size:18px!important}.inkbound-live .ibl-meta{font-size:10px}.inkbound-turn-theater .theater-d20{font-size:12px}}
+@media(prefers-reduced-motion:reduce){.inkbound-live .ibl-chapter,.inkbound-live .ibl-drawer,.inkbound-turn-theater :is(.theater-d20,.turn-resolution-theater){animation:none!important;transition:none!important}}

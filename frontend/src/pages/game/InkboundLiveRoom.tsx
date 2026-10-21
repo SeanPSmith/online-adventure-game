@@ -2,9 +2,10 @@
  * All room state, choice submission, chat, narration and effects remain owned
  * by AdventurePage/useLiveAdventure. This is presentation only.
  */
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Link } from "react-router";
 import type { Character } from "../../services/characters";
+import type { InkPaper } from "../../features/appearance/inkboundPaper";
 import type { ChatMessage, PartyHeroSnapshot, RoomPlayer, SceneChoice, TurnHistoryEntry } from "../../services/game";
 import "./inkboundFoundation.css";
 import "./inkboundLiveRoom.css";
@@ -13,6 +14,8 @@ type Hero = Character | PartyHeroSnapshot;
 type Panel = "journal" | "notes" | "party" | "chat" | "hero" | "history" | null;
 export type InkboundLiveRoomProps = Readonly<{
   roomCode: string;
+  paper: InkPaper;
+  illustrationSrc?: string;
   adventureTitle: string;
   turnNumber: number;
   scene: { id: string; title: string; body: string; ascii_art?: string; choices: readonly SceneChoice[] };
@@ -34,6 +37,7 @@ export type InkboundLiveRoomProps = Readonly<{
   onNotesChange: (text: string) => void;
   onToggleStoryTime: () => void;
   narrationEnabled: boolean;
+  sessionUtilities?: ReactNode;
   onClose: () => void;
 }>;
 
@@ -68,7 +72,7 @@ export function InkboundLiveRoom(props: InkboundLiveRoomProps) {
     props.onSendChat(text); setChatText("");
   };
   const toggle = (next: NonNullable<Panel>) => setPanel((old) => old === next ? null : next);
-  return <div className="inkbound inkbound-live" data-ink-paper="ivory" aria-label="Inkbound adventure reader">
+  return <div className="inkbound inkbound-live" data-ink-paper={props.paper} aria-label="Inkbound adventure reader">
     <a className="inkbound-skip" href="#ibl-chapter">Skip to chapter</a>
     <header className="ibl-topbar">
       <Link to="/game" className="ibl-brand">✧ <span>Tales of Two</span></Link>
@@ -78,7 +82,7 @@ export function InkboundLiveRoom(props: InkboundLiveRoomProps) {
         <button type="button" aria-pressed={props.narrationEnabled} onClick={props.onToggleStoryTime}>
           {props.narrationEnabled ? "Sound on" : "Sound off"}
         </button>
-        <button type="button" onClick={props.onClose}>Standard reader ↗</button>
+        <button type="button" onClick={props.onClose}>Classic view ↗</button>
       </nav>
     </header>
     <div className="ibl-layout">
@@ -86,8 +90,8 @@ export function InkboundLiveRoom(props: InkboundLiveRoomProps) {
         <div className="ibl-meta"><span>Chapter · Turn {props.turnNumber}</span><span>{props.adventureTitle}</span><span>Room {props.roomCode}</span></div>
         {props.chapterReleased ? <article className="ibl-chapter" key={`${props.roomCode}-${props.scene.id}-${props.turnNumber}`}>
           <h1>{props.scene.title}</h1>
-          <div className="ibl-flourish" aria-hidden="true">── ✧ ──</div>
-          {props.scene.ascii_art?.trim() ? <pre aria-label="Scene illustration" className="ibl-scene-ascii">{props.scene.ascii_art.trim()}</pre> : <div className="ibl-scene-ornament" aria-hidden="true">✧ ✦ ✧</div>}
+          <div className="ibl-flourish" aria-hidden="true">✦</div>
+          {props.illustrationSrc ? <figure className="ibl-chapter-illustration"><img src={props.illustrationSrc} alt="Ink illustration of travelers looking across a distant valley" /></figure> : props.scene.ascii_art?.trim() ? <pre aria-label="Scene illustration" className="ibl-scene-ascii">{props.scene.ascii_art.trim()}</pre> : null}
           <Prose body={props.scene.body} />
           <div className="ibl-section-heading"><span />What do you do?<span /></div>
           <div className="ibl-choices">
@@ -124,6 +128,10 @@ export function InkboundLiveRoom(props: InkboundLiveRoomProps) {
           <button className="ibl-journal-link" type="button" onClick={() => toggle("notes")}>✎ &nbsp; Field notes <span>↗</span></button>
           <button className="ibl-journal-link" type="button" onClick={() => toggle("history")}>▤ &nbsp; Chronicle ({props.history.length}) <span>↗</span></button>
         </section>
+        {props.sessionUtilities && <section className="ibl-sidebar-section ibl-session-utilities" aria-label="Adventure controls">
+          <div className="ibl-sidebar-head"><h2>Adventure</h2></div>
+          <div className="ibl-utility-actions">{props.sessionUtilities}</div>
+        </section>}
         <section className="ibl-sidebar-section ibl-chat-section">
           <div className="ibl-sidebar-head"><h2>Party chat</h2><button type="button" onClick={() => toggle("chat")}>Expand ↗</button></div>
           <div className="ibl-chat-log" aria-label="Recent party messages" role="log">{props.messages.length ? props.messages.slice(-3).map((message) => <p key={message.id}><b>{message.player_name}</b>{message.text}</p>) : <p className="ibl-sidebar-note">Your fellow travelers have been quiet.</p>}</div>

@@ -1,0 +1,185 @@
+/* Pass 66.10 — document frame, generous scrollbars and interaction consistency.
+   Source logo files remain unchanged; overlays inherit artwork alpha geometry.
+   Only the active, Inkbound adventure gets independent desktop panes. */
+.inkbound-system-shell,
+.inkbound-live,.inkbound-lobby,.inkbound-home,
+.inkbound-global-dialog,.inkbound-turn-theater {
+  --q-scroll-thumb:var(--ib-muted,var(--ia-dim,#8a8075));
+  --q-scroll-track:var(--ib-wash,var(--ia-wash,rgba(99,91,82,.09)));
+  --q-scroll-line:var(--ib-line,var(--ia-rule,rgba(115,102,80,.25)));
+  scrollbar-width:auto;
+  scrollbar-color:var(--q-scroll-thumb) var(--q-scroll-track);
+}
+/* Safari/Chrome/Edge: fat, always recognizable rails for long documents,
+   folios, Arcade scores, reader, and hero sidebar. */
+:is(.inkbound-system-shell,.inkbound-live,.inkbound-lobby,.inkbound-home,
+    .inkbound-global-dialog,.inkbound-turn-theater) ::-webkit-scrollbar {
+  width:17px;height:17px;
+}
+:is(.inkbound-system-shell,.inkbound-live,.inkbound-lobby,.inkbound-home,
+    .inkbound-global-dialog,.inkbound-turn-theater) ::-webkit-scrollbar-track {
+  background:var(--q-scroll-track);
+  border-left:1px solid var(--q-scroll-line);
+}
+:is(.inkbound-system-shell,.inkbound-live,.inkbound-lobby,.inkbound-home,
+    .inkbound-global-dialog,.inkbound-turn-theater) ::-webkit-scrollbar-thumb {
+  background:var(--q-scroll-thumb);border:3px solid var(--ib-paper,var(--ia-paper,#f7f3e9));
+  border-radius:12px;min-height:52px;
+}
+:is(.inkbound-system-shell,.inkbound-live,.inkbound-lobby,.inkbound-home,
+    .inkbound-global-dialog,.inkbound-turn-theater) ::-webkit-scrollbar-thumb:hover {
+  background:var(--ib-text,var(--ia-text,#30291e));
+}
+/* Desktop only: the header stays in place and story / Hero instruments scroll
+   independently inside the rest of the viewport. Nothing changes for Classic. */
+@media (min-width:901px) {
+  .game-site-shell.is-adventure-mode:has(.inkbound-live) {
+    display:flex!important; flex-direction:column!important;
+    height:100dvh!important; min-height:0!important; overflow:hidden!important;
+  }
+  .game-site-shell.is-adventure-mode:has(.inkbound-live)>.game-header {
+    flex:0 0 auto; min-height:0;
+  }
+  .game-site-shell.is-adventure-mode:has(.inkbound-live)>.game-main {
+    display:flex!important;flex-direction:column!important;flex:1 1 auto!important;
+    min-height:0!important;max-height:none!important;height:auto!important;
+    overflow:hidden!important; width:100%!important;max-width:none!important;
+    padding:0!important;margin:0!important;
+  }
+  .game-site-shell.is-adventure-mode .inkbound-live {
+    flex:1 1 auto!important;min-height:0!important;height:100%!important;
+    display:flex!important; flex-direction:column!important;
+    overflow:hidden!important;
+  }
+  .game-site-shell.is-adventure-mode .inkbound-live>.ibl-topbar {
+    flex:0 0 auto;
+  }
+  .game-site-shell.is-adventure-mode .inkbound-live>.ibl-layout {
+    display:grid!important; flex:1 1 auto!important;min-height:0!important;
+    overflow:hidden!important; align-items:stretch!important;
+    grid-template-columns:minmax(0,1fr) minmax(270px,315px)!important;
+    width:min(calc(100% - 6vw),1550px)!important;
+    margin:0 auto!important;
+  }
+  .game-site-shell.is-adventure-mode .inkbound-live .ibl-main {
+    min-height:0!important;max-height:none!important;height:100%!important;
+    overflow-x:hidden!important;overflow-y:scroll!important;
+    padding-bottom:34px;
+  }
+  .game-site-shell.is-adventure-mode .inkbound-live .ibl-instruments-disclosure {
+    position:relative!important;top:auto!important;height:100%!important;
+    max-height:none!important;min-height:0!important;
+    overflow-x:hidden!important;overflow-y:scroll!important;
+    scrollbar-width:auto!important;
+  }
+  .game-site-shell.is-adventure-mode .inkbound-live>.ibl-status-strip,
+  .game-site-shell.is-adventure-mode .inkbound-live>.ibl-footer {
+    flex:0 0 auto;
+  }
+}
+@media (max-width:900px) {
+  /* A single natural document on phones and compact tablets avoids nested
+     touch-scroll traps. Hero information is still accessible below choices. */
+  .game-site-shell.is-adventure-mode:has(.inkbound-live) {
+    height:auto!important;min-height:100dvh!important;overflow:visible!important;
+  }
+  .game-site-shell.is-adventure-mode:has(.inkbound-live)>.game-main {
+    height:auto!important;max-height:none!important;overflow:visible!important;
+  }
+  .game-site-shell.is-adventure-mode .inkbound-live,
+  .game-site-shell.is-adventure-mode .inkbound-live .ibl-layout,
+  .game-site-shell.is-adventure-mode .inkbound-live .ibl-main,
+  .game-site-shell.is-adventure-mode .inkbound-live .ibl-instruments-disclosure {
+    height:auto!important;max-height:none!important;overflow:visible!important;
+  }
+}
+/* Child elements of the independent reader inherit the same palette even when
+   legacy terminal styles had explicitly colored their controls. */
+.inkbound-live,.inkbound-lobby,.inkbound-turn-theater {
+  --q-scroll-thumb:var(--ia-dim,var(--ib-muted,#8a8075));
+  --q-scroll-track:var(--ia-wash,var(--ib-wash,rgba(99,91,82,.09)));
+  --q-scroll-line:var(--ia-rule,var(--ib-line,rgba(99,91,82,.2)));
+}
+.inkbound-live :is(.terminal-select-trigger,.terminal-select-menu,
+  .terminal-select-menu button,.ibl-drawer button,.ibl-drawer input,
+  .ibl-drawer textarea,.ibl-chat-form button,.ibl-chat-form input),
+.inkbound-lobby :is(.terminal-select-trigger,.terminal-select-menu,
+  .terminal-select-menu button),
+.inkbound-turn-theater :is(button,input,textarea) {
+  color:var(--ia-text)!important;border-color:var(--ia-strong-rule,var(--ia-rule))!important;
+}
+.inkbound-live :is(.terminal-select-menu,.terminal-select-menu button),
+.inkbound-lobby :is(.terminal-select-menu,.terminal-select-menu button) {
+  background:var(--ia-paper)!important;
+  color:var(--ia-text)!important;
+}
+.inkbound-live :is(.terminal-select-menu button,.ibl-drawer button):is(:hover,:focus-visible),
+.inkbound-lobby .terminal-select-menu button:is(:hover,:focus-visible) {
+  background:var(--ia-wash)!important;
+}
+.inkbound-system-shell :is(.form-error,[role="alert"],.system-notice,.status-line) {
+  color:var(--ib-text)!important;
+  border-color:var(--ib-line)!important;
+}
+.inkbound-system-shell [role="alert"]:not(.story-urgency),
+.inkbound-system-shell .form-error {
+  background:var(--ib-wash)!important;
+}
+.inkbound-global-dialog :is(.terminal-select-trigger,.terminal-select-menu,
+  .terminal-select-menu button,input,textarea) {
+  color:var(--ib-text)!important;background:var(--ib-paper)!important;
+  border-color:var(--ib-line)!important;
+}
+.inkbound-global-dialog :is(.terminal-select-menu button,[role="option"]):is(:hover,:focus-visible,[aria-selected="true"]) {
+  background:var(--ib-wash)!important;
+}
+/* App modals are React/native-dialog, but entirely custom skinned.
+   Don't style the browser chrome or invent native window.alert theming. */
+#modal-root .inkbound-global-dialog.modal-panel {
+  width:min(1040px,calc(100vw - 28px))!important;
+  max-height:calc(100dvh - 28px)!important;
+  overflow-y:auto!important;
+}
+#modal-root .inkbound-global-dialog::backdrop {
+  background:rgba(0,0,0,.64);
+  backdrop-filter:blur(3px);
+}
+:is(.inkbound-live,.inkbound-lobby,.inkbound-turn-theater,.inkbound-system-shell,.inkbound-global-dialog)
+  :is(a,button,input,textarea,.terminal-select-trigger):focus-visible {
+  outline:3px solid var(--ia-text,var(--ib-text))!important;
+  outline-offset:3px;
+}
+/* The chosen receipt is guaranteed final before users see this escape hatch.
+   Normal auto-handoff remains unchanged; this is recovery only. */
+.inkbound-turn-theater .ib610-show-receipt {
+  margin:16px auto;display:block;min-height:48px;padding:10px 22px;
+  border:1px solid currentColor!important;background:transparent!important;
+  color:var(--ia-text)!important;
+  font:600 13px var(--ib-mono,"Courier New",monospace);
+  cursor:pointer;
+}
+.inkbound-turn-theater .ib610-show-receipt:hover {background:var(--ia-wash)!important}
+/* Approved logo stays an unmodified source image. Two selected editions may
+   use a faint alpha-shaped tinted overlay, without a rectangular matte. */
+.quillairo-lockup[data-brand-paper="parchment"],
+.quillairo-lockup[data-brand-paper="phosphor"] {isolation:isolate}
+.quillairo-lockup[data-brand-paper="parchment"]::after,
+.quillairo-lockup[data-brand-paper="phosphor"]::after {
+  content:"";position:absolute;inset:0;pointer-events:none;
+  -webkit-mask-image:url("/brand/primary-light.png");
+  mask-image:url("/brand/primary-light.png");
+  -webkit-mask-position:left center;mask-position:left center;
+  -webkit-mask-size:contain;mask-size:contain;
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+}
+.quillairo-lockup[data-brand-paper="parchment"]::after {
+  background:#845b32;opacity:.14;
+}
+.quillairo-lockup[data-brand-paper="phosphor"]::after {
+  background:#8df181;opacity:.58;
+  -webkit-mask-image:url("/brand/secondary-dark.png");
+  mask-image:url("/brand/secondary-dark.png");
+}
+@media (prefers-reduced-motion:reduce){
+ .inkbound-live .ibl-choice{transition:none!important}
+}

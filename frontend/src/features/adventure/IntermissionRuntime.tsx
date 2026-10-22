@@ -282,6 +282,13 @@ export function IntermissionRuntime({
         </div>
       )}
 
+      {storyReady && storyReadySeconds <= 0 ? (
+        <button className="ib610-show-receipt" type="button"
+          onClick={() => { submitFinalScore(); onStoryReadyComplete(); }}>
+          OPEN THE COMMITTED DICE RESULT →
+        </button>
+      ) : null}
+
       <footer className="intermission-runtime-footer">
         <span>
           {storyReady

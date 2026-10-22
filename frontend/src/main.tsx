@@ -17,6 +17,7 @@ import "./styles/inkboundLegibilityPass661.css";
 import "./styles/inkboundStoryParityPass662.css";
 import "./styles/inkboundWaitingPass663.css";
 import "./styles/inkboundGameplayPass667.css";
+import "./styles/inkboundFramePass6610.css";
 
 const root = document.getElementById("root");
 

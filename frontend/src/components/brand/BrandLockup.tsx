@@ -11,7 +11,7 @@ export function BrandLockup({size="navigation", className="", style, paper="ivor
   const dark = paper === "navy" || paper === "phosphor" || paper === "midnight";
   const src = dark ? "/brand/secondary-dark.png" : "/brand/primary-light.png";
   return <span className={`quillairo-lockup quillairo-lockup--${size} ${className}`} style={style}
-    role="img" aria-label="Quillairo" data-brand-tone={dark ? "dark" : "light"}>
+    role="img" aria-label="Quillairo" data-brand-tone={dark ? "dark" : "light"} data-brand-paper={paper}>
     <img className="quillairo-lockup__art" src={src} alt="" aria-hidden="true" draggable={false} />
   </span>;
 }

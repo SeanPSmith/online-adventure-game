@@ -1,0 +1,36 @@
+/* Pass 66.13 — Real Quillairo co-op invitation. Never a flattened screenshot. */
+.qpub-shell .qpub-invite{--inv-rule:var(--q-rule);width:100%;min-height:min(790px,calc(100dvh - 180px));display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);border-bottom:1px solid var(--inv-rule);color:var(--q-ink);position:relative;isolation:isolate}
+.qpub-invite-art{position:relative;min-height:540px;overflow:hidden;isolation:isolate;border-right:1px solid var(--inv-rule)}
+.qpub-invite-art>img{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center bottom;pointer-events:none;user-select:none}
+.qpub-invite-art-note{position:relative;z-index:1;padding:clamp(25px,3vw,56px);max-width:88%}
+.qpub-invite-art-note>p{font-family:Georgia,"Palatino Linotype",serif;font-size:clamp(34px,3.4vw,57px)!important;font-weight:400!important;letter-spacing:-.045em;line-height:1.13;margin:15px 0 0;color:var(--q-ink)!important;text-shadow:0 2px 20px var(--q-paper)}
+.qpub-invite-content{min-width:0;display:flex;flex-direction:column;justify-content:center;gap:22px;padding:clamp(32px,4vw,66px)}
+.qpub-invite-heading{max-width:570px}.qpub-invite-heading h1{font-weight:400!important;font-size:clamp(39px,4vw,66px)!important;letter-spacing:-.055em!important;line-height:1.08!important;margin:16px 0!important;color:var(--q-ink)!important;overflow-wrap:anywhere}
+.qpub-invite-heading>p{color:var(--q-sub)!important;font-size:clamp(15px,1.3vw,18px)!important;line-height:1.6!important;max-width:510px;margin:0}
+.qpub-invite-code{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;border-block:1px solid var(--inv-rule);padding:19px 0}
+.qpub-invite-code span{font-size:10px!important;letter-spacing:.14em!important;color:var(--q-sub)!important}
+.qpub-invite-code strong{font-size:clamp(22px,3vw,35px)!important;font-weight:500!important;letter-spacing:.24em!important;font-family:Georgia,"Palatino Linotype",serif;color:var(--q-ink)!important;font-variant-numeric:tabular-nums}
+.qpub-invite-actions,.qpub-invite-empty{display:flex;flex-direction:column;gap:11px;max-width:510px}
+.qpub-invite-actions .qpub-button,.qpub-invite-empty .qpub-button{width:100%;min-height:52px}
+.qpub-invite-actions>p{font-size:13px!important;color:var(--q-sub)!important;line-height:1.5}.qpub-invite-actions>p strong{font-family:monospace;color:var(--q-ink)!important}
+.qpub-invite-status{border-left:2px solid var(--q-gold);padding:13px 17px;font-size:14px!important;color:var(--q-sub)!important;background:var(--q-paper2);line-height:1.5}
+.qpub-invite-hero-form{width:100%}.qpub-invite-hero-fieldset{border:0;min-width:0;margin:0 0 20px;padding:0}.qpub-invite-hero-fieldset legend{padding:0 0 15px;color:var(--q-sub)!important;font-size:11px!important;letter-spacing:.18em}
+.qpub-invite-hero-options{display:grid;gap:8px;max-height:min(360px,45dvh);overflow:auto;padding:2px 8px 2px 2px;scrollbar-width:auto;scrollbar-color:var(--q-gold) var(--q-paper2)}
+.qpub-invite-hero{position:relative;display:flex;align-items:center;gap:14px;cursor:pointer;padding:14px 15px;min-height:68px;border:1px solid var(--inv-rule);border-radius:2px;background:transparent;transition:background-color .15s ease,border-color .15s ease}
+.qpub-invite-hero:hover,.qpub-invite-hero.is-selected{border-color:var(--q-gold);background:var(--q-paper2)}
+.qpub-invite-hero input{position:absolute;opacity:0;width:1px;height:1px}.qpub-invite-hero:focus-within{outline:3px solid var(--q-gold);outline-offset:2px}
+.qpub-invite-radio{height:19px;width:19px;flex:0 0 19px;border:1px solid var(--q-gold);border-radius:50%;display:grid;place-items:center}
+.qpub-invite-hero.is-selected .qpub-invite-radio:after{content:"";display:block;width:9px;height:9px;border-radius:50%;background:var(--q-ink)}
+.qpub-invite-hero>span:nth-last-child(2){flex:1;min-width:0}.qpub-invite-hero strong{display:block;font-size:17px!important;font-weight:500!important;color:var(--q-ink)!important;white-space:normal;overflow-wrap:anywhere}
+.qpub-invite-hero small{font-size:12px!important;display:block;color:var(--q-sub)!important;line-height:1.5;margin-top:3px}.qpub-invite-hero>span:last-child{color:var(--q-gold)!important;font-size:18px!important}
+.qpub-invite-submit{width:100%;min-height:53px;justify-content:space-between!important}.qpub-invite-submit:disabled{opacity:.6;cursor:wait}
+.qpub-invite-empty{padding:10px 0}.qpub-invite-empty h2{font-size:clamp(26px,2.5vw,34px)!important;line-height:1.2;margin:0;color:var(--q-ink)!important}.qpub-invite-empty p{font-size:15px!important;line-height:1.6;color:var(--q-sub)!important}
+.qpub-invite-join .qpub-form-error{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:15px}.qpub-invite-join .qpub-form-error button{background:none;border:0;border-bottom:1px solid currentColor;color:var(--q-ink);cursor:pointer;padding:2px 0}
+.qpub-invite-foot{margin-top:auto;border-top:1px solid var(--inv-rule);padding-top:22px;font-size:10px!important;letter-spacing:.22em!important;color:var(--q-sub)!important}.qpub-invite-foot span{color:var(--q-gold)!important;margin-right:13px}
+.qpub-shell[data-ink-paper="navy"] .qpub-invite-art>img,.qpub-shell[data-ink-paper="midnight"] .qpub-invite-art>img{filter:invert(.87) sepia(.18) saturate(.53);opacity:.77}
+.qpub-shell[data-ink-paper="phosphor"] .qpub-invite-art>img{filter:invert(.77) sepia(1) hue-rotate(66deg) saturate(.46);opacity:.78}
+.qpub-shell[data-ink-paper="phosphor"] :is(.qpub-invite-code strong,.qpub-invite-hero small,.qpub-invite-foot){font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+@media(max-width:1000px){.qpub-shell .qpub-invite{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.qpub-invite-content{padding:32px}.qpub-invite-art-note{padding:26px}.qpub-invite-art-note>p{font-size:39px!important}.qpub-invite-code>span:last-child{display:none}}
+@media(max-width:760px){.qpub-shell .qpub-invite{display:flex;flex-direction:column;min-height:0}.qpub-invite-art{min-height:240px;border-right:0;border-bottom:1px solid var(--inv-rule)}.qpub-invite-art>img{object-fit:cover;object-position:center 52%}.qpub-invite-art-note{max-width:63%;padding:20px}.qpub-invite-art-note>p{font-size:32px!important}.qpub-invite-content{padding:35px 12px 35px;gap:22px}.qpub-invite-hero-options{max-height:390px}.qpub-invite-heading h1{font-size:clamp(42px,9vw,60px)!important}}
+@media(max-width:440px){.qpub-invite-art{min-height:205px}.qpub-invite-art-note{max-width:74%}.qpub-invite-art-note>p{font-size:28px!important}.qpub-invite-content{padding:26px 2px 32px}.qpub-invite-code strong{font-size:25px!important}.qpub-invite-hero{padding:11px;min-height:65px}}
+@media(prefers-reduced-motion:reduce){.qpub-invite-hero{transition:none}}

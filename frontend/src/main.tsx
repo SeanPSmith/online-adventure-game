@@ -20,6 +20,7 @@ import "./styles/inkboundGameplayPass667.css";
 import "./styles/inkboundFramePass6610.css";
 import "./styles/inkboundQuickEventPass6611.css";
 import "./styles/quillairoPublicPass6612.css";
+import "./styles/quillairoInvitePass6613.css";
 
 const root = document.getElementById("root");
 

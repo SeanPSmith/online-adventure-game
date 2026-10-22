@@ -4,7 +4,7 @@
 .game-site-shell:has(.inkbound-live[data-ink-paper="cream"]){--ia-paper:#eee7d9;--ia-text:#30291e;--ia-copy:#504433;--ia-dim:#6a5a46;--ia-rule:rgba(55,40,22,.22);--ia-strong-rule:rgba(55,40,22,.39);--ia-wash:rgba(55,40,22,.065);--ia-scrim:rgba(33,24,16,.76)}
 .game-site-shell:has(.inkbound-live[data-ink-paper="navy"]){--ia-paper:#0b1725;--ia-text:#f4e9d6;--ia-copy:#ded2bd;--ia-dim:#c0b6a5;--ia-rule:rgba(242,246,250,.26);--ia-strong-rule:rgba(242,246,250,.43);--ia-wash:rgba(242,246,250,.08);--ia-scrim:rgba(2,8,15,.88);color-scheme:dark}
 .game-site-shell:has(.inkbound-live[data-ink-paper="phosphor"]){--ia-paper:#06140c;--ia-text:#c6f9b1;--ia-copy:#a9dfa1;--ia-dim:#94bf8b;--ia-rule:rgba(201,255,184,.25);--ia-strong-rule:rgba(201,255,184,.43);--ia-wash:rgba(201,255,184,.075);--ia-scrim:rgba(3,13,8,.9);color-scheme:dark}
-.game-site-shell:has(.inkbound-live[data-ink-paper="midnight"]){--ia-paper:#141516;--ia-text:#f5f6f3;--ia-copy:#ced2d0;--ia-dim:#adb2b0;--ia-rule:rgba(245,246,243,.26);--ia-strong-rule:rgba(245,246,243,.44);--ia-wash:rgba(245,246,243,.07);--ia-scrim:rgba(2,3,4,.90);color-scheme:dark}
+.game-site-shell:has(.inkbound-live[data-ink-paper="midnight"]){--ia-paper:#141516;--ia-text:#f4e9d6;--ia-copy:#ced2d0;--ia-dim:#adb2b0;--ia-rule:rgba(245,246,243,.26);--ia-strong-rule:rgba(245,246,243,.44);--ia-wash:rgba(245,246,243,.07);--ia-scrim:rgba(2,3,4,.90);color-scheme:dark}
 /* Pass 65.7 — live manuscript. Real choices, rolls and story states are never faked.
    Paper is CSS; the panoramic drawing is a genuinely transparent PNG.
    No radial image masks, blurred rectangles or decorative absolute captions. */
@@ -13,7 +13,7 @@
 .inkbound-live[data-ink-paper="cream"],.inkbound-turn-theater[data-ink-paper="cream"]{--ia-paper:#eee7d9;--ia-text:#30291e;--ia-copy:#504433;--ia-dim:#6a5a46;--ia-rule:rgba(55,40,22,.22);--ia-strong-rule:rgba(55,40,22,.39);--ia-wash:rgba(55,40,22,.065);--ia-scrim:rgba(33,24,16,.76)}
 .inkbound-live[data-ink-paper="navy"],.inkbound-turn-theater[data-ink-paper="navy"]{--ia-paper:#0b1725;--ia-text:#f4e9d6;--ia-copy:#ded2bd;--ia-dim:#c0b6a5;--ia-rule:rgba(242,246,250,.26);--ia-strong-rule:rgba(242,246,250,.43);--ia-wash:rgba(242,246,250,.08);--ia-scrim:rgba(2,8,15,.88);color-scheme:dark}
 .inkbound-live[data-ink-paper="phosphor"],.inkbound-turn-theater[data-ink-paper="phosphor"]{--ia-paper:#06140c;--ia-text:#c6f9b1;--ia-copy:#a9dfa1;--ia-dim:#94bf8b;--ia-rule:rgba(201,255,184,.25);--ia-strong-rule:rgba(201,255,184,.43);--ia-wash:rgba(201,255,184,.075);--ia-scrim:rgba(3,13,8,.9);color-scheme:dark}
-.inkbound-live[data-ink-paper="midnight"],.inkbound-turn-theater[data-ink-paper="midnight"]{--ia-paper:#141516;--ia-text:#f5f6f3;--ia-copy:#ced2d0;--ia-dim:#adb2b0;--ia-rule:rgba(245,246,243,.26);--ia-strong-rule:rgba(245,246,243,.44);--ia-wash:rgba(245,246,243,.07);--ia-scrim:rgba(2,3,4,.90);color-scheme:dark}
+.inkbound-live[data-ink-paper="midnight"],.inkbound-turn-theater[data-ink-paper="midnight"]{--ia-paper:#141516;--ia-text:#f4e9d6;--ia-copy:#ced2d0;--ia-dim:#adb2b0;--ia-rule:rgba(245,246,243,.26);--ia-strong-rule:rgba(245,246,243,.44);--ia-wash:rgba(245,246,243,.07);--ia-scrim:rgba(2,3,4,.90);color-scheme:dark}
 
 /* Correct old fixed-height Living Book constraints ONLY for an active Inkbound reader. */
 .game-site-shell:has(.inkbound-live){min-height:100dvh!important;height:auto!important;max-height:none!important;overflow:visible!important;background:var(--ia-paper,#f7f3e9)!important}

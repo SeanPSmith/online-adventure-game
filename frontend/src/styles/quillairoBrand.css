@@ -5,10 +5,9 @@
 .quillairo-lockup--navigation {width:clamp(156px,15vw,223px);height:57px;}
 .quillairo-lockup--footer {width:min(250px,100%);height:77px;}
 .quillairo-lockup--hero {width:min(520px,100%);height:clamp(100px,14vw,170px);margin:0 0 18px;}
-.quillairo-lockup .quillairo-lockup__on-dark {display:none!important;}
-/* Approved second treatment, preserving its gold AI, is legible on dark ink paper. */
-:where([data-ink-paper="navy"],[data-ink-paper="phosphor"],[data-ink-paper="midnight"]) .quillairo-lockup__on-light {display:none!important;}
-:where([data-ink-paper="navy"],[data-ink-paper="phosphor"],[data-ink-paper="midnight"]) .quillairo-lockup .quillairo-lockup__on-dark {display:block!important;}
+/* Theme decides the only image source in React; CSS cannot bring back a second logo. */
+.quillairo-lockup .quillairo-lockup__art{display:block!important;}
+:where([data-ink-paper="navy"],[data-ink-paper="phosphor"],[data-ink-paper="midnight"]) .quillairo-lockup{isolation:isolate;}
 /* Standalone non-Inkbound headers use the primary mark on a paper surface. */
 .site-header .brand.q-site-brand {display:inline-flex;align-items:center;min-width:0;gap:0;text-decoration:none;overflow:visible;flex:0 0 auto;}
 .site-header .brand.q-site-brand .quillairo-lockup {overflow:visible;}

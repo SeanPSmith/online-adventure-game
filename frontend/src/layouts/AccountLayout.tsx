@@ -16,7 +16,7 @@ export function AccountLayout() {
       <a className="skip-link" href="#main-content">SKIP TO CONTENT</a>
       <header className="site-header">
         <Link className="brand q-site-brand" to="/game" aria-label="Quillairo home">
-          <BrandLockup />
+          <BrandLockup paper={paper} />
         </Link>
         <nav className="header-nav">
           <NavLink to="/account">ACCOUNT</NavLink>

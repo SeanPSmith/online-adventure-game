@@ -41,7 +41,7 @@ body:has(.inkbound-home) .game-site-shell.p64-shell.is-desk-home .game-main{
 .inkbound-home[data-ink-paper="cream"]{--paper:#eee7d9;--paper-text:#30291e;--paper-copy:#504433;--paper-dim:#6a5a46;--paper-rule:rgba(55,40,22,.22);--paper-strong-rule:rgba(55,40,22,.39)}
 .inkbound-home[data-ink-paper="navy"]{--paper:#0b1725;--paper-text:#f4e9d6;--paper-copy:#ded2bd;--paper-dim:#c0b6a5;--paper-rule:rgba(242,246,250,.26);--paper-strong-rule:rgba(242,246,250,.43);color-scheme:dark}
 .inkbound-home[data-ink-paper="phosphor"]{--paper:#06140c;--paper-text:#c6f9b1;--paper-copy:#a9dfa1;--paper-dim:#94bf8b;--paper-rule:rgba(201,255,184,.25);--paper-strong-rule:rgba(201,255,184,.43);color-scheme:dark}
-.inkbound-home[data-ink-paper="midnight"]{--paper:#141516;--paper-text:#f5f6f3;--paper-copy:#ced2d0;--paper-dim:#adb2b0;--paper-rule:rgba(245,246,243,.26);--paper-strong-rule:rgba(245,246,243,.44);color-scheme:dark}
+.inkbound-home[data-ink-paper="midnight"]{--paper:#141516;--paper-text:#f4e9d6;--paper-copy:#e3d8c5;--paper-dim:#c3b8a8;--paper-rule:rgba(244,233,214,.26);--paper-strong-rule:rgba(244,233,214,.44);color-scheme:dark}
 .inkbound-home *{box-sizing:border-box}
 .inkbound-home button,.inkbound-home input{font:inherit}
 .inkbound-home button{cursor:pointer;border:0;border-radius:0;box-shadow:none!important}

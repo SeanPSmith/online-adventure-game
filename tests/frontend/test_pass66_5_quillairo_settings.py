@@ -44,7 +44,7 @@ def test_theme_selector_remains_shared_not_duplicated():
     # Pass 66.8 replaces the provisional plain-text brand with the approved
     # asset-backed lockup. Keep testing the real brand, not retired markup.
     assert 'import { BrandLockup } from "../components/brand/BrandLockup";' in ACCOUNT_LAYOUT
-    assert '<BrandLockup />' in ACCOUNT_LAYOUT
+    assert '<BrandLockup paper={paper} />' in ACCOUNT_LAYOUT
     assert 'aria-label="Quillairo home"' in ACCOUNT_LAYOUT
     assert '<strong>QUILLAIRO</strong>' not in ACCOUNT_LAYOUT
     lockup = (ROOT / "frontend/src/components/brand/BrandLockup.tsx").read_text(encoding="utf-8")

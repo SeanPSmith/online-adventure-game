@@ -166,3 +166,18 @@
      The center of the illustration remains clear of the heading's reading measure. */
   .inkbound-live .ibl-chapter-illustration{margin-top:-72px}
 }
+
+/* Pass 66.9: manuscript initial inside the real StoryReveal tokens.
+   Do not use :first-letter on animated spans: it interferes with the reveal. */
+.inkbound-live .ibl-prose .story-reveal[data-decorative-initials="true"] .story-reveal-dropcap{
+  float:left;
+  font:400 clamp(73px,7.6vw,112px)/.72 "Iowan Old Style",Georgia,serif;
+  letter-spacing:-.065em;
+  margin:9px 16px 2px 0;
+  color:var(--ia-text);
+  text-shadow:none;
+}
+.inkbound-live .ibl-prose .story-reveal[data-decorative-initials="false"] .story-reveal-dropcap{float:none;font:inherit;letter-spacing:inherit;margin:0}
+@media(max-width:640px){
+  .inkbound-live .ibl-prose .story-reveal-dropcap{font-size:76px;margin-right:10px}
+}

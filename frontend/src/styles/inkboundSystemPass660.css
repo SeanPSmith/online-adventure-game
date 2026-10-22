@@ -27,7 +27,7 @@
   --ib-mono:"Courier Prime","Courier New",monospace;
 }
 :where(.inkbound-system-shell,.inkbound-global-dialog)[data-ink-paper="midnight"]{
-  --ib-paper:#141516;--ib-text:#f5f6f3;--ib-copy:#d6d9d6;--ib-muted:#b4bab6;--ib-line:rgba(245,246,243,.28);--ib-wash:rgba(245,246,243,.065);--ib-highlight:#f5f6f3;--ib-button-ink:#141516;color-scheme:dark;
+  --ib-paper:#141516;--ib-text:#f4e9d6;--ib-copy:#e3d8c5;--ib-muted:#c3b8a8;--ib-line:rgba(244,233,214,.28);--ib-wash:rgba(244,233,214,.065);--ib-highlight:#f4e9d6;--ib-button-ink:#141516;color-scheme:dark;
 }
 /* Reader palettes are existing reader variables; override in one place. */
 :where(.inkbound-home,.inkbound-live,.inkbound-lobby,.inkbound-turn-theater)[data-ink-paper="parchment"]{

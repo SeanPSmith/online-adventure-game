@@ -112,7 +112,7 @@ export function InkboundLiveRoom(props: InkboundLiveRoomProps) {
   return <div className="inkbound inkbound-live" data-ink-paper={props.paper} aria-label="Inkbound adventure reader">
     <a className="inkbound-skip" href="#ibl-chapter">Skip to chapter</a>
     <header className="ibl-topbar">
-      <Link to="/game" className="ibl-brand" aria-label="Quillairo home"><BrandLockup /></Link>
+      <Link to="/game" className="ibl-brand" aria-label="Quillairo home"><BrandLockup paper={props.paper} /></Link>
       <span className="ibl-header-rule" aria-hidden="true" />
       <nav aria-label="Adventure navigation" className="ibl-nav">
         <button type="button" onClick={() => toggle("journal")}>▤ <span>Journal</span></button>

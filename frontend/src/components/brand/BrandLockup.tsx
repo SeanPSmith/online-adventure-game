@@ -1,13 +1,18 @@
 /** Approved Quillairo lockups. Never typeset/recreate the Q/quill/gold AI as live text. */
 import type { CSSProperties } from "react";
+import type { InkPaper } from "../../features/appearance/inkboundPaper";
 
 type BrandSize = "navigation" | "hero" | "footer";
-export function BrandLockup({size="navigation", className="", style}: {
-  size?: BrandSize; className?: string; style?: CSSProperties;
+export function BrandLockup({size="navigation", className="", style, paper="ivory"}: {
+  size?: BrandSize; className?: string; style?: CSSProperties; paper?: InkPaper;
 }) {
-  return <span className={`quillairo-lockup quillairo-lockup--${size} ${className}`} style={style} role="img" aria-label="Quillairo">
-    <img className="quillairo-lockup__on-light" src="/brand/primary-light.png" alt="" aria-hidden="true" draggable={false} />
-    <img className="quillairo-lockup__on-dark" src="/brand/secondary-dark.png" alt="" aria-hidden="true" draggable={false} />
+  // Render only ONE approved logo image. The old CSS-based two-image switch
+  // could display both variants because legacy image rules use !important.
+  const dark = paper === "navy" || paper === "phosphor" || paper === "midnight";
+  const src = dark ? "/brand/secondary-dark.png" : "/brand/primary-light.png";
+  return <span className={`quillairo-lockup quillairo-lockup--${size} ${className}`} style={style}
+    role="img" aria-label="Quillairo" data-brand-tone={dark ? "dark" : "light"}>
+    <img className="quillairo-lockup__art" src={src} alt="" aria-hidden="true" draggable={false} />
   </span>;
 }
 export function QuillairoMonogram({className=""}: {className?: string}) {

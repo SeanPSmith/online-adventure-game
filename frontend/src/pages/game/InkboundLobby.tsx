@@ -34,7 +34,7 @@ export function InkboundLobby(props: InkboundLobbyProps) {
   return <div className="inkbound inkbound-lobby" data-ink-paper={props.paper}>
     <a className="inkbound-skip" href="#inkbound-lobby-main">Skip to adventure readiness</a>
     <header className="ibl-topbar">
-      <Link className="ibl-brand" to="/game" aria-label="Quillairo home"><BrandLockup /></Link>
+      <Link className="ibl-brand" to="/game" aria-label="Quillairo home"><BrandLockup paper={props.paper} /></Link>
       <nav aria-label="Lobby navigation" className="ibl-nav">
         <Link to="/game">Adventure hall</Link>
         <Link to="/game/heroes">Your heroes</Link>

@@ -28,6 +28,6 @@ def test_game_shell_has_no_duplicate_jsx_theme_attribute():
 def test_account_uses_approved_logo_not_plain_text():
     source = (FRONTEND / 'AccountLayout.tsx').read_text(encoding='utf-8')
     assert 'import { BrandLockup }' in source
-    assert '<BrandLockup />' in source
+    assert '<BrandLockup paper={paper} />' in source
     assert 'aria-label="Quillairo home"' in source
     assert '<strong>QUILLAIRO</strong>' not in source

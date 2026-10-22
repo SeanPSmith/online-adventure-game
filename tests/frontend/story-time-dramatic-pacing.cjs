@@ -128,5 +128,13 @@ test('pacing controls and dialogue display are wired without modifying story tex
   assert.match(reveal, /story-dialogue-paragraph/);
   assert.match(reveal, /sentence\.text\.split/);
   assert.match(reveal, /story-reveal-word/);
-  assert.match(reveal, /\{token\}/);
+  // Pass 66.9: the original token is now rendered through the decorative
+  // opening-initial helper, in both sentence-follow and ordinary reveal modes.
+  // Check preservation of the author's words instead of requiring raw {token} JSX.
+  const wrapped = reveal.match(/withOpeningInitial\(token, decorativeInitials && current === 0\)/g) ?? [];
+  assert.equal(wrapped.length, 2, 'both reveal paths preserve one complete token');
+  assert.match(reveal, /if \(!decorate\) return token;/);
+  assert.match(reveal, /\{match\[1\]\}<span className="story-reveal-dropcap">\{match\[2\]\}<\/span>\{match\[3\]\}/);
+  assert.match(reveal, /<span className="sr-only">\{text\}<\/span>/);
+
 });

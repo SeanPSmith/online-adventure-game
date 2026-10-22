@@ -17,6 +17,14 @@ export function isDialogueParagraph(text: string): boolean {
   return /^\s*(?:[“"‘]|[—–]\s+|[\w -]{1,32}:\s*[“"])/.test(text);
 }
 
+/** The first letter is visual only; preserve the exact word for narration and screen readers. */
+function withOpeningInitial(token: string, decorate: boolean) {
+  if (!decorate) return token;
+  const match = /^([“"‘'([{]*)(\p{L})(.*)$/us.exec(token);
+  if (!match) return token;
+  return <>{match[1]}<span className="story-reveal-dropcap">{match[2]}</span>{match[3]}</>;
+}
+
 function prefersReducedMotion() {
   return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
 }
@@ -80,7 +88,7 @@ export function StoryReveal({ sceneId, text, enabled, followNarration = false, n
               >{sentence.text.split(/(\s+)/).map((token, tokenIndex) => {
                 if (!token.trim()) return token;
                 const current = wordIndex++;
-                return <span key={`${sentenceIndex}:${tokenIndex}`} className={`story-reveal-word ${current < visibleWords ? "is-visible" : ""}`}>{token}</span>;
+                return <span key={`${sentenceIndex}:${tokenIndex}`} className={`story-reveal-word ${current < visibleWords ? "is-visible" : ""}`}>{withOpeningInitial(token, decorativeInitials && current === 0)}</span>;
               })}</span>
             ) : null)}
           </p>
@@ -94,7 +102,7 @@ export function StoryReveal({ sceneId, text, enabled, followNarration = false, n
                   className={`story-reveal-word ${current < visibleWords ? "is-visible" : ""}`}
                   key={`${current}:${tokenIndex}`}
                 >
-                  {token}
+                  {withOpeningInitial(token, decorativeInitials && current === 0)}
                 </span>
               );
             })}

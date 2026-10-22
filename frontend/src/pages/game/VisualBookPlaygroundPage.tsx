@@ -61,7 +61,7 @@ function VisualBookPlaygroundShell({ inkLab = false, spaceLab = false, storyLab 
         draggable={false}
       />
       <header className="vb-header">
-        <Link className="vb-identity" to="/game" aria-label="Tales of Two — return to the live game">
+        <Link className="vb-identity" to="/game" aria-label="Quillairo — return to the live game">
           <svg className="vb-compass" viewBox="0 0 80 80" aria-hidden="true">
             <circle cx="40" cy="40" r="31" fill="none" stroke="currentColor" strokeWidth="1.45" />
             <circle cx="40" cy="40" r="25" fill="none" stroke="currentColor" strokeWidth=".75" />
@@ -71,7 +71,7 @@ function VisualBookPlaygroundShell({ inkLab = false, spaceLab = false, storyLab 
             <circle cx="40" cy="40" r="3" fill="currentColor" />
           </svg>
           <span className="vb-wordmark">
-            <strong>TALES OF TWO</strong>
+            <strong>QUILLAIRO</strong>
             <span>A LIBRARY OF POSSIBILITIES</span>
           </span>
         </Link>

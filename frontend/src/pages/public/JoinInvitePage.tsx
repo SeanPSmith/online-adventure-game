@@ -118,7 +118,7 @@ export function JoinInvitePage() {
       <section className="invite-landing panel">
         <header className="panel-heading">YOU'VE BEEN INVITED</header>
         <div className="panel-body invite-landing-body">
-          <span className="eyebrow">TALES OF TWO // ROOM {roomCode}</span>
+          <span className="eyebrow">QUILLAIRO // ROOM {roomCode}</span>
           <h1>SOMEBODY IS WAITING FOR YOU IN THE STORY.</h1>
           <p>
             Sign in or create an account. We'll keep this invitation and bring you back

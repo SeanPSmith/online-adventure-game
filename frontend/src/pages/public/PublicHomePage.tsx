@@ -1,3 +1,4 @@
+import { BrandLockup } from "../../components/brand/BrandLockup";
 import { Link } from "react-router";
 import { useAuth } from "../../state/AuthContext";
 
@@ -8,10 +9,11 @@ export function PublicHomePage() {
     <div className="public-home">
       <section className="home-hero" id="about">
         <div className="home-hero-copy">
-          <div className="eyebrow">AI-DIRECTED TEXT ADVENTURE // ONE OR TWO PLAYERS</div>
+          <BrandLockup size="hero" />
+          <div className="eyebrow">A LIVING STORYBOOK // SOLO OR CO-OP</div>
           <h1>MAKE A CHOICE.<br />THE STORY HAS TO LIVE WITH IT.</h1>
           <p className="home-lede">
-            Tales of Two is a persistent text adventure RPG built around your Hero and your
+            Quillairo is a persistent text adventure RPG built around your Hero and your
             decisions. Play alone or share a story with a partner while the game handles the
             rolls, consequences, progression, and continuity behind the screen.
           </p>
@@ -38,7 +40,7 @@ export function PublicHomePage() {
           </div>
         </div>
 
-        <div className="home-terminal" aria-label="Example Tales of Two story terminal">
+        <div className="home-terminal" aria-label="Example Quillairo story terminal">
           <div className="home-terminal-bar">
             <span>STORY://THE_GUTTER_KINGDOM</span>
             <span className="network-badge is-online">DIRECTOR ONLINE</span>

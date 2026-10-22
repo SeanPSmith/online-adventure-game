@@ -159,7 +159,7 @@ function DeleteAccountDialog({ username }: { username: string }) {
   return (
     <form className="account-delete-dialog" onSubmit={(event) => void submit(event)}>
       <p>
-        This permanently removes your Tales of Two account, sign-in credentials, Heroes, notification
+        This permanently removes your Quillairo account, sign-in credentials, Heroes, notification
         registrations, and personal history identity. Shared published author content may remain with
         deleted-account attribution so other adventures do not break.
       </p>
@@ -302,7 +302,7 @@ function SecurityTab() {
       <Panel title="DANGER ZONE" className="account-danger-panel">
         <div className="account-danger-row">
           <div>
-            <strong>DELETE TALES OF TWO ACCOUNT</strong>
+            <strong>DELETE QUILLAIRO ACCOUNT</strong>
             <p>This cannot be undone. Your current password and username are required.</p>
           </div>
           <button
@@ -351,7 +351,7 @@ function BillingTab() {
             <span className="eyebrow">CURRENT ACCESS</span>
             <h2>{usage?.entitlement.plan_id.toUpperCase() ?? "PLAYTESTER"}</h2>
             <p>
-              Tales of Two is still in playtest access. There is no payment provider connected yet,
+              Quillairo is still in playtest access. There is no payment provider connected yet,
               but AI usage is metered so testing cannot accidentally create an unlimited model bill.
             </p>
           </div>
@@ -381,7 +381,7 @@ function BillingTab() {
 
         <div className="account-billing-note">
           <strong>NO PAYMENT METHOD REQUIRED</strong>
-          <span>Playtest allowances are assigned by the Tales of Two operator. Subscriptions and invoices are not enabled yet.</span>
+          <span>Playtest allowances are assigned by the Quillairo operator. Subscriptions and invoices are not enabled yet.</span>
         </div>
         <button className="button" type="button" disabled>MANAGE BILLING // NOT YET ENABLED</button>
       </Panel>

@@ -49,8 +49,8 @@ function InviteShareBody({ roomCode, adventureTitle }: { roomCode: string; adven
   const [sending, setSending] = useState(false);
   const code = roomCode.trim().toUpperCase();
   const url = useMemo(() => roomInviteUrl(code), [code]);
-  const title = adventureTitle ? `Join ${adventureTitle}` : "Join my Tales of Two adventure";
-  const text = `Join me in Tales of Two. Room ${code}.`;
+  const title = adventureTitle ? `Join ${adventureTitle}` : "Join my Quillairo adventure";
+  const text = `Join me in Quillairo. Room ${code}.`;
   const encodedBody = encodeURIComponent(`${text}\n${url}`);
 
   async function copyLink() {
@@ -86,7 +86,7 @@ function InviteShareBody({ roomCode, adventureTitle }: { roomCode: string; adven
     event.preventDefault();
     const target = identifier.trim();
     if (!target) {
-      setStatus(":/ ENTER A TALES OF TWO USERNAME OR EMAIL");
+      setStatus(":/ ENTER A QUILLAIRO USERNAME OR EMAIL");
       return;
     }
 
@@ -135,7 +135,7 @@ function InviteShareBody({ roomCode, adventureTitle }: { roomCode: string; adven
         <div>
           <span className="eyebrow">REAL ACCOUNT PING</span>
           <p className="muted-copy">
-            Send this room through Tales of Two itself. If your partner has Web Push,
+            Send this room through Quillairo itself. If your partner has Web Push,
             email, or SMS enabled, the server can reach them even when this page is closed.
           </p>
         </div>
@@ -158,7 +158,7 @@ function InviteShareBody({ roomCode, adventureTitle }: { roomCode: string; adven
 
       <p className="muted-copy room-invite-help">
         SHARE uses your device share sheet. PING ACCOUNT is different: it targets an existing
-        Tales of Two account and uses that player's notification preferences.
+        Quillairo account and uses that player's notification preferences.
       </p>
 
       {status ? <div className="system-notice room-invite-status">{status}</div> : null}

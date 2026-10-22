@@ -210,7 +210,7 @@ class NotificationService:
         try:
             await self._send_sms(
                 normalized,
-                f"Tales of Two verification code: {code}. It expires in 10 minutes.",
+                f"Quillairo verification code: {code}. It expires in 10 minutes.",
                 transactional=True,
             )
         except Exception as error:
@@ -312,7 +312,7 @@ class NotificationService:
 
         data = json.dumps(
             {
-                "title": str(payload.get("title", "TALES OF TWO")),
+                "title": str(payload.get("title", "QUILLAIRO")),
                 "message": str(payload.get("message", "")),
                 "kind": str(payload.get("kind", "activity")),
                 "room_code": str(payload.get("room_code", "")),
@@ -361,18 +361,18 @@ class NotificationService:
 
         region = os.getenv("AWS_REGION", os.getenv("AWS_DEFAULT_REGION", "us-east-1"))
         client = boto3.client("sesv2", region_name=region)
-        title = str(payload.get("title", "Tales of Two"))
+        title = str(payload.get("title", "Quillairo"))
         message = str(payload.get("message", ""))
         route = str(payload.get("route", "/game"))
         public_base = os.getenv("TOT_PUBLIC_BASE_URL", "").rstrip("/")
         action_url = f"{public_base}{route}" if public_base else ""
-        text_body = message + (f"\n\nOpen Tales of Two: {action_url}" if action_url else "")
+        text_body = message + (f"\n\nOpen Quillairo: {action_url}" if action_url else "")
         html_body = (
             "<div style='font-family:monospace;max-width:640px'>"
             f"<h2>{self._html_escape(title)}</h2>"
             f"<p>{self._html_escape(message)}</p>"
-            + (f"<p><a href='{self._html_escape(action_url)}'>OPEN TALES OF TWO</a></p>" if action_url else "")
-            + "<p style='opacity:.65'>Manage notification channels in Tales of Two Settings.</p>"
+            + (f"<p><a href='{self._html_escape(action_url)}'>OPEN QUILLAIRO</a></p>" if action_url else "")
+            + "<p style='opacity:.65'>Manage notification channels in Quillairo Settings.</p>"
             "</div>"
         )
 
@@ -395,7 +395,7 @@ class NotificationService:
         return 1
 
     async def _send_sms_notification(self, phone_number: str, payload: dict) -> int:
-        message = f"Tales of Two — {payload.get('title', 'UPDATE')}: {payload.get('message', '')}"
+        message = f"Quillairo — {payload.get('title', 'UPDATE')}: {payload.get('message', '')}"
         public_base = os.getenv("TOT_PUBLIC_BASE_URL", "").rstrip("/")
         route = str(payload.get("route", ""))
         if public_base and route:

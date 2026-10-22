@@ -184,7 +184,7 @@ export function InkLabBook({ activeTab }: { activeTab: Tab }) {
           <span className="ink-lab-rule" aria-hidden="true"><span>✧</span></span>
           <p className="ink-lab-prose">{ex.prose}</p>
           <blockquote className="ink-lab-quote">“{ex.quote}”</blockquote>
-          <p className="ink-lab-chapter">A TALES OF TWO INK STUDY <span aria-hidden="true">✦</span> 64.4E</p>
+          <p className="ink-lab-chapter">A QUILLAIRO INK STUDY <span aria-hidden="true">✦</span> 64.4E</p>
         </div>
       </section>
       <section className="ink-lab-leaf ink-lab-leaf--right" ref={rightRef} aria-label="Watercolor absorption experiment">

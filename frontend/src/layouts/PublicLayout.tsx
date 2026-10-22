@@ -1,3 +1,4 @@
+import { BrandLockup } from "../components/brand/BrandLockup";
 import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation } from "react-router";
 import { useAuth } from "../state/AuthContext";
@@ -15,19 +16,15 @@ export function PublicLayout() {
   }, [location.pathname, location.search, location.hash]);
 
   const feedbackHref = FEEDBACK_EMAIL
-    ? `mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComponent("Tales of Two feedback")}`
+    ? `mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComponent("Quillairo feedback")}`
     : "";
 
   return (
     <div className="site-shell public-shell">
       <a className="skip-link" href="#main-content">SKIP TO CONTENT</a>
       <header className="site-header public-header">
-        <Link className="brand" to="/" aria-label="Tales of Two home">
-          <span className="brand-mark" aria-hidden="true">T2</span>
-          <span>
-            <strong>TALES OF TWO</strong>
-            <small>AI STORY RPG // SOLO + CO-OP_</small>
-          </span>
+        <Link className="brand q-site-brand" to="/" aria-label="Quillairo home">
+          <BrandLockup />
         </Link>
 
         <button
@@ -67,8 +64,8 @@ export function PublicLayout() {
 
       <footer className="site-footer public-footer">
         <div className="footer-identity">
-          <strong>TALES OF TWO</strong>
-          <span>SHARED STORIES. BAD DECISIONS. PERMANENT CONSEQUENCES.</span>
+          <BrandLockup size="footer" />
+          <span>SHARED STORIES. UNFORGETTABLE CHOICES.</span>
         </div>
 
         <nav className="footer-nav" aria-label="Footer navigation">
@@ -85,7 +82,7 @@ export function PublicLayout() {
         </nav>
 
         <div className="footer-meta">
-          <span>© {new Date().getFullYear()} TALES OF TWO</span>
+          <span>© {new Date().getFullYear()} QUILLAIRO</span>
           <span className="build-indicator">BUILD // {BUILD_ID}</span>
         </div>
       </footer>

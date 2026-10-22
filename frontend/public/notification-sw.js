@@ -1,10 +1,10 @@
-/* Tales of Two // closed-page Web Push worker */
+/* Quillairo // closed-page Web Push worker */
 self.addEventListener("push", (event) => {
   let payload = {};
   try {
     payload = event.data ? event.data.json() : {};
   } catch {
-    payload = { title: "TALES OF TWO", message: event.data?.text?.() || "Adventure activity is waiting." };
+    payload = { title: "QUILLAIRO", message: event.data?.text?.() || "Adventure activity is waiting." };
   }
 
   event.waitUntil((async () => {
@@ -12,7 +12,7 @@ self.addEventListener("push", (event) => {
     const alreadyWatching = windows.some((client) => client.visibilityState === "visible" && client.focused);
     if (alreadyWatching) return;
 
-    await self.registration.showNotification(payload.title || "TALES OF TWO", {
+    await self.registration.showNotification(payload.title || "QUILLAIRO", {
       body: payload.message || "Adventure activity is waiting.",
       tag: payload.tag || `tales-of-two:${payload.kind || "activity"}:${payload.room_code || "game"}`,
       renotify: true,

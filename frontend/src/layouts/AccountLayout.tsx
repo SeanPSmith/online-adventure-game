@@ -1,3 +1,4 @@
+import { BrandLockup } from "../components/brand/BrandLockup";
 import { Link, NavLink, Outlet } from "react-router";
 import { readLastGameRoute } from "../services/gameRouteMemory";
 import { useAuth } from "../state/AuthContext";
@@ -14,9 +15,8 @@ export function AccountLayout() {
     <div className="site-shell inkbound-system-shell inkbound-account-shell" data-ink-paper={paper}>
       <a className="skip-link" href="#main-content">SKIP TO CONTENT</a>
       <header className="site-header">
-        <Link className="brand" to="/game">
-          <span className="brand-mark" aria-hidden="true">✧</span>
-          <span><strong>QUILLAIRO</strong><small>THE READING ROOM</small></span>
+        <Link className="brand q-site-brand" to="/game" aria-label="Quillairo home">
+          <BrandLockup />
         </Link>
         <nav className="header-nav">
           <NavLink to="/account">ACCOUNT</NavLink>

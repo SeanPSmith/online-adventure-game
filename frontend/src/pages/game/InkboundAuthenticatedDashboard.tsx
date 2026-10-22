@@ -1,3 +1,4 @@
+import { BrandLockup } from "../../components/brand/BrandLockup";
 /**
  * Pass 65.6 — the REAL authenticated Inkbound home.
  * This is presentation only. All Hero, room, catalog and lobby actions come from
@@ -123,7 +124,7 @@ export function InkboundAuthenticatedDashboard({
     <a href="#i656-main" className="i656-skip">Skip to your adventures</a>
     <div className="i656-sheet">
       <header className="i656-header">
-        <button type="button" className="i656-wordmark" onClick={() => setPage("home")} aria-label="Tales of Two home">Tales <em>of</em> Two</button>
+        <button type="button" className="i656-wordmark" onClick={() => setPage("home")} aria-label="Quillairo home"><BrandLockup /></button>
         <nav className="i656-nav" aria-label="Library navigation">
           {navigation.map((item) => <button key={item.id} type="button" aria-current={page === item.id ? "page" : undefined} onClick={() => setPage(item.id)}>{item.label}</button>)}
         </nav>

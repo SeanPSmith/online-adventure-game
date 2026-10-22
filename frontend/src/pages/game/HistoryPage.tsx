@@ -91,7 +91,7 @@ export function HistoryPage() {
               <ArchivedChronicleAudio historyId={story.history_id} />
               <div className="history-card-actions">
                 <ShareMomentButton
-                  title={`${story.adventure_title} — Tales of Two`}
+                  title={`${story.adventure_title} — Quillairo`}
                   text={`${story.ending_label} // ${story.recap || story.final_resolution}`}
                   url={`${window.location.origin}/`}
                   label="[↗] SHARE CHRONICLE"

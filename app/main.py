@@ -425,7 +425,7 @@ async def lifespan(
 fastapi_app = FastAPI(
 
     title=
-        "Tales of Two",
+        "Quillairo",
 
     version=
         "0.5.1",
@@ -2284,7 +2284,7 @@ async def send_room_invite(
         return {"ok": False, "message": "That room already has its full party."}
 
     if not identifier or len(identifier) > 254:
-        return {"ok": False, "message": "Enter your partner's Tales of Two username or email."}
+        return {"ok": False, "message": "Enter your partner's Quillairo username or email."}
 
     target = await auth_store.get_user_by_identifier(identifier)
 
@@ -2293,14 +2293,14 @@ async def send_room_invite(
     # receive the notification through whichever channels they opted into.
     generic_success = {
         "ok": True,
-        "message": "If that Tales of Two account exists, the invite has been sent.",
+        "message": "If that Quillairo account exists, the invite has been sent.",
     }
 
     if target is None or not bool(target.is_active):
         return generic_success
 
     if target.user_id == user.user_id:
-        return {"ok": False, "message": "Invite another Tales of Two account, not yourself."}
+        return {"ok": False, "message": "Invite another Quillairo account, not yourself."}
 
     if room.player_for_user(target.user_id) is not None:
         return {"ok": False, "message": "That player is already in this room."}

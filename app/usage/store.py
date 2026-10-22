@@ -332,13 +332,13 @@ class AIUsageStore:
 
             if global_daily_requests and day_requests >= global_daily_requests:
                 raise UsageLimitExceeded(
-                    "The Tales of Two AI service has reached its daily request safety ceiling. Try again after the daily reset.",
+                    "The Quillairo AI service has reached its daily request safety ceiling. Try again after the daily reset.",
                     code="global_daily_request_limit",
                     snapshot=snapshot,
                 )
             if global_daily_budget and day_spent + day_reserved + requested_reserve > global_daily_budget:
                 raise UsageLimitExceeded(
-                    "The Tales of Two AI service has reached its daily spend safety ceiling. Try again after the daily reset.",
+                    "The Quillairo AI service has reached its daily spend safety ceiling. Try again after the daily reset.",
                     code="global_daily_budget",
                     snapshot=snapshot,
                 )

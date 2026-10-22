@@ -33,7 +33,7 @@ export function FirstRunGuide({heroes, selectedHeroId, onSelectHero, connected, 
  }
  if(!visible) return <button className="button button-quiet" type="button" onClick={() => setVisible(true)}>HOW TO START</button>;
  return <Panel title="YOUR FIRST ADVENTURE" className="first-run-guide">
-  <p>Tales of Two is a story you play through choices and dice, alone or with a friend. Create a Hero, choose a story, and see what happens.</p>
+  <p>Quillairo is a story you play through choices and dice, alone or with a friend. Create a Hero, choose a story, and see what happens.</p>
   <ol className="onboarding-steps">
    <li><h2>Choose your Hero</h2><p>A Hero is your character. Their abilities help with dice checks, and their progress carries between adventures.</p>
     {heroes.length ? <TerminalSelect value={selectedHeroId} onChange={onSelectHero} ariaLabel="Hero for your first adventure" options={heroes.map(hero => ({value: hero.character_id, label: `${hero.name} // LVL ${hero.level}`}))} /> : <p>No available Hero yet. Create one to start; you can use the balanced starting abilities.</p>}

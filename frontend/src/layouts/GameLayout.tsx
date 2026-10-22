@@ -1,3 +1,4 @@
+import { BrandLockup } from "../components/brand/BrandLockup";
 import { Link, NavLink, Outlet, useLocation } from "react-router";
 import { useAuth } from "../state/AuthContext";
 import { useInkboundPaper } from "../features/appearance/inkboundPaper";
@@ -28,13 +29,7 @@ export function GameLayout() {
     <div className={`site-shell game-site-shell p64-shell inkbound-system-shell ${isAdventureMode ? "is-adventure-mode" : ""} ${isDeskHome ? "is-desk-home" : ""}`} data-ink-paper={paper} data-platform-skin={preferences.platformSkin} data-edition-family={edition.family} data-edition-mode={edition.mode} data-installed-library-theme={Boolean(libraryTheme)} data-theme-material={libraryTheme?.material} style={(libraryTheme ? themeCssVars(libraryTheme) : themeEditionCssVars(edition)) as CSSProperties}>
       <a className="skip-link" href="#main-content">SKIP TO CONTENT</a>
       <header className={`site-header game-header ${isAdventureMode ? "is-adventure-header" : ""}`}>
-        <Link className="brand" to="/game">
-          <span className="brand-mark">T2</span>
-          <span>
-            <strong>TALES OF TWO</strong>
-            <small>{isAdventureMode ? "THE STORY UNFOLDS" : "A LIBRARY OF POSSIBILITIES"}</small>
-          </span>
-        </Link>
+        <Link className="brand q-site-brand" to="/game" aria-label="Quillairo home"><BrandLockup /></Link>
 
         <nav className="header-nav game-nav" aria-label="Primary navigation">
           <NavLink to="/game" end>HOME</NavLink>

@@ -239,8 +239,8 @@ export function InkspaceLiveRoom(props: LiveInkspaceProps) {
   return <div className="vb-lab has-reader has-instruments inkspace-live" aria-label="Live illuminated manuscript reader">
     <img className="vb-scene" src="/art/pass64/pass64-4d-tabletop-book.webp" alt="Open ivory book on a wooden tabletop surrounded by stationery and botanical decorations" draggable={false} />
     <header className="vb-header inkspace-live-header">
-      <Link className="vb-identity" to="/game" aria-label="Tales of Two · Adventure Hall">
-        <span className="inkspace-live-compass" aria-hidden="true">✧</span><span className="vb-wordmark"><strong>TALES OF TWO</strong><span>A LIBRARY OF POSSIBILITIES</span></span>
+      <Link className="vb-identity" to="/game" aria-label="Quillairo · Adventure Hall">
+        <span className="inkspace-live-compass" aria-hidden="true">✧</span><span className="vb-wordmark"><strong>QUILLAIRO</strong><span>A LIBRARY OF POSSIBILITIES</span></span>
       </Link>
       <nav className="vb-parchment inkspace-live-menu" aria-label="Live book navigation">
         <button type="button" className="vb-nav-item is-active" onClick={props.onClose}>STANDARD READER</button>

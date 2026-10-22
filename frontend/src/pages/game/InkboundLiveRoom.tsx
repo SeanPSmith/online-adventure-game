@@ -1,3 +1,4 @@
+import { BrandLockup } from "../../components/brand/BrandLockup";
 /** Pass 65.1: Opt-in Inkbound reader for the ACTUAL active adventure.
  * All room state, choice submission, chat, narration and effects remain owned
  * by AdventurePage/useLiveAdventure. This is presentation only.
@@ -111,7 +112,7 @@ export function InkboundLiveRoom(props: InkboundLiveRoomProps) {
   return <div className="inkbound inkbound-live" data-ink-paper={props.paper} aria-label="Inkbound adventure reader">
     <a className="inkbound-skip" href="#ibl-chapter">Skip to chapter</a>
     <header className="ibl-topbar">
-      <Link to="/game" className="ibl-brand"><span>Tales of Two</span></Link>
+      <Link to="/game" className="ibl-brand" aria-label="Quillairo home"><BrandLockup /></Link>
       <span className="ibl-header-rule" aria-hidden="true" />
       <nav aria-label="Adventure navigation" className="ibl-nav">
         <button type="button" onClick={() => toggle("journal")}>▤ <span>Journal</span></button>

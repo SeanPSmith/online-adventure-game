@@ -320,7 +320,7 @@ export function GameHomePage({ homeLab = false }: { homeLab?: boolean } = {}) {
         </div>
       ) : null}
       <header className="p644-topbar">
-        <button className="p644-wordmark" onClick={() => openBookSpread("home")} type="button" aria-label="Tales of Two Home"><span className="p644-emblem" aria-hidden="true">✧</span><span><strong>TALES OF TWO</strong><small>A LIBRARY OF POSSIBILITIES</small></span></button>
+        <button className="p644-wordmark" onClick={() => openBookSpread("home")} type="button" aria-label="Quillairo Home"><span className="p644-emblem" aria-hidden="true">✧</span><span><strong>QUILLAIRO</strong><small>A LIBRARY OF POSSIBILITIES</small></span></button>
         <nav className="p644-toplinks" aria-label="Book navigation">
           <button type="button" aria-current={bookSpread === "home" ? "page" : undefined} onClick={() => openBookSpread("home")}>HOME</button>
           <button type="button" aria-current={bookSpread === "heroes" ? "page" : undefined} onClick={() => openBookSpread("heroes")}>HEROES</button>

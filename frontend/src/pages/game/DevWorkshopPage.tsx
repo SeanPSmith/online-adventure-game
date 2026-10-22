@@ -15,7 +15,7 @@ const LABS = [
 export function DevWorkshopPage() {
   return <main id="dev-workshop" style={{minHeight:"100dvh",background:"#1c1715",color:"#f6e9d3",fontFamily:"Georgia,serif",padding:"clamp(24px,4vw,64px)"}}>
     <div style={{maxWidth:900,margin:"0 auto"}}>
-      <p style={{letterSpacing:".2em",fontSize:12,color:"#c2a77e"}}>TALES OF TWO / DEVELOPMENT ONLY</p>
+      <p style={{letterSpacing:".2em",fontSize:12,color:"#c2a77e"}}>QUILLAIRO / DEVELOPMENT ONLY</p>
       <h1 style={{fontSize:"clamp(30px,5vw,48px)",margin:"12px 0"}}>Living Book Workshop</h1>
       <p style={{lineHeight:1.6}}>These experiments are isolated from player-facing navigation. Keep the current game working while validating visual parity and interactions.</p>
       <p><Link style={{color:"#f5d18e"}} to="/game">← Return to the real game</Link></p>

@@ -756,8 +756,8 @@ export function AdventurePage() {
             {live.playerId && live.game.wrap_up_votes.includes(live.playerId) ? "Final chapter requested" : "Call the final chapter →"}
           </button>}
           {live.game?.wrap_up_active && <span className="ibl-utility-label" role="status">Final chapter · {live.game.wrap_up_turns_remaining} turns remaining</span>}
-          {theater.chapterReleased && scene?.body && <ShareMomentButton title={`${scene.title} — Tales of Two`}
-            text={`${live.game?.adventure_title ?? "Tales of Two"} // ${scene.title}\n${scene.body.slice(0,260)}`}
+          {theater.chapterReleased && scene?.body && <ShareMomentButton title={`${scene.title} — Quillairo`}
+            text={`${live.game?.adventure_title ?? "Quillairo"} // ${scene.title}\n${scene.body.slice(0,260)}`}
             url={`${window.location.origin}/`} label="Share this moment →" />}
         </>}
         onClose={() => { const next = new URLSearchParams(searchParams); next.set("reader", "classic"); navigate({pathname:location.pathname,search:next.toString()},{replace:true}); }}
@@ -872,8 +872,8 @@ export function AdventurePage() {
 
               {theater.chapterReleased && scene?.body ? (
                 <ShareMomentButton
-                  title={`${scene.title} — Tales of Two`}
-                  text={`${live.game?.adventure_title ?? "Tales of Two"} // ${scene.title}
+                  title={`${scene.title} — Quillairo`}
+                  text={`${live.game?.adventure_title ?? "Quillairo"} // ${scene.title}
 ${scene.body.slice(0, 260)}`}
                   url={`${window.location.origin}/`}
                   label="[↗] SHARE MOMENT"
@@ -1088,7 +1088,7 @@ ${scene.body.slice(0, 260)}`}
                   <span>PARTY RENOWN</span>
                   <strong>{live.finale.party_rank}</strong>
                   <ShareMomentButton
-                    title={`${live.finale.adventure_title} — Tales of Two`}
+                    title={`${live.finale.adventure_title} — Quillairo`}
                     text={`${live.finale.ending_label} // ${live.finale.final_resolution}`}
                     url={`${window.location.origin}/`}
                     label="[↗] SHARE ENDING"

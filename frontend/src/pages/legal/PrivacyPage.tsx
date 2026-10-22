@@ -9,7 +9,7 @@ export function PrivacyPage() {
       <div className="legal-copy-grid">
         <Panel title="WHAT THE GAME KEEPS">
           <p>
-            Tales of Two stores the account information required to identify you and keep a
+            Quillairo stores the account information required to identify you and keep a
             session active, plus the game data needed to preserve Heroes, progression,
             adventures, room participation, and completed story history.
           </p>

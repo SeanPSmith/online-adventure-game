@@ -41,7 +41,15 @@ def test_theme_selector_remains_shared_not_duplicated():
     for name in ('"ivory"', '"cream"', '"parchment"', '"navy"', '"phosphor"', '"midnight"'):
         assert name in PAPERS
     assert 'data-ink-paper={paper}' in ACCOUNT_LAYOUT
-    assert "<strong>QUILLAIRO</strong>" in ACCOUNT_LAYOUT
+    # Pass 66.8 replaces the provisional plain-text brand with the approved
+    # asset-backed lockup. Keep testing the real brand, not retired markup.
+    assert 'import { BrandLockup } from "../components/brand/BrandLockup";' in ACCOUNT_LAYOUT
+    assert '<BrandLockup />' in ACCOUNT_LAYOUT
+    assert 'aria-label="Quillairo home"' in ACCOUNT_LAYOUT
+    assert '<strong>QUILLAIRO</strong>' not in ACCOUNT_LAYOUT
+    lockup = (ROOT / "frontend/src/components/brand/BrandLockup.tsx").read_text(encoding="utf-8")
+    assert '/brand/primary-light.png' in lockup
+    assert '/brand/secondary-dark.png' in lockup
 
 
 def test_settings_layout_is_responsive_and_has_no_text_covering_illustration():

@@ -4325,7 +4325,7 @@ function showAdventureEntry(
 
     adventureEntryKicker.textContent =
         isResume
-            ? "PREVIOUSLY ON TALES OF TWO"
+            ? "PREVIOUSLY ON QUILLAIRO"
             : "NEW ADVENTURE";
 
 

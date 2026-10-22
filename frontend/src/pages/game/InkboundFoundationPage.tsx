@@ -183,7 +183,7 @@ export function InkboundFoundationPage() {
     <footer className="i65-page-footer"><span>✧ &nbsp; Some stories are better shared.</span><span>Inkbound · Design workshop · Real account data only in Hall and Heroes; other scenes illustrative</span></footer>
     {panel && <div className="i65-folio-veil" onMouseDown={e => { if (e.target === e.currentTarget) dismiss(); }}>
       <section className="i65-folio" role="dialog" aria-modal="true" aria-label={`${panel} preview`}>
-        <header className="i65-folio-head"><Caption>Tales of Two · A page from the folio</Caption><button type="button" ref={closePanelButton} onClick={dismiss} aria-label="Close folio">×</button></header>
+        <header className="i65-folio-head"><Caption>Quillairo · A page from the folio</Caption><button type="button" ref={closePanelButton} onClick={dismiss} aria-label="Close folio">×</button></header>
         <h2>{({hero:"The Wanderer",party:"Fellow Travelers",journal:"The Journal",chronicle:"Chronicle",chat:"Whispers",inventory:"The Satchel",dice:"The Fates",settings:"Paper & Ink"} as Record<Panel,string>)[panel]}</h2>
         <div className="i65-folio-ornament" aria-hidden="true">— ✧ —</div>
         {panel === "hero" && <div className="i65-folio-content"><Caption>Character sheet · Level One</Caption><p className="i65-folio-lede">A traveler of uncertain fate, drawn north by a rumor of forgotten crowns.</p><div className="i65-detail-list"><div>Health <b>20 / 30</b></div><div>Experience <b>40 / 100</b></div><div>Active effects <b>None</b></div><div>Disposition <b>Curious</b></div></div><p className="i65-annotation">“We become what our choices make of us.”</p></div>}

@@ -12,7 +12,8 @@ def read(relative: str) -> str:
 def test_public_home_explains_product_and_primary_paths() -> None:
     home = read("frontend/src/pages/public/PublicHomePage.tsx")
 
-    assert "AI-DIRECTED TEXT ADVENTURE // ONE OR TWO PLAYERS" in home
+    assert "A LIVING STORYBOOK // SOLO OR CO-OP" in home
+    assert '<BrandLockup size="hero" />' in home
     assert 'to="/game">PLAY' in home
     assert 'to="/game/heroes/new">CREATE HERO' in home
     assert 'to="/login">SIGN IN' in home

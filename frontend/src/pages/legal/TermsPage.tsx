@@ -9,7 +9,7 @@ export function TermsPage() {
       <div className="legal-copy-grid">
         <Panel title="THE SERVICE">
           <p>
-            Tales of Two is an evolving online game. Features, generated content, balance,
+            Quillairo is an evolving online game. Features, generated content, balance,
             availability, and saved-state behavior may change as the service is developed and
             tested.
           </p>

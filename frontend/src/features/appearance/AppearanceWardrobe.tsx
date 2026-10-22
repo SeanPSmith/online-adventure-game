@@ -137,7 +137,7 @@ export function AppearanceWardrobe() {
       <div className="p64-theme-workshop-controls">
         <button type="button" className="button" aria-expanded={workshop} onClick={() => setWorkshop(!workshop)}>{workshop ? "CLOSE WORKSHOP" : "DESIGN A SKIN"}</button>
         <button type="button" className="button button-quiet" onClick={() => filePicker.current?.click()}>INSTALL JSON</button>
-        <input ref={filePicker} hidden aria-label="Choose a Tales of Two theme manifest" type="file" accept=".json,application/json" onChange={(event) => { void importFile(event); }} />
+        <input ref={filePicker} hidden aria-label="Choose a Quillairo theme manifest" type="file" accept=".json,application/json" onChange={(event) => { void importFile(event); }} />
       </div>
     </div>
     {workshop && <div className="p64-theme-workshop" aria-label="Theme creator">

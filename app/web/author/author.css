@@ -1530,3 +1530,11 @@ dialog{width:min(940px,calc(100vw - 32px));max-width:calc(100vw - 32px);max-heig
 html[data-ink-paper="phosphor"] .topbar h1{text-shadow:0 0 12px rgba(144,255,125,.23)}
 @media(max-width:900px){.shell{grid-template-columns:1fr}}
 @media(max-width:600px){.topbar{position:relative;flex-direction:column;align-items:flex-start;gap:10px}.topbar-actions{justify-content:flex-start}}
+
+/* Quillairo official brand lockup; both files are approved, with gold AI intact. */
+.q-author-logo{display:block;width:clamp(160px,19vw,230px);height:64px;max-width:100%;margin:-10px 0 2px}
+.q-author-logo img{display:block;width:100%;height:100%;object-fit:contain;object-position:left center;filter:none!important;mix-blend-mode:normal!important}
+.q-author-logo--dark{display:none!important}
+html[data-ink-paper="navy"] .q-author-logo--light,html[data-ink-paper="phosphor"] .q-author-logo--light,html[data-ink-paper="midnight"] .q-author-logo--light{display:none!important}
+html[data-ink-paper="navy"] .q-author-logo--dark,html[data-ink-paper="phosphor"] .q-author-logo--dark,html[data-ink-paper="midnight"] .q-author-logo--dark{display:block!important}
+@media(max-width:600px){.q-author-logo{width:165px;height:49px}}

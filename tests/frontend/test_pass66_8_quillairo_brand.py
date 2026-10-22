@@ -52,7 +52,8 @@ def test_primary_surfaces_use_approved_wordmark():
         s = source(f)
         assert 'BrandLockup' in s, f
         assert 'Tales of Two home' not in s, f
-    assert 'size="hero"' in source('frontend/src/pages/public/PublicHomePage.tsx')
+    assert 'BrandLockup paper={paper}' in source('frontend/src/layouts/PublicLayout.tsx')
+    assert 'home-vista.png' in source('frontend/src/pages/public/PublicHomePage.tsx')
 
 
 def test_official_app_metadata_and_six_palettes():

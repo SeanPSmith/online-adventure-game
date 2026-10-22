@@ -15,8 +15,9 @@ export function BrandLockup({size="navigation", className="", style, paper="ivor
     <img className="quillairo-lockup__art" src={src} alt="" aria-hidden="true" draggable={false} />
   </span>;
 }
-export function QuillairoMonogram({className=""}: {className?: string}) {
-  return <img className={`quillairo-monogram ${className}`} src="/brand/monogram-ink.png" alt="Quillairo Q and quill" draggable={false} />;
+export function QuillairoMonogram({className="", paper="ivory"}: {className?: string; paper?: InkPaper}) {
+  const dark = paper === "navy" || paper === "phosphor" || paper === "midnight";
+  return <img className={`quillairo-monogram ${className}`} src={dark ? "/brand/monogram-gold-original.png" : "/brand/monogram-ink.png"} alt="Quillairo Q and quill" draggable={false} />;
 }
 export function QuillairoSeal({className=""}: {className?: string}) {
   return <img className={`quillairo-seal ${className}`} src="/brand/seal-gold.png" alt="Quillairo publisher seal" draggable={false} />;

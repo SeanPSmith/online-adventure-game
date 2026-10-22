@@ -11,16 +11,17 @@ def read(relative: str) -> str:
 
 def test_public_home_explains_product_and_primary_paths() -> None:
     home = read("frontend/src/pages/public/PublicHomePage.tsx")
-
-    assert "A LIVING STORYBOOK // SOLO OR CO-OP" in home
-    assert '<BrandLockup size="hero" />' in home
-    assert 'to="/game">PLAY' in home
-    assert 'to="/game/heroes/new">CREATE HERO' in home
-    assert 'to="/login">SIGN IN' in home
-    assert "SOLO MODE" in home
-    assert "CO-OP MODE" in home
+    assert "A living storybook" in home
+    assert "A LIVING STORYBOOK" in home
     assert 'id="how-it-works"' in home
-    assert "The server owns the mechanics" in home
+    assert 'id="worlds"' in home
+    assert 'id="story-preview"' in home
+    assert 'authenticated ? "/game" : "/register"' in home
+    assert 'to="/game"' in home
+    assert 'setSampleChoice(index)' in home
+    assert 'AN INTERACTIVE SAMPLE' in home
+    assert 'dice decide the risk' in home
+    assert 'ART}home-vista.png' in home
 
 
 def test_public_shell_has_real_navigation_footer_and_build_fingerprint() -> None:
@@ -57,13 +58,15 @@ def test_auth_pages_share_intentional_public_shell_language() -> None:
     login = read("frontend/src/pages/auth/LoginPage.tsx")
     register = read("frontend/src/pages/auth/RegisterPage.tsx")
     recovery = read("frontend/src/pages/auth/ForgotPasswordPage.tsx")
-
-    assert 'className="auth-shell"' in login
-    assert 'className="auth-shell"' in register
-    assert 'className="auth-shell"' in recovery
-    assert "RETURN PATH SAVED" in login
-    assert "DESTINATION SAVED" in register
-    assert "does not collect or pretend to send an email" in recovery
+    frame = read("frontend/src/pages/auth/QuillairoAuthFrame.tsx")
+    assert "QuillairoAuthFrame" in login and "QuillairoAuthFrame" in register and "QuillairoAuthFrame" in recovery
+    assert 'await login(identifier, password)' in login
+    assert 'state?.returnTo ?? "/game"' in login
+    assert 'await register(email, username, password)' in register
+    assert 'state: { returnTo: state?.returnTo }' in register
+    assert "No email has been requested or sent" in recovery
+    assert 'auth-journey.png' in frame
+    assert 'aria-label={title}' in frame
 
 
 def test_public_shell_has_phone_first_responsive_rules() -> None:

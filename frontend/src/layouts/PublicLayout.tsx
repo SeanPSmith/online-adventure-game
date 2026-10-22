@@ -2,12 +2,14 @@ import { BrandLockup } from "../components/brand/BrandLockup";
 import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation } from "react-router";
 import { useAuth } from "../state/AuthContext";
+import { useInkboundPaper } from "../features/appearance/inkboundPaper";
 
 const BUILD_ID = (import.meta.env.VITE_BUILD_ID || "DEV").trim();
 const FEEDBACK_EMAIL = (import.meta.env.VITE_FEEDBACK_EMAIL || "").trim();
 
 export function PublicLayout() {
   const { authenticated, user } = useAuth();
+  const [paper] = useInkboundPaper(user?.user_id ?? "");
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -20,11 +22,11 @@ export function PublicLayout() {
     : "";
 
   return (
-    <div className="site-shell public-shell">
+    <div className="site-shell public-shell qpub-shell" data-ink-paper={paper}>
       <a className="skip-link" href="#main-content">SKIP TO CONTENT</a>
       <header className="site-header public-header">
         <Link className="brand q-site-brand" to="/" aria-label="Quillairo home">
-          <BrandLockup />
+          <BrandLockup paper={paper} />
         </Link>
 
         <button
@@ -43,6 +45,7 @@ export function PublicLayout() {
           aria-label="Primary navigation"
         >
           <a href="/#how-it-works">HOW IT WORKS</a>
+          <a href="/#worlds">WORLDS</a>
           <Link to="/rulebook">RULEBOOK</Link>
           {authenticated ? (
             <>
@@ -52,7 +55,7 @@ export function PublicLayout() {
           ) : (
             <>
               <Link to="/login">SIGN IN</Link>
-              <Link className="button button-primary" to="/game/heroes/new">CREATE HERO</Link>
+              <Link className="button button-primary" to="/register">BEGIN ADVENTURE</Link>
             </>
           )}
         </nav>
@@ -64,13 +67,14 @@ export function PublicLayout() {
 
       <footer className="site-footer public-footer">
         <div className="footer-identity">
-          <BrandLockup size="footer" />
+          <BrandLockup size="footer" paper={paper} />
           <span>SHARED STORIES. UNFORGETTABLE CHOICES.</span>
         </div>
 
         <nav className="footer-nav" aria-label="Footer navigation">
           <a href="/#about">ABOUT</a>
           <a href="/#how-it-works">HOW IT WORKS</a>
+          <a href="/#worlds">WORLDS</a>
           <Link to="/rulebook">RULEBOOK</Link>
           <Link to="/privacy">PRIVACY</Link>
           <Link to="/terms">TERMS</Link>

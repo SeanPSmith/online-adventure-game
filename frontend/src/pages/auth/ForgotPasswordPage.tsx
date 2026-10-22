@@ -1,28 +1,12 @@
 import { Link } from "react-router";
+import { QuillairoAuthFrame } from "./QuillairoAuthFrame";
 
 export function ForgotPasswordPage() {
-  return (
-    <section className="auth-shell" aria-labelledby="recovery-heading">
-      <div className="auth-intro">
-        <span className="eyebrow">ACCOUNT RECOVERY // STATUS</span>
-        <h1 id="recovery-heading">RECOVERY CHANNEL OFFLINE.</h1>
-        <p>
-          Password reset is not connected to the current authentication service yet. This
-          screen does not collect or pretend to send an email while that endpoint is absent.
-        </p>
-      </div>
-
-      <div className="auth-card panel auth-status-card">
-        <header className="panel-heading"><span>PASSWORD RESET</span><span>NOT CONNECTED</span></header>
-        <div className="panel-body form-stack">
-          <div className="system-notice auth-recovery-notice">
-            <strong>NO RESET REQUEST WAS SENT.</strong>
-            <span>The product will expose recovery here when the backend flow exists.</span>
-          </div>
-          <Link className="button button-primary" to="/login">RETURN TO SIGN IN</Link>
-          <Link className="button button-quiet" to="/register">CREATE A NEW ACCOUNT</Link>
-        </div>
-      </div>
-    </section>
-  );
+  return <QuillairoAuthFrame title="Find your way back." intro="Account recovery is not yet available in this version of Quillairo." overline="ACCOUNT RECOVERY">
+    <div className="qpub-auth-fields qpub-recovery">
+      <p role="status"><strong>Password reset is not connected.</strong> No email has been requested or sent. This page will offer secure recovery once that backend service is available.</p>
+      <Link className="qpub-button qpub-button-primary qpub-auth-action" to="/login">Return to sign in <span aria-hidden="true">↗</span></Link>
+      <Link className="qpub-button qpub-button-secondary qpub-auth-action" to="/register">Create another account <span aria-hidden="true">↗</span></Link>
+    </div>
+  </QuillairoAuthFrame>;
 }

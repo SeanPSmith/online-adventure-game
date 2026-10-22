@@ -5,9 +5,12 @@ import {
   useState,
 } from "react";
 import { playSound } from "../../services/audioDirector";
+import type { InkPaper } from "../appearance/inkboundPaper";
 import type { QuickEvent, QuickEventEffect } from "../../services/game";
 
 interface QuickEventModalProps {
+  inkPaper?: InkPaper;
+  fantasyArtwork?: boolean;
   event: QuickEvent | null;
   resolution: QuickEvent | null;
   playerId: string | null;
@@ -30,6 +33,8 @@ function effectLine(effect: QuickEventEffect | null | undefined) {
 }
 
 export function QuickEventModal({
+  inkPaper,
+  fantasyArtwork = false,
   event,
   resolution,
   playerId,
@@ -233,12 +238,13 @@ export function QuickEventModal({
 
   return (
     <div
-      className="qte-backdrop"
+      className={`qte-backdrop ${inkPaper ? "ibq-backdrop" : ""}`}
+      data-ink-paper={inkPaper}
       role="dialog"
       aria-modal="true"
       aria-labelledby="qte-title"
     >
-      <section className="qte-modal">
+      <section className={`qte-modal ${inkPaper ? "ibq-folio" : ""}`}>
         <div className="qte-kicker">
           <span>
             {showingResolution
@@ -274,6 +280,7 @@ export function QuickEventModal({
           </>
         ) : null}
 
+        <div className="ibq-intro">
         <div className="qte-body">
           <span className="eyebrow">
             {String(activeEvent.kind || "split_second")
@@ -353,6 +360,12 @@ export function QuickEventModal({
             </div>
           ) : null}
         </div>
+        {inkPaper && fantasyArtwork ? (
+          <figure className="ibq-artwork" aria-hidden="true">
+            <img src="/art/inkbound/hero-vista.png" alt="" />
+          </figure>
+        ) : null}
+        </div>
 
         {!showingResolution ? (
           <div className={`qte-options has-${activeEvent.options.length}`}>
@@ -378,7 +391,7 @@ export function QuickEventModal({
           </div>
         ) : null}
 
-        <footer className="qte-status">
+        <footer className="qte-status" role="status" aria-live="polite">
           {showingResolution
             ? "REACTION RESOLVED // YOUR NEXT CHOICE AWAITS_"
             : timedOut

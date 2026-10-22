@@ -1600,6 +1600,8 @@ ${scene.body.slice(0, 260)}`}
       ) : null}
 
       <QuickEventModal
+        inkPaper={inkboundReady ? inkPaper : undefined}
+        fantasyArtwork={fantasyIllustration}
         event={
           theater.phase === "none" && !showLevelUp && !showDeath
             ? live.game?.pending_micro_event ?? null

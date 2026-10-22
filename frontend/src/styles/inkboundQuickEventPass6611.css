@@ -1,0 +1,56 @@
+/* Pass 66.11 — Quillairo's real server-owned QTE, as a manuscript action spread.
+   Scope to the explicit Inkbound paper attribute. Classic QTE stays untouched. */
+.ibq-backdrop[data-ink-paper="ivory"] { --ibq-paper:#f7f3e9;--ibq-ink:#28251f;--ibq-copy:#514b40;--ibq-muted:#756c60;--ibq-rule:#9c9283;--ibq-wash:rgba(48,40,30,.06); }
+.ibq-backdrop[data-ink-paper="cream"] { --ibq-paper:#eee7d9;--ibq-ink:#30291e;--ibq-copy:#504433;--ibq-muted:#6a5a46;--ibq-rule:#91816a;--ibq-wash:rgba(55,40,22,.07); }
+.ibq-backdrop[data-ink-paper="parchment"] { --ibq-paper:#d9c6a4;--ibq-ink:#33271a;--ibq-copy:#413021;--ibq-muted:#604a34;--ibq-rule:#927b5b;--ibq-wash:rgba(34,38,37,.08); }
+.ibq-backdrop[data-ink-paper="navy"] { --ibq-paper:#0b1725;--ibq-ink:#f4e9d6;--ibq-copy:#ded2bd;--ibq-muted:#c0b6a5;--ibq-rule:#8a908e;--ibq-wash:rgba(242,246,250,.07); }
+.ibq-backdrop[data-ink-paper="phosphor"] { --ibq-paper:#06140c;--ibq-ink:#c6f9b1;--ibq-copy:#a9dfa1;--ibq-muted:#94bf8b;--ibq-rule:#62875f;--ibq-wash:rgba(201,255,184,.06); }
+.ibq-backdrop[data-ink-paper="midnight"] { --ibq-paper:#141516;--ibq-ink:#f4e9d6;--ibq-copy:#ced2d0;--ibq-muted:#adb2b0;--ibq-rule:#777d7a;--ibq-wash:rgba(245,246,243,.07); }
+.ibq-backdrop { background:rgba(5,7,6,.77)!important;z-index:1750; padding:clamp(8px,2vw,24px);overflow-y:auto;overscroll-behavior:contain; }
+.ibq-backdrop .ibq-folio { width:min(1200px,100%)!important;max-width:none!important;max-height:calc(100dvh - 24px);overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;box-sizing:border-box;background:var(--ibq-paper)!important;border:1px solid var(--ibq-rule)!important;border-radius:2px;color:var(--ibq-copy)!important;box-shadow:0 24px 80px rgba(0,0,0,.35)!important;font-family:"Iowan Old Style",Baskerville,Georgia,serif!important;scrollbar-width:auto;scrollbar-color:var(--ibq-muted) var(--ibq-wash); }
+.ibq-backdrop .ibq-folio::-webkit-scrollbar {width:16px}
+.ibq-backdrop .ibq-folio::-webkit-scrollbar-track {background:var(--ibq-wash)}
+.ibq-backdrop .ibq-folio::-webkit-scrollbar-thumb {background:var(--ibq-muted);border:3px solid var(--ibq-paper);border-radius:9px}
+.ibq-backdrop .qte-kicker {color:var(--ibq-muted);border:0;padding:clamp(17px,2.2vw,30px) clamp(20px,3vw,52px) 10px;min-height:0;font:600 12px/1.6 "American Typewriter","Courier New",monospace;letter-spacing:.16em;}
+.ibq-backdrop .qte-kicker strong {color:var(--ibq-ink);font-size:clamp(18px,2.1vw,27px);font-weight:500;font-variant-numeric:tabular-nums;}
+.ibq-backdrop .qte-clock.is-warning,.ibq-backdrop .qte-clock.is-danger {color:var(--ibq-ink);}
+.ibq-backdrop .qte-clock.is-danger {text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px;}
+.ibq-backdrop .qte-timer {height:15px;max-width:900px;margin:8px auto 12px;background:var(--ibq-wash);border:1px solid var(--ibq-rule);border-radius:20px;overflow:hidden;}
+.ibq-backdrop .qte-timer > span,.ibq-backdrop .qte-timer.is-warning > span,.ibq-backdrop .qte-timer.is-danger > span {background:var(--ibq-ink);box-shadow:none;border-radius:20px;transition:width 50ms linear;}
+.ibq-backdrop .qte-reaction-track {display:none}
+.ibq-backdrop .ibq-intro {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.9fr);gap:clamp(12px,3vw,44px);align-items:center;padding:clamp(16px,2.5vw,30px) clamp(20px,3vw,52px) 8px;}
+.ibq-backdrop .qte-body {padding:0!important;margin:0!important;max-width:100%;min-width:0;}
+.ibq-backdrop .qte-body > .eyebrow {display:block;font:600 11px/1.6 "American Typewriter","Courier New",monospace!important;letter-spacing:.25em;color:var(--ibq-muted)!important;margin:0 0 6px;}
+.ibq-backdrop .qte-body h2 {color:var(--ibq-ink)!important;font:400 clamp(36px,4.5vw,72px)/1.06 "Iowan Old Style",Baskerville,Georgia,serif!important;letter-spacing:-.035em;text-transform:none!important;margin:4px 0 18px;overflow-wrap:anywhere;}
+.ibq-backdrop .qte-story-context {background:transparent!important;padding:0 0 14px!important;border:0!important;border-bottom:1px solid var(--ibq-rule)!important;margin:0 0 16px;}
+.ibq-backdrop .qte-story-context strong {color:var(--ibq-muted)!important;font:600 11px/1.5 "American Typewriter","Courier New",monospace!important;letter-spacing:.10em;}
+.ibq-backdrop .qte-story-context span,.ibq-backdrop .qte-body>p {color:var(--ibq-copy)!important;font:clamp(16px,1.55vw,21px)/1.55 "Iowan Old Style",Georgia,serif!important;letter-spacing:.01em;}
+.ibq-backdrop .ibq-artwork {padding:0;margin:0;min-width:0;align-self:center;line-height:0;}
+.ibq-backdrop .ibq-artwork img {display:block;max-height:360px;width:100%;object-fit:contain;filter:none;}
+.ibq-backdrop .qte-options {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(8px,1.6vw,18px);margin:20px clamp(20px,3vw,52px) 18px;padding:0;}
+.ibq-backdrop .qte-options.has-2 {grid-template-columns:repeat(2,minmax(0,1fr));}
+.ibq-backdrop .qte-option {background:transparent!important;color:var(--ibq-ink)!important;border:1px solid var(--ibq-rule)!important;min-width:0;min-height:116px;box-shadow:none!important;text-align:left;padding:20px 18px!important;display:flex;flex-direction:column;align-items:flex-start;gap:10px;transition:background .18s ease,border-color .18s ease;}
+.ibq-backdrop .qte-option:hover:not(:disabled),.ibq-backdrop .qte-option:focus-visible {background:var(--ibq-wash)!important;border-color:var(--ibq-ink)!important;outline:2px solid var(--ibq-ink)!important;outline-offset:2px;}
+.ibq-backdrop .qte-option strong {color:var(--ibq-ink)!important;font:400 clamp(21px,2vw,30px)/1.2 "Iowan Old Style",Georgia,serif!important;text-transform:none;letter-spacing:0;}
+.ibq-backdrop .qte-option span {color:var(--ibq-copy)!important;font:14px/1.5 "Iowan Old Style",Georgia,serif!important;}
+.ibq-backdrop .qte-option .qte-option-key {position:static!important;min-width:unset;border:0!important;color:var(--ibq-muted)!important;font:600 12px "American Typewriter","Courier New",monospace!important;padding:0;opacity:1;}
+.ibq-backdrop .qte-option:disabled {opacity:.55}
+.ibq-backdrop .qte-stakes {display:flex;flex-wrap:wrap;gap:12px;border-top:1px solid var(--ibq-rule);margin:16px 0 0;padding:15px 0 0;background:transparent!important;}
+.ibq-backdrop .qte-stakes > div {min-width:180px;flex:1 1 180px;background:transparent!important;border:0!important;border-right:1px solid var(--ibq-rule)!important;padding:2px 10px 2px 0!important;}
+.ibq-backdrop .qte-stakes span,.ibq-backdrop .qte-stakes strong,.ibq-backdrop .qte-stakes small {display:block;color:var(--ibq-copy)!important;}
+.ibq-backdrop .qte-stakes span {font:600 10px/1.4 "American Typewriter","Courier New",monospace!important;letter-spacing:.1em;}
+.ibq-backdrop .qte-stakes strong {color:var(--ibq-ink)!important;font:500 16px/1.35 "Iowan Old Style",Georgia,serif!important;}
+.ibq-backdrop .qte-stakes small {font:12px/1.35 "American Typewriter","Courier New",monospace!important;}
+.ibq-backdrop .qte-neutral-note {align-self:center;}
+.ibq-backdrop .qte-status {border:0!important;border-top:1px solid var(--ibq-rule)!important;background:transparent!important;color:var(--ibq-muted)!important;padding:16px clamp(20px,3vw,52px)!important;font:600 11px/1.55 "American Typewriter","Courier New",monospace!important;letter-spacing:.035em;text-align:center;}
+.ibq-backdrop .qte-resolution-callout,.ibq-backdrop .qte-resolution-party,.ibq-backdrop .qte-correct-answer {border-color:var(--ibq-rule)!important;background:transparent!important;color:var(--ibq-copy)!important;}
+.ibq-backdrop .qte-resolution-callout :is(strong,span),.ibq-backdrop .qte-correct-answer strong {color:var(--ibq-ink)!important;}
+.ibq-backdrop .qte-continue {display:block;margin:6px auto 25px;min-width:min(340px,calc(100% - 40px));padding:16px 24px!important;border:1px solid var(--ibq-ink)!important;background:var(--ibq-ink)!important;color:var(--ibq-paper)!important;font:600 14px "American Typewriter","Courier New",monospace!important;}
+.ibq-backdrop :is(button):focus-visible {outline:2px solid var(--ibq-ink)!important;outline-offset:3px;}
+.ibq-backdrop[data-ink-paper="phosphor"] .ibq-folio :is(.qte-body h2,.qte-clock) {font-family:"American Typewriter","Courier New",monospace!important;text-shadow:0 0 10px rgba(130,250,120,.17);}
+@media(max-width:760px){.ibq-backdrop {padding:8px}.ibq-backdrop .ibq-folio{max-height:calc(100dvh - 16px)}.ibq-backdrop .ibq-intro{grid-template-columns:minmax(0,1fr);gap:5px}.ibq-backdrop .ibq-artwork{order:-1}.ibq-backdrop .ibq-artwork img{max-height:145px}.ibq-backdrop .qte-options,.ibq-backdrop .qte-options.has-2{grid-template-columns:minmax(0,1fr);}.ibq-backdrop .qte-option{min-height:0;padding:12px 16px!important;gap:4px}.ibq-backdrop .qte-body h2{font-size:clamp(30px,9vw,48px)}.ibq-backdrop .qte-stakes{gap:5px}.ibq-backdrop .qte-stakes>div{padding-bottom:7px!important}.ibq-backdrop .qte-kicker{flex-wrap:wrap;}}
+@media(prefers-reduced-motion:reduce){.ibq-backdrop *, .ibq-backdrop *::before,.ibq-backdrop *::after{transition:none!important;animation:none!important;}}
+/* Ink artwork is inverted only for dark reading materials; alpha is preserved,
+   unlike a painted rectangle or a filter on the protected Quillairo wordmark. */
+.ibq-backdrop:is([data-ink-paper="navy"],[data-ink-paper="midnight"],[data-ink-paper="phosphor"]) .ibq-artwork img {filter:invert(.88);opacity:.84;}
+.ibq-backdrop[data-ink-paper="phosphor"] .ibq-artwork img {filter:invert(.82) sepia(.65) hue-rotate(58deg);}

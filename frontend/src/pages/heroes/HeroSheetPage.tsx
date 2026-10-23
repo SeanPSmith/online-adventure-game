@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router";
 import { PageTitle } from "../../components/ui/PageTitle";
 import "./quillairoHeroSheetPortrait.css";
 import { Panel } from "../../components/ui/Panel";
+import "./quillairoHeroArchivePass6615.css";
 import {
   advanceCharacter,
   getCharacter,
@@ -269,39 +270,73 @@ export function HeroSheetPage() {
         ) : null}
       />
 
-      {hero && (portraitBook?.candidates.length || Object.keys(hero.appearance || {}).length > 0) ? (
-        <section className="quill-hero-sheet-portrait" aria-label="Hero likeness">
-          <div className="qh-sheet-portrait-art">
+      {hero ? (
+        <section className="qh15-sheet-frontispiece" aria-label="Hero portrait, identity and vital statistics">
+          <div className="qh15-sheet-portrait-frame">
             {portraitBook?.selected_attempt ? (
               <img src={`/api/characters/${encodeURIComponent(hero.character_id)}/portrait/${portraitBook.selected_attempt}`} alt={`Chosen illustrated portrait of ${hero.name}`} />
             ) : portraitBook?.candidates[0] ? (
-              <img src={portraitBook.candidates[0].url} alt={`Unselected portrait candidate for ${hero.name}`} />
-            ) : <img src="/art/inkbound/hero-vista.png" alt="" aria-hidden="true" />}
+              <img src={portraitBook.candidates[0].url} alt={`Portrait candidate for ${hero.name}`} />
+            ) : (
+              <div className="qh15-sheet-unillustrated">
+                <img src="/brand/monogram-gold-original.png" alt="" aria-hidden="true" />
+                <span>THE LIKENESS IS YET TO BE DRAWN</span>
+              </div>
+            )}
           </div>
-          <div className="qh-sheet-portrait-description">
-            <span className="qh-sheet-eyebrow">AN ILLUSTRATED LIFE</span>
+          <div className="qh15-sheet-identity">
+            <span className="qh15-kicker">AN ILLUSTRATED LIFE · THE CHARACTER SHEET</span>
             <h2>{hero.name}</h2>
-            {hero.archetype && <p className="qh-sheet-class">{hero.archetype}</p>}
-            <p>{[hero.appearance?.species,hero.appearance?.gender,hero.appearance?.height,hero.appearance?.build].filter(Boolean).join(" · ")}</p>
-            {portraitBook && portraitBook.candidates.length > 0 ? (
-              <div className="qh-sheet-portrait-options">
-                {portraitBook.candidates.map(candidate => <button type="button" className="button" key={candidate.attempt} disabled={working || candidate.attempt === portraitBook.selected_attempt}
-                  onClick={() => {
-                    setWorking(true);
-                    void chooseHeroPortrait(hero.character_id, candidate.attempt).then(setPortraitBook)
-                      .catch(reason => setError(reason instanceof Error ? reason.message : "Could not choose portrait."))
-                      .finally(() => setWorking(false));
-                  }}>{candidate.attempt === portraitBook.selected_attempt ? "Selected drawing" : `Choose drawing ${candidate.attempt}`}</button>)}
-                {portraitBook.selected_attempt === null && portraitBook.attempts_used < portraitBook.max_attempts && <button className="button" type="button" disabled={working}
-                  onClick={() => {
+            <p className="qh15-sheet-archetype">{hero.archetype || "A traveler between worlds"}</p>
+            <div className="qh15-sheet-info-list">
+              <div><span>HERITAGE</span><strong>{hero.appearance?.species || "Unrecorded"}</strong></div>
+              <div><span>ORIGIN</span><strong>{hero.appearance?.origin || "Not yet known"}</strong></div>
+              <div><span>BUILD</span><strong>{[hero.appearance?.height, hero.appearance?.build].filter(Boolean).join(" · ") || "Unrecorded"}</strong></div>
+              <div><span>CALLING</span><strong>{hero.appearance?.calling || hero.archetype || "A path to choose"}</strong></div>
+            </div>
+            <p className="qh15-sheet-motto">“Every road changes the traveler, and every traveler changes the road.”</p>
+          </div>
+          <aside className="qh15-sheet-vitals" aria-label="Hero progression">
+            <span className="qh15-kicker">CURRENT RECORD</span>
+            <div className="qh15-vital"><div><span>HEALTH</span><strong>{hero.health} / {hero.max_health}</strong></div>
+              <div className="qh15-bar" role="progressbar" aria-label="Health" aria-valuemin={0} aria-valuemax={hero.max_health} aria-valuenow={hero.health}>
+                <span style={{ width: `${Math.max(0, Math.min(100, 100 * hero.health / Math.max(1, hero.max_health)))}%` }} /></div>
+            </div>
+            <div className="qh15-vital"><div><span>EXPERIENCE</span><strong>{hero.experience} XP</strong></div>
+              <div className="qh15-bar" role="progressbar" aria-label="Progress toward next level" aria-valuemin={0} aria-valuemax={100} aria-valuenow={hero.xp_progress_percent}>
+                <span style={{ width: `${Math.max(0, Math.min(100, hero.xp_progress_percent))}%` }} /></div>
+              <small>{hero.xp_needed_for_next_level} XP until level {hero.level + 1}</small>
+            </div>
+            <div className="qh15-vital"><div><span>LEVEL</span><strong>{hero.level}</strong></div></div>
+            <div className="qh15-vital"><div><span>UNSPENT POINTS</span><strong>{remainingStatPoints + remainingSkillPoints + remainingTalentPoints}</strong></div></div>
+            <button type="button" className="qh15-subtle-link" onClick={() => jumpToAdvancement("hero-attributes")}>Review abilities →</button>
+          </aside>
+          {portraitBook && Object.keys(hero.appearance || {}).length > 0 ? (
+            <div className="qh15-sheet-art-actions">
+              <span className="qh15-kicker">YOUR PORTRAIT · {portraitBook.attempts_used} OF {portraitBook.max_attempts} ATTEMPTS USED</span>
+              <div className="qh15-portrait-buttons">
+                {portraitBook.candidates.map(candidate => (
+                  <button type="button" className="button" key={candidate.attempt} disabled={working || candidate.attempt === portraitBook.selected_attempt}
+                    onClick={() => {
+                      setWorking(true);
+                      void chooseHeroPortrait(hero.character_id, candidate.attempt).then(setPortraitBook)
+                        .catch(reason => setError(reason instanceof Error ? reason.message : "Could not choose portrait."))
+                        .finally(() => setWorking(false));
+                    }}>
+                    {candidate.attempt === portraitBook.selected_attempt ? `Drawing ${candidate.attempt} selected` : `Choose drawing ${candidate.attempt}`}
+                  </button>
+                ))}
+                {portraitBook.selected_attempt === null && portraitBook.attempts_used < portraitBook.max_attempts ? (
+                  <button className="button button-primary" type="button" disabled={working} onClick={() => {
                     setWorking(true);
                     void generateHeroPortrait(hero.character_id).then(setPortraitBook)
                       .catch(reason => setError(reason instanceof Error ? reason.message : "Portrait generation unavailable."))
                       .finally(() => setWorking(false));
-                  }}>Generate drawing {portraitBook.attempts_used + 1} of 3</button>}
+                  }}>Generate portrait {portraitBook.attempts_used + 1} of 3</button>
+                ) : null}
               </div>
-            ) : null}
-          </div>
+            </div>
+          ) : null}
         </section>
       ) : null}
 
@@ -309,7 +344,7 @@ export function HeroSheetPage() {
 
       {hero && (!hero.is_alive || hero.hero_status !== "active") ? (
         <section className={`hero-fate-banner ${!hero.is_alive ? "is-fallen" : "is-retired"}`} aria-label="Hero fate">
-          <pre aria-hidden="true">{!hero.is_alive ? "    .----.\n   / R.I.P\\\n   |      |\n __|______|__" : "  [ CHRONICLE CLOSED ]"}</pre>
+          <span className="qh15-fate-emblem" aria-hidden="true">✦</span>
           <div>
             <strong>{!hero.is_alive ? "THIS HERO HAS FALLEN" : "THIS HERO HAS RETIRED"}</strong>
             <p>{!hero.is_alive ? String(hero.death_record?.cause || "Their journey has ended. Their story remains.") : "Their adventures are archived. The Hero may return from retirement."}</p>
@@ -320,7 +355,7 @@ export function HeroSheetPage() {
 
       {hero ? (
         <div className="hero-sheet-grid hero-sheet-redesign">
-          <Panel title="HERO DOSSIER" className="hero-sheet-wide hero-dossier-panel">
+          <Panel title="HERO DOSSIER" className="hero-sheet-wide hero-dossier-panel qh15-sheet-dossier">
             <div className="hero-dossier-grid">
               <div className="hero-dossier-bio">
                 <div className="hero-section-kicker">DIRECTOR CANON</div>
@@ -402,7 +437,7 @@ export function HeroSheetPage() {
             </div>
           </Panel>
 
-          <Panel title={<span id="hero-attributes">CORE ATTRIBUTES // WHO YOU ARE</span>} className="hero-sheet-wide">
+          <Panel title={<span id="hero-attributes">CORE ATTRIBUTES // WHO YOU ARE</span>} className="hero-sheet-wide qh15-sheet-attributes">
             <div className="sheet-stat-grid sheet-attribute-grid hero-attribute-grid">
               {rules?.stats.map((definition, index) => {
                 const value = hero.stats[definition.id] ?? 0;
@@ -450,7 +485,7 @@ export function HeroSheetPage() {
             </div>
           </Panel>
 
-          <Panel title={<span id="hero-skills">SKILLS // WHAT YOU KNOW HOW TO DO</span>} className="hero-sheet-wide">
+          <Panel title={<span id="hero-skills">SKILLS // WHAT YOU KNOW HOW TO DO</span>} className="hero-sheet-wide qh15-sheet-skills">
             <div className="sheet-skill-families hero-skill-families">
               {groupedSkills.map(({ stat, skills }) => (
                 <section className="sheet-skill-family hero-skill-family" key={stat.id}>
@@ -509,7 +544,7 @@ export function HeroSheetPage() {
             </div>
           </Panel>
 
-          <Panel title={<span id="hero-talents">TALENTS // PERMANENT EDGES</span>} className="hero-sheet-wide">
+          <Panel title={<span id="hero-talents">TALENTS // PERMANENT EDGES</span>} className="hero-sheet-wide qh15-sheet-talents">
             {ownedTalents.length ? (
               <div className="talent-grid hero-talent-grid">
                 {ownedTalents.map((talent) => (
@@ -589,7 +624,25 @@ export function HeroSheetPage() {
             </div>
           ) : null}
 
-          <Panel title="SEALED CHRONICLES // WHERE THEY HAVE BEEN" className="hero-sheet-wide">
+          <Panel title="EQUIPMENT & CURRENT CONDITIONS" className="hero-sheet-wide qh15-sheet-inventory">
+            <div className="qh15-inventory-heading"><span className="qh15-kicker">WHAT THEY CARRY</span><small>{hero.inventory.length} ITEMS</small></div>
+            {hero.inventory.length > 0 ? (
+              <div className="qh15-inventory-list">
+                {hero.inventory.map((item, index) => <div className="qh15-inventory-item" key={`${index}:${item}`}>
+                  <span aria-hidden="true">✧</span><strong>{item}</strong>
+                </div>)}
+              </div>
+            ) : <p className="qh15-inventory-empty">No equipment has been recorded for this Hero.</p>}
+            <div className="qh15-inventory-heading qh15-conditions-heading"><span className="qh15-kicker">CURRENT CONDITIONS</span><small>{hero.effects.length} ACTIVE</small></div>
+            {hero.effects.length > 0 ? <div className="qh15-conditions">
+              {hero.effects.map((effect, index) => <div className="qh15-condition" key={index}>
+                <strong>{String(effect.name ?? effect.label ?? effect.key ?? "Active condition")}</strong>
+                <small>{effect.duration_turns !== undefined ? `${String(effect.duration_turns)} turns` : effect.remaining_turns !== undefined ? `${String(effect.remaining_turns)} turns` : "In effect"}</small>
+              </div>)}
+            </div> : <p className="qh15-inventory-empty">No active conditions.</p>}
+          </Panel>
+
+          <Panel title="SEALED CHRONICLES // WHERE THEY HAVE BEEN" className="hero-sheet-wide qh15-sheet-chronicles">
             {stories.length === 0 ? (
               <div className="empty-state">
                 <strong>NO TALES TO TELL. YET.</strong>

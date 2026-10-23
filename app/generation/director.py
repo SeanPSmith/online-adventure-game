@@ -617,6 +617,16 @@ class DirectorError(
     pass
 
 
+def _is_timeout_failure(error: Exception) -> bool:
+    """Identify transport timeouts without importing the optional OpenAI SDK."""
+    return (
+        isinstance(error, (TimeoutError, asyncio.TimeoutError))
+        or type(error).__name__ in {
+            "APITimeoutError", "ReadTimeout", "ConnectTimeout", "TimeoutException",
+        }
+    )
+
+
 def _clean(
     value: Any,
 ) -> str:
@@ -1018,12 +1028,24 @@ class OpenAIRuntimeDirector:
             maximum=7000,
         )
 
+        # Leave the main high-quality request its normal budget. If that
+        # transport times out, try ONE low-reasoning rescue against the same
+        # frozen turn facts rather than making players reroll or refresh.
         self.timeout_seconds = self._bounded_int(
             "TOT_OPENAI_DIRECTOR_TIMEOUT_SECONDS",
-            default=90,
+            default=75,
             minimum=15,
             maximum=300,
         )
+        self.rescue_timeout_seconds = self._bounded_int(
+            "TOT_OPENAI_DIRECTOR_RESCUE_TIMEOUT_SECONDS",
+            default=35,
+            minimum=15,
+            maximum=90,
+        )
+        self.rescue_enabled = os.getenv(
+            "TOT_OPENAI_DIRECTOR_RESCUE_ENABLED", "1"
+        ).strip().lower() not in {"0", "false", "no", "off"}
 
         self._client = None
 
@@ -1162,6 +1184,111 @@ class OpenAIRuntimeDirector:
             self.story_model,
             self.story_reasoning,
         )
+
+
+    async def _request_story_with_recovery(
+        self,
+        *,
+        model: str,
+        reasoning: str,
+        instructions: str,
+        request_input: str,
+        response_schema: dict,
+        max_output_tokens: int,
+        turn_number: int,
+    ):
+        """Generate once normally; rescue ONLY a timeout using identical canon.
+
+        The server's pending TurnFacts are unchanged by either call. This
+        method returns exactly one output for normal validation/commit and
+        never creates a replacement roll or a second scene commit.
+        """
+        async def request(*, selected_model: str, effort: str,
+                          budget: int, rescue: bool):
+            client = self._client_instance()
+            if rescue:
+                # SDK timeout is per attempt, not shared with the original
+                # slower request. No implicit SDK retries on either call.
+                client = client.with_options(
+                    timeout=float(self.rescue_timeout_seconds),
+                    max_retries=0,
+                )
+            return await metered_openai_call(
+                operation="director_story" if not rescue else "director_story_rescue",
+                model=selected_model,
+                max_output_tokens=budget,
+                input_hint=request_input,
+                metadata={
+                    "reasoning": effort,
+                    "turn": turn_number,
+                    "rescue": rescue,
+                },
+                request=lambda: client.responses.create(
+                    model=selected_model,
+                    instructions=instructions,
+                    input=request_input,
+                    reasoning={"effort": effort},
+                    max_output_tokens=budget,
+                    text={
+                        "format": {
+                            "type": "json_schema",
+                            "name": "tales_of_two_director_turn",
+                            "description": "One validated story turn for Quillairo.",
+                            "strict": True,
+                            "schema": response_schema,
+                        },
+                    },
+                    store=False,
+                ),
+            )
+
+        try:
+            return await request(
+                selected_model=model,
+                effort=reasoning,
+                budget=max_output_tokens,
+                rescue=False,
+            )
+        except UsageLimitExceeded:
+            raise
+        except Exception as error:
+            if not self.rescue_enabled or not _is_timeout_failure(error):
+                raise
+            print(
+                "[DIRECTOR STORY TIMEOUT] "
+                f"turn={turn_number} model={model} "
+                f"primary_budget={self.timeout_seconds}s "
+                f"type={type(error).__name__} "
+                "attempting one lower-latency rescue with frozen TurnFacts"
+            )
+
+        rescue_started = time.perf_counter()
+        try:
+            response = await request(
+                selected_model=self.economy_model,
+                effort=self.economy_reasoning,
+                budget=min(max_output_tokens, 4200),
+                rescue=True,
+            )
+        except UsageLimitExceeded:
+            raise
+        except Exception as rescue_error:
+            print(
+                "[DIRECTOR STORY RESCUE FAILED] "
+                f"turn={turn_number} "
+                f"elapsed={time.perf_counter() - rescue_started:.2f}s "
+                f"type={type(rescue_error).__name__} detail={rescue_error}"
+            )
+            raise DirectorError(
+                "Story Director timed out and its faster recovery attempt failed. "
+                "Your choices and dice remain saved; retry the story without rerolling."
+            ) from rescue_error
+        print(
+            "[DIRECTOR STORY RESCUED] "
+            f"turn={turn_number} model={self.economy_model} "
+            f"elapsed={time.perf_counter() - rescue_started:.2f}s"
+        )
+        return response
 
 
     async def _generate_parallel_recap(
@@ -1885,54 +2012,14 @@ class OpenAIRuntimeDirector:
 
         try:
 
-            response = (
-                await metered_openai_call(
-                    operation="director_story",
-                    model=model,
-                    max_output_tokens=turn_output_tokens,
-                    input_hint=request_input,
-                    metadata={"reasoning": reasoning, "turn": current_turn},
-                    request=lambda: self._client_instance().responses.create(
-                        model=
-                            model,
-
-                    instructions=
-                        director_instructions,
-
-                    input=
-                        request_input,
-
-                    reasoning={
-                        "effort":
-                            reasoning,
-                    },
-
-                    max_output_tokens=
-                        turn_output_tokens,
-
-                    text={
-                        "format": {
-                            "type":
-                                "json_schema",
-
-                            "name":
-                                "tales_of_two_director_turn",
-
-                            "description":
-                                "One validated story turn for Tales of Two.",
-
-                            "strict":
-                                True,
-
-                            "schema":
-                                response_schema,
-                        },
-                    },
-
-                        store=
-                            False,
-                    ),
-                )
+            response = await self._request_story_with_recovery(
+                model=model,
+                reasoning=reasoning,
+                instructions=director_instructions,
+                request_input=request_input,
+                response_schema=response_schema,
+                max_output_tokens=turn_output_tokens,
+                turn_number=current_turn,
             )
 
         except UsageLimitExceeded:

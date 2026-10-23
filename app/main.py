@@ -3697,7 +3697,19 @@ async def start_adventure(
                 "resolution_narration": "",
                 "meta": {"provider": "not_applicable", "usage": {}},
             })
-            async with asyncio.timeout(105):
+            # An opening chapter can also invoke the bounded Director rescue.
+            # Give both attempts room to finish without ever waiting for art.
+            opening_primary_timeout = float(getattr(runtime_director, "timeout_seconds", 75))
+            opening_rescue_timeout = (
+                float(getattr(runtime_director, "rescue_timeout_seconds", 35))
+                if getattr(runtime_director, "rescue_enabled", False)
+                else 0.0
+            )
+            opening_deadline = min(
+                410.0,
+                max(30.0, opening_primary_timeout + opening_rescue_timeout + 20.0),
+            )
+            async with asyncio.timeout(opening_deadline):
                 with ai_usage_scope(
                     user_id=host.user_id, room_code=room.code,
                     adventure_id=session.adventure_id,
@@ -4279,21 +4291,19 @@ async def finalize_resolved_turn(
                     room.code,
             )
 
-            # The OpenAI SDK has its own request timeout, but an outer wall
-            # clock deadline is intentional here. It prevents transport / SDK
-            # retry behavior from leaving a room in THINKING for minutes.
+            # Keep a single finite room deadline covering both the primary
+            # Director request and ONE optional fast timeout rescue. The dice
+            # and locked choices are already durable; neither model call may
+            # generate a new roll. Leave a small margin for validation/commit.
+            primary_timeout = float(getattr(runtime_director, "timeout_seconds", 75))
+            rescue_timeout = (
+                float(getattr(runtime_director, "rescue_timeout_seconds", 35))
+                if getattr(runtime_director, "rescue_enabled", False)
+                else 0.0
+            )
             hard_timeout_seconds = min(
-                120.0,
-                max(
-                    20.0,
-                    float(
-                        getattr(
-                            runtime_director,
-                            "timeout_seconds",
-                            90,
-                        )
-                    ) + 5.0,
-                ),
+                410.0,
+                max(30.0, primary_timeout + rescue_timeout + 20.0),
             )
 
             director_wall_started = time.perf_counter()

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { PageTitle } from "../../components/ui/PageTitle";
 import { Panel } from "../../components/ui/Panel";
+import "./quillairoChronicleArchivePass6622.css";
 import { ShareMomentButton } from "../../components/game/ShareMomentButton";
 import { ArchivedChronicleAudio } from "../../components/game/ArchivedChronicleAudio";
 import {
@@ -63,23 +64,35 @@ export function HistoryPage() {
   }, []);
 
   return (
-    <>
-      <PageTitle eyebrow="ARCHIVE" title="SEALED CHRONICLES" />
+    <div className="q22-archive q22-sealed-archive">
+      <PageTitle eyebrow="THE STORY ARCHIVE" title="Sealed chronicles" />
+      <section className="q22-archive-intro" aria-label="Completed story archive introduction">
+        <div className="q22-archive-intro-copy">
+          <span className="q22-folio-label">THE CHRONICLE SHELF · VOL. II</span>
+          <h2>Some endings stay with us.</h2>
+          <p>Read the stories your Heroes brought to their final page, and listen again whenever their narration was saved.</p>
+        </div>
+        <div className="q22-archive-ledger" aria-label="Completed chronicle count">
+          <span className="q22-folio-label">SEALED &amp; SAVED</span>
+          <strong>{loading ? "—" : stories.length}</strong>
+          <span>finished chronicles</span>
+        </div>
+      </section>
 
-      <Panel title="COMPLETED JOURNEYS">
-        {loading ? <p className="muted-copy">DUSTING OFF THE ARCHIVE_</p> : null}
-        {error ? <div className="form-error">{error}</div> : null}
+      <Panel title="THE COMPLETED COLLECTION">
+        {loading ? <p className="muted-copy">Opening the archive…</p> : null}
+        {error ? <div className="form-error" role="alert">{error}</div> : null}
 
         {!loading && !error && stories.length === 0 ? (
           <div className="empty-state">
-            <strong>NO TALES TO TELL. YET.</strong>
-            <span>This is either peaceful or deeply suspicious.</span>
+            <strong>No finished chronicles yet.</strong>
+            <span>When an adventure reaches its ending, you can revisit it here.</span>
           </div>
         ) : null}
 
         <div className="history-grid">
           {stories.map((story) => (
-            <article className="history-card" key={story.history_id}>
+            <article className="history-card q22-chronicle" key={story.history_id}>
               <span className="eyebrow">{story.ending_label}</span>
               <h2>{story.adventure_title}</h2>
               <div className="history-meta">
@@ -94,7 +107,7 @@ export function HistoryPage() {
                   title={`${story.adventure_title} — Quillairo`}
                   text={`${story.ending_label} // ${story.recap || story.final_resolution}`}
                   url={`${window.location.origin}/`}
-                  label="[↗] SHARE CHRONICLE"
+                  label="SHARE CHRONICLE"
                   className="button button-quiet"
                 />
               </div>
@@ -102,6 +115,6 @@ export function HistoryPage() {
           ))}
         </div>
       </Panel>
-    </>
+    </div>
   );
 }

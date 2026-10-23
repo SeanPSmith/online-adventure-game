@@ -1,0 +1,55 @@
+/* Pass 66.23: User-supplied mockup alignment for the actual live Inkbound
+   reader. Only presentation; no invented dice/result state or screenshot art. */
+.inkbound-live { --q23-gold:#98702d;--q23-gold-rule:rgba(152,112,45,.48);--q23-gold-wash:rgba(152,112,45,.07); }
+.inkbound-live:is([data-ink-paper="navy"],[data-ink-paper="midnight"]){--q23-gold:#dbbb7f;--q23-gold-rule:rgba(219,187,127,.5);--q23-gold-wash:rgba(219,187,127,.1)}
+.inkbound-live[data-ink-paper="phosphor"]{--q23-gold:var(--ia-text);--q23-gold-rule:var(--ia-strong-rule);--q23-gold-wash:var(--ia-wash)}
+.inkbound-live .ibl-topbar{background:var(--ia-paper);border-color:var(--ia-rule)}
+.inkbound-live .ibl-meta{letter-spacing:.09em;text-transform:uppercase;color:var(--ia-dim)}
+.inkbound-live .ibl-chapter h1{color:var(--ia-text);text-wrap:balance}
+.inkbound-live .ibl-flourish,.inkbound-live .ibl-section-heading{color:var(--q23-gold)}
+.inkbound-live .ibl-section-heading span{background:var(--q23-gold-rule)}
+/* Playable choice cards show genuine server choice labels, stakes, check and XP. */
+.inkbound-live .ibl-choices{display:grid;gap:clamp(10px,1.2vw,18px);border:0!important;max-width:1060px;align-items:stretch}
+.inkbound-live .ibl-choice{display:flex;flex-direction:column;gap:10px;min-width:0;min-height:180px;height:100%;padding:clamp(14px,1.4vw,21px)!important;border:1px solid var(--ia-rule)!important;background:var(--ia-wash)!important;border-radius:2px;text-align:left;box-shadow:none!important;transition:border-color .18s,background-color .18s}
+.inkbound-live .ibl-choice:hover:not(:disabled){background:var(--q23-gold-wash)!important;border-color:var(--q23-gold-rule)!important}
+.inkbound-live .ibl-choice.is-chosen{background:var(--q23-gold-wash)!important;border-color:var(--q23-gold)!important;box-shadow:inset 0 0 0 1px var(--q23-gold)!important}
+.inkbound-live .ibl-choice.is-chosen:before{display:none!important}
+.inkbound-live .ibl-choice:disabled{opacity:.7}
+.inkbound-live .ibl-choice-index{min-width:0;align-self:flex-start;color:var(--q23-gold)}
+.inkbound-live .ibl-choice-body{width:100%;flex:1 1 auto;gap:8px!important;padding:0!important;border:0!important}
+.inkbound-live .ibl-choice-body strong{color:var(--ia-text)!important;font:400 clamp(18px,1.55vw,24px)/1.24 "Iowan Old Style",Georgia,serif!important}
+.inkbound-live .ibl-choice-body small{color:var(--ia-copy)!important;line-height:1.45}
+.inkbound-live .ibl-choice-statline{color:var(--ia-text);white-space:normal;overflow-wrap:anywhere}
+.inkbound-live .ibl-choice-statline>span{white-space:normal}
+.inkbound-live .ibl-choice-stakes{color:var(--ia-dim);overflow-wrap:anywhere}
+.inkbound-live .ibl-choice-arrow{align-self:flex-end;margin-left:auto;color:var(--q23-gold);line-height:1}
+.inkbound-live .ibl-commit{color:var(--ia-dim)}
+.inkbound-live .ibl-commit button{background:var(--ia-text);color:var(--ia-paper);border:1px solid var(--q23-gold-rule);min-height:42px}
+.inkbound-live .ibl-commit button:disabled{opacity:.5}
+/* Folio controls remain compact but keyboard/touch accessible. */
+.inkbound-live .ibl-sidebar-head h2{color:var(--ia-text);font:400 clamp(20px,1.7vw,26px)/1.2 "Iowan Old Style",Georgia,serif}
+.inkbound-live .ibl-sidebar-head button,.inkbound-live .ibl-journal-link{min-height:38px}
+.inkbound-live .ibl-progress{height:9px;border-color:var(--ia-strong-rule)}
+.inkbound-live .ibl-progress>span{background:var(--q23-gold)}
+.inkbound-live .ibl-active-effects>span{color:var(--ia-dim);letter-spacing:.10em}
+.inkbound-live .ibl-chat-form input{min-height:40px}
+.inkbound-live .ibl-chat-form button{min-width:38px}
+.inkbound-live :is(.ibl-choice,.ibl-commit button,.ibl-journal-link,.ibl-sidebar-head button,.ibl-chat-form button,.ibl-chat-form input):focus-visible{outline:2px solid var(--q23-gold);outline-offset:3px}
+/* Existing desktop fixed shell is retained: left instrument folio and central
+   manuscript scroll independently. Turn theater remains separately managed. */
+@media (min-width:1100px){
+ .game-site-shell.is-adventure-mode .inkbound-live .ibl-layout,.inkbound-live .ibl-layout{display:grid!important;grid-template-columns:clamp(236px,19vw,298px) minmax(0,1fr)!important;gap:clamp(22px,2.8vw,48px)!important;align-items:stretch!important;width:min(calc(100% - 4vw),1700px)!important}
+ .game-site-shell.is-adventure-mode .inkbound-live .ibl-main,.inkbound-live .ibl-main{grid-column:2!important;grid-row:1!important;min-width:0;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior-y:contain;scrollbar-width:thin;scrollbar-color:var(--ia-strong-rule) transparent;padding:0 clamp(4px,.7vw,12px) 38px 0}
+ .game-site-shell.is-adventure-mode .inkbound-live .ibl-instruments-disclosure,.inkbound-live .ibl-instruments-disclosure{grid-column:1!important;grid-row:1!important;min-width:0;min-height:0!important;width:100%!important;border-left:0!important;border-right:1px solid var(--ia-rule);padding:0 clamp(13px,1.6vw,25px) 24px 0!important;overflow-y:auto!important;overscroll-behavior-y:contain;scrollbar-width:thin;scrollbar-color:var(--ia-strong-rule) transparent}
+ .inkbound-live .ibl-sidebar{display:flex!important;flex-direction:column!important;gap:0!important;padding:0!important}
+ .inkbound-live .ibl-sidebar-section{padding:16px 0!important}
+ .inkbound-live .ibl-chapter{padding-top:clamp(14px,2.2vw,34px)}
+ .inkbound-live .ibl-choices{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ .inkbound-live .ibl-status-strip{min-height:62px;margin-top:8px!important;padding:10px 0}
+ .inkbound-live .ibl-status-mark{font-size:29px}
+ .inkbound-live .ibl-status-hero{min-width:150px}
+}
+@media (min-width:1480px){.inkbound-live .ibl-choices{grid-template-columns:repeat(3,minmax(0,1fr))!important}.inkbound-live .ibl-choice{min-height:220px}}
+@media (max-width:1099px){.inkbound-live .ibl-choices{grid-template-columns:1fr!important}.inkbound-live .ibl-choice{min-height:118px}}
+@media (max-width:900px){.inkbound-live .ibl-choice{min-height:0}.inkbound-live .ibl-choice-body strong{font-size:20px!important}.inkbound-live .ibl-sidebar-head button{min-height:44px}}
+@media (prefers-reduced-motion:reduce){.inkbound-live .ibl-choice{transition:none!important}}

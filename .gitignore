@@ -17,6 +17,7 @@ htmlcov/
 # Local runtime data and backups
 data/
 backups/
+_cleanup-backups/
 .pass64-2-backup/
 *.db
 *.sqlite

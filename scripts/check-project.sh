@@ -21,6 +21,9 @@ require_command npm
 
 cd "$ROOT_DIR"
 
+say "Static source, import and brand-art integrity"
+"$PYTHON_BIN" scripts/audit-source-hygiene.py --strict
+
 say "Python regression suite"
 "$PYTHON_BIN" -m pytest tests -q
 

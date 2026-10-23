@@ -33,6 +33,7 @@ rsync -a \
   --exclude='.git/' \
   --exclude='.aws-build/' \
   --exclude='.pass64-2-backup/' \
+  --exclude='_cleanup-backups/' \
   --exclude='*.tsbuildinfo' \
   --exclude='.DS_Store' \
   --exclude='__MACOSX/' \

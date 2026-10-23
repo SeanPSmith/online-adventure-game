@@ -35,7 +35,7 @@ Updated 2026-10-23. This is a **source-maintenance guide**, not a runtime migrat
 
 - Removed retired `legacy_product_name` metadata from branding JSON; not consumed by the app.
 - Normalized frontend package identity, user-facing story prompts, release banners, legal notices and theme export filenames.
-- Consolidated duplicate `.gitignore` rules. . The review packaging script now excludes `.aws-build/`, `.pass64-2-backup/`, and TypeScript incremental output.
+- Consolidated duplicate `.gitignore` rules. The review packaging script now excludes `.aws-build/`, `.pass64-2-backup/`, and TypeScript incremental output.
 - **Not deleted**: historical Pass docs/tests, old styles and artwork, classical reader and `/dev` experiments, or backing AWS names. Some may be used by active code or recovery tests. Delete only after route/import/asset tracing, regression tests and production-deployment review.
 - **No database migration** or saved user content rewrite is part of this pass.
 
@@ -45,3 +45,12 @@ Updated 2026-10-23. This is a **source-maintenance guide**, not a runtime migrat
 2. Make narrow edits in that snapshot and produce an overlay of **only changed/new files**.
 3. Compare changed content against the snapshot and run `scripts/check-project.sh` in the target environment.
 4. Never claim full regression completion from a standalone overlay. Keep server-owned dice outcomes, Director metering, timeout rescue and asynchronous illustrations intact.
+
+## Pass 66.19 — Conservative source hygiene
+
+- Checked static frontend TypeScript/JavaScript imports, literal `/art` and `/brand` URLs, and file-identical image groups; `scripts/audit-source-hygiene.py --strict` runs before the test suite in `scripts/check-project.sh`. This is an early guard, **not** a complete runtime dependency or reachability proof.
+- Three retired files are approved for removal via hash-guarded `python3 scripts/prune-retired-source.py --apply`: `BookPageTurn.tsx`, `bookPageTurn.css`, `StoryTimeConsentCopy.tsx`. The original page-turn was previously unmounted explicitly; the Story Time component has no active imports. The script checks for new references before applying changes, rejects modified files, and backs up originals to `_cleanup-backups/pass66_19/`. It is safe to run more than once.
+- After installing the pass overlay, apply the separate guarded prune **before** running the staging release; this is intentionally explicit because overlays install/replace files but cannot safely delete existing paths.
+- Five byte-identical image groups were identified and **retained**; some use different live public URLs or appear in dev prototypes/tests. Changing these requires a URL migration and broad test coverage.
+- The old `app/web/` client is still mounted by FastAPI at `/static`, while `/dev` labs remain routed. Keep both pending a documented deployment cutover or route removal. Older scripts and styling are also preserved until their consumers are traced.
+- No Python packages, npm dependencies, databases, cloud resources, or historical files were removed based only on a name or visual age.

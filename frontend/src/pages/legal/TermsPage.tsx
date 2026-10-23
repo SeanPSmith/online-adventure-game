@@ -1,10 +1,19 @@
-import { PageTitle } from "../../components/ui/PageTitle";
+import { Link } from "react-router";
+import { useAuth } from "../../state/AuthContext";
+import { useInkboundPaper } from "../../features/appearance/inkboundPaper";
+import "../game/quillairoRulebookPass6614.css";
 import { Panel } from "../../components/ui/Panel";
 
 export function TermsPage() {
+  const { user } = useAuth();
+  const [paper] = useInkboundPaper(user?.user_id ?? "");
   return (
-    <article className="legal-page public-legal-page">
-      <PageTitle eyebrow="LEGAL // LAST UPDATED OCTOBER 4, 2026" title="TERMS" />
+    <article className="legal-page public-legal-page q-rulebook q-legal" data-ink-paper={paper}>
+      <header className="q-rulebook-hero q-legal-hero"><div className="q-rulebook-intro">
+        <p className="q-rulebook-overline">QUILLAIRO · LEGAL · LAST UPDATED OCTOBER 4, 2026</p>
+        <h1>A shared adventure, fairly played.</h1><p>The expectations that keep our stories enjoyable for everyone.</p>
+        <Link to="/" className="q-rulebook-return">← Return to Quillairo</Link></div>
+        <img src="/art/inkbound/lantern-books.png" alt="A lantern and journals drawn in ink" /></header>
 
       <div className="legal-copy-grid">
         <Panel title="THE SERVICE">

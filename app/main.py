@@ -81,6 +81,8 @@ from app.generation.service import (
     generation_service,
 )
 
+from app.generation.scene_art import router as story_art_router, schedule_committed_scene as schedule_scene_art
+
 from app.generation.director import (
     DirectorError,
     runtime_director,
@@ -466,6 +468,7 @@ fastapi_app.include_router(
     character_router
 )
 fastapi_app.include_router(hero_creation_router)
+fastapi_app.include_router(story_art_router)
 
 
 fastapi_app.mount(
@@ -3722,6 +3725,10 @@ async def start_adventure(
             except Exception as narration_error:
                 # No optional TTS exception may fail a committed story turn.
                 print(f"[NARRATION PREFETCH SKIPPED] type={type(narration_error).__name__}")
+            try:
+                schedule_scene_art(room.code, session.scene, session.adventure)
+            except Exception as art_error:
+                print(f"[STORY ART SCHEDULE SKIPPED] type={type(art_error).__name__}")
         except Exception as exc:
             session.starting = False
             _opening_active_rooms.discard(room.code)
@@ -4465,6 +4472,10 @@ async def finalize_resolved_turn(
             except Exception as narration_error:
                 # No optional TTS exception may fail a committed story turn.
                 print(f"[NARRATION PREFETCH SKIPPED] type={type(narration_error).__name__}")
+            try:
+                schedule_scene_art(room.code, session.scene, session.adventure)
+            except Exception as art_error:
+                print(f"[STORY ART SCHEDULE SKIPPED] type={type(art_error).__name__}")
 
         progression_updates = (
             await apply_turn_progression(

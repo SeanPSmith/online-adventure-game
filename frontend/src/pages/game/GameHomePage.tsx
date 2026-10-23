@@ -1,3 +1,4 @@
+import { genreInkIllustration, coverCandidateIds, coverArtUrl } from "../../features/appearance/quillairoGenreArt";
 import "./gameHomePass64.css";
 import { InkboundAuthenticatedDashboard } from "./InkboundAuthenticatedDashboard";
 import "./deskFidelityPass64.css";
@@ -25,15 +26,16 @@ import { rememberGameRoute } from "../../services/gameRouteMemory";
 import { useAuth } from "../../state/AuthContext";
 import { useGameSocket } from "../../state/GameSocketContext";
 
-const PASS64_ART = "/art/pass64/";
-function p64Cover(title: string, tags: string[] = []) {
-  const subject = `${title} ${tags.join(" ")}`.toLowerCase();
-  if (/space|star|galaxy|sol|sci.fi|cyber|robot|future/.test(subject)) return `${PASS64_ART}scifi.webp`;
-  if (/horror|manor|haunt|gothic|ashes|masque|shadow|veil/.test(subject)) return `${PASS64_ART}gothic.webp`;
-  if (/sea|harbor|light|coast|ocean|water/.test(subject)) return `${PASS64_ART}harbor.webp`;
-  if (/wood|forest|nature|wild/.test(subject)) return `${PASS64_ART}explorer.webp`;
-  if (/fantasy|castle|crown|king|dragon|quest/.test(subject)) return `${PASS64_ART}fantasy.webp`;
-  return `${PASS64_ART}explorer.webp`;
+function p64Cover(title: string, tags: string[] = [], metadata: Record<string, unknown> = {}) {
+  const candidates = coverCandidateIds(metadata);
+  return candidates.length ? coverArtUrl(candidates[0]) : genreInkIllustration(title,tags);
+}
+function fallbackCover(img: HTMLImageElement, title: string, tags: string[] = [], metadata: Record<string, unknown> = {}) {
+  const candidates = coverCandidateIds(metadata).map(coverArtUrl);
+  const current = new URL(img.src, window.location.href).pathname;
+  const index = candidates.indexOf(current);
+  const next = index >= 0 && index + 1 < candidates.length ? candidates[index + 1] : genreInkIllustration(title,tags);
+  if (next !== current) img.src = next;
 }
 
 const HIDDEN_INTERNAL_ADVENTURES = new Set([
@@ -372,7 +374,7 @@ export function GameHomePage({ homeLab = false }: { homeLab?: boolean } = {}) {
                 <div className="p644-section-caption"><span>✧ RECENT ADVENTURES</span><button type="button" onClick={() => openBookSpread("journeys")}>View all →</button></div>
                 <div className="p644-postcard-strip">
                   {adventures.slice(0, 3).map((a) => <Link className="p644-story-postcard" key={`${a.room_code}:${a.character_id}`} to={`/game/adventure/${encodeURIComponent(a.room_code)}?hero=${encodeURIComponent(a.character_id)}`}><img alt={`Illustrated cover for ${a.adventure_title}`} src={p64Cover(a.adventure_title)} loading="lazy"/><strong>{a.adventure_title}</strong><small>{a.completed ? "Finished" : `Chapter ${a.turn_number}`}</small></Link>)}
-                  {adventures.length === 0 ? visibleCatalog.slice(0,3).map((a) => <button type="button" className="p644-story-postcard" key={a.adventure_id} onClick={() => { openBookSpread("discover"); setCatalogSearch(a.title); }}><img src={p64Cover(a.title, a.tags)} alt={`Illustrated cover for ${a.title}`} loading="lazy"/><strong>{a.title}</strong><small>Ready to begin</small></button>) : null}
+                  {adventures.length === 0 ? visibleCatalog.slice(0,3).map((a) => <button type="button" className="p644-story-postcard" key={a.adventure_id} onClick={() => { openBookSpread("discover"); setCatalogSearch(a.title); }}><img src={p64Cover(a.title, a.tags, a.metadata)} onError={event => { fallbackCover(event.currentTarget, a.title, a.tags, a.metadata); }} alt={`Illustrated cover for ${a.title}`} loading="lazy"/><strong>{a.title}</strong><small>Ready to begin</small></button>) : null}
                 </div>
                 <div className="p644-section-caption"><span>✧ DISCOVER NEW WORLDS</span><button type="button" onClick={() => openBookSpread("discover")}>Browse all →</button></div>
                 <button className="p644-discover-note" type="button" onClick={() => openBookSpread("discover")}><span className="p644-small-landscape" aria-hidden="true"/><span><strong>New adventures await</strong><small>Strange places. Braver choices. Better company.</small><b>Explore the Library ↗</b></span></button>
@@ -650,7 +652,7 @@ export function GameHomePage({ homeLab = false }: { homeLab?: boolean } = {}) {
         <div className="adventure-catalog-grid dashboard-adventure-grid">
           {filteredCatalog.map((adventure) => (
             <article className="adventure-card dashboard-adventure-card p64b-postcard panel" key={adventure.adventure_id}>
-              <div className="p64-catalog-art"><img src={p64Cover(adventure.title, adventure.tags)} alt={`Illustrated cover for ${adventure.title}`} loading="lazy" /></div>
+              <div className="p64-catalog-art"><img src={p64Cover(adventure.title, adventure.tags, adventure.metadata)} onError={event => { fallbackCover(event.currentTarget, adventure.title, adventure.tags, adventure.metadata); }} alt={`Illustrated cover for ${adventure.title}`} loading="lazy" /></div>
               <div className="panel-body">
                 <div className="adventure-card-tags">
                   {(adventure.tags.length ? adventure.tags : ["ADVENTURE"]).slice(0, 4).map((tag) => (

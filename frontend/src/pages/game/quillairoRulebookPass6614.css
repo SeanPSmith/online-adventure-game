@@ -1,0 +1,34 @@
+
+/* Pass 66.14 — Real Rulebook conversion. Composed directly over theme paper. */
+.q-rulebook { --q-paper:#f7f3e9; --q-ink:#252320; --q-line:#82786655; --q-muted:#655d50; background:var(--q-paper);color:var(--q-ink);padding:clamp(24px,3.4vw,54px);font-family:Georgia,serif;min-height:100%;max-width:none; }
+.q-rulebook[data-ink-paper="cream"] {--q-paper:#eee7d9;--q-ink:#30291e;--q-muted:#5b4e3f}
+.q-rulebook[data-ink-paper="parchment"] {--q-paper:#d9c6a4;--q-ink:#33271a;--q-muted:#574532}
+.q-rulebook[data-ink-paper="navy"] {--q-paper:#0b1725;--q-ink:#f4e9d6;--q-line:#e0d2b04f;--q-muted:#c7bda8}
+.q-rulebook[data-ink-paper="phosphor"] {--q-paper:#06140c;--q-ink:#c6f9b1;--q-line:#a0d58c55;--q-muted:#a4ca92;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.q-rulebook[data-ink-paper="midnight"] {--q-paper:#141516;--q-ink:#f5e9d7;--q-line:#f5e9d74a;--q-muted:#c6baa6}
+.q-rulebook-hero {display:grid;grid-template-columns:minmax(0,1fr) minmax(200px,34%);gap:30px;align-items:center;max-width:1250px;margin:0 auto 32px;border-bottom:1px solid var(--q-line);padding:26px 0 34px}
+.q-rulebook-hero img {max-width:100%;max-height:280px;object-fit:contain;filter:none}
+.q-rulebook:is([data-ink-paper="navy"],[data-ink-paper="phosphor"],[data-ink-paper="midnight"]) .q-rulebook-hero img{filter:invert(.9)}
+.q-rulebook-overline,.q-rulebook-toc>span {font-size:11px;letter-spacing:.23em;text-transform:uppercase;color:var(--q-muted)}
+.q-rulebook h1 {font-size:clamp(46px,6vw,88px);font-weight:normal;line-height:1.02;letter-spacing:-.045em;margin:18px 0;max-width:750px}
+.q-rulebook h1 em{font-weight:normal}.q-rulebook-intro>p:not(.q-rulebook-overline){font-size:clamp(17px,1.45vw,21px);line-height:1.6;max-width:630px}
+.q-rulebook a{color:var(--q-ink);text-decoration-thickness:1px;text-underline-offset:5px}
+.q-rulebook-return{display:inline-block;font-size:13px;margin-top:12px}
+.q-rulebook-toc{display:flex;gap:clamp(12px,3vw,36px);flex-wrap:wrap;max-width:1250px;margin:0 auto 25px;padding-bottom:26px;border-bottom:1px solid var(--q-line);font-size:14px}
+.q-rulebook .rulebook-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 40px;max-width:1250px;margin:auto}
+.q-rulebook-section-title{grid-column:1/-1;scroll-margin-top:90px;font-size:clamp(22px,2vw,32px);font-weight:normal;padding:25px 0 10px;border-bottom:1px solid var(--q-line)}
+.q-rulebook .panel,.q-rulebook .terminal-panel {background:transparent!important;color:var(--q-ink)!important;border:0!important;border-bottom:1px solid var(--q-line)!important;border-radius:0!important;box-shadow:none!important;padding:21px 0 25px!important;min-width:0}
+.q-rulebook .panel h2,.q-rulebook .panel h3,.q-rulebook .terminal-panel h2,.q-rulebook .terminal-panel h3{color:var(--q-ink)!important;font-size:clamp(16px,1.45vw,21px);letter-spacing:.05em}
+.q-rulebook .panel p,.q-rulebook .terminal-panel p,.q-rulebook .panel span {color:var(--q-ink)!important;line-height:1.65}
+.q-rulebook .rulebook-definition-grid{gap:18px}
+.q-rulebook .hero-sheet-wide{grid-column:1/-1}
+@media(max-width:780px){.q-rulebook-hero{grid-template-columns:minmax(0,1fr)}.q-rulebook-hero img{max-height:170px}.q-rulebook .rulebook-grid{grid-template-columns:minmax(0,1fr)}.q-rulebook .hero-sheet-wide{grid-column:auto}}
+
+.q-rulebook .panel-heading{color:var(--q-ink)!important;font-family:Georgia,serif;font-size:clamp(17px,1.5vw,22px);letter-spacing:.04em;border:0!important;padding:0!important}
+
+.q-legal{width:min(100%,1300px);margin:0 auto;}
+.q-legal .legal-copy-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 40px;max-width:1250px;margin:0 auto;}
+.q-legal .legal-copy-grid>section{background:transparent!important;border:0!important;border-bottom:1px solid var(--q-line)!important;box-shadow:none!important;color:var(--q-ink)!important;}
+.q-legal .panel-body p{font-family:Georgia,serif;color:var(--q-ink)!important;line-height:1.7;}
+.q-legal .panel-heading{color:var(--q-ink)!important;font-family:Georgia,serif;font-size:clamp(18px,1.5vw,23px);}
+@media(max-width:780px){.q-legal .legal-copy-grid{grid-template-columns:minmax(0,1fr);}}

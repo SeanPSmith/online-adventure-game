@@ -185,3 +185,5 @@
 .p64-onboarding-bookmark>.button{background:#d6b989;color:#59391c;border:1px dashed #885832;min-height:38px}
 .p64-onboarding-bookmark .first-run-guide{border:2px solid #886846;background:#f1dfbf}
 .p64-onboarding-bookmark .first-run-guide h2{font:normal 21px Georgia,serif;color:#50351e}
+
+.p64-catalog-art img,.p644-story-postcard img {object-fit:contain!important;filter:none!important;background:transparent!important;}

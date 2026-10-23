@@ -84,8 +84,8 @@ read -r answer
 [[ "$answer" == y || "$answer" == Y ]] || { echo 'Cancelled.'; exit 0; }
 RUN_ID="$(date -u +%Y%m%dT%H%M%SZ)"
 LOCAL_DIR="${STORY_TIME_CPU_RESULTS_DIR:-${HOME:-/tmp}/Downloads/tales-of-two-benchmarks/cpu/$RUN_ID}"
-PARAMS_FILE="$(mktemp "${TMPDIR:-/tmp}/story-time-ssm.XXXXXX.json")"
-SSM_OUTPUT="$(mktemp "${TMPDIR:-/tmp}/story-time-ssm-output.XXXXXX.txt")"
+PARAMS_FILE="$(mktemp "${TMPDIR:-/tmp}/story-time-ssm-params.XXXXXX")"
+SSM_OUTPUT="$(mktemp "${TMPDIR:-/tmp}/story-time-ssm-output.XXXXXX")"
 trap 'rm -f "$PARAMS_FILE" "$SSM_OUTPUT"' EXIT
 python3 - "$ROOT_DIR/scripts/aws/benchmark-story-time-ec2.sh" \
   "$ROOT_DIR/scripts/aws/story-time-mp3-duration.py" "$PARAMS_FILE" "$RUN_ID" <<'PY'
@@ -112,7 +112,14 @@ with open(params_path, 'w', encoding='utf-8') as out:
 PY
 # In rare cases SSM appears Online shortly before Run Command can target it.
 # Retry only the explicit InvalidInstanceId error; never conceal IAM or API failures.
-SSM_ERROR="$(mktemp "${TMPDIR:-/tmp}/story-time-ssm-error.XXXXXX.txt")"
+# Production retry stays at five seconds. Offline tests can set zero so
+# bounded-retry assertions never depend on wall-clock timing.
+SSM_RETRY_SECONDS="${STORY_TIME_SSM_RETRY_SECONDS:-5}"
+if ! [[ "$SSM_RETRY_SECONDS" =~ ^[0-9]+$ ]] || (( SSM_RETRY_SECONDS > 30 )); then
+  echo 'STORY_TIME_SSM_RETRY_SECONDS must be 0-30.' >&2
+  exit 2
+fi
+SSM_ERROR="$(mktemp "${TMPDIR:-/tmp}/story-time-ssm-error.XXXXXX")"
 trap 'rm -f "$PARAMS_FILE" "$SSM_OUTPUT" "$SSM_ERROR"' EXIT
 COMMAND_ID=''
 for attempt in 1 2 3; do
@@ -124,7 +131,7 @@ for attempt in 1 2 3; do
   fi
   if grep -q 'InvalidInstanceId' "$SSM_ERROR" && (( attempt < 3 )); then
     echo "SSM targeting not ready (attempt $attempt/3). Retrying in 5s..." >&2
-    sleep 5
+    sleep "$SSM_RETRY_SECONDS"
   else
     cat "$SSM_ERROR" >&2
     echo 'SSM rejected the benchmark. Check managed-node PingStatus and SSM Agent connectivity.' >&2

@@ -19,8 +19,11 @@ def test_no_scene_ascii_fallback_in_live_inkbound():
     assert 'ibl-scene-ascii' not in ROOM
     assert 'scene.ascii_art.trim()' not in ROOM
     assert '<figure className="ibl-chapter-illustration">' in ROOM
-    assert 'north-road-editorial.png' in PAGE
-    assert 'hero-vista.png' in PAGE
+    # Scene art comes from the committed chapter; its fallback follows the
+    # world/genre rather than repeating a hard-coded fantasy illustration.
+    assert 'sceneArtUrl={sceneArtUrl}' in PAGE
+    assert 'illustrationSrc={genreInkIllustration(' in PAGE
+    assert 'north-road-editorial.png' not in PAGE
 
 def test_sticky_tools_and_scrollable_chapter():
     assert 'ref={chapterScroller}' in ROOM

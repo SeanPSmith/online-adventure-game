@@ -1,3 +1,4 @@
+import { genreInkIllustration } from "../../features/appearance/quillairoGenreArt";
 import { themeCssVars } from "../../features/appearance/themePacks";
 import { readerEditionFamily, themeEdition, themeEditionCssVars } from "../../features/appearance/themeEditions";
 import "../../features/appearance/themeEditions.css";
@@ -20,6 +21,7 @@ import { observeStoryTime, prepareStoryTime, stopStoryTimeEngine, keepStoryTimeA
 import { RoomInviteButton } from "../../components/game/RoomInviteButton";
 import { InkspaceLiveRoom } from "./InkspaceLiveRoom";
 import { InkboundLiveRoom } from "./InkboundLiveRoom";
+import { useSceneArtwork } from "../../features/adventure/useSceneArtwork";
 import { InkboundLobby } from "./InkboundLobby";
 import "./inkspaceLiveRoom.css";
 import { ShareMomentButton } from "../../components/game/ShareMomentButton";
@@ -644,6 +646,12 @@ export function AdventurePage() {
   const inkboundReady = Boolean((inkboundRequested || defaultInkbound) && live.status === "ready" && live.game?.started && scene);
   const inkboundLobbyReady = Boolean((inkboundRequested || defaultInkbound) && live.status === "ready" && live.game && !live.game.started);
   const fantasyIllustration = Boolean(worldCatalogItem?.tags?.some((tag) => /fantasy|medieval|fairy|sword/i.test(tag)));
+  const sceneArtReady = inkboundReady && theater.chapterReleased && theater.phase === "none"
+    && !live.game?.director_request_active && !live.game?.turn_pending;
+  const { imageUrl: sceneArtUrl, onImageError: onSceneArtError } = useSceneArtwork(
+    normalizedRoomCode, scene?.id ?? "", sceneArtReady,
+  );
+
   const bookReady = Boolean(bookRequested && live.status === "ready" && live.game?.started && scene && theater.chapterReleased && theater.phase === "none" && !live.game?.turn_pending && !live.game?.director_request_active && !live.game?.director_retry_required && !live.game?.pending_micro_event && !choiceLocked && !showDeath && !showLevelUp);
 
   if (!characterId) {
@@ -704,7 +712,11 @@ export function AdventurePage() {
         roomCode={normalizedRoomCode}
         adventureTitle={live.game?.adventure_title ?? matchingAdventure?.adventure_title ?? "The Chronicle"}
         paper={inkPaper}
-        illustrationSrc={fantasyIllustration ? (turnNumber === 1 ? "/art/inkbound/north-road-editorial.png" : "/art/inkbound/hero-vista.png") : undefined}
+        illustrationSrc={genreInkIllustration(worldCatalogItem?.title ?? (live.game?.adventure_title || ""), worldCatalogItem?.tags)}
+        sceneArtUrl={sceneArtUrl}
+        onSceneArtError={onSceneArtError}
+        worldDocumentId={(worldCatalogItem?.metadata?.world_document_id as string | undefined) ?? null}
+        briefDocumentId={(worldCatalogItem?.metadata?.brief_document_id as string | undefined) ?? null}
         turnNumber={turnNumber}
         scene={scene}
         chapterReleased={theater.chapterReleased && theater.phase === "none" && !live.game?.director_request_active && !live.game?.turn_pending}

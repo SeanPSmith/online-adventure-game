@@ -1,10 +1,19 @@
-import { PageTitle } from "../../components/ui/PageTitle";
+import { Link } from "react-router";
+import { useAuth } from "../../state/AuthContext";
+import { useInkboundPaper } from "../../features/appearance/inkboundPaper";
+import "../game/quillairoRulebookPass6614.css";
 import { Panel } from "../../components/ui/Panel";
 
 export function PrivacyPage() {
+  const { user } = useAuth();
+  const [paper] = useInkboundPaper(user?.user_id ?? "");
   return (
-    <article className="legal-page public-legal-page">
-      <PageTitle eyebrow="LEGAL // LAST UPDATED OCTOBER 13, 2026" title="PRIVACY" />
+    <article className="legal-page public-legal-page q-rulebook q-legal" data-ink-paper={paper}>
+      <header className="q-rulebook-hero q-legal-hero"><div className="q-rulebook-intro">
+        <p className="q-rulebook-overline">QUILLAIRO · LEGAL · LAST UPDATED OCTOBER 13, 2026</p>
+        <h1>The trust behind every story.</h1><p>How we handle the information behind your adventures.</p>
+        <Link to="/" className="q-rulebook-return">← Return to Quillairo</Link></div>
+        <img src="/art/inkbound/lantern-books.png" alt="A lantern and journals drawn in ink" /></header>
 
       <div className="legal-copy-grid">
         <Panel title="WHAT THE GAME KEEPS">
@@ -20,6 +29,12 @@ export function PrivacyPage() {
             Story generation can use the Hero, adventure, choices, mechanical results, and
             other story context needed to produce the next scene. Do not put information in a
             Hero Bio or story input that you would not want processed as part of gameplay.
+          </p>
+          <p>
+            When chapter illustrations are enabled, the finished scene text and its world
+            setting are sent to an image-generation service to create artwork. These
+            illustrations are kept in private storage and delivered to the players in that
+            adventure. Authors can separately generate reusable World or adventure cover art.
           </p>
         </Panel>
 

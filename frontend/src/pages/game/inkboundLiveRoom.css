@@ -24,3 +24,15 @@
 @media(prefers-reduced-motion:reduce){.ibl-chapter,.ibl-sealed,.ibl-drawer{animation:none!important}.ibl-choice,.ibl-progress span{transition:none!important}}
 
 .ibl-scene-ornament{font:26px Georgia,serif;letter-spacing:1.5em;color:#8a7a6b;opacity:.5;margin:31px 0 24px}.ibl-active-effects{padding-top:10px;border-top:1px solid var(--ink-rule);margin-top:11px}.ibl-active-effects>span{display:block;font:11px 'Courier New',monospace;text-transform:uppercase;letter-spacing:.13em}.ibl-active-effects small{display:block;font:12px/1.5 Georgia,serif;color:var(--ink-muted);margin-top:6px}.ibl-history-list article{border-top:1px solid #aa9b8a;padding:12px 0}.ibl-history-list h3{font:19px Georgia,serif}.ibl-history-list p{font-size:14px}.ibl-drawer a:focus-visible,.ibl-drawer button:focus-visible,.ibl-drawer textarea:focus-visible,.ibl-drawer input:focus-visible{outline:2px solid #39312a;outline-offset:3px}
+
+/* Pass 66.14: Real scene-specific art overlays on persistent genre/world art.
+   No CSS masks or rectangular feathering: generated PNG alpha supplies its own edge. */
+.ibl-chapter-illustration > .ibl-story-art { position:relative; width:100%; min-height:clamp(150px,23vw,360px); display:grid; place-items:center; overflow:hidden; background:transparent; isolation:isolate; }
+.ibl-story-art img { grid-area:1/1; object-fit:contain; width:100%; height:auto; max-height:350px; min-width:0; }
+.ibl-story-art .ibl-art-fallback { opacity:.82; }
+.ibl-story-art .ibl-art-scene { z-index:1; animation:quillairoInkArrives 1.6s ease-out both; }
+@keyframes quillairoInkArrives { from {opacity:0} to {opacity:1} }
+@media (prefers-reduced-motion:reduce) { .ibl-story-art .ibl-art-scene { animation:none; } }
+
+/* Override old cover-fit from Pass 66.2. Composition, not a rectangle crop. */
+.inkbound-live .ibl-chapter-illustration .ibl-story-art img {width:100%;height:auto;max-height:100%;object-fit:contain!important;object-position:center;min-width:0}

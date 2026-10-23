@@ -1,3 +1,4 @@
+import { genreInkIllustration, coverCandidateIds, coverArtUrl } from "../../features/appearance/quillairoGenreArt";
 import { BrandLockup } from "../../components/brand/BrandLockup";
 /**
  * Pass 65.6 — the REAL authenticated Inkbound home.
@@ -16,13 +17,17 @@ type Page = "home" | "worlds" | "heroes" | "journeys" | "join";
 
 const HIDDEN_INTERNAL_ADVENTURES = new Set(["old_chapel", "windroad_lantern"]);
 const homeArt = "/art/inkbound/north-road-editorial.png";
-function storyCover(title: string, tags: string[]) {
-  const text = `${title} ${tags.join(" ")}`.toLowerCase();
-  if (/space|star|orbit|sci.fi|cyber|robot|galaxy/.test(text)) return "/art/pass64/scifi.webp";
-  if (/horror|manor|haunt|gothic|ashes|shadow|ghost|veil/.test(text)) return "/art/pass64/gothic.webp";
-  if (/sea|harbor|coast|ocean|water/.test(text)) return "/art/pass64/harbor.webp";
-  if (/wood|forest|nature|wild/.test(text)) return "/art/pass64/explorer.webp";
-  return "/art/pass64/fantasy.webp";
+function storyCover(title: string, tags: string[], metadata: Record<string, unknown> = {}) {
+  const candidates = coverCandidateIds(metadata);
+  return candidates.length ? coverArtUrl(candidates[0]) : genreInkIllustration(title, tags);
+}
+function nextCoverSource(img: HTMLImageElement, title: string, tags: string[], metadata: Record<string, unknown> = {}) {
+  const candidates = coverCandidateIds(metadata).map(coverArtUrl);
+  const current = new URL(img.src, window.location.href).pathname;
+  const index = candidates.indexOf(current);
+  const fallback = genreInkIllustration(title, tags);
+  const next = index >= 0 && index + 1 < candidates.length ? candidates[index + 1] : fallback;
+  if (current !== next) img.src = next;
 }
 function synopsis(item: AdventureCatalogItem) {
   const value = item.metadata?.player_synopsis;
@@ -168,7 +173,7 @@ export function InkboundAuthenticatedDashboard({
             </div>
           </div>
           {!freeHeroes.length && <p className="i656-availability-note">{available.length ? "Your living Heroes are already in adventures. Resume a story, or create another Hero." : "Create a living Hero before starting a new adventure."} <Link to="/game/heroes/new">Create a Hero →</Link></p>}
-          <div className="i656-worlds-list">{found.map((item, index) => <article className="i656-world" key={item.adventure_id}><button className="i656-world-cover" type="button" onClick={() => inspect(item)} aria-label={`Read ${item.title} synopsis`}><img src={storyCover(item.title,item.tags)} alt={`Illustrated cover for ${item.title}`} loading="lazy"/></button><div><p className="i656-eyebrow">No. {String(index+1).padStart(2,"0")} {item.tags.slice(0,2).join(" · ")}</p><h2>{item.title}</h2><p>{synopsis(item)}</p><button type="button" className="i656-text-link" onClick={() => inspect(item)}>Read the introduction ↗</button></div></article>)}</div>
+          <div className="i656-worlds-list">{found.map((item, index) => <article className="i656-world" key={item.adventure_id}><button className="i656-world-cover" type="button" onClick={() => inspect(item)} aria-label={`Read ${item.title} synopsis`}><img src={storyCover(item.title,item.tags,item.metadata)} onError={event => nextCoverSource(event.currentTarget,item.title,item.tags,item.metadata)} alt={`Illustrated cover for ${item.title}`} loading="lazy"/></button><div><p className="i656-eyebrow">No. {String(index+1).padStart(2,"0")} {item.tags.slice(0,2).join(" · ")}</p><h2>{item.title}</h2><p>{synopsis(item)}</p><button type="button" className="i656-text-link" onClick={() => inspect(item)}>Read the introduction ↗</button></div></article>)}</div>
           {directoryReady && !found.length && <p className="i656-empty-line">No matching worlds. Try another search.</p>}{!directoryReady && <p className="i656-empty-line" role="status">The atlas is being prepared…</p>}
         </section>}
         {page === "heroes" && <section className="i656-interior i656-heroes" aria-label="Hero Hall"><div className="i656-interior-intro"><p className="i656-eyebrow">Portraits of the living</p><h1>Every Hero<br/><em>has a history.</em></h1><p>Some are still writing theirs.</p><Link className="i656-primary-action" to="/game/heroes/new">Create a Hero →</Link></div>

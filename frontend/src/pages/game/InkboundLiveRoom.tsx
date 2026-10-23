@@ -20,6 +20,11 @@ export type InkboundLiveRoomProps = Readonly<{
   roomCode: string;
   paper: InkPaper;
   illustrationSrc?: string;
+  sceneArtUrl?: string | null;
+  onSceneArtError?: () => void;
+  genreTags?: readonly string[];
+  worldDocumentId?: string | null;
+  briefDocumentId?: string | null;
   adventureTitle: string;
   turnNumber: number;
   scene: { id: string; title: string; body: string; ascii_art?: string; choices: readonly SceneChoice[] };
@@ -73,6 +78,8 @@ function Prose({ sceneId, body, wordRevealEnabled, decorativeInitials, followNar
 export function InkboundLiveRoom(props: InkboundLiveRoomProps) {
   const [panel, setPanel] = useState<Panel>(null);
   const [chatText, setChatText] = useState("");
+  const [coverAttempt, setCoverAttempt] = useState(0);
+  useEffect(() => { setCoverAttempt(0); }, [props.briefDocumentId, props.worldDocumentId]);
   const chatLog = useRef<HTMLDivElement>(null);
   const chapterScroller = useRef<HTMLElement>(null);
   const healthy = props.hero ? Math.max(0, Math.min(100, (props.hero.health / Math.max(1, props.hero.max_health)) * 100)) : 0;
@@ -129,7 +136,18 @@ export function InkboundLiveRoom(props: InkboundLiveRoomProps) {
         {props.chapterReleased ? <article className="ibl-chapter" key={`${props.roomCode}-${props.scene.id}-${props.turnNumber}`}>
           <h1>{props.scene.title}</h1>
           <div className="ibl-flourish" aria-hidden="true"><span />✧<span /></div>
-          {props.illustrationSrc ? <figure className="ibl-chapter-illustration"><img src={props.illustrationSrc} alt="Monochrome ink landscape for this adventure" /></figure> : null}
+          <figure className="ibl-chapter-illustration">
+            <div className="ibl-story-art">
+            {coverAttempt < (props.briefDocumentId ? 1 : 0) + (props.worldDocumentId ? 1 : 0) ? (
+              <img className="ibl-art-fallback" key={`${props.scene.id}:${coverAttempt}`}
+                src={`/api/story-art/worlds/${encodeURIComponent(coverAttempt === 0 && props.briefDocumentId ? props.briefDocumentId : props.worldDocumentId ?? "")}/image`}
+                alt="Authored story or world ink illustration" onError={() => setCoverAttempt(value => value + 1)} />
+            ) : props.illustrationSrc ? <img className="ibl-art-fallback" src={props.illustrationSrc}
+                alt="Genre-specific watercolor illustration" /> : null}
+            {props.sceneArtUrl ? <img key={props.sceneArtUrl} className="ibl-art-scene" src={props.sceneArtUrl}
+                alt={`Illustration of ${props.scene.title}`} onError={props.onSceneArtError} /> : null}
+            </div>
+          </figure>
           <Prose sceneId={props.scene.id} body={props.scene.body} wordRevealEnabled={props.wordRevealEnabled ?? false} decorativeInitials={props.decorativeInitials ?? true} followNarration={props.followNarration ?? false} narrationCue={props.narrationCue ?? null} />
           <div className="ibl-section-heading"><span />What do you do?<span /></div>
           <div className="ibl-choices">

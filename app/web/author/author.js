@@ -1992,6 +1992,7 @@ function renderEditor() {
     const archived = Boolean(activeVersion.is_archived);
 
     setDocumentScopedVisibility(kind);
+    updateQuillairoWorldArt(kind, activeVersion.document_id);
     renderSectionLanguage(kind);
     renderMigrationPanel();
 
@@ -4127,3 +4128,66 @@ async function boot() {
 
 
 boot();
+
+
+/* Pass 66.14: Author-owned World Art. Separate from autosaved manuscript source. */
+let qArtLastDocument = "";
+let qArtTimer = null;
+async function updateQuillairoWorldArt(kind, documentId, refresh = false) {
+    const panel = byId("q-world-art-panel");
+    if (!panel) return;
+    panel.hidden = kind !== "world" && kind !== "brief";
+    if (panel.hidden || !documentId) return;
+    if (qArtLastDocument === documentId && !refresh) return;
+    byId("q-world-art-generate").textContent = kind === "brief" ? "GENERATE STORY COVER" : "GENERATE WORLD ART";
+    if (qArtLastDocument !== documentId) {
+        qArtLastDocument = documentId;
+        byId("q-world-art-preview").hidden = true;
+        byId("q-world-art-status").textContent = "Checking the illustrated atlas…";
+    }
+    if (qArtTimer) { clearTimeout(qArtTimer); qArtTimer = null; }
+    let count = 0;
+    const poll = async () => {
+        if (!activeVersion || activeVersion.document_id !== documentId) return;
+        try {
+            const data = await api(`/api/story-art/worlds/${encodeURIComponent(documentId)}/status`);
+            const preview = byId("q-world-art-preview");
+            if (data.status === "ready") {
+                preview.src = `${data.image_url}?t=${Date.now()}`;
+                preview.hidden = false;
+                byId("q-world-art-status").textContent = "Illustration saved for this world.";
+                byId("q-world-art-generate").textContent = "REGENERATE (PAID)";
+                return;
+            }
+            byId("q-world-art-status").textContent = data.status === "pending"
+                ? "Painting in progress. You may continue authoring."
+                : "No world illustration yet. Category art will be used.";
+            byId("q-world-art-generate").textContent = "GENERATE WORLD ART";
+            if (data.status === "pending" && ++count < 30) qArtTimer = setTimeout(poll, 5000);
+        } catch {
+            byId("q-world-art-status").textContent = "World art is unavailable; your manuscript is unaffected.";
+        }
+    };
+    await poll();
+}
+byId("q-world-art-generate")?.addEventListener("click", async () => {
+    const documentId = activeVersion?.document_id;
+    if (!documentId || !["world", "brief"].includes(activeVersion?.document_kind)) return;
+    const btn = byId("q-world-art-generate");
+    btn.disabled = true;
+    try {
+        const refresh = !byId("q-world-art-preview").hidden;
+        const response = await fetch(`/api/story-art/worlds/${encodeURIComponent(documentId)}/generate${refresh ? "?refresh=1" : ""}`, {
+            method:"POST",credentials:"same-origin", headers:{"X-TOT-Author-Request":"1"}
+        });
+        if (!response.ok) {
+            byId("q-world-art-status").textContent = response.status === 409 ? "World image attempt limit reached."
+                : `Artwork request unavailable (${response.status}).`;
+            return;
+        }
+        byId("q-world-art-status").textContent = "Painting in progress…";
+        await updateQuillairoWorldArt("world", documentId, true);
+    } catch {
+        byId("q-world-art-status").textContent = "Image service unavailable. World text is safe.";
+    } finally { btn.disabled = false; }
+});

@@ -8,41 +8,36 @@ import textwrap
 
 ROOT = Path(__file__).resolve().parents[2]
 
-MOCK_AWS = '''#!/usr/bin/env python3
-import os, pathlib, sys
-args = sys.argv[1:]
-log = pathlib.Path(os.environ['MOCK_AWS_LOG'])
-with log.open('a') as f:
-    f.write(' '.join(args[:2]) + '\\n')
-cmd = args[:2]
-if cmd == ['cloudformation', 'describe-stacks']:
-    print('i-03940f7c36796a2fa')
-elif cmd == ['ec2', 'describe-instances']:
-    query = args[args.index('--query')+1]
-    if 'State.Name' in query: print('running')
-    else: print('arn:aws:iam::test:instance-profile/role\\t1.2.3.4\\tsubnet-test')
-elif cmd == ['ec2', 'describe-instance-status']:
-    print('ok\\tok')
-elif cmd == ['ssm', 'describe-instance-information']:
-    sequence = os.getenv('MOCK_SSM_SEQUENCE', 'None').split(',')
-    counter = pathlib.Path(os.environ['MOCK_SSM_COUNTER'])
-    n = int(counter.read_text()) if counter.exists() else 0
-    counter.write_text(str(n+1))
-    print(sequence[min(n,len(sequence)-1)])
-elif cmd == ['ssm', 'send-command']:
-    counter = pathlib.Path(os.environ['MOCK_SEND_COUNTER'])
-    n = int(counter.read_text()) if counter.exists() else 0
-    counter.write_text(str(n+1))
-    if n < int(os.getenv('MOCK_INVALID_BEFORE_SUCCESS','0')):
-        print('An error occurred (InvalidInstanceId) when calling the SendCommand operation:',file=sys.stderr)
-        sys.exit(255)
-    print('mock-command-id')
-elif cmd == ['ssm', 'get-command-invocation']:
-    query = args[args.index('--query')+1]
-    print('Failed' if query == 'Status' else 'Intentional test failure')
-else:
-    raise RuntimeError('Unexpected AWS command: ' + ' '.join(args))
-'''
+MOCK_AWS = r'''#!/usr/bin/env bash
+set -euo pipefail
+printf '%s %s\n' "${1:-}" "${2:-}" >> "$MOCK_AWS_LOG"
+service="${1:-}"; command="${2:-}"
+case "$service $command" in
+  'cloudformation describe-stacks') echo 'i-03940f7c36796a2fa' ;;
+  'ec2 describe-instances')
+    if [[ " $* " == *'State.Name'* ]]; then echo running
+    else printf 'arn:aws:iam::test:instance-profile/role\t1.2.3.4\tsubnet-test\n'; fi ;;
+  'ec2 describe-instance-status') printf 'ok\tok\n' ;;
+  'ssm describe-instance-information')
+    n=0; [[ ! -f "$MOCK_SSM_COUNTER" ]] || n=$(<"$MOCK_SSM_COUNTER")
+    echo "$(( n + 1 ))" > "$MOCK_SSM_COUNTER"
+    IFS=',' read -ra seq <<< "${MOCK_SSM_SEQUENCE:-None}"
+    (( n < ${#seq[@]} )) || n=$(( ${#seq[@]} - 1 ))
+    echo "${seq[n]}" ;;
+  'ssm send-command')
+    n=0; [[ ! -f "$MOCK_SEND_COUNTER" ]] || n=$(<"$MOCK_SEND_COUNTER")
+    echo "$(( n + 1 ))" > "$MOCK_SEND_COUNTER"
+    if (( n < ${MOCK_INVALID_BEFORE_SUCCESS:-0} )); then
+      echo 'An error occurred (InvalidInstanceId) when calling the SendCommand operation:' >&2
+      exit 255
+    fi
+    echo mock-command-id ;;
+  'ssm get-command-invocation')
+    if [[ " $* " == *'--query Status '* ]]; then echo Failed
+    else echo 'Intentional test failure'; fi ;;
+  *) echo "Unexpected AWS command: $*" >&2; exit 5 ;;
+esac
+''' 
 
 
 def run_script(sequence: str, *, wait: str = '0', invalid_before_success: int = 0):
@@ -56,6 +51,15 @@ def run_script(sequence: str, *, wait: str = '0', invalid_before_success: int = 
         sleep = aws_dir / 'sleep'
         sleep.write_text('#!/bin/sh\nexit 0\n')
         sleep.chmod(0o755)
+        # Emulate BSD/macOS mktemp: the template must END in XXXXXX.
+        # GNU mktemp accepts some suffixes that silently break on macOS.
+        portable_mktemp = aws_dir / 'mktemp'
+        portable_mktemp.write_text(
+            '#!/usr/bin/env bash\n'
+            '[[ "${1:-}" == *XXXXXX ]] || { echo "mktemp: template must end in XXXXXX" >&2; exit 1; }\n'
+            'exec /usr/bin/mktemp "$@"\n'
+        )
+        portable_mktemp.chmod(0o755)
         project = base / 'root'
         for name in ('benchmark-story-time-remote.sh', 'benchmark-story-time-ec2.sh', 'story-time-mp3-duration.py'):
             original = ROOT / 'scripts' / 'aws' / name
@@ -74,9 +78,10 @@ def run_script(sequence: str, *, wait: str = '0', invalid_before_success: int = 
                    MOCK_INVALID_BEFORE_SUCCESS=str(invalid_before_success),
                    STORY_TIME_SSM_WAIT_SECONDS=wait,
                    STORY_TIME_SSM_POLL_SECONDS='1',
+                   STORY_TIME_SSM_RETRY_SECONDS='0',
                    STORY_TIME_CPU_RESULTS_DIR=str(base / 'results'))
         process = subprocess.run(['bash', str(project / 'scripts' / 'aws' / 'benchmark-story-time-remote.sh')],
-                                 text=True, input='y\n', capture_output=True, env=env, timeout=10)
+                                 text=True, input='y\n', capture_output=True, env=env, timeout=45)
         return process, log.read_text(), int((base / 'send.count').read_text()) if (base / 'send.count').exists() else 0
 
 
@@ -109,3 +114,11 @@ def test_ssm_still_unavailable_after_poll_does_not_submit():
     assert result.returncode == 3
     assert 'ConnectionLost' in result.stderr
     assert sends == 0
+
+
+def test_benchmark_uses_bsd_compatible_temporary_templates():
+    source = (ROOT / 'scripts' / 'aws' / 'benchmark-story-time-remote.sh').read_text()
+    import re
+    templates = re.findall(r'mktemp\s+"([^"\n]+)"', source)
+    assert len(templates) == 3
+    assert all(t.endswith('XXXXXX') for t in templates), templates

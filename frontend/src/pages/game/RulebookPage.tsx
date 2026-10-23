@@ -1,4 +1,7 @@
-import { PageTitle } from "../../components/ui/PageTitle";
+import { Link } from "react-router";
+import { useInkboundPaper } from "../../features/appearance/inkboundPaper";
+import { useAuth } from "../../state/AuthContext";
+import "./quillairoRulebookPass6614.css";
 import { Panel } from "../../components/ui/Panel";
 
 const attributes = [
@@ -12,11 +15,24 @@ const attributes = [
 ];
 
 export function RulebookPage() {
+  const { user } = useAuth();
+  const [paper] = useInkboundPaper(user?.user_id ?? "");
   return (
-    <article className="rulebook-page">
-      <PageTitle eyebrow="PLAYER REFERENCE" title="RULEBOOK" />
+    <article className="rulebook-page q-rulebook" data-ink-paper={paper}>
+      <header className="q-rulebook-hero">
+        <div className="q-rulebook-intro"><p className="q-rulebook-overline">THE QUILLAIRO COMPANION · PLAYER REFERENCE</p>
+          <h1>The rules of <em>the road.</em></h1>
+          <p>Stories are living things. Your decisions matter; the dice settle what happens when the outcome is uncertain.</p>
+          <Link to="/game" className="q-rulebook-return">← Return to the adventure hall</Link>
+        </div>
+        <img src="/art/inkbound/lantern-books.png" alt="A lantern and old books drawn in ink" />
+      </header>
+      <nav className="q-rulebook-toc" aria-label="Rulebook contents"><span>IN THIS VOLUME</span>
+        <a href="#q-rules-play">How to play</a><a href="#q-rules-hero">Your Hero</a>
+        <a href="#q-rules-progression">Progression</a></nav>
 
       <div className="rulebook-grid">
+        <div id="q-rules-play" className="q-rulebook-section-title">I. How to play</div>
         <Panel title="THE CORE LOOP">
           <p>
             Choose what your Hero attempts. The server decides whether the action needs a
@@ -29,6 +45,7 @@ export function RulebookPage() {
           </p>
         </Panel>
 
+        <div id="q-rules-hero" className="q-rulebook-section-title">II. Your Hero</div>
         <Panel title="HERO BIO // CANON">
           <p>
             Your Bio is player-authored canon. Use it for background, temperament, fears,
@@ -70,6 +87,7 @@ export function RulebookPage() {
           </p>
         </Panel>
 
+        <div id="q-rules-progression" className="q-rulebook-section-title">III. Growth & consequence</div>
         <Panel title="LEVELS // ADVANCEMENT">
           <div className="progression-rules-grid">
             <div><strong>EVERY LEVEL</strong><span>+2 SKILL POINTS</span></div>

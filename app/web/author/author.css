@@ -1538,3 +1538,13 @@ html[data-ink-paper="phosphor"] .topbar h1{text-shadow:0 0 12px rgba(144,255,125
 html[data-ink-paper="navy"] .q-author-logo--light,html[data-ink-paper="phosphor"] .q-author-logo--light,html[data-ink-paper="midnight"] .q-author-logo--light{display:none!important}
 html[data-ink-paper="navy"] .q-author-logo--dark,html[data-ink-paper="phosphor"] .q-author-logo--dark,html[data-ink-paper="midnight"] .q-author-logo--dark{display:block!important}
 @media(max-width:600px){.q-author-logo{width:165px;height:49px}}
+
+/* World identity art: a sparse illustrated folio, not a second editor form. */
+.q-world-art-panel { border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:16px 0 24px;padding:24px 0; }
+.q-world-art-head { display:flex;align-items:flex-start;justify-content:space-between;gap:20px; }
+.q-world-art-head h3 {font-family:Georgia,serif;font-weight:normal;font-size:clamp(23px,2vw,32px);margin:7px 0;}
+.q-world-art-head p,.q-world-art-notice {color:var(--muted);font-size:13px;max-width:620px;line-height:1.55;}
+.q-world-art-image {display:grid;place-items:center;min-height:120px;background:transparent;}
+.q-world-art-image img {max-width:100%;max-height:350px;object-fit:contain;}
+.q-world-art-image img[hidden]{display:none}
+@media(max-width:650px){.q-world-art-head{flex-direction:column}}

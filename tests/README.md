@@ -1,4 +1,4 @@
-# Tales of Two — Automated Regression Suite
+# Quillairo — Automated Regression Suite
 
 The Python suite is organized by **feature**, not release/pass number. Every
 pre-Pass-50 test is retained, including existing parametrized cases. Source

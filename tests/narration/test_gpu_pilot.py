@@ -59,7 +59,7 @@ def test_benchmark_uses_identical_cpu_baseline_text_and_voices():
     original = (PROJECT / 'scripts/aws/benchmark-story-time-ec2.sh').read_text()
     gpu = BENCH.read_text()
     for text in [
-        'Welcome to Tales of Two. In the shadows of the castle, the adventure begins.',
+        'Welcome to Quillairo. In the shadows of the castle, the adventure begins.',
         'The ancient lantern flickered as the travelers entered the ruined observatory.',
         'One traveler took a careful step forward. The other followed, and together they listened as the hidden machinery began to wake.',
     ]:

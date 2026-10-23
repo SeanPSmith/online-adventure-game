@@ -155,7 +155,7 @@ def _base_adventure_story_guidance() -> dict[str, str]:
     return {
         **_base_world_story_guidance(),
         "choice_guidance": "",
-        # This is a Tales of Two gameplay default, not World canon. Authors can
+        # This is a Quillairo gameplay default, not World canon. Authors can
         # override it only from an Adventure Brief / advanced source.
         "failure_philosophy": (
             "Failure should usually create complications rather than stop progress."

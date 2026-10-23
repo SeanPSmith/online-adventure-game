@@ -94,9 +94,9 @@ PY
 }
 
 run_sample michael_short am_michael \
-  'Welcome to Tales of Two. In the shadows of the castle, the adventure begins.'
+  'Welcome to Quillairo. In the shadows of the castle, the adventure begins.'
 run_sample bella_short af_bella \
-  'Welcome to Tales of Two. In the shadows of the castle, the adventure begins.'
+  'Welcome to Quillairo. In the shadows of the castle, the adventure begins.'
 run_sample michael_long am_michael \
   'The ancient lantern flickered as the travelers entered the ruined observatory. On the far wall, a silver constellation moved against the stone, tracing a path beyond the mountains. A soft voice echoed from the empty gallery above. Nobody could see who was speaking, but the words were unmistakable. The road ahead would demand courage, patience, and the willingness to trust a stranger. One traveler took a careful step forward. The other followed, and together they listened as the hidden machinery began to wake.'
 

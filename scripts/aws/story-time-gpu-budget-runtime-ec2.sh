@@ -87,7 +87,7 @@ fi
 if [[ "$PERSISTENCE_OK" == 1 ]]; then
   cat > /etc/systemd/system/tot-budget-gpu-persistence.service <<'UNIT'
 [Unit]
-Description=Tales of Two budget GPU persistence before Docker
+Description=Quillairo budget GPU persistence before Docker
 After=systemd-udevd.service
 Before=docker.service
 

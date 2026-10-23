@@ -1,8 +1,8 @@
-Tales of Two — Story Time technology / third-party notices
+Quillairo — Story Time technology / third-party notices
 
 Story Time is an optional on-device narration feature. These notices identify
 third-party technology used by the feature; they do not change the player-facing
-name of the feature or imply that its developers endorse Tales of Two.
+name of the feature or imply that its developers endorse Quillairo.
 
 Components:
 

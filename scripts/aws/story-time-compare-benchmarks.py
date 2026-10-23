@@ -66,7 +66,7 @@ def compare(cpu_file: Path, gpu_file: Path) -> str:
     cpu = read_results(cpu_file, "CPU")
     gpu = read_results(gpu_file, "GPU")
     lines = [
-        "# Tales of Two — Story Time CPU vs GPU benchmark",
+        "# Quillairo — Story Time CPU vs GPU benchmark",
         "",
         "**Scope:** exploratory single-pass synthesis of three fixed samples, not a production latency or quality guarantee.",
         "CPU and GPU image versions may differ. Audio quality must be approved by listening; throughput alone cannot approve a migration.",

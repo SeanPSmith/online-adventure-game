@@ -458,7 +458,7 @@ _TRAILING_CJK_RECAP_NOISE = re.compile(
 def sanitize_recap_text(value: str) -> str:
     """Strip model-only trailing CJK glyph noise from English result recaps.
 
-    Tales of Two's player-facing runtime is currently English.  We deliberately
+    Quillairo's player-facing runtime is currently English.  We deliberately
     target only a trailing CJK/Kana/Hangul run so punctuation, accented names,
     em-dashes, and other legitimate Unicode inside the recap are preserved.
     """

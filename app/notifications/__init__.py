@@ -1,1 +1,1 @@
-"""Player notification delivery for Tales of Two."""
+"""Player notification delivery for Quillairo."""

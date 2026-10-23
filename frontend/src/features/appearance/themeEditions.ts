@@ -19,6 +19,7 @@ export interface EditionColors {
   desk: string; binding: string; frame: string;
 }
 export interface ThemeEdition {
+  /** Legacy on-disk contract; change only with a backwards-compatible migration. */
   format: 'tales-of-two-theme/v2';
   id: string;
   family: EditionFamily;

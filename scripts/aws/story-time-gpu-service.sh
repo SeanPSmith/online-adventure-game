@@ -95,7 +95,7 @@ if action == 'smoke':
     # Michael generation before permitting live backend cutover.
     sample = shlex.quote(json.dumps({
         'model': 'kokoro', 'voice': 'am_michael',
-        'input': 'Tales of Two narrator health check.',
+        'input': 'Quillairo narrator health check.',
         'response_format': 'mp3', 'speed': 1.0,
     }, separators=(',', ':')))
     commands += [
@@ -124,7 +124,7 @@ with open(path, 'w') as stream:
     json.dump({'commands': commands, 'executionTimeout': ['600']}, stream)
 PYINNER
   if ! cid="$(aws ssm send-command --instance-ids "$id" --document-name AWS-RunShellScript \
-    --comment "Tales of Two dedicated GPU ${action} (no story content)" --parameters "file://$file" \
+    --comment "Quillairo dedicated GPU ${action} (no story content)" --parameters "file://$file" \
     --query Command.CommandId --output text)"; then
     rm -f "$file"
     return 1

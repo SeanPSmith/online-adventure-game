@@ -125,7 +125,7 @@ COMMAND_ID=''
 for attempt in 1 2 3; do
   if COMMAND_ID="$(aws ssm send-command --document-name AWS-RunShellScript \
       --instance-ids "$INSTANCE_ID" --parameters "file://$PARAMS_FILE" \
-      --comment 'Tales of Two Story Time inference baseline only' \
+      --comment 'Quillairo Story Time inference baseline only' \
       --profile "$PROFILE" --region "$REGION" --query Command.CommandId --output text 2>"$SSM_ERROR")"; then
     break
   fi

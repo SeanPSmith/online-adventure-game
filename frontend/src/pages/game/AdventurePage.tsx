@@ -797,7 +797,7 @@ export function AdventurePage() {
       {!bookReady && !inkboundReady && !inkboundLobbyReady && <div className="inkspace-live-entry">
         {bookRequested ? <span className="muted-copy">Book view resumes after the current turn is released.</span> : null}
         <button type="button" onClick={() => { const next = new URLSearchParams(searchParams); if (inkboundRequested || defaultInkbound) next.set("reader", "classic"); else next.set("reader", "inkbound"); navigate({pathname:location.pathname, search: next.toString()}, {replace:true}); }}>
-          {inkboundRequested || defaultInkbound ? "USE CLASSIC READER" : "OPEN INKBOUND READER"}
+          {inkboundRequested || defaultInkbound ? "USE CLASSIC READER" : "OPEN QUILLAIRO READER"}
         </button>
         <button type="button" onClick={() => changeBookView(!bookRequested)}>
           {bookRequested ? "USE STANDARD READER" : "OPEN LIVING BOOK · PREVIEW"}

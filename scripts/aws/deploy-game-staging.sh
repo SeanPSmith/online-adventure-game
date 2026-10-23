@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Tales of Two / Adventure Platform staging deploy helper.
+# Quillairo / Adventure Platform staging deploy helper.
 # Normal code deploy:
 #   ./scripts/aws/deploy-game-staging.sh
 #

@@ -64,7 +64,7 @@ def test_smoke_waits_and_reports_a_stuck_or_crashed_kokoro(tmp_path):
     assert 'OOMKilled' in commands
     assert 'exit 41' in commands
     assert '/v1/audio/speech' in commands and 'am_michael' in commands
-    assert 'Tales of Two narrator health check.' in commands
+    assert 'Quillairo narrator health check.' in commands
     assert 'audio_bytes=$(wc -c' in commands
     assert document['executionTimeout'] == ['600']
     subprocess.run(['bash','-n'], input=commands, text=True, check=True)

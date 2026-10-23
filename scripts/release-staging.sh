@@ -7,7 +7,7 @@ cd "$PROJECT_ROOT"
 
 echo
 echo "============================================================"
-echo " TALES OF TWO // STAGING RELEASE"
+echo " QUILLAIRO // STAGING RELEASE"
 echo "============================================================"
 echo
 

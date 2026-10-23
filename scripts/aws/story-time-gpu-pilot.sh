@@ -210,7 +210,7 @@ with open(sys.argv[1],'w') as f:
 PYDIAG
     CMD_ID="$(aws ssm send-command --document-name AWS-RunShellScript \
       --instance-ids "$IID" --parameters "file://$PARAMS" \
-      --comment 'Read-only Tales of Two GPU bootstrap diagnostics' \
+      --comment 'Read-only Quillairo GPU bootstrap diagnostics' \
       --query Command.CommandId --output text)"
     echo "SSM diagnostic command: $CMD_ID"
     STATUS=Pending
@@ -309,7 +309,7 @@ with open(p,'w') as f: json.dump({'commands':commands,'executionTimeout':['1200'
 PYREPAIR
     COMMAND_ID="$(aws ssm send-command --document-name AWS-RunShellScript \
       --instance-ids "$IID" --parameters "file://$PARAMS" \
-      --comment 'Explicit Tales of Two budget GPU dependency repair' \
+      --comment 'Explicit Quillairo budget GPU dependency repair' \
       --query Command.CommandId --output text)"
     echo "Budget repair SSM command: $COMMAND_ID"
     RESULT=Pending
@@ -378,7 +378,7 @@ with open(p,'w') as f: json.dump({'commands':commands,'executionTimeout':['1200'
 PYRUNTIME
     COMMAND_ID="$(aws ssm send-command --document-name AWS-RunShellScript \
       --instance-ids "$IID" --parameters "file://$PARAMS" \
-      --comment 'Explicit Tales of Two budget NVIDIA runtime repair' \
+      --comment 'Explicit Quillairo budget NVIDIA runtime repair' \
       --query Command.CommandId --output text)"
     echo "Budget runtime repair SSM command: $COMMAND_ID"
     RESULT=Pending
@@ -452,7 +452,7 @@ with open(p, 'w') as f:
 PYMEMORY
     COMMAND_ID="$(aws ssm send-command --document-name AWS-RunShellScript \
       --instance-ids "$IID" --parameters "file://$PARAMS" \
-      --comment 'Guarded Tales of Two fractional GPU memory overcommit test' \
+      --comment 'Guarded Quillairo fractional GPU memory overcommit test' \
       --query Command.CommandId --output text)"
     echo "Budget memory test SSM command: $COMMAND_ID"
     RESULT=Pending
@@ -539,7 +539,7 @@ PY
     for retry in 1 2 3; do
       if COMMAND_ID="$(aws ssm send-command --document-name AWS-RunShellScript \
         --instance-ids "$IID" --parameters "file://$PARAMS" \
-        --comment 'Isolated Tales of Two GPU narration benchmark' \
+        --comment 'Isolated Quillairo GPU narration benchmark' \
         --query Command.CommandId --output text)"; then break; fi
       if [[ "$retry" == 3 ]]; then echo 'SSM submission failed after three attempts.' >&2; exit 1; fi
       sleep 6

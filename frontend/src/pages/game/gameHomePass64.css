@@ -1,4 +1,4 @@
-/* Tales of Two — Pass 64.0: the Adventurer's Desk.
+/* Quillairo — Pass 64.0: the Adventurer's Desk.
    All overrides are scoped. No game-state code or global input behavior changes. */
 .p64-desk {
   --p64-ink:#342316; --p64-faded:#755941; --p64-wax:#751c21; --p64-gold:#ad783e;

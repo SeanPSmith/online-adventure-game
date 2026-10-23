@@ -1,7 +1,7 @@
 import { Link } from "react-router";
 
 const LABS = [
-  { path: "inkbound", name: "Inkbound Editorial · Pass 65.0", summary: "Interactive original React foundation: frontispiece, illustrated reader, decisions, modal, paper themes, and ink arrival" },
+  { path: "inkbound", name: "Storybook Foundation · Pass 65.0", summary: "Interactive original React foundation: frontispiece, illustrated reader, decisions, modal, paper themes, and ink arrival" },
   { path: "visual-playground", name: "Blank Book", summary: "Approved scene, physical book, top menu" },
   { path: "ink-lab", name: "Ink Laboratory", summary: "Mask decoding, poetic transitions and replay" },
   { path: "inkspace-story", name: "Manuscript Composition", summary: "Illuminated writing and transparent watercolor art" },

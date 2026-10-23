@@ -43,7 +43,7 @@ docker create --name story-time-gpu --gpus all --shm-size=1g --memory=6g \
   ghcr.io/remsky/kokoro-fastapi-gpu:v0.9.0-cu126
 cat > /etc/systemd/system/tot-story-time-gpu.service <<'UNIT'
 [Unit]
-Description=Tales of Two Kokoro G6f narrator
+Description=Quillairo Kokoro G6f narrator
 After=docker.service network-online.target nvidia-persistenced.service
 Requires=docker.service
 [Service]

@@ -52,7 +52,9 @@ interface ServerSettings {
   channels: ServerChannels;
 }
 
+// Keep persisted preference key to avoid resetting current users' notification settings.
 const STORAGE_KEY = "tales-of-two:notification-preferences:v2";
+// Internal same-tab event only; the published brand is Quillairo.
 export const NOTIFICATION_SETTINGS_EVENT = "tales-of-two:notification-settings-changed";
 
 const DEFAULTS: NotificationPreferences = {

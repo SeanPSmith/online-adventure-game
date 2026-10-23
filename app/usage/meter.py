@@ -21,7 +21,7 @@ class UsageScope:
     retry_attempt: bool = False
 
 
-_scope: ContextVar[UsageScope] = ContextVar("tales_of_two_ai_usage_scope", default=UsageScope())
+_scope: ContextVar[UsageScope] = ContextVar("quillairo_ai_usage_scope", default=UsageScope())
 
 
 @contextmanager

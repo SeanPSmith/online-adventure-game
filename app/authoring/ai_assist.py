@@ -40,7 +40,7 @@ ASSISTABLE_SECTIONS = (
 
 
 AUTHOR_ASSIST_SYSTEM_INSTRUCTIONS = """
-You are the private authoring copilot for TALES OF TWO.
+You are the private authoring copilot for QUILLAIRO.
 
 You are NOT the runtime story Director. Turn a creator's rough, casual note
 into useful structured source material that a later Director can use.
@@ -697,7 +697,7 @@ class AuthorAssistService:
                             "type": "json_schema",
                             "name": schema_name,
                             "description": (
-                                "Structured Tales of Two authoring material generated from a rough creator note."
+                                "Structured Quillairo authoring material generated from a rough creator note."
                             ),
                             "strict": True,
                             "schema": model_type.model_json_schema(),

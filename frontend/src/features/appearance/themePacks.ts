@@ -2,6 +2,7 @@
  * Theme packs are local visual presets only. A future marketplace must verify ownership
  * on the backend; local manifests MUST NOT be interpreted as purchased items.
  */
+/** Legacy format ID: keep unchanged so existing downloaded themes still import. */
 export const THEME_FORMAT = "tales-of-two-theme/v1" as const;
 export type ThemeTarget = "library" | "reader";
 export type ThemeMaterial = "parchment" | "linen" | "velvet" | "metal";
@@ -95,4 +96,4 @@ export function themeCssVars(pack: ThemePack): Record<string, string> {
     "--tot-desk": pack.palette.desk,
   };
 }
-export function themeFileName(pack: ThemePack): string { return `tales-of-two-${pack.id}.json`; }
+export function themeFileName(pack: ThemePack): string { return `quillairo-${pack.id}.json`; }

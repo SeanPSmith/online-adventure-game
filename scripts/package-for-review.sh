@@ -7,7 +7,7 @@ TIMESTAMP="$(date +"%Y%m%d-%H%M%S")"
 OUTPUT_DIR="$ROOT_DIR/_packages"
 STAGING_DIR="$(mktemp -d)"
 PACKAGE_ROOT="$STAGING_DIR/$PROJECT_NAME"
-OUTPUT_FILE="$OUTPUT_DIR/${PROJECT_NAME}-review-${TIMESTAMP}.zip"
+OUTPUT_FILE="$OUTPUT_DIR/quillairo-review-${TIMESTAMP}.zip"
 
 cleanup() {
   rm -rf "$STAGING_DIR"
@@ -31,6 +31,9 @@ echo "Source: $ROOT_DIR"
 
 rsync -a \
   --exclude='.git/' \
+  --exclude='.aws-build/' \
+  --exclude='.pass64-2-backup/' \
+  --exclude='*.tsbuildinfo' \
   --exclude='.DS_Store' \
   --exclude='__MACOSX/' \
   --exclude='node_modules/' \

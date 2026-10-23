@@ -19,7 +19,7 @@ def load_project_documentation(path: Path | None = None) -> dict:
     content = document_path.read_text(encoding="utf-8")
 
     lines = content.splitlines()
-    title = "Tales of Two — Master Project Documentation"
+    title = "Quillairo — Master Project Documentation"
     intro_lines: list[str] = []
     sections: list[dict[str, str]] = []
     current_title: str | None = None
@@ -40,7 +40,7 @@ def load_project_documentation(path: Path | None = None) -> dict:
         current_lines = []
 
     for line in lines:
-        if line.startswith("# ") and title == "Tales of Two — Master Project Documentation":
+        if line.startswith("# ") and title == "Quillairo — Master Project Documentation":
             title = line[2:].strip() or title
             continue
 

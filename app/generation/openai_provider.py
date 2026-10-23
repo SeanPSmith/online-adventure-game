@@ -33,7 +33,7 @@ from app.usage import (
 
 
 SYSTEM_INSTRUCTIONS = """
-You are the adventure architect for TALES OF TWO, a two-player
+You are the adventure architect for QUILLAIRO, a two-player
 cooperative interactive story/RPG.
 
 Your job is to produce a compact, high-quality ADVENTURE SEED that a later
@@ -761,7 +761,7 @@ class OpenAIAdventureGenerationProvider(
                                 "adventure_seed",
 
                             "description":
-                                "A validated planning seed for a two-player Tales of Two adventure.",
+                                "A validated planning seed for a two-player Quillairo adventure.",
 
                             "strict":
                                 True,
@@ -1022,7 +1022,7 @@ class OpenAIAdventureGenerationProvider(
                     self.economy_model,
 
                 instructions=(
-                    "Write the player-facing introduction for a Tales of Two adventure. "
+                    "Write the player-facing introduction for a Quillairo adventure. "
                     "Return one or two short paragraphs, roughly 90-180 words, written like "
                     "the opening jacket copy of a good novel: atmospheric, confident, and "
                     "inviting. Explain what kind of trouble the Heroes are stepping into "

@@ -14,7 +14,7 @@ self.addEventListener("push", (event) => {
 
     await self.registration.showNotification(payload.title || "QUILLAIRO", {
       body: payload.message || "Adventure activity is waiting.",
-      tag: payload.tag || `tales-of-two:${payload.kind || "activity"}:${payload.room_code || "game"}`,
+      tag: payload.tag || `quillairo:${payload.kind || "activity"}:${payload.room_code || "game"}`,
       renotify: true,
       data: {
         route: payload.route || "/game",

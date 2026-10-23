@@ -1,94 +1,53 @@
-# macOS
+# macOS and editor files
 .DS_Store
+.vscode/
+.idea/
 
-# Python
+# Python environments, caches and test artifacts
 .venv/
 venv/
 __pycache__/
 *.py[cod]
 .pytest_cache/
 .mypy_cache/
-
-# Local databases / runtime state
-data/
-*.sqlite
-*.sqlite3
-*.db
-
-# Private/exported content backups
-backups/
-
-# Environment / secrets
-.env
-.env.*
-!.env.example
-*.pem
-*.key
-
-# AWS build artifacts
-.aws-build/
-cdk.out/
-infra/cdk.out/
-
-# Node
-node_modules/
-frontend/node_modules/
-frontend/dist/
-infra/node_modules/
-
-# Logs
-*.log
-npm-debug.log*
-
-# IDE
-.vscode/
-.idea/
-
-
-# Dependencies
-node_modules/
-.venv/
-venv/
-
-# Python
-__pycache__/
-*.py[cod]
-.pytest_cache/
+.ruff_cache/
 .coverage
 htmlcov/
 
-# Frontend builds
-dist/
-build/
-.vite/
-
-# AWS / CDK
-cdk.out/
-
-# Local packaging
-_packages/
-
-# macOS
-.DS_Store
-__MACOSX/
-
-# Logs
-*.log
-
-# Local databases
+# Local runtime data and backups
+data/
+backups/
+.pass64-2-backup/
 *.db
 *.sqlite
 *.sqlite3
 
-# Secrets
+# Local secrets; retain sanitized examples
 .env
 .env.*
 !.env.example
-
 *.pem
 *.key
+*.crt
 *.p12
 *.pfx
 
-# Historical snapshots / local backups
-backups/
+# Node and compiled output
+node_modules/
+dist/
+build/
+.vite/
+*.tsbuildinfo
+
+# AWS/CDK output
+.aws-build/
+cdk.out/
+
+# Source review packages and logs
+_packages/
+__MACOSX/
+*.zip
+*.tar
+*.tar.gz
+*.log
+npm-debug.log*

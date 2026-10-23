@@ -49,7 +49,7 @@ from app.game.micro_events import (
 
 
 SYSTEM_INSTRUCTIONS = """
-You are the live Story Director for TALES OF TWO, a sustained interactive
+You are the live Story Director for QUILLAIRO, a sustained interactive
 story/RPG for one or two player-controlled Heroes.
 
 You receive an APPROVED ADVENTURE SEED, the current scene, the active Heroes'
@@ -1339,7 +1339,7 @@ class OpenAIRuntimeDirector:
                     request=lambda: self._client_instance().responses.create(
                         model=self.economy_model,
                     instructions=(
-                        "You are the fast turn narrator for TALES OF TWO. "
+                        "You are the fast turn narrator for QUILLAIRO. "
                         "Write ONLY the player-facing continuity bridge for the turn that "
                         "just resolved. TURN FACTS are authoritative. Capture EVERY pertinent "
                         "fact the next story beat may need: each Hero's chosen intent; the "
@@ -2246,7 +2246,7 @@ class OpenAIRuntimeDirector:
                         request=lambda: self._client_instance().responses.create(
                             model=self.economy_model,
                         instructions=(
-                            "Repair the supplied TALES OF TWO Director output into "
+                            "Repair the supplied QUILLAIRO Director output into "
                             "one complete JSON object matching the requested schema. "
                             "The original text may be truncated near its end. Preserve "
                             "all existing narration, facts, outcomes, and choices that "
@@ -2261,7 +2261,7 @@ class OpenAIRuntimeDirector:
                             "format": {
                                 "type": "json_schema",
                                 "name": "tales_of_two_director_turn_json_repair",
-                                "description": "Completed repaired story turn for Tales of Two.",
+                                "description": "Completed repaired story turn for Quillairo.",
                                 "strict": True,
                                 "schema": response_schema,
                             },
@@ -2345,7 +2345,7 @@ class OpenAIRuntimeDirector:
                         request=lambda: self._client_instance().responses.create(
                             model=self.economy_model,
                         instructions=(
-                            "Repair the supplied TALES OF TWO Director JSON so it "
+                            "Repair the supplied QUILLAIRO Director JSON so it "
                             "passes the requested schema and semantic constraints. "
                             "Preserve the existing narration, story facts, outcomes, "
                             "and choices as much as possible. Change only fields needed "
@@ -2367,7 +2367,7 @@ class OpenAIRuntimeDirector:
                             "format": {
                                 "type": "json_schema",
                                 "name": "tales_of_two_director_turn_repair",
-                                "description": "Repaired validated story turn for Tales of Two.",
+                                "description": "Repaired validated story turn for Quillairo.",
                                 "strict": True,
                                 "schema": response_schema,
                             },

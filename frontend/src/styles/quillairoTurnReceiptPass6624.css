@@ -1,0 +1,206 @@
+/* Pass 66.24 — The committed-turn folio.
+   Presentation only. The server and useTurnTheater own every outcome and transition.
+   Apply AFTER the original turn styles; never decorate the arcade board or its HUD. */
+.turn-theater-overlay.inkbound-turn-theater {
+  --q24-gold: #94641f;
+  --q24-gold-line: rgba(148,100,31,.52);
+  --q24-soft-wash: rgba(119,87,38,.055);
+}
+.turn-theater-overlay.inkbound-turn-theater[data-ink-paper="cream"] {
+  --q24-gold:#846022;--q24-gold-line:rgba(132,96,34,.47);
+}
+.turn-theater-overlay.inkbound-turn-theater[data-ink-paper="parchment"] {
+  --q24-gold:#6e4718;--q24-gold-line:rgba(110,71,24,.52);
+}
+.turn-theater-overlay.inkbound-turn-theater:is([data-ink-paper="navy"],[data-ink-paper="midnight"]) {
+  --q24-gold:#dfbd7b;--q24-gold-line:rgba(223,189,123,.43);
+  --q24-soft-wash:rgba(223,189,123,.055);
+}
+.turn-theater-overlay.inkbound-turn-theater[data-ink-paper="phosphor"] {
+  --q24-gold:var(--ia-text);--q24-gold-line:var(--ia-strong-rule);
+  --q24-soft-wash:var(--ia-wash);
+}
+/* A wide manuscript on desktop, still its own scroll region under the overlay. */
+.inkbound-turn-theater .turn-resolution-theater.is-inkbound-manuscript {
+  width:min(1060px,calc(100vw - 36px));
+  max-width:calc(100vw - 24px);
+  max-height:calc(100dvh - 28px);
+  padding:clamp(23px,3.6vw,49px) clamp(23px,4.5vw,60px);
+  border:1px solid var(--ia-strong-rule);
+  background:var(--ia-paper);
+  box-shadow:0 0 0 6px var(--ia-paper),0 0 0 7px var(--ia-rule),0 28px 90px rgba(0,0,0,.33);
+  font-family:"Iowan Old Style",Baskerville,Georgia,serif;
+}
+.inkbound-turn-theater .q24-receipt-masthead {
+  display:flex;align-items:center;justify-content:space-between;gap:15px;
+  padding-bottom:20px;border-bottom:1px solid var(--ia-rule);
+  color:var(--ia-text);
+  font:600 11px/1.5 "American Typewriter","Courier New",monospace;
+  letter-spacing:.19em;
+}
+.inkbound-turn-theater .q24-masthead-ornament {
+  color:var(--q24-gold);font:24px/1 Georgia,serif;letter-spacing:0;
+}
+.inkbound-turn-theater .q24-turn-steps {
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;
+  list-style:none;padding:19px 0 14px;margin:0;
+  border-bottom:1px solid var(--ia-rule);
+}
+.inkbound-turn-theater .q24-step {
+  display:flex;align-items:center;gap:9px;min-width:0;
+  color:var(--ia-dim);font:500 11px/1.35 "American Typewriter","Courier New",monospace;
+  letter-spacing:.025em;
+  border-right:1px solid var(--ia-rule);padding:0 10px;
+}
+.inkbound-turn-theater .q24-step:first-child{padding-left:0}
+.inkbound-turn-theater .q24-step:last-child{border-right:0;padding-right:0}
+.inkbound-turn-theater .q24-step-mark {
+  display:grid;place-items:center;flex:none;
+  width:29px;height:29px;border:1px solid var(--ia-rule);border-radius:50%;
+  font:700 11px/1 "American Typewriter","Courier New",monospace;
+  color:inherit;
+}
+.inkbound-turn-theater .q24-step.is-complete {color:var(--ia-copy)}
+.inkbound-turn-theater .q24-step.is-current {color:var(--ia-text);font-weight:700}
+.inkbound-turn-theater .q24-step.is-current .q24-step-mark {
+  border-color:var(--q24-gold);background:var(--q24-gold);color:var(--ia-paper);
+}
+.inkbound-turn-theater .q24-step.is-pending {opacity:.65}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-heading {
+  padding:clamp(24px,3vw,39px) 0 20px;margin:0;border:0;
+  background:none!important;
+}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-heading .eyebrow,
+.inkbound-turn-theater .q24-section-caption,
+.inkbound-turn-theater .q24-outcome-masthead .eyebrow,
+.inkbound-turn-theater .q24-page-handoff .eyebrow {
+  color:var(--q24-gold)!important;
+  font:700 10px/1.5 "American Typewriter","Courier New",monospace;
+  text-transform:uppercase;letter-spacing:.22em;
+}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-heading h2 {
+  margin:0;color:var(--ia-text);
+  font:400 clamp(34px,4.5vw,57px)/1.13 "Iowan Old Style",Baskerville,Georgia,serif;
+  letter-spacing:-.045em;
+}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-heading>span {
+  color:var(--ia-dim);font-size:11px;letter-spacing:.08em;
+}
+.inkbound-turn-theater .q24-section-caption {
+  display:flex;align-items:center;justify-content:center;
+  gap:16px;margin:6px 0 0;text-align:center;
+}
+.inkbound-turn-theater .q24-section-line {flex:1;max-width:110px;height:1px;background:var(--q24-gold-line)}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-results {display:grid;gap:0}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-result-card {
+  padding:clamp(20px,2.6vw,29px) 0;
+  border-bottom:1px solid var(--ia-rule);
+  background:transparent;
+}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-result-card>header {padding:0 0 13px}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-result-card>header strong {
+  display:block;color:var(--ia-text);
+  font:400 clamp(20px,2.3vw,29px)/1.25 "Iowan Old Style",Georgia,serif;
+}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-result-card>header>span {
+  color:var(--ia-dim);font:600 11px/1.5 "American Typewriter","Courier New",monospace;
+}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-dice-stage {
+  grid-template-columns:minmax(185px,.85fr) minmax(0,1.15fr);
+  gap:clamp(17px,3vw,44px);
+  padding:17px 0 5px;
+}
+.inkbound-turn-theater .is-inkbound-manuscript .inkbound-dice-illustration {
+  width:min(100%,230px);color:var(--ia-text);
+}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-breakdown {
+  padding:7px 0 7px clamp(13px,2vw,25px);
+  border-left:1px solid var(--ia-rule);
+}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-breakdown>div.is-total {
+  border-top-color:var(--q24-gold-line);
+}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-outcome {
+  border-top:1px solid var(--ia-rule);padding:15px 0 1px;
+  font-size:clamp(25px,3.2vw,37px);
+}
+/* Only the existing receipt's resolution, progress changes and effects appear. */
+.inkbound-turn-theater .is-inkbound-manuscript .theater-finale-stage {gap:22px;padding-top:16px}
+.inkbound-turn-theater .q24-outcome-masthead {
+  display:flex;align-items:center;justify-content:center;gap:clamp(12px,3vw,37px);
+  padding:8px 0 18px;border-bottom:1px solid var(--ia-rule);
+}
+.inkbound-turn-theater .q24-outcome-masthead img {
+  width:clamp(78px,13vw,126px);height:auto;flex:none;object-fit:contain;
+  mix-blend-mode:multiply;
+}
+.inkbound-turn-theater:is([data-ink-paper="navy"],[data-ink-paper="midnight"]) .q24-outcome-masthead img {
+  filter:invert(1) grayscale(1);mix-blend-mode:screen;
+}
+.inkbound-turn-theater[data-ink-paper="phosphor"] .q24-outcome-masthead img {
+  filter:invert(1) sepia(1) hue-rotate(66deg);mix-blend-mode:screen;
+}
+.inkbound-turn-theater .q24-outcome-masthead h3 {
+  margin:6px 0 7px;color:var(--ia-text);
+  font:400 clamp(25px,3.2vw,36px)/1.15 "Iowan Old Style",Georgia,serif;
+}
+.inkbound-turn-theater .q24-outcome-masthead p {
+  margin:0;color:var(--ia-copy);font:16px/1.5 "Iowan Old Style",Georgia,serif;
+}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-resolution-copy p {
+  margin:8px auto 0;max-width:70ch;line-height:1.7;
+  font-size:clamp(16px,1.75vw,19px);
+}
+.inkbound-turn-theater .q24-hero-identification {display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 18px}
+.inkbound-turn-theater .q24-hero-identification strong {
+  color:var(--ia-text);font:400 21px/1.25 "Iowan Old Style",Georgia,serif;
+}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-progression-card {padding:17px 0}
+.inkbound-turn-theater .q24-page-handoff {
+  display:flex;align-items:center;justify-content:center;gap:19px;
+  border-top:1px solid var(--ia-rule);padding-top:20px;
+  text-align:left;
+}
+.inkbound-turn-theater .q24-page-handoff-ornament {
+  color:var(--q24-gold);font:43px/1 Georgia,serif;
+}
+.inkbound-turn-theater .q24-page-handoff p {
+  color:var(--ia-copy);font:16px/1.45 "Iowan Old Style",Georgia,serif;margin:3px 0 0;
+}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-continue {
+  display:block;min-width:min(100%,340px);min-height:51px;
+  border:1px solid var(--q24-gold-line)!important;
+  background:var(--ia-text)!important;color:var(--ia-paper)!important;
+  padding:12px 22px;margin:0 auto;
+  font:700 12px/1.4 "American Typewriter","Courier New",monospace;
+  letter-spacing:.13em;text-transform:uppercase;
+  cursor:pointer;
+}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-continue:hover {box-shadow:0 0 0 2px var(--q24-gold-line)}
+.inkbound-turn-theater .is-inkbound-manuscript .theater-continue:focus-visible {
+  outline:2px solid var(--q24-gold)!important;outline-offset:4px;
+}
+@media(max-width:730px) {
+  .inkbound-turn-theater .turn-resolution-theater.is-inkbound-manuscript {
+    width:calc(100vw - 16px);max-width:calc(100vw - 16px);
+    max-height:calc(100dvh - 16px);padding:22px 17px;
+    box-shadow:0 18px 42px rgba(0,0,0,.25);
+  }
+  .inkbound-turn-theater .q24-turn-steps {grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 0}
+  .inkbound-turn-theater .q24-step:nth-child(2) {border-right:0}
+  .inkbound-turn-theater .q24-step:nth-child(3) {padding-left:0}
+  .inkbound-turn-theater .is-inkbound-manuscript .theater-dice-stage {grid-template-columns:minmax(0,1fr);gap:6px}
+  .inkbound-turn-theater .is-inkbound-manuscript .theater-breakdown {border:0;padding-left:0}
+  .inkbound-turn-theater .q24-outcome-masthead img {width:83px}
+}
+@media(max-width:420px) {
+  .inkbound-turn-theater .q24-receipt-masthead {font-size:9px;letter-spacing:.10em}
+  .inkbound-turn-theater .q24-step {font-size:10px;padding-right:5px}
+  .inkbound-turn-theater .q24-step-mark {width:26px;height:26px}
+  .inkbound-turn-theater .q24-outcome-masthead {gap:12px}
+  .inkbound-turn-theater .q24-outcome-masthead img {width:67px}
+}
+@media(prefers-reduced-motion:reduce) {
+  .inkbound-turn-theater .is-inkbound-manuscript .inkbound-dice-illustration.is-rolling {animation:none!important}
+  .inkbound-turn-theater .is-inkbound-manuscript {scroll-behavior:auto!important}
+}

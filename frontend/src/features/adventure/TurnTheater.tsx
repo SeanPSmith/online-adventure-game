@@ -62,7 +62,7 @@ export function TurnTheater({
 
   if (theater.phase === "resolution" && theater.activeReceipt) {
     return (
-      <div className={`turn-theater-overlay is-resolution ${inkPaper ? "inkbound-turn-theater" : ""}`} data-ink-paper={inkPaper} role="dialog" aria-modal="true">
+      <div className={`turn-theater-overlay is-resolution ${inkPaper ? "inkbound-turn-theater" : ""}`} data-ink-paper={inkPaper} role="dialog" aria-modal="true" aria-labelledby="q24-turn-title">
         <TurnResolutionTheater
           receipt={theater.activeReceipt}
           inkbound={Boolean(inkPaper)}

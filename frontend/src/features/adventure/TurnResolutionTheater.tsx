@@ -199,7 +199,7 @@ function AnimatedResultCard({
       )}
 
       {settled ? (
-        <div className={`theater-outcome ${outcomeClass}`}>
+        <div className={`theater-outcome ${outcomeClass}`} role="status">
           {result.check ? titleCase(result.check.outcome).toUpperCase() : "ACTION COMMITTED"}
         </div>
       ) : null}
@@ -207,10 +207,10 @@ function AnimatedResultCard({
   );
 }
 
-function ProgressionSummary({ update }: { update: HeroProgressionUpdate }) {
+function ProgressionSummary({ update, heroName }: { update: HeroProgressionUpdate; heroName?: string }) {
   return (
     <article className="theater-progression-card">
-      <div className="eyebrow">HERO CONSEQUENCES</div>
+      <div className="q24-hero-identification"><span className="eyebrow">HERO CONSEQUENCES</span><strong>{heroName || "Hero"}</strong></div>
       <div className="theater-progression-line">
         <span>XP EARNED</span>
         <strong>+{update.xp_gained}</strong>
@@ -300,6 +300,15 @@ export function TurnResolutionTheater({
 
   const currentResult = results[activeIndex] ?? null;
   const criticalNow = Boolean(currentResult?.check?.critical && !finished);
+  // Presentation only: receipt results, dice, HP and XP remain server-authored.
+  // The next scene is not revealed until acknowledgeResolution runs in useTurnTheater.
+  const receiptStage = finished ? "consequence" : "dice";
+  const steps = [
+    { id: "choice", title: "Choice committed", status: "complete" },
+    { id: "dice", title: "The dice", status: finished ? "complete" : "current" },
+    { id: "consequence", title: "The consequences", status: finished ? "current" : "pending" },
+    { id: "page", title: "Next page", status: "pending" },
+  ] as const;
 
   const finishCurrent = useCallback(() => {
     setActiveIndex((current) => {
@@ -318,14 +327,37 @@ export function TurnResolutionTheater({
 
   return (
     <div className={`turn-resolution-theater ${criticalNow ? "is-critical-pulse" : ""} ${inkbound ? "is-inkbound-manuscript" : ""}`}>
+      {inkbound ? (
+        <div className="q24-receipt-masthead" aria-hidden="true">
+          <span>QUILLAIRO</span><span className="q24-masthead-ornament">✧</span><span>THE TURNING PAGE</span>
+        </div>
+      ) : null}
+      {inkbound ? (
+        <ol className="q24-turn-steps" aria-label="Turn presentation stages" data-stage={receiptStage}>
+          {steps.map((step, index) => (
+            <li key={step.id} className={`q24-step is-${step.status}`}
+              aria-current={step.status === "current" ? "step" : undefined}>
+              <span className="q24-step-mark" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+              <span>{step.title}</span>
+            </li>
+          ))}
+        </ol>
+      ) : null}
       <header className="theater-heading">
         <div>
-          <span className="eyebrow">AUTHORITATIVE TURN RECEIPT</span>
-          <h2>{inkbound ? "The Dice Have Spoken" : "LET'S SEE HOW THAT WENT."}</h2>
+          <span className="eyebrow">{inkbound ? `CHRONICLE · TURN ${receipt.resolved_turn_number ?? receipt.turn_number ?? "—"}` : "AUTHORITATIVE TURN RECEIPT"}</span>
+          <h2 id="q24-turn-title">{inkbound ? (finished ? "What the Choice Changed" : "The Dice Have Spoken") : "LET'S SEE HOW THAT WENT."}</h2>
         </div>
-        <span>{receipt.preliminary ? "RESULTS READY // STORY WRITING" : "SERVER RESOLVED"}</span>
+        <span>{receipt.preliminary ? "RESULTS READY // STORY WRITING" : (inkbound ? "A COMMITTED TURN · NO REROLL" : "SERVER RESOLVED")}</span>
       </header>
 
+      {inkbound ? (
+        <div className="q24-section-caption" aria-live="polite">
+          <span className="q24-section-line" aria-hidden="true" />
+          <span>{finished ? "The aftermath" : `${results.length > 1 ? `Companion check ${Math.min(activeIndex + 1, results.length)} of ${results.length}` : "The moment of chance"}`}</span>
+          <span className="q24-section-line" aria-hidden="true" />
+        </div>
+      ) : null}
       <div className="theater-results">
         {results.map((result, index) => {
           if (index > activeIndex) return null;
@@ -346,6 +378,15 @@ export function TurnResolutionTheater({
 
       {finished ? (
         <div className="theater-finale-stage">
+          {inkbound ? (
+            <div className="q24-outcome-masthead">
+              <img src="/art/inkbound/signpost.png" alt="" loading="lazy" />
+              <div><span className="eyebrow">THE AFTERMATH</span>
+                <h3>Every choice leaves a mark.</h3>
+                <p>These are the consequences recorded for this turn.</p>
+              </div>
+            </div>
+          ) : null}
           {receipt.resolution ? (
             <section className="theater-resolution-copy">
               <span className="eyebrow">WHAT ACTUALLY HAPPENED</span>
@@ -356,11 +397,19 @@ export function TurnResolutionTheater({
           {progression.length > 0 ? (
             <section className="theater-progression-grid">
               {progression.map((update) => (
-                <ProgressionSummary update={update} key={update.character_id} />
+                <ProgressionSummary update={update} heroName={results.find((result) => result.character_id === update.character_id)?.player_name} key={update.character_id} />
               ))}
             </section>
           ) : null}
 
+          {inkbound ? (
+            <div className="q24-page-handoff">
+              <span className="q24-page-handoff-ornament" aria-hidden="true">✦</span>
+              <div><span className="eyebrow">THE NEXT PAGE</span>
+                <p>{receipt.completed ? "Your ending is ready to be read." : "Your next passage is ready beyond this page."}</p>
+              </div>
+            </div>
+          ) : null}
           <button className="button button-primary theater-continue" type="button" onClick={onContinue}>
             {receipt.completed ? "SEE HOW THIS ENDS" : "CONTINUE THE CHRONICLE"}
           </button>

@@ -5,16 +5,12 @@
  */
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
+import { HeroEffectList } from "../../features/adventure/HeroEffectList";
 import { getCharacter, getCreationRules, listCharacters, type Character, type CreationRules } from "../../services/characters";
 
 const folioArt = "/art/inkbound";
 const humanize = (value: string) => value.replaceAll("_", " ").replace(/\b\w/g, letter => letter.toUpperCase());
 const finite = (value: unknown) => typeof value === "number" && Number.isFinite(value) ? value : 0;
-const effectName = (value: Record<string, unknown>) => {
-  const name = value.name ?? value.label ?? value.effect_name ?? value.effect_id ?? value.id;
-  return typeof name === "string" && name.trim() ? humanize(name) : "Uncatalogued effect";
-};
-
 function InkDots({ value, max }: { value: number; max: number }) {
   const ceiling = Math.max(1, Math.min(max, 12));
   const filled = Math.max(0, Math.min(ceiling, Math.round(value)));
@@ -53,7 +49,6 @@ export function InkboundHeroFolio({ heroId, onBack }: { heroId: string | null; o
   const skillLabels = new Map((rules?.skills ?? []).map(item => [item.id, item.label]));
   const statLabels = new Map((rules?.stats ?? []).map(item => [item.id, item.label]));
   const talentLabels = new Map((rules?.talents ?? []).map(item => [item.id, item]));
-  const effects = (hero.effects ?? []).filter((effect): effect is Record<string, unknown> => effect != null && typeof effect === "object");
   const xpPercent = Math.max(0, Math.min(100, finite(hero.xp_progress_percent)));
   return <article className="i655-hero-folio" aria-label={`Inkbound character folio for ${hero.name}`}>
     <div className="i655-folio-top"><button type="button" onClick={onBack}>← The Hero Hall</button><span>The character folio / live record</span><Link to={`/game/heroes/${encodeURIComponent(hero.character_id)}`}>Full Hero controls ↗</Link></div>
@@ -70,7 +65,7 @@ export function InkboundHeroFolio({ heroId, onBack }: { heroId: string | null; o
       <section className="i655-folio-attributes"><SectionName>Attributes</SectionName>{stats.length ? stats.map(([key,value]) => <div className="i655-attribute" key={key}><span>{statLabels.get(key) ?? humanize(key)}</span><InkDots value={value} max={rules?.advancement_stat_cap ?? Math.max(5, value)} /><b>{value}</b></div>) : <p className="i655-none">No attributes in this record.</p>}
       <SectionName>Learned skills</SectionName>{skills.length ? skills.map(([key,value]) => <div className="i655-skill" key={key}><span>{skillLabels.get(key) ?? humanize(key)}</span><b>{value}</b></div>) : <p className="i655-none">No skills yet.</p>}</section>
       <section className="i655-folio-talents"><SectionName>Traits & talents</SectionName>{hero.talents?.length ? hero.talents.map(id => {const talent=talentLabels.get(id);return <div className="i655-folio-trait" key={id}><b>{talent?.label ?? humanize(id)}</b>{talent?.description ? <small>{talent.description}</small> : null}</div>;}) : <p className="i655-none">No talents recorded.</p>}
-        <SectionName>Active effects</SectionName>{effects.length ? effects.map((effect,index)=><div className="i655-folio-trait" key={`${effectName(effect)}-${index}`}><b>{effectName(effect)}</b>{typeof effect.duration === "number" ? <small>{effect.duration} turns remaining</small> : null}</div>) : <p className="i655-none">No active effects.</p>}</section>
+        <SectionName>Active effects</SectionName><HeroEffectList effects={hero.effects} /></section>
       <section className="i655-folio-kit"><SectionName>Inventory</SectionName><div className="i655-kit-illustration" aria-hidden="true"><img src={`${folioArt}/lantern-books.png`} alt="" /></div>{hero.inventory?.length ? <ul className="i655-inventory">{hero.inventory.map((item,index)=><li key={`${item}-${index}`}><span>✦</span>{item}</li>)}</ul> : <p className="i655-none">Nothing in the satchel yet.</p>}
         <p className="i655-folio-annotation">Filed in the margins,<br/>never forgotten.</p></section>
     </div>

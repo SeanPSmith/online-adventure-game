@@ -1,0 +1,17 @@
+/* Pass 66.20: read-only Hero condition ledger, scoped across all six papers. */
+.qe-effect-list{display:grid;gap:8px;min-width:0}
+.qe-effect{display:flex;flex-direction:column;gap:5px;min-width:0;border:1px solid currentColor;border-color:color-mix(in srgb,currentColor 20%,transparent);padding:10px 12px;background:transparent;overflow-wrap:anywhere}
+.qe-effect-heading{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 12px;min-width:0}
+.qe-effect-heading strong{font:600 13px/1.4 Georgia,serif;color:inherit}
+.qe-effect-duration{font:11px/1.4 'Courier New',monospace;white-space:normal;opacity:.8}
+.qe-effect-modifiers{display:flex;flex-wrap:wrap;gap:4px 6px}
+.qe-effect-modifiers span{font:11px/1.35 'Courier New',monospace;letter-spacing:.02em;border:1px solid currentColor;border-color:color-mix(in srgb,currentColor 20%,transparent);padding:2px 5px}
+.qe-effect-description{font:italic 13px/1.5 Georgia,serif;margin:0;opacity:.85}
+.qe-effect-empty,.qe-effect-overflow,.qe-effect-note{font:italic 12px/1.4 Georgia,serif;opacity:.78;margin:4px 0}
+.qe-effect-list-compact{gap:6px}.qe-effect-compact{padding:8px}.qe-effect-compact .qe-effect-heading strong{font-size:12px}.qe-effect-compact .qe-effect-modifiers span{font-size:10px}
+@media(max-width:440px){.qe-effect-heading{display:flex;flex-direction:column;align-items:flex-start}}
+
+/* Hero Sheet grid keeps effect entries at full width, then tiles them. */
+.qh15-conditions>.qe-effect-list{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+.hero-effect-list>.qe-effect-list{display:grid;min-width:0}
+@media(max-width:760px){.qh15-conditions>.qe-effect-list{grid-template-columns:1fr}}

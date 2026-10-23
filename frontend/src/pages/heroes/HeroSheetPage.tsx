@@ -3,6 +3,8 @@ import { Link, useParams } from "react-router";
 import { PageTitle } from "../../components/ui/PageTitle";
 import "./quillairoHeroSheetPortrait.css";
 import { Panel } from "../../components/ui/Panel";
+import { HeroEffectList } from "../../features/adventure/HeroEffectList";
+import { activeHeroEffects } from "../../features/adventure/heroEffects";
 import "./quillairoHeroArchivePass6615.css";
 import {
   advanceCharacter,
@@ -633,13 +635,8 @@ export function HeroSheetPage() {
                 </div>)}
               </div>
             ) : <p className="qh15-inventory-empty">No equipment has been recorded for this Hero.</p>}
-            <div className="qh15-inventory-heading qh15-conditions-heading"><span className="qh15-kicker">CURRENT CONDITIONS</span><small>{hero.effects.length} ACTIVE</small></div>
-            {hero.effects.length > 0 ? <div className="qh15-conditions">
-              {hero.effects.map((effect, index) => <div className="qh15-condition" key={index}>
-                <strong>{String(effect.name ?? effect.label ?? effect.key ?? "Active condition")}</strong>
-                <small>{effect.duration_turns !== undefined ? `${String(effect.duration_turns)} turns` : effect.remaining_turns !== undefined ? `${String(effect.remaining_turns)} turns` : "In effect"}</small>
-              </div>)}
-            </div> : <p className="qh15-inventory-empty">No active conditions.</p>}
+            <div className="qh15-inventory-heading qh15-conditions-heading"><span className="qh15-kicker">CURRENT CONDITIONS</span><small>{activeHeroEffects(hero.effects).length} ACTIVE</small></div>
+            <div className="qh15-conditions"><HeroEffectList effects={hero.effects} /></div>
           </Panel>
 
           <Panel title="SEALED CHRONICLES // WHERE THEY HAVE BEEN" className="hero-sheet-wide qh15-sheet-chronicles">

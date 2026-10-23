@@ -79,6 +79,9 @@ node --test tests/frontend/story-time-archive.cjs
 say "Completed adventure quality and cost diagnostics"
 node --test tests/frontend/playtest-diagnostics.cjs
 
+say "Pass 66.20 Hero effect visibility and duration regressions"
+node --test tests/frontend/hero-effects.cjs
+
 say "Hero Hall and Graveyard browser regressions"
 node --test tests/frontend/hero-legacy.cjs
 

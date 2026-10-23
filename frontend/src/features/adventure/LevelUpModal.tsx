@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { HeroEffectDetails } from "./HeroEffectList";
 import type { InkPaper } from "../appearance/inkboundPaper";
 import type { HeroProgressionUpdate } from "../../services/game";
 import "./inkboundLevelUpPass664.css";
@@ -101,8 +102,7 @@ export function LevelUpModal({ heroName, update, onContinue, inkPaper }: LevelUp
                 <h4>New effects</h4>
                 {newEffects.map((effect, index) => (
                   <div className="ilu-effect" key={`${effect.effect_id ?? effect.name ?? "effect"}:${index}`}>
-                    <strong>{effect.name || "New effect"}</strong>
-                    {effect.description ? <p>{effect.description}</p> : null}
+                    <HeroEffectDetails effect={effect} />
                   </div>
                 ))}
               </div>

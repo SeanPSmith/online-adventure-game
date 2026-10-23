@@ -1,3 +1,4 @@
+import { HeroEffectList } from "../../features/adventure/HeroEffectList";
 import { genreInkIllustration } from "../../features/appearance/quillairoGenreArt";
 import { themeCssVars } from "../../features/appearance/themePacks";
 import { readerEditionFamily, themeEdition, themeEditionCssVars } from "../../features/appearance/themeEditions";
@@ -1422,22 +1423,9 @@ ${scene.body.slice(0, 260)}`}
                   </section>
                 ) : null}
 
-                {displayHero.effects.length > 0 ? (
-                  <div className="hero-effect-list">
-                    {displayHero.effects
-                      .filter((effect) => effect.active !== false)
-                      .map((effect, index) => (
-                        <div key={String(effect.effect_id ?? effect.source_key ?? index)}>
-                          <strong>{String(effect.name ?? "EFFECT").toUpperCase()}</strong>
-                          <span>
-                            {effect.remaining_turns != null
-                              ? `${String(effect.remaining_turns)} TURNS`
-                              : String(effect.permanence ?? "ACTIVE").toUpperCase()}
-                          </span>
-                        </div>
-                      ))}
-                  </div>
-                ) : null}
+                <div className="hero-effect-list" aria-label="Active Hero effects">
+                  <HeroEffectList effects={displayHero.effects} compact />
+                </div>
 
                 {isInspectingSelf ? (
                   <Link className="hero-sheet-link" to={`/game/heroes/${encodeURIComponent(characterId)}`}>

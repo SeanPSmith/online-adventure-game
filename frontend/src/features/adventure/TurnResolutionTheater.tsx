@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { receiptKey } from "./turnFlow";
 import { cosmeticD20Face } from "./diceAnimation";
 import { playSound } from "../../services/audioDirector";
+import { HeroEffectDetails } from "./HeroEffectList";
 import type {
   HeroProgressionUpdate,
   TurnResolvedPayload,
@@ -240,8 +241,8 @@ function ProgressionSummary({ update }: { update: HeroProgressionUpdate }) {
 
       {update.new_effects.map((effect, index) => (
         <div className="theater-effect-gained" key={String(effect.effect_id ?? effect.source_key ?? index)}>
-          <strong>+ {String(effect.name ?? "NEW EFFECT").toUpperCase()}</strong>
-          <span>{String(effect.description ?? "")}</span>
+          <strong>NEW EFFECT</strong>
+          <HeroEffectDetails effect={effect} />
         </div>
       ))}
 

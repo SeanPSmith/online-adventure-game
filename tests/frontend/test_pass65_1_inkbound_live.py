@@ -36,12 +36,20 @@ def test_no_stale_story_reveal_or_synthetic_authoritative_results():
 def test_live_controls_reuse_real_data_instead_of_demo_labels():
     live=source('InkboundLiveRoom.tsx')
     for required in ('props.hero.health','props.hero.max_health','props.hero.experience',
-                     'props.hero.effects', 'props.party.map', 'props.history',
+                     'props.party.map', 'props.history',
                      'props.messages', 'props.onSendChat(text)',
                      'props.onSelectChoice(choice)', 'props.onLockChoice',
                      'maxLength={500}', 'props.onNotesChange',
                      'props.onToggleStoryTime', 'role="dialog"'):
         assert required in live, required
+
+    # Pass 66.20 renders the live server-owned effect list through the
+    # shared HeroEffectList component, rather than inline effect markup.
+    # Keep this contract strict about real Hero data, not demo labels.
+    assert 'import { HeroEffectList }' in live
+    assert '<HeroEffectList effects={props.hero?.effects}' in live
+    effects_component = (ROOT/'frontend/src/features/adventure/HeroEffectList.tsx').read_text()
+    assert 'activeHeroEffects(effects)' in effects_component
 
 
 def test_active_readers_use_fades_not_33_mask_swap():

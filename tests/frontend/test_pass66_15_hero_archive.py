@@ -44,7 +44,8 @@ def test_character_sheet_keeps_server_advancement_and_editable_bio():
                      "setSkillSpend", "setTalentSpend", "COMMIT ADVANCEMENT", "HERO DOSSIER"):
         assert contract in SHEET, contract
     assert "hero.inventory.map" in SHEET
-    assert "hero.effects.map" in SHEET
+    assert "<HeroEffectList effects={hero.effects}" in SHEET
+    assert "activeHeroEffects(hero.effects).length" in SHEET
     assert "hero.xp_progress_percent" in SHEET
 
 

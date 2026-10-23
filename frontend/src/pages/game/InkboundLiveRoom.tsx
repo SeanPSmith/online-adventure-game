@@ -7,6 +7,7 @@ import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "rea
 import { Link } from "react-router";
 import type { Character } from "../../services/characters";
 import { StoryReveal } from "../../features/adventure/StoryReveal";
+import { HeroEffectList } from "../../features/adventure/HeroEffectList";
 import { baseSuccessChance } from "../../features/adventure/choicePreview";
 import type { NarrationCue } from "../../services/storyNarrator";
 import type { InkPaper } from "../../features/appearance/inkboundPaper";
@@ -190,7 +191,7 @@ export function InkboundLiveRoom(props: InkboundLiveRoomProps) {
           <div className="ibl-hero-name"><span className="ibl-avatar" aria-hidden="true">✦</span><span><strong>{props.hero?.name ?? props.playerName}</strong><small>Level {props.hero?.level ?? "–"} · {props.hero?.is_alive === false ? "Fallen" : "Adventurer"}</small></span></div>
           <div className="ibl-resource"><span>HP</span><div className="ibl-progress"><span style={{width:`${healthy}%`}} /></div><span>{props.hero ? `${props.hero.health}/${props.hero.max_health}` : "–"}</span></div>
           <div className="ibl-resource"><span>XP</span><div className="ibl-progress"><span style={{width:`${Math.max(0,Math.min(100,xpPercent))}%`}} /></div><span>{xp}</span></div>
-          <div className="ibl-active-effects"><span>Active effects</span>{props.hero?.effects?.length ? props.hero.effects.filter(e=>e.active !== false).slice(0,4).map((effect,index)=><small key={String(effect.effect_id ?? effect.source_key ?? index)}>{String(effect.name ?? "Effect")} {effect.remaining_turns != null ? `· ${String(effect.remaining_turns)} turns` : ""}</small>) : <small>None</small>}</div>
+          <div className="ibl-active-effects"><span>Active effects</span><HeroEffectList effects={props.hero?.effects} compact limit={4} /></div>
         </section>
         <section className="ibl-sidebar-section">
           <div className="ibl-sidebar-head"><h2>Party</h2><button type="button" onClick={() => toggle("party")}>Details ↗</button></div>

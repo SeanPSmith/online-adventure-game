@@ -21,6 +21,7 @@ import "./styles/inkboundFramePass6610.css";
 import "./styles/inkboundQuickEventPass6611.css";
 import "./styles/quillairoPublicPass6612.css";
 import "./styles/quillairoInvitePass6613.css";
+import "./styles/quillairoLegacySurfacesPass6621.css";
 
 const root = document.getElementById("root");
 

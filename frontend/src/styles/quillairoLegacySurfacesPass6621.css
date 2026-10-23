@@ -1,0 +1,304 @@
+/* PASS 66.21 — Quillairo shared-surface reskin.
+ * Only the authenticated account/author/admin surfaces and the secondary game
+ * shell are in scope. The actual manuscript reader, lobby, dashboard artwork,
+ * game cabinets, global popups, and approved brand assets remain untouched.
+ * This is an additive bridge for legacy CSS, not a breaking class rename.
+ */
+:where(.inkbound-account-shell, .game-site-shell:not(.is-desk-home):not(.is-adventure-mode)) {
+  --qs-accent: #9b713c;
+  --qs-accent-wash: rgba(155, 113, 60, .075);
+  --qs-surface: rgba(255, 255, 255, .23);
+  --qs-serif: var(--ib-serif, "Iowan Old Style", Baskerville, Georgia, serif);
+  --qs-ui: var(--ib-mono, "American Typewriter", "Courier New", monospace);
+}
+:where(.inkbound-account-shell, .game-site-shell:not(.is-desk-home):not(.is-adventure-mode))[data-ink-paper="cream"] {
+  --qs-accent: #896333; --qs-accent-wash: rgba(137, 99, 51, .09);
+}
+:where(.inkbound-account-shell, .game-site-shell:not(.is-desk-home):not(.is-adventure-mode))[data-ink-paper="parchment"] {
+  --qs-accent: #775329; --qs-accent-wash: rgba(119, 83, 41, .11);
+}
+:where(.inkbound-account-shell, .game-site-shell:not(.is-desk-home):not(.is-adventure-mode))[data-ink-paper="navy"],
+:where(.inkbound-account-shell, .game-site-shell:not(.is-desk-home):not(.is-adventure-mode))[data-ink-paper="midnight"] {
+  --qs-accent: #d5b27b; --qs-accent-wash: rgba(213, 178, 123, .10);
+  --qs-surface: rgba(255, 255, 255, .035);
+}
+:where(.inkbound-account-shell, .game-site-shell:not(.is-desk-home):not(.is-adventure-mode))[data-ink-paper="phosphor"] {
+  --qs-accent: #b3eb9f; --qs-accent-wash: rgba(179, 235, 159, .09);
+  --qs-surface: rgba(179, 235, 159, .025);
+  --qs-serif: var(--ib-mono, "Courier New", monospace);
+}
+
+/* Editorial hierarchy on older PageTitle / Panel components. */
+:is(.inkbound-account-shell, .game-site-shell:not(.is-desk-home):not(.is-adventure-mode)) .page-title h1 {
+  font-family: var(--qs-serif) !important;
+  font-size: clamp(2.25rem, 4.4vw, 4.2rem) !important;
+  font-weight: 400 !important;
+  line-height: 1.1;
+  letter-spacing: -.04em;
+  text-wrap: balance;
+}
+:is(.inkbound-account-shell, .game-site-shell:not(.is-desk-home):not(.is-adventure-mode)) .page-title .eyebrow {
+  font: 600 .69rem/1.5 var(--qs-ui) !important;
+  letter-spacing: .20em;
+  text-transform: uppercase;
+  color: var(--qs-accent) !important;
+}
+:is(.inkbound-account-shell, .game-site-shell:not(.is-desk-home):not(.is-adventure-mode)) .panel-heading {
+  font: 600 .75rem/1.5 var(--qs-ui) !important;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  padding-block: 13px;
+  border-bottom: 1px solid var(--ib-line) !important;
+}
+:is(.inkbound-account-shell, .game-site-shell:not(.is-desk-home):not(.is-adventure-mode)) .panel-body {
+  padding: clamp(14px, 2vw, 24px);
+  line-height: 1.55;
+}
+:is(.inkbound-account-shell, .game-site-shell:not(.is-desk-home):not(.is-adventure-mode)) .muted-copy {
+  line-height: 1.65;
+  max-width: 85ch;
+}
+
+/* Controls: replace terminal neon and black fields on account/admin pages.
+ * Scope form chrome only; NEVER style buttons inside arcade game engines. */
+.inkbound-account-shell :is(input:not([type="checkbox"]):not([type="radio"]), textarea, select, .terminal-select-trigger) {
+  background: var(--qs-surface) !important;
+  color: var(--ib-text) !important;
+  border: 1px solid var(--ib-line) !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
+  font-family: var(--qs-ui);
+  font-size: max(16px, 1rem);
+  max-width: 100%;
+  min-height: 44px;
+}
+.inkbound-account-shell select {
+  /* Retain the native accessible picker; replace legacy neon chevrons. */
+  background-image: none !important;
+  padding-inline: 12px 28px;
+  appearance: auto;
+  -webkit-appearance: auto;
+}
+.inkbound-account-shell select option {
+  background: var(--ib-paper);
+  color: var(--ib-text);
+}
+.inkbound-account-shell :is(input, textarea, select, .terminal-select-trigger)::placeholder {
+  color: var(--ib-muted);
+  opacity: 1;
+}
+.inkbound-account-shell :is(input, textarea, select, .terminal-select-trigger):focus-visible {
+  outline: 2px solid var(--qs-accent) !important;
+  outline-offset: 2px;
+  border-color: var(--qs-accent) !important;
+}
+.inkbound-account-shell :is(.button, .icon-button) {
+  min-height: 40px;
+  font-family: var(--qs-ui);
+  font-size: .78rem;
+  letter-spacing: .055em;
+  text-transform: none;
+  border: 1px solid var(--ib-line);
+  border-radius: 2px !important;
+  background: transparent;
+  color: var(--ib-text);
+  transition: background-color .16s ease, border-color .16s ease;
+}
+.inkbound-account-shell :is(.button, .icon-button):hover:not(:disabled) {
+  background: var(--qs-accent-wash);
+  border-color: var(--qs-accent);
+  color: var(--ib-text);
+}
+.inkbound-account-shell :is(.button-primary, .button.button-primary) {
+  background: var(--ib-highlight) !important;
+  border-color: var(--ib-highlight) !important;
+  color: var(--ib-button-ink) !important;
+}
+.inkbound-account-shell :is(.button-primary, .button.button-primary):hover:not(:disabled) {
+  background: var(--qs-accent) !important;
+  border-color: var(--qs-accent) !important;
+}
+
+/* Author's Desk and admin console: use paper rules, not luminous tiles. */
+.inkbound-account-shell :is(.author-document, .admin-user-row, .admin-stat-grid > div,
+  .admin-live-room, .admin-import-report, .admin-author-map, .admin-doc-intro,
+  .admin-doc-section, .empty-state) {
+  background: var(--qs-surface) !important;
+  border: 1px solid var(--ib-line) !important;
+  border-radius: 2px;
+}
+.inkbound-account-shell .author-document {
+  padding: clamp(15px, 2vw, 24px);
+}
+.inkbound-account-shell .author-document strong {
+  font: 400 clamp(1.1rem, 2vw, 1.5rem)/1.3 var(--qs-serif);
+  letter-spacing: -.015em;
+}
+.inkbound-account-shell .author-document small,
+.inkbound-account-shell .admin-user-row small {
+  color: var(--ib-muted) !important;
+  opacity: 1;
+}
+.inkbound-account-shell .admin-permission-chip {
+  border: 1px solid var(--ib-line);
+  background: var(--qs-accent-wash);
+  color: var(--ib-text);
+  font-size: .7rem;
+  letter-spacing: .05em;
+}
+.inkbound-account-shell .admin-stat-grid > div {
+  padding: clamp(13px, 2vw, 22px);
+}
+.inkbound-account-shell .admin-stat-grid > div strong {
+  font-family: var(--qs-serif);
+  font-size: clamp(1.35rem, 2.8vw, 2rem);
+  font-weight: 400;
+}
+.inkbound-account-shell .admin-doc-meta,
+.inkbound-account-shell .admin-doc-section summary::after {
+  color: var(--qs-accent) !important;
+}
+.inkbound-account-shell .admin-doc-section summary {
+  color: var(--ib-text) !important;
+  font-family: var(--qs-ui);
+  font-size: .8rem;
+  letter-spacing: .025em;
+}
+.inkbound-account-shell .admin-doc-section[open] {
+  border-color: var(--qs-accent) !important;
+}
+.inkbound-account-shell .admin-doc-section pre,
+.inkbound-account-shell .admin-doc-intro {
+  color: var(--ib-copy) !important;
+  background: transparent !important;
+  font-size: .82rem;
+  line-height: 1.65;
+}
+.inkbound-account-shell .operations-table-wrap :is(th,td) {
+  border-bottom: 1px solid var(--ib-line);
+  color: var(--ib-text);
+  padding: 12px;
+  line-height: 1.5;
+}
+.inkbound-account-shell .operations-table-wrap th {
+  color: var(--ib-muted);
+  font: 600 .7rem/1.4 var(--qs-ui);
+  letter-spacing: .10em;
+  text-transform: uppercase;
+}
+.inkbound-account-shell :is(.admin-search, .admin-import-controls, .admin-user-actions) {
+  gap: .65rem;
+}
+
+/* Arcade directory only; leave the game surface / timing and controls alone. */
+.game-site-shell:not(.is-desk-home):not(.is-adventure-mode) .arcade-lab-list-item {
+  background: var(--qs-surface);
+  border: 1px solid var(--ib-line);
+  border-radius: 2px;
+  color: var(--ib-text);
+  padding: 12px;
+  min-height: 55px;
+}
+.game-site-shell:not(.is-desk-home):not(.is-adventure-mode) .arcade-lab-list-item span {
+  font: 600 .85rem/1.5 var(--qs-ui);
+  letter-spacing: .025em;
+}
+.game-site-shell:not(.is-desk-home):not(.is-adventure-mode) .arcade-lab-list-item small {
+  color: var(--ib-muted) !important;
+  font-size: .76rem;
+}
+.game-site-shell:not(.is-desk-home):not(.is-adventure-mode) .arcade-lab-list-item:is(:hover,:focus-visible,.is-active) {
+  background: var(--qs-accent-wash);
+  border-color: var(--qs-accent);
+}
+.game-site-shell:not(.is-desk-home):not(.is-adventure-mode) .arcade-lab-list-item:focus-visible {
+  outline: 2px solid var(--qs-accent) !important;
+  outline-offset: 2px;
+}
+.game-site-shell:not(.is-desk-home):not(.is-adventure-mode) .arcade-lab-meta {
+  background: var(--ib-line);
+  border-color: var(--ib-line);
+}
+.game-site-shell:not(.is-desk-home):not(.is-adventure-mode) .arcade-lab-meta > div {
+  background: var(--ib-paper);
+  padding: 12px;
+}
+.game-site-shell:not(.is-desk-home):not(.is-adventure-mode) .arcade-lab-meta span {
+  color: var(--ib-muted);
+  font-size: .72rem;
+}
+.game-site-shell:not(.is-desk-home):not(.is-adventure-mode) .arcade-lab-meta strong {
+  color: var(--ib-text);
+  font: 500 1rem/1.4 var(--qs-serif);
+}
+
+/* Keep touch targets and table overflow workable on smaller displays. */
+@media (max-width: 760px) {
+  .inkbound-account-shell .admin-doc-toolbar input { flex-basis: 100%; }
+  .inkbound-account-shell .admin-user-row { grid-template-columns: 1fr; }
+  .inkbound-account-shell .admin-stat-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .game-site-shell:not(.is-desk-home):not(.is-adventure-mode) .arcade-lab-meta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .inkbound-account-shell .page-title-actions,
+  .inkbound-account-shell .admin-user-actions { flex-wrap: wrap; }
+}
+@media (max-width: 420px) {
+  .inkbound-account-shell .admin-stat-grid { grid-template-columns: 1fr; }
+  .game-site-shell:not(.is-desk-home):not(.is-adventure-mode) .arcade-lab-meta {
+    grid-template-columns: 1fr;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .inkbound-account-shell :is(.button, .icon-button) { transition: none; }
+}
+
+/* Router-level 404/error pages render without the normal branded layout. */
+.not-found {
+  min-height: 100dvh;
+  padding: clamp(48px, 10vh, 128px) clamp(24px, 8vw, 120px);
+  background: #f7f3e9;
+  color: #28231d;
+  border-top: 5px solid #9b713c;
+  font-family: "Iowan Old Style", Baskerville, Georgia, serif;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+}
+.not-found .eyebrow {
+  color: #87643c;
+  font: 600 .76rem/1.5 "American Typewriter", "Courier New", monospace;
+  letter-spacing: .16em;
+}
+.not-found h1 {
+  max-width: 850px;
+  color: #28231d;
+  font: 400 clamp(2.6rem, 6vw, 5.7rem)/1.08 "Iowan Old Style", Baskerville, Georgia, serif;
+  letter-spacing: -.045em;
+  margin: 20px 0;
+}
+.not-found .muted-copy {
+  max-width: 670px;
+  color: #655b4d;
+  font-size: clamp(1.05rem, 1.6vw, 1.28rem);
+  line-height: 1.7;
+}
+.not-found :is(.button, .button-primary) {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  margin-top: 12px;
+  padding: 12px 20px;
+  border: 1px solid #28231d;
+  border-radius: 2px;
+  background: #28231d;
+  color: #f7f3e9;
+  font: 600 .78rem/1.5 "American Typewriter", "Courier New", monospace;
+  letter-spacing: .045em;
+  text-transform: none;
+}
+.not-found :is(.button, .button-primary):hover { background: #9b713c; border-color: #9b713c; color: #fffdf6; }
+.not-found :is(a, button):focus-visible { outline: 3px solid #9b713c; outline-offset: 3px; }
+.not-found .route-error-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+@media (prefers-reduced-motion: reduce) { .not-found :is(a, button) { transition: none; } }

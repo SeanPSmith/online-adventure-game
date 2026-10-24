@@ -2,12 +2,13 @@ import { BrandLockup } from "../components/brand/BrandLockup";
 import { Link, NavLink, Outlet } from "react-router";
 import { readLastGameRoute } from "../services/gameRouteMemory";
 import { useAuth } from "../state/AuthContext";
+import { canUseAuthorStudio } from "../services/author";
 import { useInkboundPaper } from "../features/appearance/inkboundPaper";
 
 export function AccountLayout() {
   const { user } = useAuth();
   const [paper] = useInkboundPaper(user?.user_id ?? "");
-  const canAuthor = user?.permissions.includes("author") ?? false;
+  const canAuthor = canUseAuthorStudio(user?.permissions);
   const isAdmin = user?.permissions.includes("admin") ?? false;
   const returnToGame = readLastGameRoute();
 

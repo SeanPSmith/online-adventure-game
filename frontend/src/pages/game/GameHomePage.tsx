@@ -24,6 +24,7 @@ import type {
 } from "../../services/game";
 import { rememberGameRoute } from "../../services/gameRouteMemory";
 import { useAuth } from "../../state/AuthContext";
+import { canUseAuthorStudio } from "../../services/author";
 import { useGameSocket } from "../../state/GameSocketContext";
 
 function p64Cover(title: string, tags: string[] = [], metadata: Record<string, unknown> = {}) {
@@ -77,7 +78,7 @@ export function GameHomePage({ homeLab = false }: { homeLab?: boolean } = {}) {
   const navigate = useNavigate();
   const { preferences } = useAppearance();
   const { user, logout } = useAuth();
-  const canAuthor = user?.permissions.includes("author") ?? false;
+  const canAuthor = canUseAuthorStudio(user?.permissions);
   const isAdmin = user?.permissions.includes("admin") ?? false;
 
   const {

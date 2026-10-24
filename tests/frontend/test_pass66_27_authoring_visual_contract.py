@@ -29,7 +29,7 @@ def test_hero_workflow_and_author_landing_stay_connected():
     assert 'quillairoHeroCreatorPass6627.css' in hero
     assert 'quillairoAuthorHomePass6627.css' in home
     assert 'listAuthorDocuments(' in home
-    assert 'to="/author-console"' in home
+    assert 'href="/author-console"' in home
     assert 'q27-author-home' in home
 
 

@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { Link, Navigate } from "react-router";
+import { Link } from "react-router";
 import { PageTitle } from "../../components/ui/PageTitle";
 import { Panel } from "../../components/ui/Panel";
 import {
+  canUseAuthorStudio,
   getAuthorIdentity,
   listAuthorDocuments,
   type AuthorDocument,
@@ -12,7 +13,7 @@ import "./quillairoAuthorHomePass6627.css";
 
 export function AuthorPage() {
   const { user } = useAuth();
-  const canAuthor = user?.permissions.includes("author") ?? false;
+  const canAuthor = canUseAuthorStudio(user?.permissions);
 
   const [documents, setDocuments] = useState<AuthorDocument[]>([]);
   const [error, setError] = useState("");
@@ -52,7 +53,18 @@ export function AuthorPage() {
   }, [canAuthor]);
 
   if (!canAuthor) {
-    return <Navigate to="/game" replace />;
+    return (
+      <div className="q27-author-home">
+        <PageTitle eyebrow="THE WRITER’S DESK" title="Author access required" />
+        <Panel title="THIS MANUSCRIPT IS RESTRICTED">
+          <p className="muted-copy" role="status">
+            Your account is signed in, but Author Studio access has not been granted.
+            An administrator can enable Author access in Control Room → Users → Grant Author.
+          </p>
+          <p><Link className="inkbound-author-enter" to="/game">Return to Adventure Hall →</Link></p>
+        </Panel>
+      </div>
+    );
   }
 
   return (
@@ -62,9 +74,9 @@ export function AuthorPage() {
         <div>
           <p>Create a world bible or begin with a short adventure brief. Your drafts,
             AI proposals, version history, previews, and publishing controls live together in the Author Studio.</p>
-          <Link className="inkbound-author-enter" to="/author-console">
+          <a className="inkbound-author-enter" href="/author-console">
             Enter the Author Studio <span aria-hidden="true">→</span>
-          </Link>
+          </a>
         </div>
         <p className="inkbound-author-aside">The ink remembers what you write.</p>
       </div>

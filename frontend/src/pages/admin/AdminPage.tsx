@@ -527,7 +527,7 @@ export function AdminPage() {
         <div className="admin-user-list">
           {visibleUsers.map((target) => {
             const isTargetAdmin = target.permissions.includes("admin");
-            const hasAuthor = target.permissions.includes("author");
+            const hasAuthor = target.permissions.includes("author") || isTargetAdmin;
             const busy = workingUserId === target.user_id;
 
             return (

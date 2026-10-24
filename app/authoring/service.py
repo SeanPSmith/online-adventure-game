@@ -64,8 +64,9 @@ class AuthorAccessPolicy:
                 user,
                 "has_permission",
             )
-            and user.has_permission(
-                "author"
+            and (
+                user.has_permission("author")
+                or user.has_permission("admin")
             )
         ):
 

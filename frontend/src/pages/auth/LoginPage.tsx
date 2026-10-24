@@ -7,7 +7,13 @@ export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const state = location.state as { returnTo?: string } | null;
+  const routeState = location.state as { returnTo?: string } | null;
+  const requestedReturn = new URLSearchParams(location.search).get("returnTo");
+  // The server only supplies this one trusted return path. Never allow
+  // arbitrary external or protocol-relative redirects from a query parameter.
+  const state = routeState ?? (requestedReturn === "/author-console"
+    ? { returnTo: requestedReturn }
+    : null);
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);

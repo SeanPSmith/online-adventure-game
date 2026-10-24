@@ -1,6 +1,7 @@
 import { BrandLockup } from "../components/brand/BrandLockup";
 import { Link, NavLink, Outlet, useLocation } from "react-router";
 import { useAuth } from "../state/AuthContext";
+import { canUseAuthorStudio } from "../services/author";
 import { useInkboundPaper } from "../features/appearance/inkboundPaper";
 import { useAppearance } from "../features/appearance/AppearanceContext";
 import "../styles/pass64Shell.css";
@@ -20,7 +21,7 @@ export function GameLayout() {
   const [paper] = useInkboundPaper(user?.user_id ?? "");
   const location = useLocation();
   const { preferences, libraryTheme, edition } = useAppearance();
-  const canAuthor = user?.permissions.includes("author") ?? false;
+  const canAuthor = canUseAuthorStudio(user?.permissions);
   const isAdmin = user?.permissions.includes("admin") ?? false;
   const isAdventureMode = location.pathname.startsWith("/game/adventure/");
   const isDeskHome = location.pathname === "/game" || location.pathname === "/game/home-lab" || location.pathname === "/dev/home-lab";

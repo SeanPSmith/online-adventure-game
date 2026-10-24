@@ -300,10 +300,17 @@ async def author_page(
         user
     ):
 
+        # Never silently bounce a signed-in tester to the public home.
+        # Keep the Author Studio itself restricted and explain the next step
+        # in the authenticated Writer's Desk instead.
         return RedirectResponse(
-            url="/",
-            status_code=
-                status.HTTP_303_SEE_OTHER,
+            url=(
+                "/login?returnTo=%2Fauthor-console"
+                if user is None
+                else "/account/author?access=required"
+            ),
+            status_code=status.HTTP_303_SEE_OTHER,
+            headers={"Cache-Control": "no-store"},
         )
 
 

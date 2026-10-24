@@ -26,7 +26,7 @@ def test_actual_editor_remains_functional():
         assert contract in author
     hub=read("frontend/src/pages/author/AuthorPage.tsx")
     assert 'getAuthorIdentity' in hub and 'listAuthorDocuments' in hub
-    assert 'to="/author-console"' in hub
+    assert 'href="/author-console"' in hub
 
 def test_inkbound_reuses_voice_synchronized_word_reveal():
     room=read("frontend/src/pages/game/InkboundLiveRoom.tsx")

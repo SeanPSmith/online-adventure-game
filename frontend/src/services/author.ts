@@ -1,5 +1,13 @@
 import { apiFetch } from "./api";
 
+/** Mirrors the server Author Studio gate for navigation only.
+ * Server checks remain authoritative for every author read/write.
+ */
+export function canUseAuthorStudio(permissions?: readonly string[]): boolean {
+  return Boolean(permissions && !permissions.includes("author_denied") &&
+    (permissions.includes("author") || permissions.includes("admin")));
+}
+
 export interface AuthorIdentity {
   authorized: boolean;
   user: {

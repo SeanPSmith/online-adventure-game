@@ -1,15 +1,15 @@
 :root {
-    color-scheme: dark;
-    --bg: #0b0d0c;
-    --panel: #111512;
-    --panel2: #171c18;
-    --line: #2e3931;
-    --text: #e9efe9;
-    --muted: #8f9d92;
-    --accent: #b9f27c;
-    --accent-dim: #6d944c;
-    --danger: #ef826f;
-    --warning: #e4b463;
+    color-scheme: light;
+    --bg: #f7f3e9;
+    --panel: #f7f3e9;
+    --panel2: #f3eee4;
+    --line: rgba(48,40,30,.25);
+    --text: #28251f;
+    --muted: #756c60;
+    --accent: #322b21;
+    --accent-dim: #756c60;
+    --danger: #a04435;
+    --warning: #92662e;
     --radius: 12px;
     --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -23,7 +23,7 @@ html, body {
     margin: 0;
     min-height: 100%;
     background:
-        radial-gradient(circle at top right, rgba(185,242,124,.05), transparent 35%),
+        radial-gradient(circle at top right, rgba(146,102,46,.05), transparent 35%),
         var(--bg);
     color: var(--text);
     font-family: var(--sans);
@@ -41,7 +41,7 @@ button, input, textarea, select { font: inherit; }
     gap: 24px;
     padding: 18px 24px;
     border-bottom: 1px solid var(--line);
-    background: rgba(11,13,12,.94);
+    background: var(--bg);
     backdrop-filter: blur(16px);
 }
 
@@ -71,7 +71,7 @@ button, input, textarea, select { font: inherit; }
 
 .sidebar {
     border-right: 1px solid var(--line);
-    background: rgba(17,21,18,.7);
+    background: var(--panel2);
     padding: 20px;
 }
 
@@ -184,7 +184,7 @@ button, input, textarea, select { font: inherit; }
 .button.primary {
     background: var(--accent);
     border-color: var(--accent);
-    color: #10150d;
+    color: var(--bg);
     font-weight: 800;
 }
 
@@ -234,7 +234,7 @@ a.button { text-decoration: none; }
     height: 8px;
     margin: 14px 0;
     border-radius: 999px;
-    background: #080a09;
+    background: var(--panel2);
     overflow: hidden;
 }
 
@@ -323,7 +323,7 @@ input, textarea, select {
     width: 100%;
     border: 1px solid var(--line);
     border-radius: 8px;
-    background: #0d100e;
+    background: var(--panel2);
     color: var(--text);
     padding: 11px 12px;
     outline: none;
@@ -339,7 +339,7 @@ textarea {
 
 input:focus, textarea:focus, select:focus {
     border-color: var(--accent-dim);
-    box-shadow: 0 0 0 3px rgba(185,242,124,.06);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
 }
 
 input[type="range"] { padding: 6px 0; }
@@ -435,11 +435,11 @@ dialog::backdrop {
     max-height: 68vh;
     white-space: pre-wrap;
     word-break: break-word;
-    background: #090b0a;
+    background: var(--panel2);
     border: 1px solid var(--line);
     border-radius: 8px;
     padding: 16px;
-    color: #cbd7cd;
+    color: var(--text);
     font-size: 12px;
     line-height: 1.55;
 }
@@ -453,7 +453,7 @@ dialog::backdrop {
     padding: 12px 14px;
     border: 1px solid var(--accent-dim);
     border-radius: 9px;
-    background: #101611;
+    background: var(--panel);
     box-shadow: 0 12px 35px rgba(0,0,0,.45);
     font-family: var(--mono);
     font-size: 12px;
@@ -512,7 +512,7 @@ dialog::backdrop {
 .world-link-panel {
     border: 1px solid var(--accent-dim);
     border-radius: var(--radius);
-    background: rgba(185,242,124,.04);
+    background: color-mix(in srgb, var(--accent) 4%, transparent);
     padding: 16px 18px;
     margin-bottom: 14px;
 }
@@ -591,7 +591,7 @@ dialog::backdrop {
 .generation-panel {
     border: 1px solid var(--accent-dim);
     border-radius: var(--radius);
-    background: rgba(185,242,124,.035);
+    background: color-mix(in srgb, var(--accent) 3.5%, transparent);
     padding: 18px;
     margin-bottom: 14px;
 }
@@ -626,7 +626,7 @@ dialog::backdrop {
 .generation-info-button {
     border: 1px solid var(--accent-dim);
     border-radius: 999px;
-    background: rgba(185,242,124,.06);
+    background: color-mix(in srgb, var(--accent) 6%, transparent);
     color: var(--accent);
     font-family: var(--mono);
     font-size: 10px;
@@ -638,7 +638,7 @@ dialog::backdrop {
 
 .generation-info-button:hover,
 .generation-info-button:focus-visible {
-    background: rgba(185,242,124,.13);
+    background: color-mix(in srgb, var(--accent) 13%, transparent);
     border-color: var(--accent);
     outline: none;
 }
@@ -880,7 +880,7 @@ dialog::backdrop {
     padding: 14px 16px;
     border: 1px solid var(--accent-dim);
     border-radius: 9px;
-    background: rgba(185,242,124,.055);
+    background: color-mix(in srgb, var(--accent) 5.5%, transparent);
     line-height: 1.55;
 }
 
@@ -979,7 +979,7 @@ dialog::backdrop {
 
 .author-guide-note {
     border-color: var(--accent-dim);
-    background: rgba(185,242,124,.035);
+    background: color-mix(in srgb, var(--accent) 3.5%, transparent);
 }
 
 @media (max-width: 720px) {
@@ -1061,7 +1061,7 @@ dialog::backdrop {
 .author-assist-panel {
     margin: 0 0 18px;
     padding: 18px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--line);
     background: rgba(255, 255, 255, 0.018);
 }
 
@@ -1113,7 +1113,7 @@ dialog::backdrop {
 .repeat-card-ai {
     margin: 0 0 14px;
     padding: 10px;
-    border: 1px dashed var(--border);
+    border: 1px dashed var(--line);
     background: rgba(255, 255, 255, 0.012);
 }
 
@@ -1168,7 +1168,7 @@ dialog::backdrop {
     flex: 0 0 auto;
     border: 1px solid var(--accent-dim);
     border-radius: 999px;
-    background: rgba(185, 242, 124, 0.055);
+    background: color-mix(in srgb, var(--accent) 5.5%, transparent);
     color: var(--accent);
     padding: 3px 7px;
     font-family: var(--mono);
@@ -1182,7 +1182,7 @@ dialog::backdrop {
 .author-ai-pill:hover,
 .author-ai-pill:focus-visible {
     border-color: var(--accent);
-    background: rgba(185, 242, 124, 0.12);
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
     outline: none;
 }
 
@@ -1257,8 +1257,8 @@ dialog::backdrop {
 }
 
 .migration-panel {
-    border: 1px solid color-mix(in srgb, var(--amber, #d7a84a) 68%, transparent);
-    background: color-mix(in srgb, var(--amber, #d7a84a) 8%, var(--panel, #0b1215));
+    border: 1px solid color-mix(in srgb, var(--warning) 68%, transparent);
+    background: color-mix(in srgb, var(--warning) 8%, var(--panel));
     padding: 14px 16px;
     margin-bottom: 14px;
 }
@@ -1278,17 +1278,17 @@ dialog::backdrop {
     flex-wrap: wrap;
     justify-content: space-between;
     gap: 8px 16px;
-    border-top: 1px solid var(--border-muted, #294452);
+    border-top: 1px solid var(--line);
     padding-top: 7px;
     font-size: 0.78rem;
 }
 
 .migration-review-item span {
-    color: var(--muted, #8ba0a8);
+    color: var(--muted);
 }
 
 .migration-review-item.clean {
-    color: var(--green, #7cff9b);
+    color: var(--accent);
 }
 
 .world-reference-picker {
@@ -1297,10 +1297,10 @@ dialog::backdrop {
 }
 
 .world-reference-source {
-    border: 1px solid var(--border, #376378);
-    background: color-mix(in srgb, var(--blue, #68b7d7) 9%, transparent);
+    border: 1px solid var(--line);
+    background: color-mix(in srgb, var(--accent) 9%, transparent);
     padding: 9px 11px;
-    color: var(--blue-bright, #8ed9f5);
+    color: var(--accent);
     font-weight: 800;
     letter-spacing: 0.06em;
 }
@@ -1312,20 +1312,20 @@ dialog::backdrop {
 
 .world-reference-group h4 {
     margin: 0;
-    color: var(--blue-bright, #8ed9f5);
+    color: var(--accent);
     letter-spacing: 0.08em;
     font-size: 0.78rem;
 }
 
 .world-reference-card {
-    border: 1px solid var(--border-muted, #294452);
-    background: color-mix(in srgb, var(--panel, #0b1215) 92%, black);
+    border: 1px solid var(--line);
+    background: color-mix(in srgb, var(--panel) 92%, black);
     padding: 10px 12px;
 }
 
 .world-reference-card.selected {
-    border-color: var(--green, #70ef91);
-    box-shadow: inset 3px 0 0 var(--green, #70ef91);
+    border-color: var(--accent);
+    box-shadow: inset 3px 0 0 var(--accent);
 }
 
 .world-reference-toggle {
@@ -1344,7 +1344,7 @@ dialog::backdrop {
 
 .world-reference-summary {
     margin: 5px 0 0 28px;
-    color: var(--muted, #8ba0a8);
+    color: var(--muted);
     font-size: 0.78rem;
     line-height: 1.45;
 }
@@ -1361,18 +1361,18 @@ dialog::backdrop {
 }
 
 .world-reference-empty {
-    border: 1px dashed var(--border-muted, #294452);
+    border: 1px dashed var(--line);
     padding: 12px;
-    color: var(--muted, #8ba0a8);
+    color: var(--muted);
 }
 
 .private-note-label {
-    border-left: 3px solid var(--blue, #68b7d7);
+    border-left: 3px solid var(--accent);
     padding-left: 12px;
 }
 
 .private-note-label .field-help {
-    color: var(--blue-bright, #8ed9f5);
+    color: var(--accent);
 }
 
 @media (max-width: 760px) {
@@ -1435,10 +1435,10 @@ dialog::backdrop {
 .author-terminal-select-trigger,
 .author-terminal-select-menu button {
     width: 100%;
-    border: 1px solid var(--line, #315b42);
+    border: 1px solid var(--line);
     border-radius: 0;
-    background: #030706;
-    color: var(--text, #c7e8cf);
+    background: var(--panel2);
+    color: var(--text);
     font: inherit;
     text-align: left;
 }
@@ -1453,13 +1453,13 @@ dialog::backdrop {
     content: "⌄";
     position: absolute;
     right: 11px;
-    color: var(--green, #6ee98c);
+    color: var(--accent);
 }
 
 .author-terminal-select-trigger:hover:not(:disabled),
 .author-terminal-select-trigger:focus-visible,
 .author-terminal-select.is-open .author-terminal-select-trigger {
-    border-color: var(--green, #6ee98c);
+    border-color: var(--accent);
     outline: none;
 }
 
@@ -1471,9 +1471,9 @@ dialog::backdrop {
     top: calc(100% + 4px);
     max-height: 260px;
     overflow-y: auto;
-    border: 1px solid var(--green, #6ee98c);
-    background: #010302;
-    box-shadow: 7px 7px 0 rgba(0,0,0,.72);
+    border: 1px solid var(--accent);
+    background: var(--panel);
+    box-shadow: 7px 7px 0 rgba(42,31,20,.2);
 }
 
 .author-terminal-select-menu button {
@@ -1485,18 +1485,18 @@ dialog::backdrop {
 .author-terminal-select-menu button:hover,
 .author-terminal-select-menu button:focus-visible,
 .author-terminal-select-menu button.is-selected {
-    background: rgba(90, 220, 120, .12);
-    color: var(--green, #6ee98c);
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    color: var(--accent);
     outline: none;
 }
 
 /* Pass 63.10 — deliberate review before AI can change an authored draft. */
-.author-ai-preview { margin: 18px 0; border: 1px solid var(--border); padding: 14px; }
+.author-ai-preview { margin: 18px 0; border: 1px solid var(--line); padding: 14px; }
 .author-ai-preview[hidden] { display: none; }
 .author-ai-preview h3 { margin: 0 0 8px; font-size: 13px; }
 .author-ai-preview p { color: var(--muted); line-height: 1.5; }
 .author-ai-preview-changes { max-height: min(46vh, 420px); overflow-y: auto; }
-.author-ai-preview-changes details { border-top: 1px solid var(--border); padding: 9px 0; }
+.author-ai-preview-changes details { border-top: 1px solid var(--line); padding: 9px 0; }
 .author-ai-preview-changes summary { cursor: pointer; overflow-wrap: anywhere; }
 .author-ai-preview-changes pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 160px; overflow-y: auto; margin: 5px 0 12px; font-size: 12px; }
 

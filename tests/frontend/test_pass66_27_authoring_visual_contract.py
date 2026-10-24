@@ -1,5 +1,6 @@
 """Pass 66.27: confirm visual scope and author/hero wiring remain intact."""
 from pathlib import Path
+import re
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -11,8 +12,11 @@ def read(path: str) -> str:
 def test_real_author_studio_still_uses_existing_document_controls():
     html = read('app/web/author/index.html')
     js = read('app/web/author/author.js')
-    assert 'quillairoStudioPass6627.css?v=067' in html
-    assert html.index('author.css?v=066') < html.index('quillairoStudioPass6627.css')
+    # Versioned URLs may change as new styling passes ship. Preserve the
+    # override order and ensure both stylesheets remain cache-versioned.
+    assert re.search(r'/static/author/author\.css\?v=\w+', html)
+    assert re.search(r'/static/author/quillairoStudioPass6627\.css\?v=\w+', html)
+    assert html.index('author.css?v=') < html.index('quillairoStudioPass6627.css')
     for control in ('adventure-list','new-adventure-button','save-button','publish-button',
                     'versions-button','author-ai-dialog','q-world-art-panel','generation-panel'):
         assert f'id="{control}"' in html, control

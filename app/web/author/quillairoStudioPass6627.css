@@ -164,3 +164,93 @@ dialog::backdrop { background: rgba(19,16,12,.62); }
   .generation-header, .q-world-art-head, .strength-summary { flex-wrap: wrap; }
 }
 @media(prefers-reduced-motion:reduce){.adventure-list-item,.progress-fill{transition:none!important}}
+
+/* Pass 66.31 — unify the remaining active author controls with Quillairo's
+   six established paper themes. This extends the existing reskin rather than
+   introducing a replacement editor or parallel design system. */
+.q-author-skip { position:absolute; z-index:150; top:-80px; left:12px; padding:11px 15px;
+  background:var(--panel); color:var(--text); border:2px solid var(--q27-gold); font:600 13px var(--mono); }
+.q-author-skip:focus { top:12px; }
+.workspace:focus { outline:none; }
+.editor :is(.repeat-card,.world-reference-card,.migration-review-item,.generation-info-check) {
+  border-color:var(--line); background:var(--panel2); color:var(--text); border-radius:0;
+}
+.editor .repeat-card { padding:clamp(14px,1.7vw,21px); }
+.editor .repeat-card-title { color:var(--q27-gold); font:600 clamp(15px,1.4vw,18px)/1.35 var(--q27-serif); }
+.editor .repeat-card-actions { gap:8px; }
+.editor .repeat-card-actions :is(button,.button) { min-height:38px; }
+.editor .add-button { min-height:41px; border:1px dashed var(--q27-gold); background:transparent; color:var(--text); }
+.editor .add-button:hover { background:var(--q27-gold-soft); }
+.editor .remove-button { min-height:38px; padding:7px 11px; border:1px solid var(--line); color:var(--danger); }
+.editor .remove-button:hover { border-color:var(--danger); }
+.editor .author-ai-pill { border:1px solid var(--q27-gold); border-radius:0; background:var(--q27-gold-soft);
+  color:var(--text); font:600 10px/1.2 var(--mono); padding:6px 10px; min-height:32px; }
+.editor .author-ai-pill:is(:hover,:focus-visible) { border-color:var(--text); background:var(--q27-gold-soft); }
+.editor .world-reference-source { border:1px solid var(--line); background:var(--q27-gold-soft);
+  color:var(--text); font:600 12px/1.5 var(--mono); letter-spacing:.04em; }
+.editor .world-reference-group h4 { color:var(--q27-gold); font:600 15px/1.4 var(--q27-serif); letter-spacing:normal; }
+.editor .world-reference-card.selected { border-color:var(--q27-gold);
+  box-shadow:inset 3px 0 0 var(--q27-gold); background:var(--q27-gold-soft); }
+.editor .world-reference-toggle { color:var(--text); }
+.editor :is(.world-reference-summary,.migration-review-item span) { color:var(--muted); }
+.editor .migration-panel { border:1px solid var(--line); background:var(--panel2); padding:20px; }
+.editor .migration-review-item.clean { color:var(--text); }
+.editor .migration-review-value summary { color:var(--q27-gold); }
+.editor .generation-provider-strip { border-color:var(--line); background:var(--panel2); }
+.editor .generation-provider-strip strong { color:var(--q27-gold); }
+.editor :is(.generation-provider-label,.generation-provider-model,.generation-readiness) { color:var(--muted); }
+.editor .generation-info-button { color:var(--text); border:1px solid var(--q27-gold); background:transparent; min-height:38px; }
+.editor .generation-info-button:is(:hover,:focus-visible) { background:var(--q27-gold-soft); }
+.editor :is(.generation-info-mark,.generation-info-check.ready) { color:var(--q27-gold); }
+.editor .generation-info-check.ready { border-color:var(--q27-gold); }
+.editor :is(.section-strength,.world-link-panel) { box-shadow:none; }
+.editor .section-strength strong { color:var(--text); }
+.editor .save-state { color:var(--text); font-weight:600; }
+.editor :is(input[type="checkbox"],input[type="radio"]) { width:19px; min-height:19px; height:19px; accent-color:var(--q27-gold); }
+.editor input[type="range"] { accent-color:var(--q27-gold); }
+.editor :is(input,textarea,select):not(:disabled) { caret-color:var(--text); }
+.editor :is(input,textarea,select):disabled { opacity:.65; cursor:not-allowed; }
+.author-terminal-select { min-width:0; }
+.author-terminal-select-menu { z-index:140; background:var(--panel); border:1px solid var(--q27-gold); }
+.author-terminal-select-trigger { border:1px solid var(--line); background:var(--panel2); color:var(--text); }
+.author-terminal-select-trigger:is(:hover,:focus-visible),
+.author-terminal-select.is-open .author-terminal-select-trigger { border-color:var(--q27-gold); }
+.author-terminal-select-menu button { color:var(--text); background:var(--panel); }
+.author-terminal-select-menu button:is(:hover,:focus-visible,.is-selected) { color:var(--text); background:var(--q27-gold-soft); }
+dialog { color:var(--text); }
+dialog .dialog-card { padding:clamp(20px,3vw,38px); background:var(--panel); color:var(--text); }
+dialog .dialog-card h2 { font:400 clamp(28px,3vw,39px)/1.14 var(--q27-serif); }
+dialog .preview-header { gap:18px; align-items:flex-start; }
+dialog .dialog-actions { justify-content:flex-end; flex-wrap:wrap; gap:10px; }
+dialog .dialog-actions .button { min-height:42px; }
+dialog .author-ai-context, dialog .author-confirm-message { line-height:1.7; font-size:16px; }
+dialog .author-ai-preview { border:1px solid var(--q27-gold); background:var(--panel2); padding:clamp(14px,2.5vw,24px); }
+dialog .author-ai-preview h3 { color:var(--q27-gold); font:600 12px var(--mono); letter-spacing:.12em; }
+dialog .author-ai-preview-changes { overscroll-behavior:contain; }
+dialog .author-ai-preview-changes pre { color:var(--text); padding:10px; background:var(--panel); border:1px solid var(--line); }
+dialog .author-assist-state { color:var(--q27-gold); }
+#preview-content { font-size:14px; line-height:1.65; background:var(--panel2); color:var(--text);
+  border:1px solid var(--line); white-space:pre-wrap; overflow-wrap:anywhere; }
+.toast { bottom:max(16px,env(safe-area-inset-bottom)); right:16px;
+  background:var(--panel); color:var(--text); border:1px solid var(--q27-gold);
+  font:500 13px/1.5 var(--q27-serif); box-shadow:0 12px 35px var(--q27-shadow); }
+.toast.error { border-color:var(--danger); }
+.author-user { overflow-wrap:anywhere; }
+@media(max-width:900px) {
+  .editor :is(.repeat-card-fields,.kind-only-grid) { grid-template-columns:minmax(0,1fr); }
+  .editor .repeat-card-fields .wide { grid-column:1; }
+}
+@media(max-width:600px) {
+  .sidebar-heading { gap:12px; }
+  .editor .repeat-card-header { flex-wrap:wrap; align-items:flex-start; }
+  .editor .repeat-card-actions { justify-content:flex-start; }
+  .editor .world-reference-source { overflow-wrap:anywhere; }
+  .author-terminal-select-menu { max-height:min(48dvh,300px); }
+  dialog .dialog-actions { display:grid; grid-template-columns:minmax(0,1fr); }
+  dialog .dialog-actions .button { width:100%; }
+  dialog .preview-header { flex-wrap:wrap; }
+  .toast { right:12px; left:12px; max-width:none; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .editor .progress-fill { transition:none; }
+}

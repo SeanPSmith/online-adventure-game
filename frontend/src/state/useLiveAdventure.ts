@@ -255,6 +255,11 @@ export function useLiveAdventure(
 
       if (payload.last_turn_result) {
         setLastTurn(payload.last_turn_result);
+        // The persisted final receipt is authoritative on reconnection.
+        // A missed turn_resolved event must not silently hide the finale.
+        if (payload.director_complete && payload.last_turn_result.finale) {
+          setFinale(payload.last_turn_result.finale);
+        }
       }
 
       // A reconnect during generation recovers the same frozen dice facts.

@@ -55,6 +55,7 @@ import { useInkboundPaper } from "../../features/appearance/inkboundPaper";
 import "./inkboundAdventurePass657.css";
 import "./inkboundPass658.css";
 import "./inkboundTurnPass659.css";
+import "./inkboundPass6628.css";
 import { useLiveAdventure } from "../../state/useLiveAdventure";
 import { useModal } from "../../state/ModalContext";
 import {
@@ -221,7 +222,7 @@ export function AdventurePage() {
   ) ?? null;
   const isInspectingSelf = inspectedCharacterId === characterId;
   const displayHero: Character | PartyHeroSnapshot | null =
-    isInspectingSelf && hero ? hero : inspectedPartyHero;
+    inspectedPartyHero ?? (isInspectingSelf ? hero : null);
 
   const choiceLocked = Boolean(
     live.game?.started && (localReadiness?.ready || live.choiceAccepted),
@@ -655,6 +656,97 @@ export function AdventurePage() {
 
   const bookReady = Boolean(bookRequested && live.status === "ready" && live.game?.started && scene && theater.chapterReleased && theater.phase === "none" && !live.game?.turn_pending && !live.game?.director_request_active && !live.game?.director_retry_required && !live.game?.pending_micro_event && !choiceLocked && !showDeath && !showLevelUp);
 
+  // Single existing finale presentation reused by Classic and the Inkbound
+  // manuscript. The Inkbound layout hides Classic's DOM, so its summary must
+  // live in the reader itself after the acknowledged dice/turn receipt.
+  const finalePanel = live.finale ? (
+            <section className="finale-inline journey-finale-summary">
+              <header className="finale-summary-header">
+                <div>
+                  <span className="eyebrow">*** THE CHRONICLE IS COMPLETE ***</span>
+                  <h2>{live.finale.ending_label}</h2>
+                  <strong>{live.finale.adventure_title}</strong>
+                </div>
+                <div className="finale-party-rank">
+                  <span>PARTY RENOWN</span>
+                  <strong>{live.finale.party_rank}</strong>
+                  <ShareMomentButton
+                    title={`${live.finale.adventure_title} — Quillairo`}
+                    text={`${live.finale.ending_label} // ${live.finale.final_resolution}`}
+                    url={`${window.location.origin}/`}
+                    label="[↗] SHARE ENDING"
+                    className="button button-quiet"
+                  />
+                </div>
+              </header>
+
+              <div className="finale-meta-strip">
+                <span>{live.finale.turn_count} TURNS</span>
+                <span>{live.finale.play_mode.toUpperCase()}</span>
+                <span>{live.finale.heroes.length} HERO{live.finale.heroes.length === 1 ? "" : "ES"}</span>
+              </div>
+
+              <section className="finale-resolution-copy">
+                <span className="eyebrow">HOW IT ENDED</span>
+                <p>{live.finale.final_resolution}</p>
+              </section>
+
+              <div className="finale-hero-grid">
+                {live.finale.heroes.map((finalHero) => (
+                  <article className="finale-hero-card" key={finalHero.character_id}>
+                    <header>
+                      <div>
+                        <span className="eyebrow">{finalHero.is_alive ? "SURVIVED" : "FALLEN"}</span>
+                        <strong>{finalHero.character_name}</strong>
+                      </div>
+                      <span className="finale-hero-rank">RANK {finalHero.rank}</span>
+                    </header>
+
+                    <div className="finale-hero-progression">
+                      <strong>LVL {finalHero.starting_level} → {finalHero.ending_level}</strong>
+                      <span>+{finalHero.xp_earned} XP</span>
+                    </div>
+
+                    <div className="finale-stat-grid">
+                      <div><span>CHECKS</span><strong>{finalHero.checks_total}</strong></div>
+                      <div><span>SUCCESS</span><strong>{Math.round(finalHero.success_rate)}%</strong></div>
+                      <div><span>CRIT+</span><strong>{finalHero.critical_successes}</strong></div>
+                      <div><span>CRIT-</span><strong>{finalHero.critical_failures}</strong></div>
+                      <div><span>HP</span><strong>{finalHero.health}/{finalHero.max_health}</strong></div>
+                      <div><span>LEVELS</span><strong>+{finalHero.levels_gained}</strong></div>
+                    </div>
+
+                    {(finalHero.advancement_stat_points_earned + finalHero.advancement_skill_points_earned + finalHero.advancement_talent_points_earned) > 0 ? (
+                      <div className="finale-advancement-earned">
+                        ADVANCEMENT // +{finalHero.advancement_stat_points_earned} ATTR // +{finalHero.advancement_skill_points_earned} SKILL // +{finalHero.advancement_talent_points_earned} TALENT
+                      </div>
+                    ) : null}
+                  </article>
+                ))}
+              </div>
+
+              <div className="finale-actions">
+                <Link className="button" to="/game/history">
+                  OPEN SEALED CHRONICLE
+                </Link>
+                <button
+                  className="button button-primary"
+                  type="button"
+                  onClick={() => {
+                    // The finale panel is assembled before the no-Hero route guard below.
+                    // Only leave the socket room when a valid Hero ID is available.
+                    if (characterId) {
+                      leaveAdventure(normalizedRoomCode, characterId);
+                    }
+                    navigate("/game");
+                  }}
+                >
+                  END ADVENTURE HERE // RETURN TO HALL
+                </button>
+              </div>
+            </section>
+  ) : null;
+
   if (!characterId) {
     return (
       <div className="adventure-route-message panel">
@@ -721,8 +813,27 @@ export function AdventurePage() {
         turnNumber={turnNumber}
         scene={scene}
         chapterReleased={theater.chapterReleased && theater.phase === "none" && !live.game?.director_request_active && !live.game?.turn_pending}
+        finalePanel={theater.chapterReleased ? finalePanel : null}
+        narrativePacing={live.game?.narrative_pacing ?? null}
+        lastResult={lastLocalResult}
+        lastProgression={lastLocalProgression}
+        wrapUpCallout={live.game?.wrap_up_active ? (
+          <div className="ibl-ending-invitation" role="status">
+            <strong>The final chapter has been called.</strong>
+            <span>{live.game.wrap_up_turns_remaining} resolution turn(s) remain. Your choices still shape the ending.</span>
+          </div>
+        ) : live.game?.wrap_up_available && (live.game?.narrative_pacing?.act === 3 || (live.game?.target_turns != null && live.game.turn_number >= live.game.target_turns)) ? (
+          <div className="ibl-ending-invitation">
+            <strong>Ready to end this adventure?</strong>
+            <p>Call the final chapter when the journey feels ready. The Director will bring your established threads to a conclusion across three final turns; your party must agree.</p>
+            <button type="button" onClick={live.requestWrapUp}
+              disabled={!connected || live.status !== "ready" || Boolean(live.playerId && live.game.wrap_up_votes.includes(live.playerId))}>
+              {live.playerId && live.game.wrap_up_votes.includes(live.playerId) ? "Waiting for your companions" : "Bring this adventure to a close →"}
+            </button>
+          </div>
+        ) : null}
         playerName={localRoomPlayer?.name ?? "Adventurer"}
-        hero={hero ?? partyHeroes.find((p) => p.character_id === characterId) ?? null}
+        hero={partyHeroes.find((p) => p.character_id === characterId) ?? hero ?? null}
         party={live.room?.players ?? []}
         history={turnHistory}
         messages={live.messages}
@@ -780,7 +891,7 @@ export function AdventurePage() {
         turnNumber={turnNumber}
         adventureTitle={live.game?.adventure_title ?? matchingAdventure?.adventure_title ?? "The Chronicle"}
         scene={scene}
-        hero={hero ?? partyHeroes.find((p) => p.character_id === characterId) ?? null}
+        hero={partyHeroes.find((p) => p.character_id === characterId) ?? hero ?? null}
         playerName={localRoomPlayer?.name ?? "Adventurer"}
         messages={live.messages}
         selectedChoiceId={selectedChoiceId}
@@ -1090,87 +1201,7 @@ ${scene.body.slice(0, 260)}`}
           )}
 
           {live.game?.started && theater.chapterReleased && live.finale ? (
-            <section className="finale-inline journey-finale-summary">
-              <header className="finale-summary-header">
-                <div>
-                  <span className="eyebrow">*** THE CHRONICLE IS COMPLETE ***</span>
-                  <h2>{live.finale.ending_label}</h2>
-                  <strong>{live.finale.adventure_title}</strong>
-                </div>
-                <div className="finale-party-rank">
-                  <span>PARTY RENOWN</span>
-                  <strong>{live.finale.party_rank}</strong>
-                  <ShareMomentButton
-                    title={`${live.finale.adventure_title} — Quillairo`}
-                    text={`${live.finale.ending_label} // ${live.finale.final_resolution}`}
-                    url={`${window.location.origin}/`}
-                    label="[↗] SHARE ENDING"
-                    className="button button-quiet"
-                  />
-                </div>
-              </header>
-
-              <div className="finale-meta-strip">
-                <span>{live.finale.turn_count} TURNS</span>
-                <span>{live.finale.play_mode.toUpperCase()}</span>
-                <span>{live.finale.heroes.length} HERO{live.finale.heroes.length === 1 ? "" : "ES"}</span>
-              </div>
-
-              <section className="finale-resolution-copy">
-                <span className="eyebrow">HOW IT ENDED</span>
-                <p>{live.finale.final_resolution}</p>
-              </section>
-
-              <div className="finale-hero-grid">
-                {live.finale.heroes.map((finalHero) => (
-                  <article className="finale-hero-card" key={finalHero.character_id}>
-                    <header>
-                      <div>
-                        <span className="eyebrow">{finalHero.is_alive ? "SURVIVED" : "FALLEN"}</span>
-                        <strong>{finalHero.character_name}</strong>
-                      </div>
-                      <span className="finale-hero-rank">RANK {finalHero.rank}</span>
-                    </header>
-
-                    <div className="finale-hero-progression">
-                      <strong>LVL {finalHero.starting_level} → {finalHero.ending_level}</strong>
-                      <span>+{finalHero.xp_earned} XP</span>
-                    </div>
-
-                    <div className="finale-stat-grid">
-                      <div><span>CHECKS</span><strong>{finalHero.checks_total}</strong></div>
-                      <div><span>SUCCESS</span><strong>{Math.round(finalHero.success_rate)}%</strong></div>
-                      <div><span>CRIT+</span><strong>{finalHero.critical_successes}</strong></div>
-                      <div><span>CRIT-</span><strong>{finalHero.critical_failures}</strong></div>
-                      <div><span>HP</span><strong>{finalHero.health}/{finalHero.max_health}</strong></div>
-                      <div><span>LEVELS</span><strong>+{finalHero.levels_gained}</strong></div>
-                    </div>
-
-                    {(finalHero.advancement_stat_points_earned + finalHero.advancement_skill_points_earned + finalHero.advancement_talent_points_earned) > 0 ? (
-                      <div className="finale-advancement-earned">
-                        ADVANCEMENT // +{finalHero.advancement_stat_points_earned} ATTR // +{finalHero.advancement_skill_points_earned} SKILL // +{finalHero.advancement_talent_points_earned} TALENT
-                      </div>
-                    ) : null}
-                  </article>
-                ))}
-              </div>
-
-              <div className="finale-actions">
-                <Link className="button" to="/game/history">
-                  OPEN SEALED CHRONICLE
-                </Link>
-                <button
-                  className="button button-primary"
-                  type="button"
-                  onClick={() => {
-                    leaveAdventure(normalizedRoomCode, characterId);
-                    navigate("/game");
-                  }}
-                >
-                  CLOSE JOURNEY // RETURN TO HALL
-                </button>
-              </div>
-            </section>
+            inkboundReady ? null : finalePanel
           ) : live.game?.started ? (
             <section className="choice-area">
               <header className="choice-area-heading">

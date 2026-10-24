@@ -298,7 +298,7 @@ def test_playtest_pass_21_adds_mobile_arcade_readability_finale_and_qte_resoluti
 
     assert 'storyPaneRef.current?.scrollTo({ top: 0, behavior: "smooth" })' in adventure
     assert "journey-finale-summary" in adventure
-    assert "CLOSE JOURNEY // RETURN TO HALL" in adventure
+    assert "END ADVENTURE HERE // RETURN TO HALL" in adventure
     assert "finalHero.checks_total" in adventure
     assert "finalHero.xp_earned" in adventure
 

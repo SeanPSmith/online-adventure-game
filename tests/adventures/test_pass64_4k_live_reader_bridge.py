@@ -50,7 +50,9 @@ def test_real_story_and_choices_not_demo_fiction():
 
 def test_live_hero_chat_and_notes_are_truthful():
     page, live = text(PAGE), text(LIVE)
-    assert 'hero={hero ?? partyHeroes.find' in page
+    # Live room state is authoritative; the fetched Hero is only a fallback.
+    # Both reader variants must show the active party snapshot after each turn.
+    assert page.count("hero={partyHeroes.find((p) => p.character_id === characterId) ?? hero ?? null}") == 2
     assert 'messages={live.messages}' in page
     assert 'live.sendChat(message)' in page
     assert "hero.health" in live and "hero.max_health" in live

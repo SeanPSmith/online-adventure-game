@@ -82,6 +82,7 @@ from app.generation.service import (
 )
 
 from app.generation.scene_art import router as story_art_router, schedule_committed_scene as schedule_scene_art
+from app.generation.pacing import narrative_beat_plan
 
 from app.generation.director import (
     DirectorError,
@@ -811,6 +812,14 @@ def build_game_state(
                 if session.is_ai_directed
                 else None
             ),
+
+        "narrative_pacing": (
+            narrative_beat_plan(
+                session.turn_number,
+                session.director_target_turns,
+                session.director_max_turns,
+            ) if session.is_ai_directed else None
+        ),
 
         "max_turns":
             (
@@ -2130,6 +2139,14 @@ async def apply_turn_progression(
                 character,
             )
 
+        print(
+            "[HERO TURN PROGRESSION] "
+            f"room={room.code} turn={resolved_turn_number} "
+            f"xp_offered={xp_reward} xp_applied={xp_gained} "
+            f"hp_before={health_before} hp_after={health_after} "
+            f"health_events={len(pending_health_events)} "
+            f"check={'yes' if isinstance(check_payload, dict) else 'no'}"
+        )
         updates[player_id] = {
             "character_id": character.character_id,
             "level": character.level,
@@ -4217,7 +4234,9 @@ def build_adventure_finale_payload(
         "play_mode": room.play_mode,
         "ending_label": session.ending_label or "JOURNEY COMPLETE",
         "final_scene_title": str(session.scene.title),
-        "final_resolution": str(session.last_resolution or ""),
+        # The epilogue is the final scene body; last_resolution only describes
+        # how the preceding choice landed and is not a substitute for an ending.
+        "final_resolution": str(session.scene.body or session.last_resolution or ""),
         "turn_count": max(1, int(session.turn_number) - 1),
         "party_rank": party_rank,
         "party_rank_score": party_score,
@@ -4535,46 +4554,53 @@ async def finalize_resolved_turn(
             room.code
         )
 
+        finale_payload = None
         if session.completed:
-
             await commit_completed_adventure_advancement(
                 session=session,
                 characters_by_player_id=characters_by_player_id,
             )
-
-            # Persist the committed advancement marker with the room snapshot
-            # so a restart cannot bank the same level-up points twice.
+            finale_payload = build_adventure_finale_payload(
+                room=room,
+                session=session,
+                characters_by_player_id=characters_by_player_id,
+            )
+            # The finale must be durable on the *same receipt* as the dice/XP.
+            # Reconnecting clients recover it even if turn_resolved was missed.
+            session.last_turn_result["finale"] = finale_payload
             await persist_room_state(room.code)
 
-            await store.record_completed_adventure(
-                room,
-                session,
-            )
-            # Copy previously narrated audio out of the short-lived cache.
-            # Neither AWS nor archive outages may block a finale reveal.
-            from app.narration import archive as narration_archive
-            async def _promote_finished_audio(history_id: str) -> None:
-                try:
-                    await asyncio.to_thread(narration_archive.promote, store, history_id)
-                except Exception:
-                    pass
-            asyncio.create_task(
-                _promote_finished_audio(f"{room.code}:{session.adventure_id}"),
-                name="archive-completed-story-audio",
-            )
+            # A secondary archive failure must not prevent receipt delivery or
+            # hide a completed adventure. Its room snapshot is already saved.
+            try:
+                await store.record_completed_adventure(room, session)
+            except Exception as archive_error:
+                print(
+                    "[FINALE ARCHIVE RETRY NEEDED] "
+                    f"room={room.code} type={type(archive_error).__name__} "
+                    f"detail={archive_error}"
+                )
+            try:
+                from app.narration import archive as narration_archive
+                async def _promote_finished_audio(history_id: str) -> None:
+                    try:
+                        await asyncio.to_thread(narration_archive.promote, store, history_id)
+                    except Exception:
+                        pass
+                asyncio.create_task(
+                    _promote_finished_audio(f"{room.code}:{session.adventure_id}"),
+                    name="archive-completed-story-audio",
+                )
+            except Exception as audio_archive_error:
+                print(f"[FINALE AUDIO ARCHIVE SKIPPED] type={type(audio_archive_error).__name__}")
 
         turn_payload = {
             "room_code": room.code,
             **result,
             "resolved_turn_number": resolved_turn_number,
         }
-
-        if session.completed:
-            turn_payload["finale"] = build_adventure_finale_payload(
-                room=room,
-                session=session,
-                characters_by_player_id=characters_by_player_id,
-            )
+        if finale_payload is not None:
+            turn_payload["finale"] = finale_payload
 
         await sio.emit(
             "turn_resolved",

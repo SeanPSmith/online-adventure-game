@@ -11,7 +11,7 @@ import { HeroEffectList } from "../../features/adventure/HeroEffectList";
 import { baseSuccessChance } from "../../features/adventure/choicePreview";
 import type { NarrationCue } from "../../services/storyNarrator";
 import type { InkPaper } from "../../features/appearance/inkboundPaper";
-import type { ChatMessage, PartyHeroSnapshot, RoomPlayer, SceneChoice, TurnHistoryEntry } from "../../services/game";
+import type { ChatMessage, HeroProgressionUpdate, PartyHeroSnapshot, RoomPlayer, SceneChoice, TurnHistoryEntry, TurnResult } from "../../services/game";
 import "./inkboundFoundation.css";
 import "./inkboundLiveRoom.css";
 
@@ -52,6 +52,11 @@ export type InkboundLiveRoomProps = Readonly<{
   followNarration?: boolean;
   narrationCue?: NarrationCue | null;
   sessionUtilities?: ReactNode;
+  finalePanel?: ReactNode;
+  narrativePacing?: { act: number; beat: string; phase: string } | null;
+  wrapUpCallout?: ReactNode;
+  lastResult?: TurnResult | null;
+  lastProgression?: HeroProgressionUpdate | null;
   onClose: () => void;
 }>;
 
@@ -133,7 +138,7 @@ export function InkboundLiveRoom(props: InkboundLiveRoomProps) {
     </header>
     <div className="ibl-layout">
       <main id="ibl-chapter" ref={chapterScroller} className="ibl-main" tabIndex={-1}>
-        <div className="ibl-meta"><span>Chapter {props.turnNumber}</span><span>{props.adventureTitle}</span><span>Room {props.roomCode}</span></div>
+        <div className="ibl-meta"><span>Chapter {props.turnNumber}</span><span>{props.narrativePacing ? `Act ${props.narrativePacing.act} · ${props.narrativePacing.beat.toLowerCase()}` : props.adventureTitle}</span><span>Room {props.roomCode}</span></div>
         {props.chapterReleased ? <article className="ibl-chapter" key={`${props.roomCode}-${props.scene.id}-${props.turnNumber}`}>
           <h1>{props.scene.title}</h1>
           <div className="ibl-flourish" aria-hidden="true"><span />✧<span /></div>
@@ -150,6 +155,7 @@ export function InkboundLiveRoom(props: InkboundLiveRoomProps) {
             </div>
           </figure>
           <Prose sceneId={props.scene.id} body={props.scene.body} wordRevealEnabled={props.wordRevealEnabled ?? false} decorativeInitials={props.decorativeInitials ?? true} followNarration={props.followNarration ?? false} narrationCue={props.narrationCue ?? null} />
+          {props.finalePanel ? props.finalePanel : <>
           <div className="ibl-section-heading"><span />What do you do?<span /></div>
           <div className="ibl-choices">
             {props.scene.choices.map((choice, index) => <button key={choice.id} type="button" className={`ibl-choice ${props.selectedChoiceId === choice.id ? "is-chosen" : ""}`}
@@ -181,6 +187,8 @@ export function InkboundLiveRoom(props: InkboundLiveRoomProps) {
               : selected ? <><span>Selected: {selected.label}</span><button type="button" onClick={props.onLockChoice} disabled={!liveChoices || props.lockPending}>{props.lockPending ? "Recording…" : "Commit this choice →"}</button></>
               : <span>Select your next action. Only the server decides the outcome.</span>}
           </div>
+          {props.wrapUpCallout}
+          </>}
         </article> : <section className="ibl-sealed" role="status" aria-live="polite"><div className="ibl-flourish" aria-hidden="true">── ✧ ──</div><h1>The ink is settling</h1><p>The next chapter is still sealed. Your choices, dice results, and effects are being resolved.</p></section>}
       </main>
       <details className="ibl-instruments-disclosure" open>
@@ -192,6 +200,12 @@ export function InkboundLiveRoom(props: InkboundLiveRoomProps) {
           <div className="ibl-resource"><span>HP</span><div className="ibl-progress"><span style={{width:`${healthy}%`}} /></div><span>{props.hero ? `${props.hero.health}/${props.hero.max_health}` : "–"}</span></div>
           <div className="ibl-resource"><span>XP</span><div className="ibl-progress"><span style={{width:`${Math.max(0,Math.min(100,xpPercent))}%`}} /></div><span>{xp}</span></div>
           <div className="ibl-active-effects"><span>Active effects</span><HeroEffectList effects={props.hero?.effects} compact limit={4} /></div>
+          {props.lastResult ? <div className="ibl-turn-feedback" role="status" aria-label="Last resolved turn">
+            <span className="ibl-turn-feedback-label">Last resolved turn</span>
+            <strong>{props.lastResult.check ? `D20 ${props.lastResult.check.roll} · ${props.lastResult.check.outcome.replaceAll("_", " ")}` : "Action resolved · no check"}</strong>
+            <span>+{props.lastProgression?.xp_gained ?? props.lastResult.xp_reward} XP · {props.lastProgression?.health_change === undefined ? "HP pending" : props.lastProgression.health_change === 0 ? "HP unchanged" : `${props.lastProgression.health_change > 0 ? "+" : ""}${props.lastProgression.health_change} HP`}</span>
+            {props.lastProgression ? <small>HP {props.lastProgression.health_after}/{props.lastProgression.max_health} · Level {props.lastProgression.level_after}</small> : <small>Detailed rewards appear with the dice receipt.</small>}
+          </div> : null}
         </section>
         <section className="ibl-sidebar-section">
           <div className="ibl-sidebar-head"><h2>Party</h2><button type="button" onClick={() => toggle("party")}>Details ↗</button></div>

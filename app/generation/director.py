@@ -15,6 +15,7 @@ from pydantic import (
 )
 
 from app.generation.momentum import director_momentum_context, measure_scene_progress
+from app.generation.pacing import narrative_beat_plan
 from app.game.outcome_stakes import outcome_contracts
 
 from app.generation.director_schema import (
@@ -434,6 +435,11 @@ STRUCTURED STORY STATE
   +3 major recovery, +4 exceptional healing/restoration. Use it only for actual
   healing, rest, medicine, magic, or comparable recovery established by the
   fiction. The server owns the final HP value.
+- Keep the prose and structured HP ledger consistent. If the Hero physically
+  suffers a wound on this turn, record its negative health_delta; do not narrate
+  an injury then silently send 0. If an already-wounded Hero genuinely rests or
+  receives effective care, record a positive recovery signal. Never invent
+  damage from a harmless failed check or invent healing at full health.
 - Use modifier_value only in the range -2 to +2. Most consequences should be
   -1, +1, or narrative-only (0). Reserve +/-2 for unusually severe or potent
   effects. Never propose more than one stat/skill target per consequence.
@@ -501,7 +507,13 @@ SUSTAINED ADVENTURE DOCTRINE
 - The ending must emerge from accumulated player decisions, discovered
   information, relationships, checks, failures, successes, and consequences.
 - A finale is EARNED when the accumulated story state supports one, not when a
-  nominal turn number arrives.
+  nominal turn number arrives. The Heroes explicitly call the final chapter;
+  until then show meaningful playable choices even if the planned length has
+  passed. Never resolve the whole mission offscreen with an unearned rescue.
+- A breather/rest is a transition, not a trigger for an abrupt finale: show
+  the consequences of recuperating, cut past routine time, and advance the
+  established plot. A rescue, if earned, should still leave a decisive Hero
+  choice or consequence, not replace the climax.
 
 WRAP-UP REQUEST
 - runtime.wrap_up_active indicates that every active Hero has explicitly asked
@@ -545,10 +557,13 @@ STORY PACING
   wrap_up_turns_remaining.
 - minimum_turns is a hard floor: do not complete the adventure before it.
 - target_turns is a soft pacing target, not a countdown.
-- maximum_turns is a hard ceiling: if must_complete=true, resolve the climax
-  and provide the epilogue now.
-- If may_complete=true and the central conflict has naturally reached a real
-  climax/resolution, you MAY complete before target_turns.
+- maximum_turns is the outer PLANNING HORIZON, not a forced ending. A party
+  can keep playing beyond it; never shortcut plot for a numeric deadline.
+- Act I establishes the driving question; Act II complicates and tests it;
+  Act III converges established threads and brings a decisive choice into reach.
+  runtime.narrative_beat supplies the current beat and a concrete instruction.
+- Only explicit, party-approved wrap-up permits completed=true. Otherwise
+  return completed=false with playable choices, even after maximum_turns.
 - Do not rush merely because the target is approaching.
 - Do not stall merely to reach the target.
 - The adventure seed sets the broad genre and destination; the Director chooses
@@ -1556,38 +1571,19 @@ class OpenAIRuntimeDirector:
             int(getattr(session, "wrap_up_turns_remaining", 0) or 0),
         )
 
+        narrative_beat = narrative_beat_plan(
+            current_turn, target_turns, maximum_turns,
+        )
         if wrap_up_active:
-            # An agreed wrap-up gets its own exact three-turn runway.  It is
-            # deliberately independent of the nominal target/max window: the
-            # party asked for closure, and the Director now converges existing
-            # material instead of suddenly truncating the current turn.
+            # Only an explicit party vote authorizes the terminal epilogue.
+            # The existing three-turn convergence remains authoritative.
             may_complete = wrap_up_turns_remaining <= 1
             must_complete = wrap_up_turns_remaining <= 1
-            story_phase = (
-                "FINALE"
-                if must_complete
-                else "WRAP-UP"
-            )
+            story_phase = "FINALE" if must_complete else "WRAP-UP"
         else:
-            may_complete = current_turn >= minimum_turns
-            must_complete = current_turn >= maximum_turns
-
-            if must_complete:
-                story_phase = "FINALE"
-            elif current_turn >= target_turns:
-                story_phase = "FINALE WINDOW"
-            elif current_turn >= max(
-                minimum_turns,
-                int(target_turns * 0.70),
-            ):
-                story_phase = "CONVERGENCE"
-            elif current_turn >= max(
-                2,
-                int(target_turns * 0.30),
-            ):
-                story_phase = "ESCALATION"
-            else:
-                story_phase = "SETUP"
+            may_complete = False
+            must_complete = False
+            story_phase = str(narrative_beat["phase"])
 
 
         # Keep runtime turns bounded. The old implementation increased output
@@ -1777,6 +1773,8 @@ class OpenAIRuntimeDirector:
 
                 "story_phase":
                     story_phase,
+
+                "narrative_beat": narrative_beat,
 
                 "may_complete":
                     may_complete,
@@ -2476,7 +2474,7 @@ class OpenAIRuntimeDirector:
         ):
 
             raise DirectorError(
-                "Story Director attempted to end before the minimum turn window."
+                "Story Director attempted to end without party-approved finale or before its minimum turn window."
             )
 
 

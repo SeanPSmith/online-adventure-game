@@ -1,0 +1,14 @@
+/* Pass 66.28 — ending and progression surfaces on the existing Inkbound reader. */
+.inkbound-live .ibl-ending-invitation{max-width:900px;margin:28px auto 14px;padding:20px clamp(16px,3vw,30px);border:1px solid var(--ink-line);border-top:2px solid var(--ink-gold,#9b783b);text-align:left;color:var(--ink-dark);background:color-mix(in srgb,var(--ink-paper,#f7f0e3) 80%,transparent)}
+.ibl-ending-invitation strong{display:block;font:400 clamp(21px,2vw,28px)/1.2 Georgia,serif;margin-bottom:8px}
+.ibl-ending-invitation :is(p,span){font:15px/1.55 Georgia,serif;margin:4px 0 13px;color:var(--ink-muted)}
+.ibl-ending-invitation button{background:#26201a;color:#f8f0df;border:1px solid #b28b4b;padding:12px 18px;font:500 14px Georgia,serif;cursor:pointer}
+.ibl-ending-invitation button:disabled{opacity:.66;cursor:default}
+.ibl-ending-invitation button:focus-visible{outline:3px solid #ab7e38;outline-offset:3px}
+.ibl-turn-feedback{border-top:1px solid var(--ink-line);margin-top:17px;padding-top:13px;display:flex;flex-direction:column;align-items:flex-start;gap:5px;text-align:left}
+.ibl-turn-feedback-label{font:10px/1.4 Georgia,serif;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-muted)}
+.ibl-turn-feedback strong{font:500 15px/1.35 Georgia,serif;color:var(--ink-dark);text-transform:capitalize}
+.ibl-turn-feedback :is(span:not(.ibl-turn-feedback-label),small){font:12px/1.45 Georgia,serif;color:var(--ink-muted)}
+.inkbound-live .journey-finale-summary{margin:28px auto;max-width:900px;text-align:left;padding:clamp(18px,3vw,32px);background:color-mix(in srgb,var(--ink-paper,#faf5ea) 90%,transparent);border:1px solid var(--ink-line)}
+.inkbound-live .journey-finale-summary .finale-actions{display:flex;gap:12px;flex-wrap:wrap}
+@media(max-width:600px){.inkbound-live .journey-finale-summary{padding:16px}.inkbound-live .journey-finale-summary .finale-actions>*{width:100%;text-align:center}}

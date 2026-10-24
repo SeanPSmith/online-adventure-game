@@ -396,6 +396,7 @@ export interface GameState {
   ai_directed: boolean;
   minimum_turns: number | null;
   target_turns: number | null;
+  narrative_pacing?: { act: number; beat: string; phase: string } | null;
   max_turns: number | null;
   wrap_up_available: boolean;
   wrap_up_active: boolean;

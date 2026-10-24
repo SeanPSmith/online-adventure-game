@@ -119,6 +119,9 @@ export function AdventurePage() {
   // Inkbound is the normal started-adventure reader; the classic UI remains an explicit fallback.
   const classicRequested = searchParams.get("reader") === "classic";
   const defaultInkbound = !classicRequested && !bookRequested;
+  // Preserve the selected edition throughout reconnects, loading and turn
+  // transitions; data readiness must never flash legacy terminal dialogs.
+  const inkspacePaper = (inkboundRequested || defaultInkbound) ? inkPaper : undefined;
   const changeBookView = (enabled: boolean) => {
     const next = new URLSearchParams(searchParams);
     if (enabled) next.set("reader", "book");
@@ -1646,13 +1649,13 @@ ${scene.body.slice(0, 260)}`}
         <LevelUpModal
           heroName={hero?.name ?? localRoomPlayer?.name ?? "Hero"}
           update={lastLocalProgression}
-          inkPaper={inkboundReady ? inkPaper : undefined}
+          inkPaper={inkspacePaper}
           onContinue={() => setDismissedLevelUpKey(levelUpKey)}
         />
       ) : null}
 
       <QuickEventModal
-        inkPaper={inkboundReady ? inkPaper : undefined}
+        inkPaper={inkspacePaper}
         fantasyArtwork={fantasyIllustration}
         event={
           theater.phase === "none" && !showLevelUp && !showDeath
@@ -1676,7 +1679,7 @@ ${scene.body.slice(0, 260)}`}
       />
 
       <TurnTheater
-        inkPaper={inkboundReady ? inkPaper : undefined}
+        inkPaper={inkspacePaper}
         choiceLabel={choiceLocked ? (live.choiceAccepted?.choice_label ?? selectedChoice?.label) : null}
         hero={(() => {
           const current = partyHeroes.find((item) => item.character_id === characterId);

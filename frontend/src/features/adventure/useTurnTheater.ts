@@ -242,13 +242,25 @@ export function useTurnTheater({
       return;
     }
 
+    // Non-final Director commits advance the turn number; a finale deliberately
+    // retains its resolved turn number. Both are *committed* stories. Requiring
+    // turn_number to advance strands the final dice and epilogue forever.
+    let committedSceneReady = false;
+    if (!game.turn_pending && game.turn_number > resolvedTurnNumber(committed)) {
+      committedSceneReady = true;
+    }
+    if (!game.turn_pending && game.director_complete &&
+        game.turn_number === resolvedTurnNumber(committed)) {
+      committedSceneReady = true;
+    }
+
     // An AI turn must finish and commit the authored scene before showing dice.
     // The next chapter remains behind the overlay until the player continues.
     const hadIntermission = Boolean(intermissionRef.current)
       || phaseRef.current === "intermission" || phaseRef.current === "story-ready";
     if (hadIntermission) {
       readyReceiptRef.current = committed;
-      if (!game.turn_pending && game.turn_number > resolvedTurnNumber(committed)) {
+      if (committedSceneReady) {
         if (phaseRef.current === "story-ready") {
           if (countdownValue === 0) finishIntermissionStoryReady();
         } else if (phaseRef.current === "intermission") {
@@ -268,7 +280,7 @@ export function useTurnTheater({
 
     // Static/tutorial turns, and reconnect after a fully committed result,
     // have no running Arcade to close. Present the same durable dice once.
-    if (!game.turn_pending && game.turn_number > resolvedTurnNumber(committed)) {
+    if (committedSceneReady) {
       clearTimer();
       showReceipt(committed);
       transition("resolution");

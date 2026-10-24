@@ -16,7 +16,8 @@ ART = ROOT / 'frontend/public/art/inkbound/north-road-editorial.png'
 def test_live_progression_receipt_enters_actual_inkbound_folio():
     source, page = SRC.read_text(), PAGE.read_text()
     assert 'inkPaper?: InkPaper' in source
-    assert 'inkPaper={inkboundReady ? inkPaper : undefined}' in page
+    assert 'inkPaper={inkspacePaper}' in page
+    assert 'const inkspacePaper = (inkboundRequested || defaultInkbound)' in page
     assert 'update.level_before' in source and 'update.level_after' in source
     assert 'update.xp_gained' in source and 'update.max_health' in source
     assert 'update.new_effects' in source

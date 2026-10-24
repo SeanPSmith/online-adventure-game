@@ -14,7 +14,8 @@ def test_turn_theater_declares_ink_paper_and_applies_theme():
     theater = THEATER.read_text(encoding="utf-8")
     page = PAGE.read_text(encoding="utf-8")
 
-    assert 'inkPaper={inkboundReady ? inkPaper : undefined}' in page
+    assert 'inkPaper={inkspacePaper}' in page
+    assert 'const inkspacePaper = (inkboundRequested || defaultInkbound)' in page
     assert 'import type { InkPaper } from "../appearance/inkboundPaper";' in theater
     assert '  inkPaper,\n  theater,' in theater
     assert '  inkPaper?: InkPaper;' in theater

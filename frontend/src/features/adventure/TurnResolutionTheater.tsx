@@ -114,7 +114,7 @@ function AnimatedResultCard({
   useEffect(() => {
     setSettled(complete);
     setRolling(active && Boolean(result.check));
-    setDisplayRoll(result.check ? result.check.roll : "—");
+    setDisplayRoll(active && !complete ? "—" : result.check ? result.check.roll : "—");
   }, [result.check?.roll, result.check?.total, complete, active]);
 
   useEffect(() => {
@@ -282,11 +282,23 @@ export function TurnResolutionTheater({
   const turnIdentity = receiptKey(receipt);
   const [activeIndex, setActiveIndex] = useState(0);
   const [finished, setFinished] = useState(results.length === 0);
+  const [showReceiptRecovery, setShowReceiptRecovery] = useState(false);
 
   useEffect(() => {
     setActiveIndex(0);
     setFinished(results.length === 0);
+    setShowReceiptRecovery(false);
   }, [turnIdentity, results.length]);
+
+  // Rendering the saved receipt must never depend indefinitely on an animation
+  // timer (especially on phones in background tabs). Reveal a manual bypass
+  // after the normal dice presentation has had ample time to complete.
+  useEffect(() => {
+    if (finished) return;
+    setShowReceiptRecovery(false);
+    const timeout = setTimeout(() => setShowReceiptRecovery(true), 8000);
+    return () => clearTimeout(timeout);
+  }, [finished, activeIndex, turnIdentity]);
 
   useEffect(() => {
     if (!finished) return;
@@ -311,15 +323,14 @@ export function TurnResolutionTheater({
   ] as const;
 
   const finishCurrent = useCallback(() => {
-    setActiveIndex((current) => {
-      if (current >= results.length - 1) {
-        setFinished(true);
-        return current;
-      }
-
-      return current + 1;
-    });
-  }, [results.length]);
+    // Do not schedule setFinished from inside a setActiveIndex updater: React
+    // can run functional updaters while rendering or twice in StrictMode.
+    if (activeIndex >= results.length - 1) {
+      setFinished(true);
+    } else {
+      setActiveIndex(activeIndex + 1);
+    }
+  }, [activeIndex, results.length]);
 
   const progression = receipt.hero_progression
     ? Object.values(receipt.hero_progression)
@@ -375,6 +386,16 @@ export function TurnResolutionTheater({
           );
         })}
       </div>
+
+      {!finished && showReceiptRecovery ? (
+        <div className="q34-receipt-recovery" role="status">
+          <p>The dice animation is taking longer than expected. Your results are already recorded.</p>
+          <button type="button" className="button" onClick={() => {
+            setActiveIndex(Math.max(0, results.length - 1));
+            setFinished(true);
+          }}>Reveal saved roll and consequences</button>
+        </div>
+      ) : null}
 
       {finished ? (
         <div className="theater-finale-stage">

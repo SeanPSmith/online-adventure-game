@@ -8,6 +8,7 @@ import {
   type AuthorDocument,
 } from "../../services/author";
 import { useAuth } from "../../state/AuthContext";
+import "./quillairoAuthorHomePass6627.css";
 
 export function AuthorPage() {
   const { user } = useAuth();
@@ -55,21 +56,21 @@ export function AuthorPage() {
   }
 
   return (
-    <>
-      <PageTitle eyebrow="THE WRITER’S DESK" title="Worlds waiting to be written" />
+    <div className="q27-author-home">
+      <PageTitle eyebrow="THE WRITER’S DESK" title="At the writer’s desk" />
       <div className="inkbound-author-intro">
         <div>
-          <p>Begin with a world. Follow it with an adventure. All your drafts, versions,
-            AI proposals, previews, and publishing tools remain in the full studio.</p>
+          <p>Create a world bible or begin with a short adventure brief. Your drafts,
+            AI proposals, version history, previews, and publishing controls live together in the Author Studio.</p>
           <Link className="inkbound-author-enter" to="/author-console">
-            Open Author Studio <span aria-hidden="true">→</span>
+            Enter the Author Studio <span aria-hidden="true">→</span>
           </Link>
         </div>
         <p className="inkbound-author-aside">The ink remembers what you write.</p>
       </div>
 
-      <Panel title="ADVENTURE DOCUMENTS">
-        {loading ? <p className="muted-copy">OPENING THE WORKSHOP_</p> : null}
+      <Panel title="YOUR MANUSCRIPTS">
+        {loading ? <p className="muted-copy">Opening your manuscript library…</p> : null}
         {error ? <div className="form-error">{error}</div> : null}
 
         <div className="author-document-grid">
@@ -89,16 +90,16 @@ export function AuthorPage() {
 
         {!loading && !error && documents.length === 0 ? (
           <div className="empty-state">
-            <strong>THE WORKSHOP IS EMPTY.</strong>
-            <span>Probably safer this way.</span>
+            <strong>A blank page awaits.</strong>
+            <span>Begin with a world or a single adventure brief in the Author Studio.</span>
           </div>
         ) : null}
 
         <p className="muted-copy author-migration-note">
-          Open Author Studio to edit, review AI proposals, autosave, version, preview,
-          and publish. This page lists your live documents; no authoring features were removed.
+          The Author Studio holds the full editing workflow: autosave, AI suggestions,
+          version history, preview, and publishing. Select a manuscript there to continue writing.
         </p>
       </Panel>
-    </>
+    </div>
   );
 }

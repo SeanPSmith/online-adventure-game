@@ -1,0 +1,41 @@
+/* Pass 66.27: author landing, same editorial paper language as Studio. */
+.q27-author-home {
+  --q27-author-gold: #966a32;
+  --q27-author-wash: rgba(150,106,50,.09);
+  width:100%;
+  max-width:1340px;
+  margin-inline:auto;
+}
+[data-ink-paper="cream"] .q27-author-home { --q27-author-gold:#865e2c; }
+[data-ink-paper="parchment"] .q27-author-home { --q27-author-gold:#69451d; }
+[data-ink-paper="navy"] .q27-author-home,
+[data-ink-paper="midnight"] .q27-author-home { --q27-author-gold:#d8b17a; --q27-author-wash:rgba(216,177,122,.09); }
+[data-ink-paper="phosphor"] .q27-author-home { --q27-author-gold:var(--ib-text); --q27-author-wash:rgba(198,249,177,.08); }
+.q27-author-home .inkbound-author-intro {
+  border-block:1px solid var(--ib-line);
+  padding:clamp(22px,3vw,45px) clamp(12px,2.5vw,35px);
+  background:linear-gradient(105deg,var(--q27-author-wash),transparent 72%);
+  margin-block:20px 30px;
+}
+.q27-author-home .inkbound-author-intro>div { max-width:740px; }
+.q27-author-home .inkbound-author-intro p { font-size:clamp(17px,1.6vw,21px); line-height:1.7; }
+.q27-author-home .inkbound-author-enter {
+  display:inline-flex; min-height:50px; align-items:center;
+  padding:12px 19px;
+  background:var(--ib-text);
+  border:1px solid var(--q27-author-gold);
+  color:var(--ib-paper,var(--ib-bg,#f7f3e9));
+  font-size:14px;
+  letter-spacing:.035em;
+}
+.q27-author-home .inkbound-author-enter:hover { background:var(--q27-author-gold); }
+.q27-author-home .inkbound-author-enter:focus-visible,
+.q27-author-home a:focus-visible { outline:2px solid var(--q27-author-gold); outline-offset:3px; }
+.q27-author-home .author-document-grid { gap:clamp(12px,2vw,24px); }
+.q27-author-home .author-document { border-left:3px solid var(--q27-author-gold) !important; min-height:115px; }
+.q27-author-home .author-document .eyebrow { color:var(--q27-author-gold); }
+.q27-author-home .author-migration-note { line-height:1.7; }
+@media(max-width:650px) {
+  .q27-author-home .inkbound-author-intro { margin-top:14px; padding:22px 15px; }
+  .q27-author-home .inkbound-author-enter { justify-content:space-between; width:100%; }
+}

@@ -6,6 +6,7 @@ import {
   type HeroPortraitBook,
 } from "../../services/characters";
 import "./quillairoHeroCreator.css";
+import "./quillairoHeroCreatorPass6627.css";
 
 type Step = "identity" | "journey" | "abilities" | "record" | "portraits";
 const STEPS: { id: Step; label: string }[] = [

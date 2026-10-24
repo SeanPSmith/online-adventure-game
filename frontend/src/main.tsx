@@ -25,6 +25,7 @@ import "./styles/quillairoLegacySurfacesPass6621.css";
 import "./styles/quillairoLiveFolioPass6623.css";
 import "./styles/quillairoTurnReceiptPass6624.css";
 import "./styles/quillairoIntermissionPass6625.css";
+import "./styles/quillairoFolioToolsPass6626.css";
 
 const root = document.getElementById("root");
 

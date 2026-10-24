@@ -1,0 +1,212 @@
+/* Pass 66.26 · live reader instruments.
+ * All content comes from existing room props: never infer inventory, maps,
+ * rolls, XP, or server state. Deliberately scoped to the existing drawer. */
+.inkbound-live .ibl-drawer {
+  --q26-rule:var(--ia-rule,rgba(95,75,48,.22));
+  --q26-accent:var(--q23-gold,#98702d);
+  --q26-wash:var(--ia-wash,rgba(95,75,48,.045));
+  width:min(96vw,670px)!important;
+  background:var(--ia-paper)!important;
+  color:var(--ia-copy)!important;
+  scrollbar-color:var(--ia-strong-rule) transparent;
+}
+.inkbound-live .ibl-drawer>header {
+  position:sticky;top:0;z-index:3;
+  padding:8px 0 16px;
+  border-bottom:1px solid var(--q26-rule);
+  background:var(--ia-paper)!important;
+}
+.inkbound-live .ibl-drawer .ibl-kicker {
+  font:500 11px/1.4 "American Typewriter","Courier New",monospace;
+  letter-spacing:.15em;color:var(--q26-accent)!important;
+}
+.inkbound-live .ibl-drawer>header button {
+  display:grid;place-items:center;min-width:44px;min-height:44px;
+  border:1px solid var(--q26-rule)!important;
+  border-radius:50%;font:30px/1 Georgia,serif;
+}
+.inkbound-live .ibl-drawer>h2 {
+  margin:clamp(20px,3vw,35px) 0 10px;
+  font:400 clamp(37px,4vw,55px)/1.12 "Iowan Old Style",Georgia,serif!important;
+  letter-spacing:-.025em;color:var(--ia-text)!important;
+}
+.inkbound-live .ibl-drawer>h2::after {
+  content:"";display:block;margin-top:19px;width:84px;height:1px;
+  background:var(--q26-accent);
+}
+.inkbound-live .ibl-folio-lede {
+  margin:0 0 24px!important;max-width:55ch;
+  font:400 clamp(16px,1.5vw,19px)/1.58 "Iowan Old Style",Georgia,serif!important;
+  color:var(--ia-copy)!important;
+}
+.inkbound-live .ibl-folio-content {display:grid;gap:18px;min-width:0;padding-bottom:24px}
+.inkbound-live .ibl-folio-content>.ibl-folio-lede {margin-bottom:2px!important}
+.inkbound-live .ibl-folio-card {
+  padding:clamp(16px,2.4vw,25px);border:1px solid var(--q26-rule);
+  background:var(--q26-wash);min-width:0;
+}
+.inkbound-live .ibl-folio-card h3 {
+  margin:2px 0 12px;
+  font:400 clamp(22px,2.4vw,29px)/1.24 "Iowan Old Style",Georgia,serif!important;
+  color:var(--ia-text)!important;
+}
+.inkbound-live .ibl-folio-hero-mark {
+  width:54px;height:54px;margin-bottom:16px;
+  border:1px solid var(--q26-accent);border-radius:50%;
+  display:grid;place-items:center;color:var(--q26-accent);
+  font:27px Georgia,serif;
+}
+.inkbound-live .ibl-folio-byline {font:13px/1.5 Georgia,serif!important;color:var(--ia-dim)!important}
+.inkbound-live .ibl-folio-stats {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin:18px 0 0;gap:9px}
+.inkbound-live .ibl-folio-stats>div {border-top:1px solid var(--q26-rule);padding:11px 2px 2px;min-width:0}
+.inkbound-live .ibl-folio-stats dt {
+  color:var(--ia-dim);font:10px/1.5 "American Typewriter","Courier New",monospace;
+  text-transform:uppercase;letter-spacing:.09em;
+}
+.inkbound-live .ibl-folio-stats dd {
+  margin:7px 0 0;color:var(--ia-text);
+  font:400 clamp(17px,2vw,22px)/1.3 "Iowan Old Style",Georgia,serif;
+}
+.inkbound-live .ibl-folio-primary-link {
+  display:flex;align-items:center;justify-content:space-between;gap:18px;
+  padding:15px 18px;border:1px solid var(--q26-accent);
+  background:var(--ia-text);color:var(--ia-paper)!important;
+  font:16px/1.4 "Iowan Old Style",Georgia,serif;
+  text-decoration:none;
+}
+.inkbound-live .ibl-folio-primary-link:hover {filter:brightness(.92)}
+.inkbound-live .ibl-folio-count,
+.inkbound-live .ibl-folio-turn-label {
+  color:var(--q26-accent);font:11px/1.55 "American Typewriter","Courier New",monospace;
+  letter-spacing:.10em;text-transform:uppercase;
+}
+.inkbound-live .ibl-folio-party-list,
+.inkbound-live .ibl-folio-history {list-style:none;margin:0;padding:0}
+.inkbound-live .ibl-folio-party-list {display:grid;gap:10px}
+.inkbound-live .ibl-folio-party-list>li {
+  display:flex;align-items:center;gap:15px;
+  padding:15px;border:1px solid var(--q26-rule);
+  background:var(--q26-wash);
+}
+.inkbound-live .ibl-folio-party-mark {
+  flex:0 0 44px;height:44px;display:grid;place-items:center;
+  border:1px solid var(--q26-rule);border-radius:50%;
+  font:23px/1 Georgia,serif;color:var(--q26-accent);
+}
+.inkbound-live .ibl-folio-party-details {display:grid;gap:4px;flex:1;min-width:0}
+.inkbound-live .ibl-folio-party-details strong {color:var(--ia-text);font:400 19px/1.3 Georgia,serif}
+.inkbound-live .ibl-folio-party-details small {color:var(--ia-dim);font:12px/1.3 Georgia,serif}
+.inkbound-live .ibl-folio-presence {
+  width:9px;height:9px;flex:0 0 9px;
+  border:1px solid var(--ia-dim);border-radius:50%;
+}
+.inkbound-live .ibl-folio-presence.is-online {background:var(--q26-accent);border-color:var(--q26-accent)}
+.inkbound-live .ibl-folio-links {display:grid!important;gap:0!important;min-width:0}
+.inkbound-live .ibl-folio-links :is(a,button) {
+  display:flex;align-items:center;justify-content:space-between;
+  gap:16px;width:100%;min-height:58px;
+  padding:14px 4px!important;
+  border:0!important;border-bottom:1px solid var(--q26-rule)!important;
+  background:transparent!important;
+  color:var(--ia-text)!important;
+  font:400 clamp(18px,1.8vw,23px)/1.3 "Iowan Old Style",Georgia,serif!important;
+  text-align:left;text-decoration:none;
+}
+.inkbound-live .ibl-folio-links :is(a,button)>span:last-child {color:var(--q26-accent)}
+.inkbound-live .ibl-folio-links :is(a,button) small {
+  display:block;margin-top:5px;color:var(--ia-dim);
+  font:12px/1.4 Georgia,serif;
+}
+.inkbound-live .ibl-folio-links :is(a,button):hover {background:var(--q26-wash)!important}
+.inkbound-live .ibl-folio-utilities {margin:16px 0 0;padding-top:22px;border-top:1px solid var(--q26-rule)}
+.inkbound-live .ibl-folio-utilities h3 {
+  margin:0 0 12px;color:var(--ia-text);
+  font:400 24px/1.3 "Iowan Old Style",Georgia,serif;
+}
+/* Adventure utilities are genuine existing injected buttons; don't swallow their
+   disabled state or modify modal / selector internals. */
+.inkbound-live .ibl-folio-utilities :is(button,a):disabled {opacity:.55}
+.inkbound-live .ibl-folio-history {display:grid;gap:0}
+.inkbound-live .ibl-folio-history>li {margin:0;padding:0 0 18px 23px;position:relative;border-left:1px solid var(--q26-rule)}
+.inkbound-live .ibl-folio-history>li:not(:last-child) {margin-bottom:4px}
+.inkbound-live .ibl-folio-history>li::before {
+  content:"";position:absolute;top:5px;left:-5px;width:9px;height:9px;
+  border-radius:50%;background:var(--q26-accent);
+}
+.inkbound-live .ibl-folio-history article {padding:0 0 11px!important;border:0!important}
+.inkbound-live .ibl-folio-history article h3 {
+  margin:5px 0 16px;color:var(--ia-text)!important;
+  font:400 clamp(21px,2vw,28px)/1.25 "Iowan Old Style",Georgia,serif!important;
+}
+.inkbound-live .ibl-folio-decision {display:grid;gap:4px;margin:10px 0!important}
+.inkbound-live .ibl-folio-decision strong {color:var(--ia-text)!important;font:600 12px/1.5 Georgia,serif}
+.inkbound-live .ibl-folio-decision span {color:var(--ia-copy);font:15px/1.5 Georgia,serif;overflow-wrap:anywhere}
+.inkbound-live .ibl-folio-decision small {
+  width:max-content;max-width:100%;padding:3px 8px;
+  border:1px solid var(--q26-rule);color:var(--ia-dim);
+  font:11px/1.4 Georgia,serif;text-transform:capitalize;
+}
+.inkbound-live .ibl-folio-resolution {
+  margin:14px 0 0!important;padding:12px 14px;
+  border-left:2px solid var(--q26-accent);
+  background:var(--q26-wash);color:var(--ia-copy)!important;
+  font:15px/1.65 Georgia,serif!important;
+}
+.inkbound-live .ibl-folio-empty {color:var(--ia-dim);font:italic 16px/1.6 Georgia,serif}
+.inkbound-live .ibl-folio-notes label {
+  font:600 12px/1.5 Georgia,serif;color:var(--ia-text);letter-spacing:.04em;
+}
+.inkbound-live .ibl-folio-notes textarea {
+  width:100%;min-height:250px;resize:vertical;
+  border:1px solid var(--ia-strong-rule)!important;
+  padding:18px;background:var(--q26-wash)!important;
+  color:var(--ia-text)!important;font:17px/1.65 Georgia,serif;
+}
+.inkbound-live .ibl-folio-caution,
+.inkbound-live .ibl-folio-connection {
+  margin:0!important;color:var(--ia-dim)!important;
+  font:12px/1.55 Georgia,serif!important;
+}
+.inkbound-live .ibl-folio-chat {grid-template-rows:auto minmax(140px,1fr) auto auto;min-height:0}
+.inkbound-live .ibl-folio-chat .ibl-drawer-chat {
+  min-height:230px;max-height:min(52dvh,600px);overflow-y:auto;
+  display:flex;flex-direction:column;gap:10px;
+  padding:4px 4px 12px;
+}
+.inkbound-live .ibl-folio-message {
+  width:fit-content;max-width:92%;margin:0!important;padding:12px 16px;
+  border:1px solid var(--q26-rule);background:var(--q26-wash);
+  overflow-wrap:anywhere;
+}
+.inkbound-live .ibl-folio-message b {
+  margin-bottom:6px;color:var(--q26-accent)!important;
+  font:600 12px/1.4 Georgia,serif;
+}
+.inkbound-live .ibl-folio-message span {font:15px/1.55 Georgia,serif;color:var(--ia-copy)}
+.inkbound-live .ibl-folio-chat-form {
+  margin:0;padding:11px 0 0;gap:9px;
+}
+.inkbound-live .ibl-folio-chat-form input {
+  flex:1;min-height:46px;padding:12px;
+  border:1px solid var(--ia-strong-rule)!important;
+  background:var(--q26-wash)!important;color:var(--ia-text)!important;
+  font:15px Georgia,serif;
+}
+.inkbound-live .ibl-folio-chat-form button {
+  min-height:46px;min-width:90px;
+  border:1px solid var(--q26-accent)!important;
+  background:var(--ia-text)!important;color:var(--ia-paper)!important;
+  font:16px Georgia,serif;
+}
+.inkbound-live .ibl-folio-chat-form button:disabled {opacity:.48}
+.inkbound-live .ibl-drawer :is(a,button,input,textarea):focus-visible {
+  outline:2px solid var(--q26-accent)!important;outline-offset:3px;
+}
+@media(max-width:760px){
+  .inkbound-live .ibl-drawer {width:100vw!important;padding:18px clamp(16px,5vw,28px)!important}
+  .inkbound-live .ibl-folio-stats {grid-template-columns:repeat(2,minmax(0,1fr))}
+  .inkbound-live .ibl-folio-chat .ibl-drawer-chat {max-height:44dvh}
+}
+@media(prefers-reduced-motion:reduce){
+  .inkbound-live .ibl-drawer,.inkbound-live .ibl-folio-primary-link {animation:none!important;transition:none!important}
+}

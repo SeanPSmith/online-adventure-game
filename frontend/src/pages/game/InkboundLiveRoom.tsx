@@ -237,13 +237,76 @@ export function InkboundLiveRoom(props: InkboundLiveRoomProps) {
         }}>
         <header><span className="ibl-kicker">Traveler's folio</span><button ref={closeButton} type="button" onClick={()=>setPanel(null)} aria-label="Close panel">×</button></header>
         <h2>{panel === "hero" ? "Character" : panel === "history" ? "Chronicle" : panel[0].toUpperCase()+panel.slice(1)}</h2>
-        {panel === "menu" && <nav className="ibl-drawer-menu" aria-label="Game menu"><Link to="/game">Adventure hall →</Link><Link to="/game/heroes">Heroes →</Link><Link to="/game/adventures">My adventures →</Link><button type="button" onClick={props.onClose}>Switch to Classic view →</button>{props.sessionUtilities && <section className="ibl-utility-actions" aria-label="In-game controls">{props.sessionUtilities}</section>}</nav>}
-        {panel === "hero" && <><p>{props.hero?.name ?? props.playerName}</p>{props.hero && <p>Level {props.hero.level} · HP {props.hero.health}/{props.hero.max_health} · XP {props.hero.experience}</p>}<Link to={props.hero ? `/game/heroes/${encodeURIComponent(props.hero.character_id)}` : "/game/heroes"}>Open character sheet →</Link></>}
-        {panel === "party" && props.party.map((p)=><p key={p.player_id}>{p.name} · {p.is_online ? "Online" : "Offline"}</p>)}
-        {panel === "journal" && <><p>The story is shaped by every choice.</p><button onClick={()=>setPanel("notes")}>Open your notes →</button><button onClick={()=>setPanel("history")}>Open Chronicle →</button></>}
-        {panel === "history" && <div className="ibl-history-list">{props.history.length ? [...props.history].reverse().map((entry) => <article key={entry.turn_number}><h3>Turn {entry.turn_number} · {entry.scene_title || "Previous scene"}</h3>{entry.choices.map((c,index)=><p key={`${c.player_name}:${index}`}><strong>{c.player_name}:</strong> {c.choice_label}{c.outcome ? ` · ${c.outcome.replaceAll("_", " ")}` : ""}</p>)}{entry.resolution && <p>{entry.resolution}</p>}</article>) : <p>No resolved turns yet.</p>}</div>}
-        {panel === "notes" && <><label htmlFor="ibl-notes">Notes for this adventure</label><textarea id="ibl-notes" value={props.notes} onChange={(e)=>props.onNotesChange(e.target.value)} placeholder="A name, a clue, a promise…" rows={12}/><p className="ibl-sidebar-note">Temporary draft: these notes may be lost when leaving the adventure.</p></>}
-        {panel === "chat" && <><div ref={chatLog} className="ibl-drawer-chat" role="log">{props.messages.map(m=><p key={m.id}><b>{m.player_name}</b> {m.text}</p>)}</div><form className="ibl-chat-form" onSubmit={send}><input aria-label="Send party message" maxLength={500} value={chatText} onChange={e=>setChatText(e.target.value)} disabled={!props.connected}/><button disabled={!props.connected || !chatText.trim()}>Send →</button></form></>}
+        {panel === "menu" && <nav className="ibl-drawer-menu ibl-folio-links" aria-label="Game menu">
+          <p className="ibl-folio-lede">Keep your place in the story while you adjust your adventure.</p>
+          <Link to="/game">Adventure hall <span aria-hidden="true">↗</span></Link>
+          <Link to="/game/heroes">Heroes <span aria-hidden="true">↗</span></Link>
+          <Link to="/game/adventures">My adventures <span aria-hidden="true">↗</span></Link>
+          <button type="button" onClick={props.onClose}>Switch to Classic view <span aria-hidden="true">↗</span></button>
+          {props.sessionUtilities && <section className="ibl-utility-actions ibl-folio-utilities" aria-label="In-game controls">
+            <h3>Session &amp; preferences</h3>{props.sessionUtilities}
+          </section>}
+        </nav>}
+        {panel === "hero" && <div className="ibl-folio-content">
+          <p className="ibl-folio-lede">The adventurer behind this chapter.</p>
+          <section className="ibl-folio-card" aria-label="Hero details">
+            <div className="ibl-folio-hero-mark" aria-hidden="true">✦</div>
+            <h3>{props.hero?.name ?? props.playerName}</h3>
+            <p className="ibl-folio-byline">Level {props.hero?.level ?? "–"} · {props.hero?.is_alive === false ? "Fallen Hero" : "Adventurer"}</p>
+            <dl className="ibl-folio-stats">
+              <div><dt>Health</dt><dd>{props.hero ? `${props.hero.health}/${props.hero.max_health}` : "—"}</dd></div>
+              <div><dt>Experience</dt><dd>{props.hero ? props.hero.experience : "—"}</dd></div>
+              <div><dt>Current turn</dt><dd>{props.turnNumber}</dd></div>
+            </dl>
+          </section>
+          <section className="ibl-folio-card" aria-label="Current Hero effects">
+            <h3>Conditions &amp; boons</h3>
+            <HeroEffectList effects={props.hero?.effects} />
+          </section>
+          <Link className="ibl-folio-primary-link" to={props.hero ? `/game/heroes/${encodeURIComponent(props.hero.character_id)}` : "/game/heroes"}>Open full character sheet <span aria-hidden="true">↗</span></Link>
+        </div>}
+        {panel === "party" && <div className="ibl-folio-content">
+          <p className="ibl-folio-lede">Companions sharing this adventure. Presence updates from the live room.</p>
+          <div className="ibl-folio-count">{props.party.length} {props.party.length === 1 ? "traveler" : "travelers"} · {props.party.filter((person) => person.is_online).length} online</div>
+          <ul className="ibl-folio-party-list" aria-label="Room party members">{props.party.map((person) => <li key={person.player_id}>
+            <span className="ibl-folio-party-mark" aria-hidden="true">✧</span>
+            <span className="ibl-folio-party-details"><strong>{person.name}</strong><small>{person.is_host ? "Host · " : ""}{person.is_online ? "Online" : "Offline"}</small></span>
+            <span className={`ibl-folio-presence ${person.is_online ? "is-online" : ""}`} aria-label={person.is_online ? "Online" : "Offline"} />
+          </li>)}</ul>
+        </div>}
+        {panel === "journal" && <nav className="ibl-folio-links" aria-label="Journal sections">
+          <p className="ibl-folio-lede">Every choice leaves a mark. Read your resolved turns or jot down a clue before it fades.</p>
+          <button type="button" onClick={() => setPanel("history")}><span>Chronicle <small>{props.history.length} resolved turns</small></span><span aria-hidden="true">↗</span></button>
+          <button type="button" onClick={() => setPanel("notes")}><span>Field notes <small>Personal draft · not saved to the server</small></span><span aria-hidden="true">↗</span></button>
+        </nav>}
+        {panel === "history" && <div className="ibl-folio-content">
+          <p className="ibl-folio-lede">A record of choices and consequences already resolved by the Director.</p>
+          <ol className="ibl-history-list ibl-folio-history">{props.history.length ? [...props.history].reverse().map((entry) => <li key={entry.turn_number}>
+            <article>
+              <span className="ibl-folio-turn-label">Turn {entry.turn_number}</span>
+              <h3>{entry.scene_title || "Previous scene"}</h3>
+              {entry.choices.map((choice, index) => <p key={`${choice.player_name}:${index}`} className="ibl-folio-decision"><strong>{choice.player_name}</strong><span>{choice.choice_label}</span>{choice.outcome && <small>{choice.outcome.replaceAll("_", " ")}</small>}</p>)}
+              {entry.resolution && <p className="ibl-folio-resolution">{entry.resolution}</p>}
+            </article>
+          </li>) : <li className="ibl-folio-empty">Your first resolved turn will appear here.</li>}</ol>
+        </div>}
+        {panel === "notes" && <div className="ibl-folio-content ibl-folio-notes">
+          <p className="ibl-folio-lede">Keep names, clues, promises, and questions close while the story unfolds.</p>
+          <label htmlFor="ibl-notes">Notes for this adventure</label>
+          <textarea id="ibl-notes" value={props.notes} onChange={(event) => props.onNotesChange(event.target.value)} placeholder="A name, a clue, a promise…" rows={12}/>
+          <p className="ibl-folio-caution">Personal draft only · these notes may be lost when leaving the adventure.</p>
+        </div>}
+        {panel === "chat" && <div className="ibl-folio-content ibl-folio-chat">
+          <p className="ibl-folio-lede">A conversation between your fellow travelers.</p>
+          <div className="ibl-drawer-chat" ref={chatLog} role="log" aria-label="Party chat messages" aria-live="polite" aria-relevant="additions text">
+            {props.messages.length ? props.messages.map((message) => <p key={message.id} className="ibl-folio-message"><b>{message.player_name}</b><span>{message.text}</span></p>) : <p className="ibl-folio-empty">No messages yet. Be the first to speak.</p>}
+          </div>
+          <form className="ibl-chat-form ibl-folio-chat-form" onSubmit={send}>
+            <input aria-label="Send party message" maxLength={500} placeholder={props.connected ? "Write to your party…" : "Reconnecting to the party…"} value={chatText} onChange={(event) => setChatText(event.target.value)} disabled={!props.connected} />
+            <button type="submit" disabled={!props.connected || !chatText.trim()}>Send →</button>
+          </form>
+          <p className="ibl-folio-connection" role="status">{props.connected ? "Connected to party chat" : "Reconnecting…"}</p>
+        </div>}
       </aside>
     </div>}
   </div>;

@@ -15,6 +15,21 @@ function clock(totalSeconds: number): string {
   return `${String(minutes).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
+/** One server-timed handoff indicator shared by the waiting manuscript and
+ * the already-published Arcade intermission. Never predicts the Director ETA. */
+export function StoryTurnProgress({ storyReady, compact = false }: {
+  storyReady: boolean;
+  compact?: boolean;
+}) {
+  return (
+    <ol className={`ibw-progress${compact ? " ibw-progress-compact" : ""}`} aria-label="Adventure progress">
+      <li className="is-done"><i aria-hidden="true" />Choice locked</li>
+      <li className={storyReady ? "is-done" : "is-current"} aria-current={!storyReady ? "step" : undefined}><i aria-hidden="true" />Writing the passage</li>
+      <li className={storyReady ? "is-current" : ""} aria-current={storyReady ? "step" : undefined}><i aria-hidden="true" />Revealing the result</li>
+    </ol>
+  );
+}
+
 export function InkboundWaitingFolio({
   paper, elapsedSeconds, storyReady, readySeconds, choiceLabel, hero,
   partyCount, onSync, onRetry, retryMessage,
@@ -56,11 +71,7 @@ export function InkboundWaitingFolio({
               ? "The next passage is written. Your result is about to be revealed."
               : "The Director is writing the next passage…"}</p>
           {!retry && <p className="ibw-subtext">{ready ? "The Arcade will close before the consequences are shown." : "Your decision is sealed. The chapter will appear when it is ready."}</p>}
-          <ol className="ibw-progress" aria-label="Adventure progress">
-            <li className="is-done"><i aria-hidden="true" />Choice locked</li>
-            <li className={ready ? "is-done" : "is-current"}><i aria-hidden="true" />Writing the passage</li>
-            <li className={ready ? "is-current" : ""}><i aria-hidden="true" />Revealing the result</li>
-          </ol>
+          <StoryTurnProgress storyReady={ready} />
           {choiceLabel ? (
             <section className="ibw-choice" aria-label="Your recent choice">
               <div className="ibw-choice-caption"><span />YOUR RECENT CHOICE<span /></div>

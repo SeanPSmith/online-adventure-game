@@ -7,7 +7,7 @@ import {
   useState,
 } from "react";
 import type { InkPaper } from "../appearance/inkboundPaper";
-import { InkboundWaitingFolio, type WaitingHero } from "./InkboundWaitingFolio";
+import { InkboundWaitingFolio, StoryTurnProgress, type WaitingHero } from "./InkboundWaitingFolio";
 import type {
   IntermissionResult,
   StoryAdvancingPayload,
@@ -193,29 +193,36 @@ export function IntermissionRuntime({
   }
 
   return (
-    <div className={`intermission-runtime ${compactActionHud ? "is-action-game" : ""}`}>
+    <div className={`intermission-runtime ${compactActionHud ? "is-action-game" : ""} ${inkPaper ? "is-inkbound-arcade" : ""}`}>
+      {inkPaper ? <div className="q25-arcade-masthead" aria-label="Between chapters">
+        <span>QUILLAIRO</span><span className="q25-arcade-rule" aria-hidden="true" /><span>BETWEEN THE PAGES · TURN {payload.turn_number}</span>
+      </div> : null}
       <header className="intermission-runtime-header">
         <div>
           <span className="eyebrow">
-            {storyReady
-              ? "STORY READY // FINAL SECONDS"
-              : payload.play_mode === "solo"
+            {inkPaper
+              ? (storyReady ? "THE NEXT PASSAGE IS READY" : "THE DIRECTOR IS WRITING")
+              : storyReady
+                ? "STORY READY // FINAL SECONDS"
+                : payload.play_mode === "solo"
                 ? "DIRECTOR WORKING // SOLO INTERMISSION"
                 : `DIRECTOR WORKING // 2 PLAYER ${multiplayerModeLabel}`}
           </span>
           <h2>{gameName}</h2>
+          {inkPaper ? <p className="q25-arcade-subtitle">An Arcade diversion while your sealed choice becomes the next passage.</p> : null}
         </div>
 
         <div className="intermission-runtime-readout">
           <strong>
             {storyReady
               ? `${Math.max(0, storyReadySeconds)}s`
-              : `WRITING // ${elapsedSeconds.toFixed(1)}s`}
+              : inkPaper ? `WRITING · ${elapsedSeconds.toFixed(1)}s elapsed` : `WRITING // ${elapsedSeconds.toFixed(1)}s`}
           </strong>
           <span>SCORE {String(score).padStart(3, "0")}</span>
         </div>
       </header>
 
+      {inkPaper ? <StoryTurnProgress storyReady={storyReady} compact /> : null}
       {storyReady ? (
         <div className="intermission-story-ready-bar">
           <span
@@ -260,7 +267,7 @@ export function IntermissionRuntime({
               type="button"
               onClick={skipGame}
             >
-              SKIP GAME // WATCH THE STORY MACHINE INSTEAD
+              {inkPaper ? "Leave Arcade · Watch the manuscript" : "SKIP GAME // WATCH THE STORY MACHINE INSTEAD"}
             </button>
           ) : null}
         </>
@@ -291,9 +298,11 @@ export function IntermissionRuntime({
 
       <footer className="intermission-runtime-footer">
         <span>
-          {storyReady
-            ? "FINISH WHAT YOU'RE DOING // CONSEQUENCES INCOMING_"
-            : payload.play_mode === "coop"
+          {inkPaper
+            ? (storyReady ? "The Arcade closes before your committed dice result." : "The Arcade never holds up the Director's writing.")
+            : storyReady
+              ? "FINISH WHAT YOU'RE DOING // CONSEQUENCES INCOMING_"
+              : payload.play_mode === "coop"
               ? "2 PLAYER // BOTH RUNS ARE LIVE // HIGHEST SCORE TAKES THE INTERMISSION_"
               : "PLAY AS LONG AS THE DIRECTOR NEEDS // THE GAME DOES NOT DELAY GENERATION_"}
         </span>

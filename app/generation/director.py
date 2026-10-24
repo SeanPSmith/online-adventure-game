@@ -979,13 +979,16 @@ def _current_qte_consequences(
     return []
 
 
+from app.generation.model_preferences import active_global_models, models_for_request
+
+
 class OpenAIRuntimeDirector:
 
     def __init__(
         self,
     ) -> None:
 
-        self.story_model = (
+        self._default_story_model = (
             os.getenv(
                 "TOT_OPENAI_DIRECTOR_STORY_MODEL",
                 os.getenv(
@@ -997,7 +1000,7 @@ class OpenAIRuntimeDirector:
             or "gpt-5.6-sol"
         )
 
-        self.economy_model = (
+        self._default_economy_model = (
             os.getenv(
                 "TOT_OPENAI_DIRECTOR_ECONOMY_MODEL",
                 os.getenv(
@@ -1451,6 +1454,17 @@ class OpenAIRuntimeDirector:
             }
 
 
+    @property
+    def story_model(self) -> str:
+        selected = active_global_models.get()
+        return selected["story_model"] if selected else self._default_story_model
+
+    @property
+    def economy_model(self) -> str:
+        selected = active_global_models.get()
+        return selected["economy_model"] if selected else self._default_economy_model
+
+
     async def generate_recap(
         self,
         *,
@@ -1460,6 +1474,9 @@ class OpenAIRuntimeDirector:
     ) -> dict[str, Any]:
         """Cheap player-facing receipt narration for an already-frozen turn."""
 
+        # A recap task has its own ContextVar snapshot; never mutate the global
+        # singleton during another room's in-flight generation.
+        active_global_models.set(await models_for_request())
         player_context = []
         for player_id, character in characters_by_player_id.items():
             player_context.append({
@@ -1491,6 +1508,9 @@ class OpenAIRuntimeDirector:
         Any,
     ]:
 
+        # Pin the configured models for THIS Director request. New admin
+        # settings apply to subsequent turns, not the story already in flight.
+        active_global_models.set(await models_for_request())
         generated_id = (
             session
             .adventure

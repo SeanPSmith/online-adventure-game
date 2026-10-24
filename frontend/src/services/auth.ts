@@ -122,3 +122,23 @@ export interface AccountUsageSnapshot {
 export function getAccountUsage() {
   return apiFetch<AccountUsageSnapshot>("/api/auth/usage");
 }
+
+
+/** Administrator-controlled AI models, stored globally on the game server. */
+export interface GlobalAiModels {
+  story_model: string;
+  economy_model: string;
+  available_models: string[];
+}
+
+export function getGlobalAiModels() {
+  return apiFetch<GlobalAiModels>("/api/auth/admin/ai-models");
+}
+
+export function saveGlobalAiModels(story_model: string, economy_model: string) {
+  return apiFetch<GlobalAiModels>("/api/auth/admin/ai-models", {
+    method: "PUT",
+    headers: { "X-TOT-Admin-Request": "1" },
+    body: JSON.stringify({ story_model, economy_model }),
+  });
+}

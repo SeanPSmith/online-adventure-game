@@ -48,6 +48,14 @@ export function TurnTheater({
     const timer = window.setInterval(() => setWritingSeconds((performance.now() - start) / 1000), 250);
     return () => window.clearInterval(timer);
   }, [theater.phase, theater.activeIntermission?.turn_number]);
+  // Reconcile against the persisted room while writing. Socket.IO events may
+  // be missed during reconnects; re-sync only READS saved turn facts/receipts.
+  // It never regenerates a passage, advances a turn, or rolls dice.
+  useEffect(() => {
+    if (theater.phase !== "intermission" && theater.phase !== "story-ready") return;
+    const timer = window.setInterval(() => onSync(), 12000);
+    return () => window.clearInterval(timer);
+  }, [theater.phase, onSync]);
   const readyWithoutExit = theater.phase === "story-ready" && theater.countdownValue === 0;
   useEffect(() => {
     setShowResync(false);
@@ -90,7 +98,7 @@ export function TurnTheater({
           choiceLabel={choiceLabel}
           hero={hero}
           partyCount={partyCount}
-          onSync={showResync && inkPaper ? onSync : undefined}
+          onSync={showResync ? onSync : undefined}
           onSubmitScore={onSubmitIntermissionScore}
           onStoryReadyComplete={theater.finishIntermissionStoryReady}
         />

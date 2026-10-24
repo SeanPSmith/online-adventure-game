@@ -248,10 +248,20 @@ export function useTurnTheater({
       || phaseRef.current === "intermission" || phaseRef.current === "story-ready";
     if (hadIntermission) {
       readyReceiptRef.current = committed;
-      if (phaseRef.current === "story-ready" && countdownValue === 0) {
-        finishIntermissionStoryReady();
-      } else if (!game.turn_pending && game.turn_number > resolvedTurnNumber(committed)) {
-        beginStoryReady();
+      if (!game.turn_pending && game.turn_number > resolvedTurnNumber(committed)) {
+        if (phaseRef.current === "story-ready") {
+          if (countdownValue === 0) finishIntermissionStoryReady();
+        } else if (phaseRef.current === "intermission") {
+          beginStoryReady();
+        } else {
+          // Reconnection may restore a committed receipt after the Arcade UI
+          // was already discarded. Don't leave it sealed behind a dead stage.
+          clearTimer();
+          rememberIntermission(null);
+          readyReceiptRef.current = null;
+          showReceipt(committed);
+          transition("resolution");
+        }
       }
       return;
     }

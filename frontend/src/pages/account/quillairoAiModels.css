@@ -1,0 +1,11 @@
+.quill-ai-model-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(16px,2vw,28px);margin:18px 0 20px}
+.quill-ai-model-field{min-width:0;display:flex;flex-direction:column;gap:10px;color:var(--ib-text,inherit)}
+.quill-ai-model-field>strong{font:600 .7rem/1.5 var(--ib-mono,serif);letter-spacing:.13em}
+.quill-ai-model-field>small{color:var(--ib-copy,#71675b);font-size:.82rem;line-height:1.5}
+.quill-ai-model-options{display:grid;grid-template-columns:1fr;gap:6px}
+.quill-ai-model-option{cursor:pointer;text-align:left;border:1px solid var(--ib-line,#baaa92);border-radius:2px;padding:12px 14px;background:transparent;color:var(--ib-text,#241e17);font:500 .9rem/1.45 var(--ib-serif,Georgia,serif);transition:background .18s,border-color .18s}
+.quill-ai-model-option:hover{background:var(--ib-paper-shade,rgba(126,98,52,.08))}
+.quill-ai-model-option.is-selected{border-color:var(--ib-gold,#b18a49);box-shadow:inset 3px 0 0 var(--ib-gold,#b18a49);font-weight:700}
+.quill-ai-model-option:focus-visible{outline:3px solid var(--ib-gold,#b18a49);outline-offset:2px}
+.quill-ai-model-option:disabled{opacity:.65;cursor:wait}
+@media(max-width:760px){.quill-ai-model-grid{grid-template-columns:1fr}}

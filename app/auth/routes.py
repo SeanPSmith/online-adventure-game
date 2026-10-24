@@ -699,6 +699,38 @@ async def require_admin_write(
     return user
 
 
+from app.generation.model_preferences import (
+    MODEL_IDS, load_global_models, save_global_models,
+)
+
+
+class GlobalAiModelsRequest(BaseModel):
+    story_model: str
+    economy_model: str
+
+
+@router.get("/admin/ai-models")
+async def get_admin_ai_models(
+    response: Response,
+    admin=Depends(require_admin_user),
+):
+    response.headers["Cache-Control"] = "no-store"
+    return {**(await load_global_models()), "available_models": list(MODEL_IDS)}
+
+
+@router.put("/admin/ai-models")
+async def update_admin_ai_models(
+    payload: GlobalAiModelsRequest,
+    response: Response,
+    admin=Depends(require_admin_write),
+):
+    if payload.story_model not in MODEL_IDS or payload.economy_model not in MODEL_IDS:
+        raise HTTPException(status_code=422, detail="Choose a supported model.")
+    saved = await save_global_models(payload.story_model, payload.economy_model)
+    response.headers["Cache-Control"] = "no-store"
+    return {**saved, "available_models": list(MODEL_IDS)}
+
+
 @router.get("/admin/me")
 async def admin_me(
     user=Depends(require_admin_user),

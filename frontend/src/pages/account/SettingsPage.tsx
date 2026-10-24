@@ -11,6 +11,7 @@ import { PageTitle } from "../../components/ui/PageTitle";
 import { Panel } from "../../components/ui/Panel";
 import { NarratorVoicePicker } from "../../components/game/NarratorVoicePicker";
 import { useAuth } from "../../state/AuthContext";
+import { GlobalAiModelSettings } from "./GlobalAiModelSettings";
 import {
   browserNotificationSupport,
   disableWebPush,
@@ -237,6 +238,7 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
   return (
     <div className={`quill-settings-panels quill-settings-panels--${section}`} aria-label="Quillairo preferences">
       {section === "all" ? <PageTitle eyebrow="ACCOUNT" title="SETTINGS" /> : null}
+      {section !== "notifications" && isAdmin ? <GlobalAiModelSettings /> : null}
 
       {section !== "preferences" ? (
       <div className="quill-settings-block quill-settings-notifications" id="ink-settings-notifications">

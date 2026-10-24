@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import "../../styles/quillairoTurnRecovery6636.css";
 import type { IntermissionResult } from "../../services/game";
 import type { InkPaper } from "../appearance/inkboundPaper";
 import { InkboundWaitingFolio, type WaitingHero } from "./InkboundWaitingFolio";
@@ -26,6 +27,8 @@ export function TurnTheater({
   onSubmitIntermissionScore,
   onRetry,
   onSync,
+  onRecover,
+  committedTurnReady = false,
   choiceLabel, hero, partyCount,
 }: {
   inkPaper?: InkPaper;
@@ -38,6 +41,8 @@ export function TurnTheater({
   onSubmitIntermissionScore: (turnNumber: number, gameId: string, score: number) => void;
   onRetry: () => void;
   onSync: () => void;
+  onRecover: () => void;
+  committedTurnReady?: boolean;
 }) {
   const [showResync, setShowResync] = useState(false);
   const [writingSeconds, setWritingSeconds] = useState(0);
@@ -56,6 +61,14 @@ export function TurnTheater({
     const timer = window.setInterval(() => onSync(), 12000);
     return () => window.clearInterval(timer);
   }, [theater.phase, onSync]);
+  // Even if Socket.IO sync replies, a local theater can miss the committed
+  // receipt transition. Do not make the player refresh when a saved receipt
+  // proves THIS intermission turn has already completed on the server.
+  useEffect(() => {
+    if (theater.phase !== "intermission" || !committedTurnReady) return;
+    const timer = window.setTimeout(onRecover, 2500);
+    return () => window.clearTimeout(timer);
+  }, [theater.phase, committedTurnReady, onRecover]);
   const readyWithoutExit = theater.phase === "story-ready" && theater.countdownValue === 0;
   useEffect(() => {
     setShowResync(false);
@@ -102,6 +115,15 @@ export function TurnTheater({
           onSubmitScore={onSubmitIntermissionScore}
           onStoryReadyComplete={theater.finishIntermissionStoryReady}
         />
+        {writingSeconds >= 20 && theater.phase === "intermission" ? (
+          <div className="q36-saved-story-recovery" role="status">
+            <span>Still writing? Check the saved chapter or reconnect your reader. Neither action rerolls dice.</span>
+            <div className="q36-saved-story-recovery-actions">
+              <button type="button" onClick={onSync}>Check saved chapter</button>
+              <button type="button" onClick={onRecover}>Rejoin story</button>
+            </div>
+          </div>
+        ) : null}
         {showResync && !inkPaper ? (
           <div className="system-notice" role="status">
             <p>THE STORY IS TAKING LONGER THAN EXPECTED. YOU CAN RESTORE THE ROOM STATE WITHOUT RELOADING OR REROLLING.</p>
@@ -121,6 +143,12 @@ export function TurnTheater({
           retryMessage={theater.phase === "retry" ? theater.retryMessage : undefined}
           onRetry={theater.phase === "retry" ? onRetry : undefined}
           onSync={showResync ? onSync : undefined} />
+        {showResync && theater.phase === "intermission" ? (
+          <div className="q36-saved-story-recovery is-waiting" role="status">
+            <span>The saved chapter can be recovered without another roll.</span>
+            <button type="button" onClick={onRecover}>Rejoin story</button>
+          </div>
+        ) : null}
       </div>
     );
   }

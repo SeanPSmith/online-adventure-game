@@ -40,6 +40,7 @@ function scheduleDetach() {
 
 export interface LiveAdventureState {
   status: "waiting" | "resuming" | "ready" | "error";
+  resumeEpoch: number;
   room: RoomState | null;
   game: GameState | null;
   playerId: string | null;
@@ -76,6 +77,7 @@ export function useLiveAdventure(
   const normalizedCharacterId = characterId?.trim();
 
   const [status, setStatus] = useState<LiveAdventureState["status"]>("waiting");
+  const [resumeEpoch, setResumeEpoch] = useState(0);
   const [room, setRoom] = useState<RoomState | null>(null);
   const [game, setGame] = useState<GameState | null>(null);
   const [playerId, setPlayerId] = useState<string | null>(null);
@@ -93,6 +95,15 @@ export function useLiveAdventure(
 
   const readyRef = useRef(false);
   const restoreRef = useRef<() => void>(() => undefined);
+  // A Socket.IO transport may stay connected after its server-side room binding
+  // disappears. A plain sync is then ignored: refresh worked only because it
+  // re-ran resume_adventure. Escalate one unanswered sync to that same safe
+  // authenticated handshake, without submitting a choice or rerolling dice.
+  const syncWatchdogRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const clearSyncWatchdog = useCallback(() => {
+    if (syncWatchdogRef.current !== null) clearTimeout(syncWatchdogRef.current);
+    syncWatchdogRef.current = null;
+  }, []);
   const restore = useCallback(() => restoreRef.current(), []);
   const canSend = useCallback(() => {
     if (getGameSocket().connected && readyRef.current) return true;
@@ -103,15 +114,25 @@ export function useLiveAdventure(
   const lastGameTurnRef = useRef<number | null>(null);
 
   const sync = useCallback(() => {
-    if (!normalizedRoomCode) return;
+    if (!normalizedRoomCode || !normalizedCharacterId) return;
 
     const socket = getGameSocket();
-    if (!socket.connected) return;
-
+    if (!socket.connected) {
+      restoreRef.current();
+      return;
+    }
+    // Only one outstanding sync at a time. Any game_state response clears
+    // this watchdog. Missing replies are not evidence of Director failure:
+    // resuming the view rebinds the socket and retrieves the SAVED scene.
+    if (syncWatchdogRef.current !== null) return;
     socket.emit("sync_adventure_state", {
       room_code: normalizedRoomCode,
     });
-  }, [normalizedRoomCode]);
+    syncWatchdogRef.current = setTimeout(() => {
+      syncWatchdogRef.current = null;
+      restoreRef.current();
+    }, 5000);
+  }, [normalizedRoomCode, normalizedCharacterId]);
 
   useEffect(() => {
     readyRef.current = false;
@@ -121,6 +142,7 @@ export function useLiveAdventure(
     }
 
     cancelPendingDetach();
+    clearSyncWatchdog();
 
     setRoom(null);
     setGame(null);
@@ -201,6 +223,7 @@ export function useLiveAdventure(
     };
 
     const onDisconnect = () => {
+      clearSyncWatchdog();
       clearResumeWatchdog();
       restoring = false;
       readyRef.current = false;
@@ -223,6 +246,9 @@ export function useLiveAdventure(
       if (!matchesRoom(payload?.room?.code) || payload.character_id !== normalizedCharacterId) return;
 
       resumeConfirmed = true;
+      // A successful rejoin reconstructs the client theater from the saved
+      // snapshot, just as a hard reload would, without remounting the page.
+      setResumeEpoch((current) => current + 1);
       setRoom(payload.room);
       setPlayerId(payload.player_id);
       setFinale(payload.completed ? payload.finale ?? null : null);
@@ -237,6 +263,7 @@ export function useLiveAdventure(
     const onGameState = (payload: GameState) => {
       if (!matchesRoom(payload?.room_code)) return;
 
+      clearSyncWatchdog();
       snapshotReceived = true;
 
       if (
@@ -409,6 +436,7 @@ export function useLiveAdventure(
       readyRef.current = false;
       restoreRef.current = () => undefined;
       clearResumeWatchdog();
+      clearSyncWatchdog();
 
       socket.off("connect", resume);
       socket.off("disconnect", onDisconnect);
@@ -431,7 +459,7 @@ export function useLiveAdventure(
 
       scheduleDetach();
     };
-  }, [normalizedRoomCode, normalizedCharacterId]);
+  }, [normalizedRoomCode, normalizedCharacterId, clearSyncWatchdog]);
 
   const submitChoice = useCallback((choiceId: string) => {
     if (!canSend()) return;
@@ -523,6 +551,7 @@ export function useLiveAdventure(
 
   return {
     status,
+    resumeEpoch,
     room,
     game,
     playerId,

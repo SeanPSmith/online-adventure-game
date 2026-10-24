@@ -74,7 +74,10 @@ test('snapshot-first restoration waits for the correct Hero confirmation', () =>
 test('disconnect preserves scene but blocks every action until restored', () => {
   const h = harness(); h.confirm(); h.snapshot();
   h.socket.connected = false; h.fire('disconnect'); actions(h);
-  assert.equal(h.status(), 'waiting'); assert.equal(h.states[2].scene.body, 'Saved scene');
+  assert.equal(h.status(), 'waiting');
+  // Hook state slots change as the reconnect logic evolves. Assert the actual
+  // saved scene remains in React state instead of hard-coding its slot index.
+  assert.ok(h.states.some(state => state?.scene?.body === 'Saved scene'), 'disconnect must preserve the saved scene');
   assert.equal(h.sent.length, 1);
   h.socket.connected = true; h.fire('connect'); actions(h);
   assert.equal(h.sent.length, 2); h.confirm(); h.snapshot(); h.live.submitChoice('next');

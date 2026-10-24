@@ -53,11 +53,12 @@ export interface TurnTheaterState {
  * A PRELIMINARY receipt is internal information, NEVER a signal to show dice.
  */
 export function useTurnTheater({
-  roomCode, characterId, game, lockCountdown, storyAdvancing,
+  roomCode, characterId, resumeEpoch, game, lockCountdown, storyAdvancing,
   turnReceipt, lastTurn, retryableError, error,
 }: {
   roomCode: string;
   characterId: string;
+  resumeEpoch?: number;
   game: GameState | null;
   lockCountdown: TurnLockCountdownPayload | null;
   storyAdvancing: StoryAdvancingPayload | null;
@@ -173,7 +174,7 @@ export function useTurnTheater({
     acknowledgedRef.current = readAcknowledgedReceipt(roomCode, characterId);
     lastLockSignalRef.current = "";
     finishTurnPresentation();
-  }, [roomCode, characterId, finishTurnPresentation]);
+  }, [roomCode, characterId, resumeEpoch, finishTurnPresentation]);
 
   useEffect(() => () => clearTimer(), [clearTimer]);
 
@@ -304,7 +305,14 @@ export function useTurnTheater({
         transition("retry");
       }
     } else if (game.turn_pending) {
-      if (phaseRef.current === "none") transition("intermission");
+      // A server-accepted retry keeps the same frozen dice and turn facts.
+      // Leaving the theater on its error page after the request resumes makes
+      // a healthy Director look stuck (especially after a reconnect). Only
+      // leave retry once the *server* confirms the generation is active.
+      if (phaseRef.current === "none" ||
+          (phaseRef.current === "retry" && game.director_request_active)) {
+        transition("intermission");
+      }
     } else if (phaseRef.current === "retry") {
       if (readyReceiptRef.current) {
         showReceipt(readyReceiptRef.current);
@@ -323,7 +331,7 @@ export function useTurnTheater({
       writeAcknowledgedReceipt(roomCode, characterId, key);
     }
     finishTurnPresentation();
-  }, [roomCode, characterId, finishTurnPresentation]);
+  }, [roomCode, characterId, resumeEpoch, finishTurnPresentation]);
 
   const arcadeAvailable = Boolean(activeIntermission && (
     phase === "intermission" || phase === "story-ready"

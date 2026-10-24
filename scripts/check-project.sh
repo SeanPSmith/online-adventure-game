@@ -24,6 +24,9 @@ cd "$ROOT_DIR"
 say "Static source, import and brand-art integrity"
 "$PYTHON_BIN" scripts/audit-source-hygiene.py --strict
 
+say "Production route and touchpoint import integrity"
+"$PYTHON_BIN" scripts/audit-player-touchpoints.py --strict
+
 say "Python regression suite"
 "$PYTHON_BIN" -m pytest tests -q
 
@@ -39,6 +42,9 @@ node --test scripts/tests/route-loading.cjs
 
 say "Adventure turn presentation regressions"
 node --test scripts/tests/turn-flow.cjs
+
+say "Saved-story synchronization and room rejoin regressions"
+node --test scripts/tests/socket-rejoin.cjs
 
 say "Audio/SFX browser regression checks"
 node --test tests/frontend/audio-sfx.cjs

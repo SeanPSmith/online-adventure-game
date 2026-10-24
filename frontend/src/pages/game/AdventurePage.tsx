@@ -167,6 +167,7 @@ export function AdventurePage() {
   const theater = useTurnTheater({
     roomCode: normalizedRoomCode,
     characterId: characterId ?? "",
+    resumeEpoch: live.resumeEpoch,
     game: live.game,
     lockCountdown: live.turnLockCountdown,
     storyAdvancing: live.storyAdvancing,
@@ -1695,6 +1696,13 @@ ${scene.body.slice(0, 260)}`}
         intermissionResult={live.intermissionResult}
         onSubmitIntermissionScore={live.submitIntermissionScore}
         onSync={live.sync}
+        onRecover={live.restore}
+        committedTurnReady={Boolean(
+          theater.activeIntermission && live.game && !live.game.turn_pending &&
+          live.game.last_turn_result && !live.game.last_turn_result.preliminary &&
+          Number(live.game.last_turn_result.resolved_turn_number ?? live.game.last_turn_result.turn_number) ===
+            theater.activeIntermission.turn_number
+        )}
         onRetry={() => {
           live.clearRetryableError();
           live.retryPendingTurn();

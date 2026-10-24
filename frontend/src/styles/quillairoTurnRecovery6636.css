@@ -1,0 +1,41 @@
+/* Pass 66.36: independent, persistent recovery controls above the Arcade.
+   Never restyle the cabinet, its game board, or the authoritative dice UI. */
+.q36-saved-story-recovery {
+  position: fixed;
+  z-index: 3500;
+  inset: auto auto 14px 16px;
+  width: min(470px, calc(100vw - 32px));
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px 12px;
+  padding: 11px 13px;
+  border: 1px solid var(--ia-strong-rule, #98794d);
+  background: var(--ia-paper, #f3ebdc);
+  color: var(--ia-text, #241d19);
+  box-shadow: 0 9px 32px rgb(0 0 0 / 18%);
+  font: 13px/1.35 Georgia, serif;
+}
+.q36-saved-story-recovery span {flex: 1 1 220px;}
+.q36-saved-story-recovery-actions {display:flex;gap:7px;flex-wrap:wrap;}
+.q36-saved-story-recovery button {
+  appearance:none;
+  min-height:36px;
+  border:1px solid var(--ia-strong-rule, #98794d);
+  padding:7px 12px;
+  background:var(--ia-paper,#f3ebdc);
+  color:var(--ia-text,#241d19);
+  cursor:pointer;
+  font:600 12px/1.25 Georgia,serif;
+}
+.q36-saved-story-recovery button:last-child {
+  background:var(--ia-text,#241d19);
+  color:var(--ia-paper,#f3ebdc);
+}
+.q36-saved-story-recovery button:focus-visible {outline:2px solid var(--ia-strong-rule,#98794d);outline-offset:3px;}
+@media(max-width:640px) {
+  .q36-saved-story-recovery {inset:auto 8px 8px;width:calc(100vw - 16px);font-size:12px;}
+  .q36-saved-story-recovery-actions {width:100%;}
+  .q36-saved-story-recovery button {flex:1;}
+}

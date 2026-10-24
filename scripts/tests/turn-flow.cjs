@@ -76,13 +76,13 @@ function harness() {
     performance: { now: () => now }, setInterval, clearInterval,
   });
   const hook = module.exports.useTurnTheater;
-  const game = ({ started = true, turn = 1, pending = false, final = null, intermission = null, retry = false } = {}) => ({
+  const game = ({ started = true, turn = 1, pending = false, final = null, intermission = null, retry = false, active = false, completed = false } = {}) => ({
     started, room_code: 'SOLO1', turn_number: turn, turn_pending: pending,
     last_turn_result: final, pending_intermission: intermission,
-    director_retry_required: retry,
+    director_retry_required: retry, director_request_active: active, director_complete: completed,
     readiness: [{ player_id: 'p1', ready: true }], required_players: 1,
   });
-  props = {roomCode:'SOLO1', characterId:'hero-1', game: game({started:false}),
+  props = {roomCode:'SOLO1', characterId:'hero-1', resumeEpoch:0, game: game({started:false}),
     lockCountdown:null, storyAdvancing:null, turnReceipt:null, lastTurn:null,
     retryableError:null, error:''};
   const render = () => {
@@ -366,4 +366,70 @@ test('Arcade rescue is cancelled when Director enters retry state', () => {
   h.advance(1500);
   assert.equal(h.output().phase, 'retry');
   assert.equal(h.output().activeReceipt, null);
+});
+
+// Pass 66.35: server acceptance, not a local click, governs retry exit.
+test('server-accepted Director retry returns from error to intermission, preserving the roll', () => {
+  const h = harness(); h.render();
+  const frozen = result(18);
+  h.update({game:h.game({pending:true, intermission:arcade(1), active:true}), turnReceipt:frozen});
+  assert.equal(h.output().phase,'intermission');
+  h.update({game:h.game({pending:true, intermission:arcade(1), retry:true, active:false})});
+  assert.equal(h.output().phase,'retry');
+  // Button click alone isn't permission to leave retry; an unacknowledged
+  // socket command must keep recovery visible.
+  h.update({retryableError:null});
+  assert.equal(h.output().phase,'retry');
+  h.update({game:h.game({pending:true, intermission:arcade(1), active:true})});
+  assert.equal(h.output().phase,'intermission');
+  assert.equal(h.output().activeReceipt,null);
+  const committed = result(18,false);
+  h.update({game:h.game({turn:2,final:committed}),turnReceipt:committed,lastTurn:committed});
+  assert.equal(h.output().phase,'story-ready');
+  h.advance(4300);
+  assert.equal(h.output().phase,'resolution');
+  assert.equal(h.output().activeReceipt.results[0].check.roll,18);
+  h.acknowledge();
+  assert.equal(h.output().chapterReleased,true);
+});
+
+test('completed final turn keeps same turn number and still reveals its receipt', () => {
+  const h = harness(); h.render();
+  const frozen = result(13, true);
+  h.update({game:h.game({pending:true, intermission:arcade(1), active:true}), turnReceipt:frozen});
+  const ending = {...result(13,false), turn_number:1, completed:true};
+  h.update({game:h.game({turn:1,final:ending,completed:true}),turnReceipt:ending,lastTurn:ending});
+  assert.equal(h.output().phase,'story-ready');
+  h.advance(4300);
+  assert.equal(h.output().phase,'resolution');
+  assert.equal(h.output().activeReceipt.results[0].check.roll,13);
+  h.acknowledge();
+  assert.equal(h.output().chapterReleased,true);
+});
+
+test('preliminary receipt cannot escape an active Director even after a sync', () => {
+  const h = harness(); h.render();
+  const frozen = result(9,true);
+  h.update({game:h.game({pending:true,intermission:arcade(1),active:true}),turnReceipt:frozen});
+  h.advance(5000);
+  h.update({game:h.game({pending:true,intermission:arcade(1),active:true}),turnReceipt:frozen});
+  assert.equal(h.output().phase,'intermission');
+  assert.equal(h.output().activeReceipt,null);
+  assert.equal(h.output().chapterReleased,false);
+});
+
+// A full socket rejoin must recreate theater presentation from the persisted
+// authoritative receipt, not continue showing a stale Arcade phase.
+test('resume handshake rebuilds a stalled intermission and reveals saved committed dice', () => {
+  const h = harness(); h.render();
+  h.update({game:h.game({pending:true,intermission:arcade(1)}),turnReceipt:result(14)});
+  assert.equal(h.output().phase,'intermission');
+  // The server has already saved the new chapter. Same hook remains mounted;
+  // resumeEpoch stands in for the successful resume_success handshake.
+  const final=result(14,false);
+  h.update({resumeEpoch:1,game:h.game({turn:2,final}),turnReceipt:final,lastTurn:final});
+  assert.equal(h.output().phase,'resolution');
+  assert.equal(h.output().activeReceipt.results[0].check.roll,14);
+  h.acknowledge();
+  assert.equal(h.output().chapterReleased,true);
 });

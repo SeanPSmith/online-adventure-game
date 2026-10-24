@@ -2477,6 +2477,27 @@ async def exit_adventure_view(
 
 
 # =========================================================
+# COMPLETED-ROOM RECOVERY
+# =========================================================
+
+async def release_finished_hero_before_new_room(sid: str, user_id: str, character_id: str) -> None:
+    """A finished session must not reserve its Hero for all future adventures.
+
+    Delegate to the existing authenticated leave event, which unindexes the
+    Hero, cleans up the room snapshot when empty, and refreshes the library.
+    Never automatically leave an unfinished room or another account's Hero.
+    """
+    old_room = rooms.room_for_character(character_id)
+    if old_room is None:
+        return
+    member = old_room.player_for_character(character_id)
+    old_session = game_sessions.get(old_room.code)
+    if member is None or member.user_id != user_id or old_session is None or not old_session.completed:
+        return
+    await leave_adventure(sid, {"room_code": old_room.code, "character_id": character_id})
+
+
+# =========================================================
 # CREATE ROOM
 # =========================================================
 
@@ -2565,6 +2586,12 @@ async def create_room(
         )
         return
 
+
+    # Free legacy completed-room membership before claiming this Hero again.
+    # The existing occupied-room rejection below still protects live stories.
+    await release_finished_hero_before_new_room(
+        sid, user.user_id, character.character_id,
+    )
 
     if (
         rooms.player_for_character(
@@ -2802,6 +2829,12 @@ async def join_room(
 
         return
 
+
+    # Free legacy completed-room membership before claiming this Hero again.
+    # The existing occupied-room rejection below still protects live stories.
+    await release_finished_hero_before_new_room(
+        sid, user.user_id, character.character_id,
+    )
 
     if (
         rooms.player_for_character(
@@ -3358,6 +3391,25 @@ async def leave_adventure(
 
         return
 
+
+    # An older finale might have failed its optional archive write.  Never
+    # discard its last durable snapshot while releasing the Hero. Existing
+    # completed Chronicles are left untouched (especially for co-op parties).
+    completed_session = game_sessions.get(room_code)
+    if completed_session is not None and completed_session.completed:
+        existing_chronicles = await store.list_completed_adventures(
+            user_id=user.user_id, character_id=character_id,
+        )
+        if not any(str(entry.get("room_code", "")).upper() == room_code for entry in existing_chronicles):
+            try:
+                await store.record_completed_adventure(room_before, completed_session)
+            except Exception:
+                await sio.emit(
+                    "room_error",
+                    {"message": "The finished Chronicle could not be saved yet. Your Hero has not been released; try again shortly."},
+                    to=sid,
+                )
+                return
 
     affected_user_ids = {
         member.user_id

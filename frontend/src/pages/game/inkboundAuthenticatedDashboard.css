@@ -187,3 +187,13 @@ body:has(.inkbound-home) .game-site-shell.p64-shell.is-desk-home .game-main{
 
 /* Generated authored cover and alpha-genre fallbacks retain their organic edge. */
 .i656-world-cover img {object-fit:contain!important;filter:none!important;background:transparent!important;}
+
+/* Pass 66.29: completed-room recovery lives in the actual authenticated Hall. */
+.inkbound-home .i656-journey-with-actions{border-top:1px solid var(--paper-rule)}
+.inkbound-home .i656-journey-with-actions:last-child{border-bottom:1px solid var(--paper-rule)}
+.inkbound-home .i656-journey-with-actions .i656-chapter-entry{border:0}
+.inkbound-home .i656-journey-actions{display:flex;align-items:center;flex-wrap:wrap;gap:22px;padding:0 5px 18px 46px}
+.inkbound-home .i656-journey-actions :is(a,button){background:transparent;border:0;border-bottom:1px solid var(--paper-strong-rule);color:var(--paper-text);font:600 13px/1.4 var(--paper-type);padding:6px 0;cursor:pointer}
+.inkbound-home .i656-journey-actions button:disabled{opacity:.5;cursor:default}
+.inkbound-home .i656-journey-actions :is(a,button):focus-visible{outline:2px solid var(--paper-text);outline-offset:4px}
+@media(max-width:560px){.inkbound-home .i656-journey-actions{padding-left:34px;gap:14px}}

@@ -747,6 +747,25 @@ export function AdventurePage() {
             </section>
   ) : null;
 
+  // Older completed rooms can lack the separate finale payload. In that
+  // case there are no choices, but the player must still be able to leave.
+  // This is a recovery affordance, not a second finale implementation.
+  const completedRoomRecovery = live.game?.director_complete && !live.finale ? (
+    <section className="finale-inline journey-finale-summary journey-recovery-summary" role="status">
+      <header className="finale-summary-header"><div>
+        <span className="eyebrow">THE ADVENTURE HAS ENDED</span>
+        <h2>Your Hero may return to the Hall.</h2>
+      </div></header>
+      <p>This earlier adventure closed without its final Chronicle screen. You can release your Hero without deleting the character.</p>
+      <div className="finale-actions">
+        <button type="button" className="button button-primary" onClick={() => {
+          if (characterId) leaveAdventure(normalizedRoomCode, characterId);
+          navigate("/game");
+        }} disabled={!connected}>RELEASE HERO // RETURN TO HALL</button>
+      </div>
+    </section>
+  ) : null;
+
   if (!characterId) {
     return (
       <div className="adventure-route-message panel">
@@ -812,8 +831,8 @@ export function AdventurePage() {
         briefDocumentId={(worldCatalogItem?.metadata?.brief_document_id as string | undefined) ?? null}
         turnNumber={turnNumber}
         scene={scene}
-        chapterReleased={theater.chapterReleased && theater.phase === "none" && !live.game?.director_request_active && !live.game?.turn_pending}
-        finalePanel={theater.chapterReleased ? finalePanel : null}
+        chapterReleased={theater.chapterReleased && theater.phase === "none" && !live.game?.director_request_active && !live.game?.turn_pending || Boolean(completedRoomRecovery)}
+        finalePanel={completedRoomRecovery ?? (theater.chapterReleased ? finalePanel : null)}
         narrativePacing={live.game?.narrative_pacing ?? null}
         lastResult={lastLocalResult}
         lastProgression={lastLocalProgression}
@@ -1200,7 +1219,9 @@ ${scene.body.slice(0, 260)}`}
             </article>
           )}
 
-          {live.game?.started && theater.chapterReleased && live.finale ? (
+          {completedRoomRecovery ? (
+            inkboundReady ? null : completedRoomRecovery
+          ) : live.game?.started && theater.chapterReleased && live.finale ? (
             inkboundReady ? null : finalePanel
           ) : live.game?.started ? (
             <section className="choice-area">

@@ -53,6 +53,8 @@ export type InkboundDashboardProps = {
   onSelectHero: (id: string) => void;
   onCreate: (item: AdventureCatalogItem, mode: "solo" | "coop") => void;
   onJoin: (code: string) => void;
+  onLeaveAdventure: (roomCode: string, characterId: string) => void;
+  onAbandonAdventure: (roomCode: string) => void;
   onLogout: () => void;
   error?: string;
   onDismissError?: () => void;
@@ -61,7 +63,7 @@ export type InkboundDashboardProps = {
 export function InkboundAuthenticatedDashboard({
   username, userId, isAuthor, isAdmin, connected, directoryReady,
   heroes, catalog, adventures, selectedHeroId, onSelectHero, onCreate, onJoin,
-  onLogout, error, onDismissError,
+  onLeaveAdventure, onAbandonAdventure, onLogout, error, onDismissError,
 }: InkboundDashboardProps) {
   const [page, setPage] = useState<Page>("home");
   const [paper] = useInkboundPaper(userId);
@@ -69,10 +71,12 @@ export function InkboundAuthenticatedDashboard({
   const [filter, setFilter] = useState("ALL");
   const [roomCode, setRoomCode] = useState("");
   const [selectedStory, setSelectedStory] = useState<AdventureCatalogItem | null>(null);
+  const [exitJourney, setExitJourney] = useState<AdventureListItem | null>(null);
   const [mode, setMode] = useState<"solo" | "coop">("coop");
   const modalCloseRef = useRef<HTMLButtonElement>(null);
   const modalOpener = useRef<HTMLElement | null>(null);
   const active = adventures.filter((a) => !a.completed);
+  const completedRooms = adventures.filter((a) => a.completed);
   const available = heroes.filter(usableHero);
   const occupied = new Set(active.map((a) => a.character_id));
   const freeHeroes = available.filter((hero) => !occupied.has(hero.character_id));
@@ -96,6 +100,16 @@ export function InkboundAuthenticatedDashboard({
     })),
   ];
   const filterOptions = tags.map((tag) => ({ value: tag, label: tag === "ALL" ? "All worlds" : tag }));
+
+  // Match the rest of Quillairo's keyboard-friendly confirmation dialogs.
+  useEffect(() => {
+    if (!exitJourney) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") { event.preventDefault(); setExitJourney(null); }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [exitJourney]);
 
   useEffect(() => {
     if (!selectedStory) return;
@@ -149,6 +163,7 @@ export function InkboundAuthenticatedDashboard({
                 : <button className="i656-primary-action" type="button" onClick={() => setPage("worlds")}>Enter the adventure hall <span aria-hidden="true">→</span></button>}
               <button type="button" className="i656-text-link" onClick={() => setPage("heroes")}>Your Heroes ↗</button>
               <div className="i656-hero-meta">{active.length ? `${active.length} open ${active.length === 1 ? "journey" : "journeys"}` : "A clean first page"}<span aria-hidden="true"> · </span>{available.length} living {available.length === 1 ? "Hero" : "Heroes"}</div>
+              {completedRooms.length > 0 && <button type="button" className="i656-text-link" onClick={() => setPage("journeys")}>Finished journeys · Release a Hero ↗</button>}
             </div>
             <img className="i656-hero-ink" src={homeArt} alt="Two wanderers overlooking a ruined kingdom, painted in black ink and gray watercolor on transparent paper" />
           </section>
@@ -178,11 +193,38 @@ export function InkboundAuthenticatedDashboard({
         </section>}
         {page === "heroes" && <section className="i656-interior i656-heroes" aria-label="Hero Hall"><div className="i656-interior-intro"><p className="i656-eyebrow">Portraits of the living</p><h1>Every Hero<br/><em>has a history.</em></h1><p>Some are still writing theirs.</p><Link className="i656-primary-action" to="/game/heroes/new">Create a Hero →</Link></div>
           <div className="i656-records">{heroes.map((hero, index) => <article key={hero.character_id} className="i656-hero-record"><span className="i656-entry-index">{String(index+1).padStart(2,"0")}</span><div><h2>{hero.name}</h2><p>{hero.bio || "An unwritten past."}</p><small>Level {hero.level} · HP {hero.health}/{hero.max_health} · {hero.is_alive ? hero.hero_status : "Fallen"}</small></div><div className="i656-record-actions">{usableHero(hero) && !occupied.has(hero.character_id) && <button type="button" aria-pressed={selectedHeroId === hero.character_id} onClick={() => onSelectHero(hero.character_id)}>{selectedHeroId === hero.character_id ? "Selected ✓" : "Choose Hero"}</button>}<Link to={`/game/heroes/${encodeURIComponent(hero.character_id)}`}>Character folio ↗</Link></div></article>)}{!heroes.length && <p className="i656-empty-line">No Heroes have entered your story yet.</p>}</div><Link className="i656-text-link" to="/game/graveyard">Visit the Graveyard ↗</Link></section>}
-        {page === "journeys" && <section className="i656-interior" aria-label="My adventures"><div className="i656-interior-intro"><p className="i656-eyebrow">The story so far</p><h1>Journeys, open<br/><em>and remembered.</em></h1><p>Your adventures are preserved in the record, even after the final page.</p></div><div className="i656-chapter-list">{adventures.map((item, index) => <Link to={journeyHref(item)} key={`${item.room_code}:${item.character_id}`} className="i656-chapter-entry"><span className="i656-entry-index">{String(index+1).padStart(2,"0")}</span><span className="i656-entry-copy"><strong>{item.adventure_title}</strong><small>{item.character_name} · {item.scene_title || "A story in progress"}</small></span><span className="i656-entry-side">{item.completed ? "Finished" : item.director_retry_required ? "Needs recovery" : `Chapter ${Math.max(1,item.turn_number)}`} ↗</span></Link>)}{!adventures.length && <p className="i656-empty-line">Your journal has no chapters yet.</p>}</div><Link className="i656-text-link" to="/game/adventures">Full adventure archive ↗</Link></section>}
+        {page === "journeys" && <section className="i656-interior" aria-label="My adventures">
+          <div className="i656-interior-intro"><p className="i656-eyebrow">The story so far</p><h1>Journeys, open<br/><em>and remembered.</em></h1><p>Release a Hero from a finished room to use them again. Your sealed Chronicle is preserved.</p></div>
+          <div className="i656-chapter-list">
+            {adventures.map((item, index) => <article key={`${item.room_code}:${item.character_id}`} className="i656-journey-with-actions">
+              <Link to={journeyHref(item)} className="i656-chapter-entry"><span className="i656-entry-index">{String(index + 1).padStart(2, "0")}</span><span className="i656-entry-copy"><strong>{item.adventure_title}</strong><small>{item.character_name} · {item.scene_title || "A story in progress"}</small></span><span className="i656-entry-side">{item.completed ? "Finished" : item.director_retry_required ? "Needs recovery" : `Chapter ${Math.max(1,item.turn_number)}`} ↗</span></Link>
+              <div className="i656-journey-actions">
+                <button type="button" disabled={!connected} onClick={() => setExitJourney(item)}>{item.completed ? "Release Hero" : "Exit this adventure"}</button>
+                {item.completed && <Link to="/game/history">Sealed Chronicle ↗</Link>}
+              </div>
+            </article>)}
+            {!adventures.length && <p className="i656-empty-line">Your journal has no chapters yet.</p>}
+          </div>
+          <Link className="i656-text-link" to="/game/adventures">Full adventure archive ↗</Link>
+        </section>}
         {page === "join" && <section className="i656-interior i656-join" aria-label="Join a friend"><div className="i656-interior-intro"><p className="i656-eyebrow">Two perspectives · One story</p><h1>Better with<br/><em>someone beside you.</em></h1><p>Ask your companion for their six-character room code. Choose your Hero, then step into the same adventure.</p></div><form className="i656-join-form" onSubmit={enterRoom}><div className="i656-choice-field"><span className="i656-field-label">Your Hero</span><TerminalSelect className="i656-select" ariaLabel="Hero used to join the adventure" value={selectedHeroId} onChange={onSelectHero} options={heroOptions} disabled={!freeHeroes.length}/></div><label>Room code<input value={roomCode} onChange={(event) => setRoomCode(event.target.value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0,6))} placeholder="ABC123" maxLength={6} autoComplete="off" /></label><button className="i656-primary-action" type="submit" disabled={!canEnter || roomCode.length !== 6}>Join the adventure →</button>{!connected && <p className="i656-muted">Waiting for a connection to the game server.</p>}</form></section>}
       </main>
       <footer className="i656-footer"><span>✧ &nbsp; Some stories are better shared.</span><nav aria-label="More game pages"><Link to="/game/arcade">Arcade</Link><Link to="/game/rulebook">Rulebook</Link>{isAuthor && <a href="/author-console">Create</a>}{isAdmin && <Link to="/admin">Admin</Link>}<Link to="/account?tab=preferences#inkbound-paper">Paper &amp; Ink</Link><Link to="/account">Account</Link><button type="button" onClick={onLogout}>Sign out</button></nav></footer>
     </div>
+    {exitJourney && <div className="i656-veil" onMouseDown={(event) => { if (event.target === event.currentTarget) setExitJourney(null); }}>
+      <section className="i656-dialog" role="dialog" aria-modal="true" aria-labelledby="i656-exit-title">
+        <p className="i656-eyebrow">Adventure Hall</p><h2 id="i656-exit-title">{exitJourney.completed ? "Release your Hero?" : "Leave this unfinished adventure?"}</h2>
+        <p>{exitJourney.completed ? "The adventure has ended. Releasing your Hero clears the old room membership without deleting your Hero or their completed Chronicle." : exitJourney.is_host ? "This will abandon the unfinished adventure and preserve its abandoned record. Your Hero remains available." : "You will leave this active party. The remaining companion may continue, and your Hero becomes available."}</p>
+        <p className="i656-muted">{exitJourney.adventure_title} · {exitJourney.character_name}</p>
+        <div className="i656-dialog-actions"><button type="button" onClick={() => setExitJourney(null)}>Keep this room</button>
+          <button className="i656-primary-action" type="button" disabled={!connected} onClick={() => {
+            if (exitJourney.completed || !exitJourney.is_host) onLeaveAdventure(exitJourney.room_code, exitJourney.character_id);
+            else onAbandonAdventure(exitJourney.room_code);
+            setExitJourney(null);
+          }}>{exitJourney.completed ? "Release Hero →" : "Leave adventure →"}</button>
+        </div>
+      </section>
+    </div>}
     {selectedStory && <div className="i656-veil" onMouseDown={(event) => { if(event.target===event.currentTarget) closeInspect(); }}><section className="i656-dialog" role="dialog" aria-modal="true" aria-labelledby="i656-story-title"><div className="i656-dialog-head"><p className="i656-eyebrow">Before the first chapter</p><button ref={modalCloseRef} type="button" onClick={closeInspect} aria-label="Close story introduction">×</button></div><h2 id="i656-story-title">{selectedStory.title}</h2><p>{synopsis(selectedStory)}</p><fieldset className="i656-mode"><legend>How will you travel?</legend><label><input type="radio" name="i656-mode" checked={mode==="solo"} onChange={() => setMode("solo")}/> On my own</label><label><input type="radio" name="i656-mode" checked={mode==="coop"} onChange={() => setMode("coop")}/> With a companion</label></fieldset><div className="i656-dialog-hero i656-choice-field"><span className="i656-field-label">Your Hero</span><TerminalSelect className="i656-select" ariaLabel="Hero used to enter the lobby" value={selectedHeroId} onChange={onSelectHero} options={heroOptions} disabled={!freeHeroes.length}/></div><p className="i656-muted">{mode === "coop" ? "You will enter a co-op lobby. Invite your friend and begin only when both players are ready." : "You will enter the solo lobby, then choose when to begin Chapter One."}</p><div className="i656-dialog-actions"><button type="button" onClick={closeInspect}>Not yet</button><button className="i656-primary-action" type="button" disabled={!canEnter} onClick={() => { onCreate(selectedStory,mode); closeInspect(); }}>Enter the lobby →</button></div></section></div>}
   </div>;
 }

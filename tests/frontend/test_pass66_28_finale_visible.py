@@ -8,7 +8,9 @@ def test_one_finale_renders_in_classic_and_inkbound():
     reader=(ROOT/'frontend/src/pages/game/InkboundLiveRoom.tsx').read_text()
     assert page.count('className="finale-inline journey-finale-summary"') == 1
     assert 'inkboundReady ? null : finalePanel' in page
-    assert 'finalePanel={theater.chapterReleased ? finalePanel : null}' in page
+    assert 'finalePanel={completedRoomRecovery ?? (theater.chapterReleased ? finalePanel : null)}' in page
+    assert 'chapterReleased={theater.chapterReleased' in page
+    assert '|| Boolean(completedRoomRecovery)' in page
     assert '{props.finalePanel ? props.finalePanel : <>' in reader
     assert 'END ADVENTURE HERE // RETURN TO HALL' in page
 

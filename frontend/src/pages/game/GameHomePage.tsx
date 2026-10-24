@@ -306,6 +306,8 @@ export function GameHomePage({ homeLab = false }: { homeLab?: boolean } = {}) {
         if (selectedHeroId) createRoom(selectedHeroId, item.adventure_id, mode);
       }}
       onJoin={(code) => { if (selectedHeroId) joinRoom(selectedHeroId, code); }}
+      onLeaveAdventure={leaveAdventure}
+      onAbandonAdventure={abandonAdventure}
       onLogout={() => { void logout(); }}
       error={latestError || heroError}
       onDismissError={latestError ? clearError : undefined}

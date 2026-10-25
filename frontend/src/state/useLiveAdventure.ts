@@ -125,11 +125,13 @@ export function useLiveAdventure(
     // this watchdog. Missing replies are not evidence of Director failure:
     // resuming the view rebinds the socket and retrieves the SAVED scene.
     if (syncWatchdogRef.current !== null) return;
+    if (typeof console !== "undefined") console.info("[Quillairo Turn] syncing saved chapter");
     socket.emit("sync_adventure_state", {
       room_code: normalizedRoomCode,
     });
     syncWatchdogRef.current = setTimeout(() => {
       syncWatchdogRef.current = null;
+      if (typeof console !== "undefined") console.warn("[Quillairo Turn] no snapshot reply; rejoining room");
       restoreRef.current();
     }, 5000);
   }, [normalizedRoomCode, normalizedCharacterId]);
@@ -246,6 +248,7 @@ export function useLiveAdventure(
       if (!matchesRoom(payload?.room?.code) || payload.character_id !== normalizedCharacterId) return;
 
       resumeConfirmed = true;
+      if (typeof console !== "undefined") console.info("[Quillairo Turn] resume_success; rebuilding theater from saved state", { completed: payload.completed });
       // A successful rejoin reconstructs the client theater from the saved
       // snapshot, just as a hard reload would, without remounting the page.
       setResumeEpoch((current) => current + 1);
@@ -265,6 +268,14 @@ export function useLiveAdventure(
 
       clearSyncWatchdog();
       snapshotReceived = true;
+      if (typeof console !== "undefined") console.info("[Quillairo Turn] game_state", {
+        turn: payload.turn_number, pending: payload.turn_pending,
+        directorActive: payload.director_request_active,
+        retryRequired: payload.director_retry_required,
+        completed: payload.director_complete,
+        savedReceiptTurn: payload.last_turn_result?.resolved_turn_number ?? null,
+        savedReceiptPreliminary: payload.last_turn_result?.preliminary ?? null,
+      });
 
       if (
         lastGameTurnRef.current !== null &&
@@ -363,12 +374,21 @@ export function useLiveAdventure(
 
     const onTurnReceiptReady = (payload: TurnResolvedPayload) => {
       if (!matchesRoom(payload?.room_code)) return;
+      if (typeof console !== "undefined") console.info("[Quillairo Turn] preliminary receipt (dice frozen; story still writing)", {
+        turn: payload.resolved_turn_number ?? payload.turn_number,
+        checks: payload.results?.filter((r) => Boolean(r.check)).length ?? 0,
+      });
       setTurnReceipt(payload);
       setRetryableError(null);
     };
 
     const onTurnResolved = (payload: TurnResolvedPayload) => {
       if (!matchesRoom(payload?.room_code)) return;
+      if (typeof console !== "undefined") console.info("[Quillairo Turn] COMMITTED turn_resolved", {
+        resolvedTurn: payload.resolved_turn_number ?? payload.turn_number,
+        diceChecks: payload.results?.filter((r) => Boolean(r.check)).length ?? 0,
+        completed: Boolean(payload.completed),
+      });
 
       setLastTurn(payload);
       setTurnReceipt(payload);

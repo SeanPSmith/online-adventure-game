@@ -43,6 +43,7 @@ export interface TurnTheaterState {
   arcadeAvailable: boolean;
   chapterReleased: boolean;
   retryMessage: string;
+  serverProgress: string;
   finishIntermissionStoryReady: () => void;
   acknowledgeResolution: () => void;
 }
@@ -288,9 +289,75 @@ export function useTurnTheater({
     } else {
       readyReceiptRef.current = committed;
     }
-  }, [game?.started, game?.turn_number, game?.turn_pending, game?.last_turn_result,
+  }, [game?.started, game?.turn_number, game?.turn_pending, game?.director_complete, game?.last_turn_result, resumeEpoch,
     turnReceipt, lastTurn, roomCode, characterId, showReceipt, clearTimer,
     transition, beginStoryReady, finishIntermissionStoryReady]);
+
+  // PASS 66.38: a saved committed receipt is the authority for leaving the
+  // Arcade, not a socket event, optional game callback, or a change of turn
+  // number. Re-evaluate the current snapshot on *every* resumeEpoch/phase
+  // transition as well as when a fresh game_state is received. Previously a
+  // resume_success could reset the theater after game_state processing, with
+  // nothing left to trigger receipt presentation until a hard page refresh.
+  useEffect(() => {
+    if (!game?.started || game.turn_pending) return;
+    const saved = game.last_turn_result;
+    if (!saved || saved.preliminary || saved.room_code !== roomCode) return;
+    const turn = resolvedTurnNumber(saved);
+    if (turn <= 0 || turn > game.turn_number || turn < game.turn_number - 1) return;
+    const key = receiptKey(saved);
+    if (!key || key === acknowledgedRef.current ||
+        key === readAcknowledgedReceipt(roomCode, characterId)) return;
+    if (phaseRef.current === "resolution" && receiptKey(receiptRef.current) === key) return;
+    // The regular receipt effect may already be sequencing this same turn.
+    // Do not restart it, discard its preliminary frozen dice, or cut short
+    // the three-second 'story ready' countdown.
+    if (readyReceiptRef.current && receiptKey(readyReceiptRef.current) === key) return;
+
+    const preliminary = pendingReceiptRef.current;
+    const committed = preliminary && receiptKey(preliminary) === key
+      ? mergeTurnReceipt(preliminary, saved) : saved;
+    pendingReceiptRef.current = null;
+
+    if (phaseRef.current === "intermission") {
+      readyReceiptRef.current = committed;
+      beginStoryReady();
+    } else if (phaseRef.current === "story-ready") {
+      readyReceiptRef.current = committed;
+      if (countdownValue === 0 && readyTimerRef.current === null) finishIntermissionStoryReady();
+    } else if (phaseRef.current !== "resolution") {
+      clearTimer();
+      rememberIntermission(null);
+      readyReceiptRef.current = null;
+      showReceipt(committed);
+      transition("resolution");
+    }
+  }, [game?.started, game?.turn_pending, game?.turn_number, game?.last_turn_result,
+    resumeEpoch, phase, countdownValue, roomCode, characterId, beginStoryReady,
+    finishIntermissionStoryReady, clearTimer, rememberIntermission, showReceipt, transition]);
+
+  // The production console records exactly what the player can see, without
+  // logging story text, auth tokens, or personal identifiers.
+  const lastLoggedRef = useRef("");
+  useEffect(() => {
+    if (!game?.started) return;
+    const saved = game.last_turn_result;
+    const info = {
+      phase, turn: game.turn_number, serverPending: Boolean(game.turn_pending),
+      directorActive: Boolean(game.director_request_active),
+      retryRequired: Boolean(game.director_retry_required),
+      savedReceipt: saved ? receiptKey(saved) : null,
+      savedPreliminary: Boolean(saved?.preliminary),
+      diceVisible: phase === "resolution" && Boolean(activeReceipt),
+      nextChapterVisible: phase === "none" && !game.turn_pending,
+    };
+    const sig = JSON.stringify(info);
+    if (lastLoggedRef.current === sig) return;
+    lastLoggedRef.current = sig;
+    if (typeof console !== "undefined") console.info("[Quillairo Turn] theater", info);
+  }, [phase, game?.started, game?.turn_number, game?.turn_pending,
+    game?.director_request_active, game?.director_retry_required,
+    game?.last_turn_result, activeReceipt]);
 
   // On reconnect, reconstruct a pending Arcade and never treat lobby readiness
   // as a player choice. Retry does not re-roll the saved Python results.
@@ -346,8 +413,20 @@ export function useTurnTheater({
     })
   );
 
+  const serverProgress = !game ? "Reconnecting to saved room"
+    : game.director_retry_required ? "Director stopped — retry available"
+    : game.turn_pending ? (game.director_request_active
+      ? "Director still generating — checking saved chapter"
+      : "Director not active — recovery needed")
+    : game.last_turn_result && !game.last_turn_result.preliminary
+      ? (phase === "resolution" ? "D20 results ready — continue after the consequences"
+        : phase === "story-ready" ? "CHAPTER SAVED — revealing the D20"
+        : phase === "none" ? "Chapter ready to read"
+        : "CHAPTER SAVED — closing the Arcade")
+      : "Waiting for committed story receipt";
+
   return {
     phase, countdownValue, activeReceipt, activeIntermission, arcadeAvailable, chapterReleased,
-    retryMessage, finishIntermissionStoryReady, acknowledgeResolution,
+    retryMessage, serverProgress, finishIntermissionStoryReady, acknowledgeResolution,
   };
 }

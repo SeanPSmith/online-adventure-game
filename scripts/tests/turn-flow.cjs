@@ -433,3 +433,36 @@ test('resume handshake rebuilds a stalled intermission and reveals saved committ
   h.acknowledge();
   assert.equal(h.output().chapterReleased,true);
 });
+
+// 66.38: The server snapshot can arrive before resume_success. The latter
+// resets presentation; the same saved receipt must be replayed without a
+// new event, new roll, or browser hard refresh.
+test('resume_success after committed game_state replays dice without a hard refresh', () => {
+  const h=harness(); h.render();
+  h.update({game:h.game({pending:true, intermission:arcade(1), active:true}),turnReceipt:result(17)});
+  assert.equal(h.output().phase,'intermission');
+  const saved=result(17,false);
+  h.update({game:h.game({turn:2,final:saved}),lastTurn:saved,turnReceipt:saved});
+  assert.equal(h.output().phase,'story-ready');
+  // A successful rejoin changes resumeEpoch but the game_state object may
+  // remain identical. The theater must not get stuck waiting for new events.
+  h.update({resumeEpoch:1});
+  assert.equal(h.output().phase,'resolution');
+  assert.equal(h.output().activeReceipt.results[0].check.roll,17);
+  assert.equal(h.output().chapterReleased,false);
+  h.acknowledge();
+  assert.equal(h.output().chapterReleased,true);
+});
+
+test('saved final receipt alone exits a stranded Arcade and shows server dice', () => {
+  const h=harness(); h.render();
+  h.update({game:h.game({pending:true, intermission:arcade(1),active:true}),turnReceipt:result(20)});
+  // No turn_resolved socket event: the only evidence is the saved game_state.
+  const saved=result(20,false);
+  h.update({game:h.game({turn:2,final:saved}),turnReceipt:result(20)});
+  assert.equal(h.output().phase,'story-ready');
+  h.advance(4300);
+  assert.equal(h.output().phase,'resolution');
+  assert.equal(h.output().activeReceipt.results[0].check.roll,20);
+  assert.equal(h.output().serverProgress.startsWith('D20 results ready'),true);
+});

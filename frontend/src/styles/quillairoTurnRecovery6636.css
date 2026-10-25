@@ -39,3 +39,51 @@
   .q36-saved-story-recovery-actions {width:100%;}
   .q36-saved-story-recovery button {flex:1;}
 }
+
+/* 66.38 — persistent, visible story commit / dice handoff. These controls
+   remain above the Arcade even when the game itself scrolls. */
+.q38-turn-connection-state {
+  position: fixed;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(900px, calc(100vw - 24px));
+  box-sizing: border-box;
+  z-index: 3501;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .6rem;
+  padding: .65rem .9rem;
+  background: var(--ia-paper, #f6f0e4);
+  color: var(--ia-text, #262018);
+  border: 1px solid var(--ia-strong-rule, #a88a58);
+  box-shadow: 0 3px 14px #0002;
+  font-family: Georgia, serif;
+}
+.q38-turn-connection-state > span { flex: 1 1 230px; font-weight: 700; }
+.q38-turn-connection-state.is-committed { border-width: 2px; }
+.q38-turn-connection-state button {
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid currentColor;
+  color: inherit;
+  border-radius: 2px;
+  font: inherit;
+  padding: .4rem .7rem;
+  min-height: 40px;
+}
+.q38-turn-connection-state button:focus-visible { outline: 3px solid currentColor; outline-offset: 2px; }
+.q38-dice-confirmation {
+  text-align: center;
+  background: var(--ia-paper, #f6f0e4);
+  color: var(--ia-text, #262018);
+  padding: .7rem 1rem;
+  font-family: Georgia, serif;
+  font-weight: 700;
+  border-bottom: 1px solid var(--ia-strong-rule, #a88a58);
+}
+@media (max-width: 600px) {
+  .q38-turn-connection-state { padding: .4rem .6rem; gap: .4rem; }
+  .q38-turn-connection-state button { flex: 1 1 auto; }
+}

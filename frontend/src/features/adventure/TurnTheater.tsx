@@ -84,6 +84,11 @@ export function TurnTheater({
   if (theater.phase === "resolution" && theater.activeReceipt) {
     return (
       <div className={`turn-theater-overlay is-resolution ${inkPaper ? "inkbound-turn-theater" : ""}`} data-ink-paper={inkPaper} role="dialog" aria-modal="true" aria-labelledby="q24-turn-title">
+        <div className="q38-dice-confirmation" role="status" aria-live="assertive">
+          {theater.activeReceipt.results?.some((result) => Boolean(result.check))
+            ? "The story has returned. The server's D20 results are now on screen."
+            : "The story has returned. The recorded consequences are now on screen."}
+        </div>
         <TurnResolutionTheater
           receipt={theater.activeReceipt}
           inkbound={Boolean(inkPaper)}
@@ -101,6 +106,12 @@ export function TurnTheater({
   if (intermissionVisible && theater.activeIntermission) {
     return (
       <div className={`turn-theater-overlay is-${theater.phase} is-intermission-runtime ${inkPaper ? "inkbound-turn-theater" : ""}`} data-ink-paper={inkPaper} role="dialog" aria-modal="true">
+        <div className={`q38-turn-connection-state ${committedTurnReady || theater.phase === "story-ready" ? "is-committed" : ""}`}
+          role="status" aria-live="polite" data-turn-phase={theater.phase}>
+          <span>{theater.serverProgress}</span>
+          <button type="button" onClick={onSync}>Check saved chapter</button>
+          <button type="button" onClick={onRecover}>Rejoin story</button>
+        </div>
         <IntermissionRuntime
           payload={theater.activeIntermission}
           playerId={playerId}
@@ -137,6 +148,11 @@ export function TurnTheater({
   if (inkPaper) {
     return (
       <div className={`turn-theater-overlay is-${theater.phase} inkbound-turn-theater ibw-overlay`} data-ink-paper={inkPaper}>
+        <div className="q38-turn-connection-state" role="status" aria-live="polite">
+          <span>{theater.serverProgress}</span>
+          <button type="button" onClick={onSync}>Check saved chapter</button>
+          <button type="button" onClick={onRecover}>Rejoin story</button>
+        </div>
         <InkboundWaitingFolio paper={inkPaper} elapsedSeconds={writingSeconds}
           storyReady={theater.phase === "story-ready"} readySeconds={theater.countdownValue}
           choiceLabel={choiceLabel} hero={hero} partyCount={partyCount}

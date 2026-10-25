@@ -175,7 +175,10 @@ export function useTurnTheater({
     acknowledgedRef.current = readAcknowledgedReceipt(roomCode, characterId);
     lastLockSignalRef.current = "";
     finishTurnPresentation();
-  }, [roomCode, characterId, resumeEpoch, finishTurnPresentation]);
+  // A socket rejoin is NOT a new adventure. Resetting on resumeEpoch erased
+  // a committed receipt that might already have arrived just before the
+  // resume_success event. Snapshot reconciliation above handles rejoin safely.
+  }, [roomCode, characterId, finishTurnPresentation]);
 
   useEffect(() => () => clearTimer(), [clearTimer]);
 
@@ -255,6 +258,19 @@ export function useTurnTheater({
         game.turn_number === resolvedTurnNumber(committed)) {
       committedSceneReady = true;
     }
+
+    // turn_resolved is emitted by the server ONLY AFTER the new scene and
+    // original dice receipt have been durably persisted. Its presence is
+    // sufficient to begin the dice presentation even when a separate
+    // game_state socket event is lost and this snapshot still says pending.
+    // Restrict the fast path to the exact pending turn: a previous turn's
+    // committed receipt cannot release the next turn's Arcade.
+    const committedEventForPendingTurn = Boolean(
+      game.turn_pending && resolvedTurnNumber(committed) === game.turn_number &&
+      [turnReceipt, lastTurn].some((event) => Boolean(event && !event.preliminary &&
+        receiptKey(event) === key)),
+    );
+    if (committedEventForPendingTurn) committedSceneReady = true;
 
     // An AI turn must finish and commit the authored scene before showing dice.
     // The next chapter remains behind the overlay until the player continues.
@@ -338,6 +354,29 @@ export function useTurnTheater({
 
   // The production console records exactly what the player can see, without
   // logging story text, auth tokens, or personal identifiers.
+  // A full room resume is explicitly requesting the saved turn. Skip the
+  // Arcade's optional countdown when a committed receipt is already there;
+  // resetting that countdown on every socket rejoin used to strand the dice.
+  const lastPresentedResumeEpochRef = useRef(resumeEpoch);
+  useEffect(() => {
+    const isNewResume = lastPresentedResumeEpochRef.current !== resumeEpoch;
+    lastPresentedResumeEpochRef.current = resumeEpoch;
+    if (!isNewResume || !game?.started || game.turn_pending) return;
+    const saved = game.last_turn_result;
+    if (!saved || saved.preliminary || saved.room_code !== roomCode) return;
+    const key = receiptKey(saved);
+    if (!key || key === acknowledgedRef.current ||
+        key === readAcknowledgedReceipt(roomCode, characterId)) return;
+    if (phaseRef.current === "resolution" && receiptKey(receiptRef.current) === key) return;
+    clearTimer();
+    pendingReceiptRef.current = null;
+    readyReceiptRef.current = null;
+    rememberIntermission(null);
+    showReceipt(saved);
+    transition("resolution");
+  }, [resumeEpoch, game?.started, game?.turn_pending, game?.last_turn_result,
+    roomCode, characterId, clearTimer, rememberIntermission, showReceipt, transition]);
+
   const lastLoggedRef = useRef("");
   useEffect(() => {
     if (!game?.started) return;
@@ -372,6 +411,15 @@ export function useTurnTheater({
         transition("retry");
       }
     } else if (game.turn_pending) {
+      // A committed turn_resolved can reach the client before its game_state.
+      // Once its dice have been acknowledged, do not reopen the old Arcade
+      // while awaiting the saved next-scene snapshot.
+      const justCommitted = [turnReceipt, lastTurn].find((receipt) => Boolean(
+        receipt && !receipt.preliminary &&
+        resolvedTurnNumber(receipt) === game.turn_number &&
+        receiptKey(receipt) === acknowledgedRef.current,
+      ));
+      if (justCommitted) return;
       // A server-accepted retry keeps the same frozen dice and turn facts.
       // Leaving the theater on its error page after the request resumes makes
       // a healthy Director look stuck (especially after a reconnect). Only
@@ -387,7 +435,8 @@ export function useTurnTheater({
         transition("resolution");
       } else transition("none");
     }
-  }, [game?.started, game?.turn_pending, game?.director_retry_required, clearTimer, showReceipt, transition]);
+  }, [game?.started, game?.turn_pending, game?.turn_number, game?.director_retry_required,
+    game?.director_request_active, turnReceipt, lastTurn, clearTimer, showReceipt, transition]);
 
   const acknowledgeResolution = useCallback(() => {
     const receipt = receiptRef.current;
@@ -415,6 +464,8 @@ export function useTurnTheater({
 
   const serverProgress = !game ? "Reconnecting to saved room"
     : game.director_retry_required ? "Director stopped — retry available"
+    : game.turn_pending && activeReceipt && !activeReceipt.preliminary
+      ? "D20 results ready — refreshing the saved chapter"
     : game.turn_pending ? (game.director_request_active
       ? "Director still generating — checking saved chapter"
       : "Director not active — recovery needed")

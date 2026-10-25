@@ -400,6 +400,16 @@ export function useLiveAdventure(
       if (payload.completed && payload.finale) {
         setFinale(payload.finale);
       }
+      // The committed result is authoritative. It can arrive before (or
+      // without) the game's subsequent broadcast_game_state. Recover the
+      // freshly saved scene independently, while the theater displays the
+      // already committed dice. Do not regenerate or roll again.
+      if (!payload.preliminary && normalizedRoomCode) {
+        console.info("[Quillairo Turn] commit received; requesting saved next scene", {
+          turn: payload.resolved_turn_number ?? payload.turn_number,
+        });
+        sync();
+      }
     };
 
     const onRoomError = (payload: ServerErrorPayload) => {
@@ -479,7 +489,7 @@ export function useLiveAdventure(
 
       scheduleDetach();
     };
-  }, [normalizedRoomCode, normalizedCharacterId, clearSyncWatchdog]);
+  }, [normalizedRoomCode, normalizedCharacterId, clearSyncWatchdog, sync]);
 
   const submitChoice = useCallback((choiceId: string) => {
     if (!canSend()) return;

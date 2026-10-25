@@ -206,18 +206,28 @@ test('fast Director completion does not skip Arcade closing before dice', () => 
   assert.equal(h.output().phase,'none');
 });
 
-test('final arrives before game snapshot; wait for committed next scene', () => {
+test('committed result escapes Arcade even when the subsequent game_state is missed', () => {
   const h=harness(); h.render();
   h.update({game:h.game({pending:true,intermission:arcade(1)}),turnReceipt:result(15)});
   const final=result(15,false);
+  // This event is emitted AFTER the server commits the new story. The socket
+  // game_state may be lost, but dice must still become visible without refresh.
   h.update({turnReceipt:final,lastTurn:final});
-  assert.equal(h.output().phase,'intermission');
-  assert.equal(h.output().activeReceipt,null);
-  h.update({game:h.game({turn:2,final})});
   assert.equal(h.output().phase,'story-ready');
-  h.advance(3200); h.endArcade();
+  assert.equal(h.output().activeReceipt,null);
+  assert.equal(h.output().chapterReleased,false);
+  h.advance(4300);
   assert.equal(h.output().phase,'resolution');
   assert.equal(h.output().activeReceipt.results[0].check.roll,15);
+  h.acknowledge();
+  assert.equal(h.output().phase,'none');
+  // Dice can be acknowledged, but no new chapter should be invented from the
+  // stale server state. The separate snapshot request restores the next page.
+  assert.equal(h.output().chapterReleased,false);
+  h.update({game:h.game({pending:true,intermission:arcade(1)}), lastTurn:final, turnReceipt:final});
+  assert.equal(h.output().phase,'none', 'stale pending state must not reopen an acknowledged Arcade');
+  h.update({game:h.game({turn:2,final})});
+  assert.equal(h.output().chapterReleased,true);
 });
 
 test('refresh mid-Director generation reconstructs Arcade without exposing dice', () => {

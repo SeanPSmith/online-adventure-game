@@ -13,6 +13,7 @@ import { themeCssVars } from "../features/appearance/themePacks";
 import { themeEditionCssVars } from "../features/appearance/themeEditions";
 import "../features/appearance/themeEditions.css";
 import "../styles/brighterWorldShell.css";
+import "../styles/quillairoAdventureBoot.css";
 import "../pages/game/livingBook644.css";
 import type { CSSProperties } from "react";
 
@@ -24,10 +25,14 @@ export function GameLayout() {
   const canAuthor = canUseAuthorStudio(user?.permissions);
   const isAdmin = user?.permissions.includes("admin") ?? false;
   const isAdventureMode = location.pathname.startsWith("/game/adventure/");
+  // Keep the selected Inkspace shell mounted while its lazy-loaded reader
+  // bundle resolves. Classic and physical Book are explicit opt-in exceptions.
+  const reader = new URLSearchParams(location.search).get("reader");
+  const isInkspaceAdventure = isAdventureMode && reader !== "classic" && reader !== "book";
   const isDeskHome = location.pathname === "/game" || location.pathname === "/game/home-lab" || location.pathname === "/dev/home-lab";
 
   return (
-    <div className={`site-shell game-site-shell p64-shell inkbound-system-shell ${isAdventureMode ? "is-adventure-mode" : ""} ${isDeskHome ? "is-desk-home" : ""}`} data-ink-paper={paper} data-platform-skin={preferences.platformSkin} data-edition-family={edition.family} data-edition-mode={edition.mode} data-installed-library-theme={Boolean(libraryTheme)} data-theme-material={libraryTheme?.material} style={(libraryTheme ? themeCssVars(libraryTheme) : themeEditionCssVars(edition)) as CSSProperties}>
+    <div className={`site-shell game-site-shell p64-shell inkbound-system-shell ${isAdventureMode ? "is-adventure-mode" : ""} ${isInkspaceAdventure ? "is-inkspace-route" : ""} ${isDeskHome ? "is-desk-home" : ""}`} data-ink-paper={paper} data-platform-skin={preferences.platformSkin} data-edition-family={edition.family} data-edition-mode={edition.mode} data-installed-library-theme={Boolean(libraryTheme)} data-theme-material={libraryTheme?.material} style={(libraryTheme ? themeCssVars(libraryTheme) : themeEditionCssVars(edition)) as CSSProperties}>
       <a className="skip-link" href="#main-content">SKIP TO CONTENT</a>
       <header className={`site-header game-header ${isAdventureMode ? "is-adventure-header" : ""}`}>
         <Link className="brand q-site-brand" to="/game" aria-label="Quillairo home"><BrandLockup paper={paper} /></Link>

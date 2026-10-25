@@ -37,6 +37,8 @@ from app.auth.service import (
     auth_service,
 )
 
+from app.auth.sessions import utc_now
+
 from app.auth.store import (
     auth_store,
 )

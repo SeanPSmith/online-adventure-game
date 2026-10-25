@@ -50,7 +50,7 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
   const [permission, setPermission] = useState(() => browserNotificationSupport().permission);
   const [phoneDraft, setPhoneDraft] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
-  const [status, setStatus] = useState("LOADING ACCOUNT NOTIFICATION SETTINGS...");
+  const [status, setStatus] = useState("Loading notification preferences…");
   const [busy, setBusy] = useState(false);
   const [storyDisplay, setStoryDisplay] = useState<StoryDisplayPreferences>(() =>
     readStoryDisplayPreferences(),
@@ -129,7 +129,7 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
       })
       .catch((reason) => {
         if (cancelled) return;
-        setStatus(`:/ ${errorMessage(reason)}`);
+        setStatus(errorMessage(reason));
       });
     return () => {
       cancelled = true;
@@ -146,16 +146,16 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
     return "READY TO REQUEST PERMISSION";
   }, [channels.pushAvailable, permission, preferences.push]);
 
-  async function persist(next: NotificationPreferences, success = "PREFERENCES SAVED") {
+  async function persist(next: NotificationPreferences, success = "Preferences saved.") {
     setBusy(true);
     setStatus("");
     try {
       const saved = await saveNotificationSettings(next);
       setPreferences(saved.preferences);
       setChannels(saved.channels);
-      setStatus(`(^_^)/ ${success}`);
+      setStatus(success);
     } catch (reason) {
-      setStatus(`:/ ${errorMessage(reason)}`);
+      setStatus(errorMessage(reason));
     } finally {
       setBusy(false);
     }
@@ -164,7 +164,7 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
   function updateLocalInApp(value: boolean) {
     const next = writeNotificationPreferences({ ...preferences, inApp: value });
     setPreferences(next);
-    setStatus("(^_^)/ IN-APP PREFERENCE SAVED TO THIS BROWSER");
+    setStatus("In-app preference saved in this browser.");
   }
 
   async function update<K extends keyof NotificationPreferences>(
@@ -176,16 +176,16 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
 
   async function enablePush() {
     setBusy(true);
-    setStatus("REGISTERING THIS BROWSER FOR WEB PUSH...");
+    setStatus("Connecting this browser to Web Push…");
     try {
       const settings = await enableWebPush();
       setPreferences(settings.preferences);
       setChannels(settings.channels);
       setPermission(browserNotificationSupport().permission);
-      setStatus("(^_^)/ REAL WEB PUSH ENABLED ON THIS BROWSER");
+      setStatus("Web Push enabled for this browser.");
     } catch (reason) {
       setPermission(browserNotificationSupport().permission);
-      setStatus(`:/ ${errorMessage(reason)}`);
+      setStatus(errorMessage(reason));
     } finally {
       setBusy(false);
     }
@@ -197,9 +197,9 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
       const settings = await disableWebPush();
       setPreferences(settings.preferences);
       setChannels(settings.channels);
-      setStatus("WEB PUSH DISABLED ON THIS BROWSER");
+      setStatus("Web Push disabled on this browser.");
     } catch (reason) {
-      setStatus(`:/ ${errorMessage(reason)}`);
+      setStatus(errorMessage(reason));
     } finally {
       setBusy(false);
     }
@@ -207,12 +207,12 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
 
   async function sendSmsCode() {
     setBusy(true);
-    setStatus("SENDING SMS VERIFICATION CODE...");
+    setStatus("Sending your verification code…");
     try {
       const response = await requestSmsVerification(phoneDraft);
-      setStatus(`(^_^)/ ${response.message} ENTER THE 6-DIGIT CODE BELOW.`);
+      setStatus(`${response.message} Enter the six-digit code below.`);
     } catch (reason) {
-      setStatus(`:/ ${errorMessage(reason)}`);
+      setStatus(errorMessage(reason));
     } finally {
       setBusy(false);
     }
@@ -220,16 +220,16 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
 
   async function verifySms() {
     setBusy(true);
-    setStatus("VERIFYING PHONE...");
+    setStatus("Verifying your number…");
     try {
       const settings = await verifySmsCode(verificationCode.trim());
       setPreferences(settings.preferences);
       setChannels(settings.channels);
       setPhoneDraft(settings.preferences.phoneNumber);
       setVerificationCode("");
-      setStatus("(^_^)/ PHONE VERIFIED // SMS ALERTS ENABLED");
+      setStatus("Phone verified. SMS alerts enabled.");
     } catch (reason) {
-      setStatus(`:/ ${errorMessage(reason)}`);
+      setStatus(errorMessage(reason));
     } finally {
       setBusy(false);
     }
@@ -252,13 +252,13 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
           <div className="notification-setting-row">
             <div>
               <strong>IN-APP ACTIVITY ALERTS</strong>
-              <p>Show compact terminal notices while Quillairo is already open.</p>
+              <p>Show in-app activity notices while Quillairo is already open.</p>
               <small>THIS SETTING APPLIES ONLY TO THIS BROWSER.</small>
             </div>
             <label className="terminal-toggle">
               <input
                 type="checkbox"
-                checked={preferences.inApp}
+                aria-label="In-app activity alerts" checked={preferences.inApp}
                 onChange={(event) => updateLocalInApp(event.target.checked)}
               />
               <span>{preferences.inApp ? "ON" : "OFF"}</span>
@@ -307,7 +307,7 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
             <label className={`terminal-toggle${channels.emailAvailable ? "" : " is-disabled"}`}>
               <input
                 type="checkbox"
-                checked={preferences.email}
+                aria-label="Email adventure alerts" checked={preferences.email}
                 disabled={busy || !channels.emailAvailable}
                 onChange={(event) => void update("email", event.target.checked)}
               />
@@ -334,7 +334,7 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
               <label className="terminal-toggle">
                 <input
                   type="checkbox"
-                  checked={preferences.sms}
+                  aria-label="SMS adventure alerts" checked={preferences.sms}
                   disabled={busy || !channels.smsAvailable}
                   onChange={(event) => void update("sms", event.target.checked)}
                 />
@@ -438,7 +438,7 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
             </label>
           </div>
 
-          {status ? <div className="system-notice notification-settings-status">{status}</div> : null}
+          {status ? <div className="system-notice notification-settings-status" role="status" aria-live="polite">{status}</div> : null}
         </div>
       </Panel>
       </div>
@@ -455,7 +455,7 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
               <small>OFF BY DEFAULT. AUDIO UNLOCKS WHEN YOU CLICK OR PRESS A KEY. THIS BROWSER ONLY.</small>
             </div>
             <label className="terminal-toggle">
-              <input type="checkbox" checked={audio.effectsEnabled}
+              <input type="checkbox" aria-label="Adventure sound effects" checked={audio.effectsEnabled}
                 onChange={(event) => setAudioPreference({ effectsEnabled: event.target.checked })} />
               <span>{audio.effectsEnabled ? "ON" : "OFF"}</span>
             </label>
@@ -495,7 +495,7 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
               <small>OFF BY DEFAULT // YOUR PLAYBACK SETTINGS ARE PERSONAL</small>
             </div>
             <label className="terminal-toggle">
-              <input type="checkbox" checked={audio.narrationEnabled}
+              <input type="checkbox" aria-label="Story narration" checked={audio.narrationEnabled}
                 onChange={event => { if (event.target.checked) requestStoryTime(); else { setAudioPreference({ narrationEnabled: false }); stopStoryTimeEngine(); } }} />
               <span>{audio.narrationEnabled ? "ON" : "OFF"}</span>
             </label>
@@ -511,13 +511,13 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
           ) : null}
           <div className="notification-setting-row">
             <div><strong>AUTO-READ NEW CHAPTERS</strong><p>Begin reading a newly revealed chapter automatically when your browser permits audio.</p></div>
-            <label className="terminal-toggle"><input type="checkbox" checked={audio.narrationAutoPlay} disabled={!audio.narrationEnabled}
+            <label className="terminal-toggle"><input type="checkbox" aria-label="Automatically read new chapters" checked={audio.narrationAutoPlay} disabled={!audio.narrationEnabled}
               onChange={event => setAudioPreference({ narrationAutoPlay: event.target.checked })} />
               <span>{audio.narrationAutoPlay ? "ON" : "OFF"}</span></label>
           </div>
           <div className="notification-setting-row">
             <div><strong>READ CHOICES AFTER CHAPTER</strong><p>Once narration finishes, read each choice aloud in order. Listening never selects a choice.</p></div>
-            <label className="terminal-toggle"><input type="checkbox" checked={audio.narrationAutoChoices} disabled={!audio.narrationEnabled}
+            <label className="terminal-toggle"><input type="checkbox" aria-label="Read choices after each chapter" checked={audio.narrationAutoChoices} disabled={!audio.narrationEnabled}
               onChange={event => setAudioPreference({ narrationAutoChoices: event.target.checked })} />
               <span>{audio.narrationAutoChoices ? "ON" : "OFF"}</span></label>
           </div>
@@ -527,7 +527,7 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
               <p>Add a short beat before the options and between different options. Story passages stay continuous. This changes only your browser, not the party's narrator or game timing.</p>
             </div>
             <label className="terminal-toggle">
-              <input type="checkbox" checked={audio.narrationDramaticPacing} disabled={!audio.narrationEnabled}
+              <input type="checkbox" aria-label="Dramatic pacing between choices" checked={audio.narrationDramaticPacing} disabled={!audio.narrationEnabled}
                 onChange={event => setAudioPreference({ narrationDramaticPacing: event.target.checked })} />
               <span>{audio.narrationDramaticPacing ? "ON" : "OFF"}</span>
             </label>
@@ -584,7 +584,7 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
             <label className="terminal-toggle">
               <input
                 type="checkbox"
-                checked={storyDisplay.wordReveal}
+                aria-label="Word-by-word story reveal" checked={storyDisplay.wordReveal}
                 onChange={(event) => {
                   const next = writeStoryDisplayPreferences({ ...storyDisplay, wordReveal: event.target.checked });
                   setStoryDisplay(next);
@@ -595,7 +595,7 @@ export function SettingsPage({ section = "all" }: { section?: "all" | "notificat
           </div>
           <div className="notification-setting-row">
             <div><strong>ILLUMINATED INITIALS</strong><p>Open a new chapter with an ornamental first letter. Turn it off for simpler reading.</p></div>
-            <label className="terminal-toggle"><input type="checkbox" checked={storyDisplay.decorativeInitials}
+            <label className="terminal-toggle"><input type="checkbox" aria-label="Illuminated chapter initials" checked={storyDisplay.decorativeInitials}
               onChange={event => setStoryDisplay(writeStoryDisplayPreferences({ ...storyDisplay, decorativeInitials: event.target.checked }))} />
               <span>{storyDisplay.decorativeInitials ? "ON" : "OFF"}</span></label>
           </div>

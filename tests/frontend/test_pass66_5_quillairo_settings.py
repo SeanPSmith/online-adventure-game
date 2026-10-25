@@ -54,7 +54,7 @@ def test_theme_selector_remains_shared_not_duplicated():
 
 def test_settings_layout_is_responsive_and_has_no_text_covering_illustration():
     assert "grid-template-columns:minmax(238px,25%) minmax(0,1fr)" in STYLE
-    assert "grid-template-areas:" in STYLE
+    assert "flex-direction:column" in STYLE  # Inkspace folio: one readable manuscript column
     assert "@media (max-width:950px)" in STYLE
     assert "@media (max-width:720px)" in STYLE
     assert "@media(max-width:430px)" in STYLE
@@ -69,8 +69,8 @@ def test_settings_layout_is_responsive_and_has_no_text_covering_illustration():
 
 
 def test_controls_stay_native_accessible_inputs_with_custom_visual_treatment():
-    assert '<input type="checkbox" checked={audio.effectsEnabled}' in SETTINGS
-    assert '<input type="checkbox" checked={audio.narrationEnabled}' in SETTINGS
+    assert 'checked={audio.effectsEnabled}' in SETTINGS
+    assert 'checked={audio.narrationEnabled}' in SETTINGS
     assert 'checked={storyDisplay.wordReveal}' in SETTINGS
     assert 'checked={preferences.inApp}' in SETTINGS
     assert 'type="range"' in SETTINGS

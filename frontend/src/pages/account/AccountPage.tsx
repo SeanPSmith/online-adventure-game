@@ -453,11 +453,13 @@ export function AccountPage() {
             <p className="quill-settings-tagline">Shape your journey.</p>
             <p className="quill-settings-summary">Make this story your own. Choose how it looks, how it sounds, and how your companions find you.</p>
             <nav className="quill-settings-index" aria-label="Settings sections">
-              <a href="#ink-settings-storytime">Story Time <span aria-hidden="true">↗</span></a>
               <a href="#inkbound-paper">Paper &amp; Ink <span aria-hidden="true">↗</span></a>
+              <a href="#ink-settings-storytime">Story Time <span aria-hidden="true">↗</span></a>
               <a href="#ink-settings-reading">Reading &amp; Display <span aria-hidden="true">↗</span></a>
               <a href="#ink-settings-gameplay">Sound &amp; Gameplay <span aria-hidden="true">↗</span></a>
               <a href="#ink-settings-notifications">Notifications <span aria-hidden="true">↗</span></a>
+              {user?.permissions.includes("admin") ? <a href="#quill-settings-ai">AI Models <span aria-hidden="true">↗</span></a> : null}
+              <a href="#wardrobe">Personal Editions <span aria-hidden="true">↗</span></a>
             </nav>
             <img className="quill-settings-art" src="/art/inkbound/north-road-editorial.png" alt="" loading="lazy" />
             <p className="quill-settings-colophon">Different paths. The same wonder.</p>

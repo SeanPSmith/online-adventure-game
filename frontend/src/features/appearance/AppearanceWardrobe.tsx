@@ -63,13 +63,13 @@ export function AppearanceWardrobe() {
     } catch (e) { setFeedback(e instanceof Error ? e.message : "Invalid theme file."); }
   }
   return <section className="p64-wardrobe" id="wardrobe" aria-labelledby="p64-wardrobe-title">
-    <div className="p64-wardrobe-heading"><span className="eyebrow">THE WARDROBE · YOUR PERSONAL EDITION</span>
-      <h2 id="p64-wardrobe-title">Dress the story, not the odds.</h2>
-      <p>A good jacket never saved anyone from a dragon. But it does improve the entrance.</p>
+    <div className="p64-wardrobe-heading"><span className="eyebrow">YOUR EDITION · PERSONAL APPEARANCE</span>
+      <h2 id="p64-wardrobe-title">Make the pages your own.</h2>
+      <p>Explore optional library styles and reader palettes. Your choices change appearance, never the story or its dice.</p>
     </div>
     <section className="p643b-editions" aria-labelledby="p643b-editions-heading">
       <div className="p643b-editions-head">
-        <div><h3 id="p643b-editions-heading">Editions of your library</h3>
+        <div><h3 id="p643b-editions-heading">Library editions</h3>
           <p>Same stories, different surroundings. The atmosphere is yours to choose.</p></div>
         <div className="p643b-daynight" role="group" aria-label="Tabletop lighting">
           {(["day","night","system"] as const).map(mode => <button key={mode} type="button"
@@ -96,17 +96,17 @@ export function AppearanceWardrobe() {
       </div>
       <p className="p643b-edition-hint">Day and Night change lighting, inks and paper—not your Heroes, worlds or dice. Auto follows your device. Your earlier JSON palettes remain available below.</p>
     </section>
-    <h3 className="p64-theme-section-title">Original bindings</h3>
-    <div className="p64-wardrobe-choices" role="group" aria-label="Choose your original library appearance">
+    <h3 className="p64-theme-section-title">Classic library appearances</h3>
+    <div className="p64-wardrobe-choices" role="group" aria-label="Choose a compatible classic library appearance">
       {PLATFORM_SKINS.map((id) => <button key={id} type="button" className={`p64-skin-card ${!libraryTheme && active.platform === id ? "is-equipped" : ""}`}
         aria-pressed={!libraryTheme && active.platform === id} onClick={() => { equipTheme(null, "library"); updateAppearance({ platformSkin: id as PlatformSkinId }); }}>
-        <span className={`p64-skin-thumbnail is-${id}`} aria-hidden="true"><span className="p64-skin-mini-book">✧</span></span>
+        <span className={`p64-skin-thumbnail is-${id}`} aria-hidden="true"><span className="p64-skin-mini-book">Aa</span></span>
         <strong>{SKIN_MANIFEST[id].label}</strong><small>{SKIN_MANIFEST[id].material}</small>
         <span className="p64-skin-status">{!libraryTheme && active.platform === id ? "EQUIPPED" : "INCLUDED · EQUIP"}</span>
       </button>)}
     </div>
-    <h3 className="p64-theme-section-title">The Skin Collection</h3>
-    <p className="p64-theme-hint">Included editions and your own installed designs. Library skins dress the desk; Reader skins change the pages inside an adventure.</p>
+    <h3 className="p64-theme-section-title">Saved palettes</h3>
+    <p className="p64-theme-hint">Optional classic-library and reader palettes. Your current Inkspace paper theme is selected above; these remain available for compatible views.</p>
     <div className="p64-theme-collection">
       {packs.map((pack) => {
         const equipped = (pack.target === "library" ? libraryTheme?.id : readerTheme?.id) === pack.id;
@@ -133,9 +133,9 @@ export function AppearanceWardrobe() {
         onChange={(event) => updateAppearance({ reducedMotion: event.target.checked })} /> Reduce decorative motion and skip fades</label>
     </fieldset>
     <div className="p64-theme-workshop-header">
-      <div><h3>Skin Workshop</h3><p>Paint your own pages. Keep your dice honest.</p></div>
+      <div><h3>Palette Studio</h3><p>Create, import, and export your own color palette.</p></div>
       <div className="p64-theme-workshop-controls">
-        <button type="button" className="button" aria-expanded={workshop} onClick={() => setWorkshop(!workshop)}>{workshop ? "CLOSE WORKSHOP" : "DESIGN A SKIN"}</button>
+        <button type="button" className="button" aria-expanded={workshop} onClick={() => setWorkshop(!workshop)}>{workshop ? "CLOSE STUDIO" : "DESIGN A PALETTE"}</button>
         <button type="button" className="button button-quiet" onClick={() => filePicker.current?.click()}>INSTALL JSON</button>
         <input ref={filePicker} hidden aria-label="Choose a Quillairo theme manifest" type="file" accept=".json,application/json" onChange={(event) => { void importFile(event); }} />
       </div>

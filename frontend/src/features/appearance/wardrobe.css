@@ -1,17 +1,118 @@
-/* Pass64 wardrobe controls: real preferences, no false buy interactions */
-.p64-wardrobe{margin:18px 0 28px;padding:clamp(18px,3vw,32px);background:linear-gradient(125deg,#281b16,#0f1217);border:1px solid #866642;color:#eadabe;box-shadow:inset 0 0 0 3px #120f10}
-.p64-wardrobe-heading h2{font:normal clamp(26px,3vw,38px) Georgia,serif;color:#f5dfb4;margin:8px 0}
-.p64-wardrobe-heading p{font:italic 15px/1.5 Georgia,serif;color:#c8b59c}
-.p64-wardrobe-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0}
-.p64-skin-card{border:2px solid #795b3b;padding:9px;color:#f7e2c2;background:#271914;display:flex;align-items:stretch;text-align:left;flex-direction:column;gap:5px;min-width:0;min-height:185px;border-radius:4px}
-.p64-skin-card:hover{border-color:#d8b276}.p64-skin-card.is-equipped{border-color:#efd08a;box-shadow:0 0 0 2px #5d3824,inset 0 0 0 1px #efcf8a}
-.p64-skin-card strong{font:normal 20px Georgia,serif;color:#f2dfbd}.p64-skin-card small{font:12px Georgia,serif;color:#c7b397}
-.p64-skin-thumbnail{height:105px;background:radial-gradient(ellipse,#6e422b,#1c130e);border:1px solid #a98656;display:grid;place-items:center}
-.p64-skin-thumbnail.is-wanderers-desk{background:linear-gradient(135deg,#cbab7a,#5e4326)}
-.p64-skin-thumbnail.is-midnight-codex{background:linear-gradient(135deg,#18171b,#63343a)}
-.p64-skin-thumbnail.is-clear-journal{background:linear-gradient(135deg,#fff4de,#cdbf9a)}
-.p64-skin-mini-book{display:grid;place-items:center;border:3px double #c5a472;background:linear-gradient(90deg,#ad8a62 48%,#674122 50%,#e8c18a 52%);width:70px;height:65px;color:#4e301c;font-size:25px;transform:rotate(-5deg);box-shadow:2px 5px 12px #0007}
-.p64-skin-status{margin-top:auto;padding:8px;border-top:1px solid #745235;color:#e5bf86;font-size:11px;letter-spacing:.09em;font-weight:700}
-.p64-wardrobe-reading{border:1px solid #805b3c;padding:14px;display:grid;gap:13px}.p64-wardrobe-reading legend{color:#e6be83;font:18px Georgia,serif;padding:0 7px}.p64-wardrobe-reading label{display:flex;align-items:center;gap:11px;font-size:13px;line-height:1.5}.p64-wardrobe-reading input{accent-color:#b37d48;width:18px;height:18px;flex-shrink:0}
-.p64-wardrobe-footnote{color:#cbb79b;font:italic 12px/1.5 Georgia,serif;margin:13px 0 0}
-@media(max-width:650px){.p64-wardrobe-choices{grid-template-columns:1fr}.p64-skin-card{min-height:0;display:grid;grid-template-columns:100px 1fr;grid-template-rows:auto auto 1fr;gap:4px 12px}.p64-skin-thumbnail{grid-row:1/4;height:105px}.p64-skin-card .p64-skin-status{margin-top:0;align-self:end}.p64-wardrobe{padding:17px 12px}}
+/* Pass 66.37: existing appearance controls, presented as Quillairo folios.
+   No replacement of theme ids, selection callbacks or import/export formats. */
+.quill-settings-wardrobe .p64-wardrobe{
+  margin:0;padding:0;background:transparent;color:var(--ib-text);
+  border:0;box-shadow:none;min-width:0;
+}
+.quill-settings-wardrobe .p64-wardrobe-heading{margin:0 0 24px}
+.quill-settings-wardrobe .p64-wardrobe-heading .eyebrow{
+  display:block;color:var(--qs-gold,var(--ib-muted))!important;
+  font:600 11px/1.5 var(--ib-mono);letter-spacing:.16em;
+}
+.quill-settings-wardrobe .p64-wardrobe-heading h2{
+  font:400 clamp(27px,2.5vw,37px)/1.13 var(--ib-serif);
+  color:var(--ib-text);margin:8px 0 11px;letter-spacing:-.025em;
+}
+.quill-settings-wardrobe .p64-wardrobe-heading p{
+  font:italic 16px/1.6 var(--ib-serif);color:var(--ib-copy);margin:0;
+}
+.quill-settings-wardrobe .p643b-editions{
+  margin:0 0 28px;padding:22px 0 23px;border:0;border-top:1px solid var(--ib-line);
+  border-bottom:1px solid var(--ib-line);background:transparent;border-radius:0;
+}
+.quill-settings-wardrobe .p643b-editions h3,
+.quill-settings-wardrobe .p64-theme-section-title,
+.quill-settings-wardrobe .p64-theme-workshop-header h3{
+  margin:0 0 8px;color:var(--ib-text);font:400 23px/1.2 var(--ib-serif);
+  letter-spacing:-.015em;
+}
+.quill-settings-wardrobe .p643b-editions-head p,
+.quill-settings-wardrobe .p643b-edition-hint,
+.quill-settings-wardrobe .p64-theme-hint{
+  font:14px/1.55 var(--ib-serif);color:var(--ib-muted);opacity:1;
+}
+.quill-settings-wardrobe .p643b-daynight .button{min-height:42px}
+.quill-settings-wardrobe .p643b-daynight .button.is-active{
+  outline:2px solid var(--qs-gold,var(--ib-text));outline-offset:2px;
+}
+.quill-settings-wardrobe .p643b-edition-gallery{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin:18px 0;
+}
+.quill-settings-wardrobe .p643b-edition-card,
+.quill-settings-wardrobe .p64-skin-card{
+  border:1px solid var(--ib-line)!important;border-radius:0!important;
+  padding:12px!important;gap:9px;color:var(--ib-text)!important;
+  background:transparent!important;box-shadow:none!important;
+  min-width:0;min-height:0;cursor:pointer;text-align:left;
+}
+.quill-settings-wardrobe .p643b-edition-card:hover,
+.quill-settings-wardrobe .p64-skin-card:hover{border-color:var(--qs-gold,var(--ib-text))!important}
+.quill-settings-wardrobe .p643b-edition-card[aria-pressed="true"],
+.quill-settings-wardrobe .p64-skin-card[aria-pressed="true"]{
+  outline:2px solid var(--qs-gold,var(--ib-text));outline-offset:2px;
+}
+.quill-settings-wardrobe .p643b-edition-card :is(strong,small),
+.quill-settings-wardrobe .p64-skin-card :is(strong,small){color:var(--ib-text)!important}
+.quill-settings-wardrobe .p643b-edition-card strong,
+.quill-settings-wardrobe .p64-skin-card strong{
+  font:400 20px/1.2 var(--ib-serif);
+}
+.quill-settings-wardrobe .p643b-edition-card small,
+.quill-settings-wardrobe .p64-skin-card small{
+  font:12px/1.45 var(--ib-serif);color:var(--ib-muted)!important;
+}
+.quill-settings-wardrobe .p643b-edition-state,
+.quill-settings-wardrobe .p64-skin-status{
+  margin-top:auto;padding:10px 0 0;border:0;border-top:1px solid var(--ib-line);
+  font:600 11px/1.4 var(--ib-mono);letter-spacing:.08em;
+  color:var(--qs-gold,var(--ib-text))!important;
+}
+.quill-settings-wardrobe .p64-wardrobe-choices{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;
+  margin:18px 0 27px;
+}
+.quill-settings-wardrobe .p64-skin-card{display:flex;flex-direction:column;align-items:stretch}
+/* Neutral live-paper proof replaces the defunct decorative miniature physical book. */
+.quill-settings-wardrobe .p64-skin-thumbnail,
+.quill-settings-wardrobe .p64-skin-thumbnail.is-wanderers-desk,
+.quill-settings-wardrobe .p64-skin-thumbnail.is-midnight-codex,
+.quill-settings-wardrobe .p64-skin-thumbnail.is-clear-journal{
+  display:grid;place-items:center;height:115px;min-width:0;
+  border:1px solid var(--ib-line);background:var(--ib-paper)!important;
+}
+.quill-settings-wardrobe .p64-skin-mini-book{
+  display:grid;place-items:center;width:70%;max-width:120px;height:78px;
+  border:1px solid var(--ib-line);border-top:2px solid var(--qs-gold,var(--ib-line));
+  border-radius:0;transform:none;box-shadow:none;
+  background:var(--qs-panel)!important;color:var(--ib-text)!important;
+  font:400 34px/1 var(--ib-serif);
+}
+.quill-settings-wardrobe .p64-wardrobe-reading{
+  display:flex;flex-wrap:wrap;gap:13px;margin:24px 0;
+  border:1px solid var(--ib-line);padding:18px 20px;
+  background:var(--qs-panel);color:var(--ib-text);
+}
+.quill-settings-wardrobe .p64-wardrobe-reading legend{
+  padding:0 8px;color:var(--ib-text);font:400 21px/1.3 var(--ib-serif);
+}
+.quill-settings-wardrobe .p64-wardrobe-reading label{
+  display:flex;align-items:flex-start;gap:10px;min-height:40px;width:100%;
+  font:14px/1.55 var(--ib-serif);color:var(--ib-copy);
+}
+.quill-settings-wardrobe .p64-wardrobe-reading input{
+  width:18px;height:18px;flex-shrink:0;accent-color:var(--qs-gold,var(--ib-text));
+}
+.quill-settings-wardrobe .p64-wardrobe-footnote{
+  margin:22px 0 0;color:var(--ib-muted);font:italic 13px/1.6 var(--ib-serif);
+}
+@media(max-width:850px){
+  .quill-settings-wardrobe .p643b-edition-gallery,
+  .quill-settings-wardrobe .p64-wardrobe-choices{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:540px){
+  .quill-settings-wardrobe .p643b-edition-gallery,
+  .quill-settings-wardrobe .p64-wardrobe-choices{grid-template-columns:1fr 1fr;gap:10px}
+  .quill-settings-wardrobe .p643b-edition-card,
+  .quill-settings-wardrobe .p64-skin-card{padding:10px!important}
+  .quill-settings-wardrobe .p64-wardrobe-reading{padding:14px}
+}

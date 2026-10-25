@@ -626,6 +626,29 @@ SOLO MODE OVERRIDE
 """
 
 
+def _repair_output_token_budget(story_limit: int) -> int:
+    """Enough headroom for a *whole* strict JSON turn, including QTE/state.
+
+    A repair must re-emit the complete object: the prior 3,200–4,200 cap
+    could truncate the repair as well as the primary model response.  This
+    bounded larger budget applies ONLY after actual parse/validation failure.
+    """
+    return min(7000, max(6400, int(story_limit) + 1200))
+
+
+def _incomplete_reason(response: Any) -> str | None:
+    """OpenAI Responses may return incomplete output without raising."""
+    details = getattr(response, "incomplete_details", None)
+    if isinstance(details, dict):
+        return str(details.get("reason") or "unknown")
+    reason = getattr(details, "reason", None)
+    if reason:
+        return str(reason)
+    if getattr(response, "status", None) == "incomplete":
+        return "unknown"
+    return None
+
+
 class DirectorError(
     RuntimeError
 ):
@@ -1456,6 +1479,8 @@ class OpenAIRuntimeDirector:
 
     @property
     def story_model(self) -> str:
+        # A request's own ContextVar snapshot keeps other rooms and a newly
+        # saved global preference from changing a story mid-generation.
         selected = active_global_models.get()
         return selected["story_model"] if selected else self._default_story_model
 
@@ -1474,8 +1499,8 @@ class OpenAIRuntimeDirector:
     ) -> dict[str, Any]:
         """Cheap player-facing receipt narration for an already-frozen turn."""
 
-        # A recap task has its own ContextVar snapshot; never mutate the global
-        # singleton during another room's in-flight generation.
+        # Recap tasks take their own saved preference snapshot rather than
+        # mutating the shared Director singleton during another room's turn.
         active_global_models.set(await models_for_request())
         player_context = []
         for player_id, character in characters_by_player_id.items():
@@ -1508,8 +1533,8 @@ class OpenAIRuntimeDirector:
         Any,
     ]:
 
-        # Pin the configured models for THIS Director request. New admin
-        # settings apply to subsequent turns, not the story already in flight.
+        # Pin global preferences for THIS request. New admin settings apply
+        # to later story turns, not to an existing in-flight generation.
         active_global_models.set(await models_for_request())
         generated_id = (
             session
@@ -2108,7 +2133,9 @@ class OpenAIRuntimeDirector:
             f"response_id={getattr(response, 'id', None)} "
             f"status={getattr(response, 'status', None)} "
             f"incomplete_details={getattr(response, 'incomplete_details', None)} "
-            f"output_chars={len(getattr(response, 'output_text', '') or '')}"
+            f"incomplete_reason={_incomplete_reason(response)} "
+            f"output_chars={len(getattr(response, 'output_text', '') or '')} "
+            f"output_tokens={getattr(getattr(response, 'usage', None), 'output_tokens', None)}"
         )
 
         output_text = (
@@ -2235,7 +2262,7 @@ class OpenAIRuntimeDirector:
                 f"room={session.room_code} turn={current_turn} "
                 f"type=JSONDecodeError detail={error} "
                 f"response_status={getattr(response, 'status', None)} "
-                f"incomplete_details={getattr(response, 'incomplete_details', None)} "
+                f"incomplete_reason={_incomplete_reason(response)} "
                 f"output_preview={output_text[:900]!r}"
             )
 
@@ -2253,7 +2280,7 @@ class OpenAIRuntimeDirector:
             )
 
             try:
-                repair_limit = min(4200, max(3200, turn_output_tokens))
+                repair_limit = _repair_output_token_budget(turn_output_tokens)
                 repair_response = (
                     await metered_openai_call(
                         operation="director_json_repair",
@@ -2269,8 +2296,9 @@ class OpenAIRuntimeDirector:
                             "The original text may be truncated near its end. Preserve "
                             "all existing narration, facts, outcomes, and choices that "
                             "are present, reconstruct only the missing/invalid tail, and "
-                            "do not invent a different turn. Return only the repaired "
-                            "structured output."
+                            "do not invent a different turn. Use concise JSON field values "
+                            "without repeating context so the full object fits the output "
+                            "budget. Return only the repaired structured output."
                         ),
                         input=repair_input,
                         reasoning={"effort": self.economy_reasoning},
@@ -2288,6 +2316,8 @@ class OpenAIRuntimeDirector:
                         ),
                     )
                 )
+            except UsageLimitExceeded:
+                raise
             except Exception as repair_error:
                 print(
                     "[DIRECTOR JSON REPAIR ERROR] "
@@ -2298,9 +2328,21 @@ class OpenAIRuntimeDirector:
                     "Story Director returned malformed JSON and repair failed."
                 ) from repair_error
 
+            repair_operation = "json_repair"
             repair_text = (
                 getattr(repair_response, "output_text", "") or ""
             ).strip()
+
+            print(
+                "[DIRECTOR REPAIR RESPONSE] "
+                f"room={session.room_code} turn={current_turn} "
+                f"operation={repair_operation} "
+                f"budget={repair_limit} "
+                f"status={getattr(repair_response, 'status', None)} "
+                f"incomplete_reason={_incomplete_reason(repair_response)} "
+                f"output_chars={len(repair_text)} "
+                f"output_tokens={getattr(getattr(repair_response, 'usage', None), 'output_tokens', None)}"
+            )
 
             try:
                 repaired_payload = normalize_provider_payload(
@@ -2309,15 +2351,30 @@ class OpenAIRuntimeDirector:
                 draft = DirectorStoryTurnDraft.model_validate(
                     repaired_payload
                 )
-            except (json.JSONDecodeError, ValidationError) as repair_validation_error:
+            except json.JSONDecodeError as repair_validation_error:
+                reason = _incomplete_reason(repair_response)
                 print(
                     "[DIRECTOR JSON REPAIR INVALID] "
                     f"elapsed={time.perf_counter() - repair_started:.2f}s "
+                    f"type=JSONDecodeError incomplete_reason={reason} "
                     f"detail={repair_validation_error} "
-                    f"output_preview={repair_text[:1200]!r}"
+                    f"output_preview={repair_text[:500]!r}"
                 )
                 raise DirectorError(
-                    "Story Director returned malformed JSON after repair."
+                    "Story Director JSON repair was incomplete or malformed. "
+                    "Your locked choices and dice remain saved; retry this turn "
+                    "without rerolling."
+                ) from repair_validation_error
+            except ValidationError as repair_validation_error:
+                print(
+                    "[DIRECTOR JSON REPAIR SCHEMA INVALID] "
+                    f"elapsed={time.perf_counter() - repair_started:.2f}s "
+                    f"errors={repair_validation_error.errors(include_url=False, include_context=False, include_input=False)}"
+                )
+                raise DirectorError(
+                    "Story Director JSON repair failed story validation. "
+                    "Your locked choices and dice remain saved; retry this turn "
+                    "without rerolling."
                 ) from repair_validation_error
 
             print(
@@ -2352,7 +2409,7 @@ class OpenAIRuntimeDirector:
             )
 
             try:
-                repair_limit = min(4200, max(3200, turn_output_tokens))
+                repair_limit = _repair_output_token_budget(turn_output_tokens)
                 repair_response = (
                     await metered_openai_call(
                         operation="director_schema_repair",
@@ -2376,6 +2433,8 @@ class OpenAIRuntimeDirector:
                             "If validation reports QTE leakage, remove ALL QTE/UI/mechanical "
                             "language and option labels from scene_body while preserving the "
                             "ordinary fictional hazard or opportunity. Keep quick_event separate. "
+                            "Keep field text concise so the entire strict JSON object "
+                            "fits within the output budget. "
                             "Return only the repaired structured output."
                         ),
                         input=repair_input,
@@ -2394,6 +2453,8 @@ class OpenAIRuntimeDirector:
                         ),
                     )
                 )
+            except UsageLimitExceeded:
+                raise
             except Exception as repair_error:
                 print(
                     "[DIRECTOR REPAIR ERROR] "
@@ -2404,9 +2465,21 @@ class OpenAIRuntimeDirector:
                     "Story Director returned invalid structured output and repair failed."
                 ) from repair_error
 
+            repair_operation = "schema_repair"
             repair_text = (
                 getattr(repair_response, "output_text", "") or ""
             ).strip()
+
+            print(
+                "[DIRECTOR REPAIR RESPONSE] "
+                f"room={session.room_code} turn={current_turn} "
+                f"operation={repair_operation} "
+                f"budget={repair_limit} "
+                f"status={getattr(repair_response, 'status', None)} "
+                f"incomplete_reason={_incomplete_reason(repair_response)} "
+                f"output_chars={len(repair_text)} "
+                f"output_tokens={getattr(getattr(repair_response, 'usage', None), 'output_tokens', None)}"
+            )
 
             try:
                 repaired_payload = normalize_provider_payload(
@@ -2423,7 +2496,9 @@ class OpenAIRuntimeDirector:
                     f"output_preview={repair_text[:1200]!r}"
                 )
                 raise DirectorError(
-                    "Story Director returned invalid structured output after repair."
+                    "Story Director schema repair did not validate. "
+                    "Your locked choices and dice remain saved; retry this turn "
+                    "without rerolling."
                 ) from repair_validation_error
 
             print(

@@ -228,7 +228,27 @@ export function useTurnTheater({
     const key = receiptKey(incoming);
     const alreadyRead = acknowledgedRef.current === key
       || readAcknowledgedReceipt(roomCode, characterId) === key;
-    if (alreadyRead) return; // Stale snapshots never interrupt later turns.
+    if (alreadyRead) {
+      // An out-of-order pending snapshot or a delayed room rejoin can reopen
+      // the Arcade *after* this result was acknowledged. Previously this
+      // returned early forever, even once game_state reported pending=false.
+      // The already-acknowledged receipt must clear the orphaned overlay,
+      // never reroll or replay its dice.
+      const saved = game.last_turn_result;
+      const settledSameReceipt = !game.turn_pending && saved && !saved.preliminary
+        && receiptKey(saved) === key && (
+          game.turn_number > resolvedTurnNumber(saved)
+          || (game.director_complete && game.turn_number === resolvedTurnNumber(saved))
+        );
+      if (settledSameReceipt && phaseRef.current !== "none") {
+        if (typeof console !== "undefined") console.info(
+          "[Quillairo Turn] acknowledged saved receipt; releasing stale intermission",
+          { turn: resolvedTurnNumber(saved), currentTurn: game.turn_number },
+        );
+        finishTurnPresentation();
+      }
+      return;
+    }
 
     // Save the first authoritative dice, but DO NOT display them during writing.
     if (incoming.preliminary) {
@@ -307,7 +327,7 @@ export function useTurnTheater({
     }
   }, [game?.started, game?.turn_number, game?.turn_pending, game?.director_complete, game?.last_turn_result, resumeEpoch,
     turnReceipt, lastTurn, roomCode, characterId, showReceipt, clearTimer,
-    transition, beginStoryReady, finishIntermissionStoryReady]);
+    transition, beginStoryReady, finishIntermissionStoryReady, finishTurnPresentation]);
 
   // PASS 66.38: a saved committed receipt is the authority for leaving the
   // Arcade, not a socket event, optional game callback, or a change of turn
@@ -393,7 +413,16 @@ export function useTurnTheater({
     const sig = JSON.stringify(info);
     if (lastLoggedRef.current === sig) return;
     lastLoggedRef.current = sig;
-    if (typeof console !== "undefined") console.info("[Quillairo Turn] theater", info);
+    if (typeof console !== "undefined") console.info(
+      `[Quillairo Turn] theater phase=${info.phase}` +
+      ` turn=${info.turn} pending=${info.serverPending}` +
+      ` directorActive=${info.directorActive}` +
+      ` savedReceipt=${info.savedReceipt ?? "MISSING"}` +
+      ` preliminary=${info.savedPreliminary}` +
+      ` acknowledged=${Boolean(info.savedReceipt && acknowledgedRef.current === info.savedReceipt)}` +
+      ` diceVisible=${info.diceVisible}` +
+      ` chapterVisible=${info.nextChapterVisible}`,
+    );
   }, [phase, game?.started, game?.turn_number, game?.turn_pending,
     game?.director_request_active, game?.director_retry_required,
     game?.last_turn_result, activeReceipt]);
@@ -469,6 +498,8 @@ export function useTurnTheater({
     : game.turn_pending ? (game.director_request_active
       ? "Director still generating — checking saved chapter"
       : "Director not active — recovery needed")
+    : !game.turn_pending && phase === "intermission" && !game.last_turn_result
+      ? "Chapter finished on server, but the committed dice receipt is missing — Rejoin Story"
     : game.last_turn_result && !game.last_turn_result.preliminary
       ? (phase === "resolution" ? "D20 results ready — continue after the consequences"
         : phase === "story-ready" ? "CHAPTER SAVED — revealing the D20"

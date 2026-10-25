@@ -268,14 +268,19 @@ export function useLiveAdventure(
 
       clearSyncWatchdog();
       snapshotReceived = true;
-      if (typeof console !== "undefined") console.info("[Quillairo Turn] game_state", {
-        turn: payload.turn_number, pending: payload.turn_pending,
-        directorActive: payload.director_request_active,
-        retryRequired: payload.director_retry_required,
-        completed: payload.director_complete,
-        savedReceiptTurn: payload.last_turn_result?.resolved_turn_number ?? null,
-        savedReceiptPreliminary: payload.last_turn_result?.preliminary ?? null,
-      });
+      // Flat, copyable diagnostics: Chrome collapses object payloads in the
+      // console, hiding precisely the receipt fields needed to diagnose a
+      // stalled Arcade. Never log story prose or personal data.
+      if (typeof console !== "undefined") console.info(
+        `[Quillairo Turn] game_state turn=${payload.turn_number}` +
+        ` pending=${Boolean(payload.turn_pending)}` +
+        ` directorActive=${Boolean(payload.director_request_active)}` +
+        ` retryRequired=${Boolean(payload.director_retry_required)}` +
+        ` completed=${Boolean(payload.director_complete)}` +
+        ` receipt=${payload.last_turn_result?.resolved_turn_number ?? payload.last_turn_result?.turn_number ?? "MISSING"}` +
+        ` preliminary=${Boolean(payload.last_turn_result?.preliminary)}` +
+        ` diceChecks=${payload.last_turn_result?.results?.filter((r) => Boolean(r.check)).length ?? 0}`,
+      );
 
       if (
         lastGameTurnRef.current !== null &&

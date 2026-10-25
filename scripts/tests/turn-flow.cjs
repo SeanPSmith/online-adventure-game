@@ -476,3 +476,45 @@ test('saved final receipt alone exits a stranded Arcade and shows server dice', 
   assert.equal(h.output().activeReceipt.results[0].check.roll,20);
   assert.equal(h.output().serverProgress.startsWith('D20 results ready'),true);
 });
+
+// An old pending snapshot can reopen a turn already acknowledged locally.
+// Once the authoritative server says that turn is settled, the Arcade must
+// never remain open behind an already-seen receipt.
+test('acknowledged saved chapter closes a re-opened Arcade without replaying dice', () => {
+  const h = harness(); h.render();
+  const final = result(14, false);
+  h.update({game:h.game({turn:2,final})});
+  assert.equal(h.output().phase,'resolution');
+  h.acknowledge();
+  assert.equal(h.output().phase,'none');
+  // A delayed pending snapshot with the same old turn should not be able to
+  // keep an already-consumed committed turn locked after the settled snapshot.
+  h.update({game:h.game({turn:2,pending:true,intermission:arcade(2)})});
+  assert.equal(h.output().phase,'intermission');
+  h.update({game:h.game({turn:2,final})});
+  assert.equal(h.output().phase,'none');
+  assert.equal(h.output().chapterReleased,true);
+});
+
+test('production turn 20 to 21: a saved final receipt alone ends Arcade and shows D20', () => {
+  const h=harness(); h.render();
+  h.update({game:h.game({turn:20,pending:true,intermission:arcade(20),active:true}),turnReceipt:result(11,true,20)});
+  assert.equal(h.output().phase,'intermission');
+  const saved = result(11,false,20);
+  // No turn_resolved delivery; state snapshot mirrors the captured log.
+  h.update({game:h.game({turn:21,pending:false,final:saved,active:false})});
+  assert.equal(h.output().phase,'story-ready');
+  h.advance(4300);
+  assert.equal(h.output().phase,'resolution');
+  assert.equal(h.output().activeReceipt.results[0].check.roll,11);
+  h.acknowledge();
+  assert.equal(h.output().chapterReleased,true);
+});
+
+test('server says writing ended but offers no saved receipt: expose missing-receipt state, never invent dice', () => {
+  const h=harness(); h.render();
+  h.update({game:h.game({turn:20,pending:true,intermission:arcade(20),active:true})});
+  h.update({game:h.game({turn:21,pending:false,active:false})});
+  assert.equal(h.output().activeReceipt,null);
+  assert.match(h.output().serverProgress,/committed dice receipt is missing/i);
+});

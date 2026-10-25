@@ -119,9 +119,24 @@ def test_story_state_context_window_is_bounded() -> None:
     assert len(compact["recent_consequences"]) == 6
 
 
-def test_committed_receipt_waits_for_arcade_close_before_revealing_dice() -> None:
+def test_committed_receipt_waits_for_arcade_close_and_recovers_acknowledged_turns() -> None:
     theater = read("frontend/src/features/adventure/useTurnTheater.ts")
-    assert 'if (alreadyRead) return;' in theater
+
+    # Already-acknowledged receipts must not replay dice. But when the server
+    # confirms that exact saved turn is settled, a stale Arcade must be closed
+    # instead of leaving the reader in an infinite intermission (Pass 66.41).
+    assert 'if (alreadyRead) {' in theater
+    acknowledged_branch = theater.split('if (alreadyRead) {', 1)[1].split(
+        '// Save the first authoritative dice', 1
+    )[0]
+    assert 'const settledSameReceipt = !game.turn_pending && saved && !saved.preliminary' in acknowledged_branch
+    assert 'receiptKey(saved) === key' in acknowledged_branch
+    assert 'if (settledSameReceipt && phaseRef.current !== "none")' in acknowledged_branch
+    assert 'finishTurnPresentation();' in acknowledged_branch
+    assert 'showReceipt(' not in acknowledged_branch
+
+    # Unacknowledged committed receipts still wait for the Arcade close and
+    # show the server's authoritative result before releasing the next chapter.
     assert 'if (!final || final.preliminary) return;' in theater
     assert 'rememberIntermission(null);' in theater
     assert 'showReceipt(final);' in theater

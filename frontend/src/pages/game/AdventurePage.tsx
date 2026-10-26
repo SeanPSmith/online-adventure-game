@@ -56,6 +56,7 @@ import "./inkboundAdventurePass657.css";
 import "./inkboundPass658.css";
 import "./inkboundTurnPass659.css";
 import "./inkboundPass6628.css";
+import "./quillairoCinematicTurnPass6643.css";
 import { useLiveAdventure } from "../../state/useLiveAdventure";
 import { useModal } from "../../state/ModalContext";
 import {
@@ -848,10 +849,10 @@ export function AdventurePage() {
         ) : live.game?.wrap_up_available && (live.game?.narrative_pacing?.act === 3 || (live.game?.target_turns != null && live.game.turn_number >= live.game.target_turns)) ? (
           <div className="ibl-ending-invitation">
             <strong>Ready to end this adventure?</strong>
-            <p>Call the final chapter when the journey feels ready. The Director will bring your established threads to a conclusion across three final turns; your party must agree.</p>
+            <p>Call the final chapter when the journey feels ready. Your next choice will shape the ending; in co-op, your companions must agree. Short solo stories also conclude at their selected length limit.</p>
             <button type="button" onClick={live.requestWrapUp}
               disabled={!connected || live.status !== "ready" || Boolean(live.playerId && live.game.wrap_up_votes.includes(live.playerId))}>
-              {live.playerId && live.game.wrap_up_votes.includes(live.playerId) ? "Waiting for your companions" : "Bring this adventure to a close →"}
+              {live.playerId && live.game.wrap_up_votes.includes(live.playerId) ? "Waiting for your companions" : "End this adventure here →"}
             </button>
           </div>
         ) : null}
@@ -900,7 +901,7 @@ export function AdventurePage() {
           {live.game?.wrap_up_available && !live.game.wrap_up_active && <button type="button"
             disabled={!connected || live.status !== "ready" || Boolean(live.playerId && live.game.wrap_up_votes.includes(live.playerId))}
             onClick={live.requestWrapUp}>
-            {live.playerId && live.game.wrap_up_votes.includes(live.playerId) ? "Final chapter requested" : "Call the final chapter →"}
+            {live.playerId && live.game.wrap_up_votes.includes(live.playerId) ? "Final chapter requested" : "End this adventure here →"}
           </button>}
           {live.game?.wrap_up_active && <span className="ibl-utility-label" role="status">Final chapter · {live.game.wrap_up_turns_remaining} turns remaining</span>}
           {theater.chapterReleased && scene?.body && <ShareMomentButton title={`${scene.title} — Quillairo`}
@@ -1046,7 +1047,7 @@ ${scene.body.slice(0, 260)}`}
                 >
                   {live.playerId && live.game.wrap_up_votes.includes(live.playerId)
                     ? "FINAL CHAPTER REQUESTED"
-                    : "CALL FINAL CHAPTER"}
+                    : "END ADVENTURE HERE"}
                 </button>
               ) : null}
 

@@ -37,14 +37,15 @@ def test_act_two_rest_advances_plot_instead_of_triggering_rescue():
     assert 'rests or finds shelter' in second_act['direction']
 
 
-def test_completion_requires_explicit_wrap_up_and_preserves_dice():
+def test_completion_requires_approved_wrap_up_or_solo_cap_and_preserves_dice():
     source = (ROOT / 'app/generation/director.py').read_text()
     assert 'may_complete = False' in source
     assert 'must_complete = False' in source
     assert 'wrap_up_turns_remaining <= 1' in source
     assert 'narrative_beat = narrative_beat_plan(' in source
     assert '"narrative_beat": narrative_beat' in source
-    assert 'Only explicit, party-approved wrap-up permits completed=true' in SYSTEM_INSTRUCTIONS
+    assert 'SOLO adventure reaching' in SYSTEM_INSTRUCTIONS
+    assert 'solo_finale_due(' in source
     assert 'TURN FACTS' in SYSTEM_INSTRUCTIONS
 
 

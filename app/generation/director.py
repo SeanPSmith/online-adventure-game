@@ -15,7 +15,7 @@ from pydantic import (
 )
 
 from app.generation.momentum import director_momentum_context, measure_scene_progress
-from app.generation.pacing import narrative_beat_plan
+from app.generation.pacing import narrative_beat_plan, solo_finale_due
 from app.game.outcome_stakes import outcome_contracts
 
 from app.generation.director_schema import (
@@ -506,10 +506,12 @@ SUSTAINED ADVENTURE DOCTRINE
   threats introduced merely to accelerate the ending.
 - The ending must emerge from accumulated player decisions, discovered
   information, relationships, checks, failures, successes, and consequences.
-- A finale is EARNED when the accumulated story state supports one, not when a
-  nominal turn number arrives. The Heroes explicitly call the final chapter;
-  until then show meaningful playable choices even if the planned length has
-  passed. Never resolve the whole mission offscreen with an unearned rescue.
+- A finale is EARNED when the accumulated story state supports one. For a SOLO
+  adventure the selected length is a real upper bound, not an excuse to invent
+  fresh conflicts beyond the central objective. Prepare the decisive choice in
+  the final act and honor that locked choice at the maximum turn. Before then
+  Heroes may explicitly call the final chapter. Never resolve the mission
+  offscreen with an unearned rescue.
 - A breather/rest is a transition, not a trigger for an abrupt finale: show
   the consequences of recuperating, cut past routine time, and advance the
   established plot. A rescue, if earned, should still leave a decisive Hero
@@ -562,10 +564,17 @@ STORY PACING
 - Act I establishes the driving question; Act II complicates and tests it;
   Act III converges established threads and brings a decisive choice into reach.
   runtime.narrative_beat supplies the current beat and a concrete instruction.
-- Only explicit, party-approved wrap-up permits completed=true. Otherwise
-  return completed=false with playable choices, even after maximum_turns.
+- Completion requires a party-approved final chapter OR a SOLO adventure reaching
+  its selected maximum_turns. At the solo length cap, close with completed=true
+  and a grounded epilogue; do not invent fresh dangers after the mission is won.
+  Before that cap, return completed=false and offer playable choices unless
+  the party has explicitly requested the final chapter.
 - Do not rush merely because the target is approaching.
 - Do not stall merely to reach the target.
+- Once the core mission is accomplished (rescue secured, destination reached,
+  threat resolved), DO NOT invent a new mission to prolong a short adventure.
+  Offer a meaningful final choice and transition into the epilogue. A rescue
+  earned through earlier decisions should be closure, not another Act II.
 - The adventure seed sets the broad genre and destination; the Director chooses
   the narrative TIME SCALE within it. Prefer hours, meaningful travel, changed
   relationships and objectives, or a scene transition over second-by-second
@@ -1619,9 +1628,29 @@ class OpenAIRuntimeDirector:
         narrative_beat = narrative_beat_plan(
             current_turn, target_turns, maximum_turns,
         )
-        if wrap_up_active:
-            # Only an explicit party vote authorizes the terminal epilogue.
-            # The existing three-turn convergence remains authoritative.
+        # Solo adventures respect their selected length. An ignored finale
+        # invitation must never turn a SHORT story into 37+ turns. The Hero's
+        # currently locked choice is still resolved with the original dice.
+        auto_finale = solo_finale_due(
+            current_turn=current_turn,
+            minimum_turns=minimum_turns,
+            maximum_turns=maximum_turns,
+            play_mode=str(room.play_mode or ""),
+            player_count=len(room.players),
+        ) and not opening_mode
+        if auto_finale and not wrap_up_active:
+            narrative_beat = {**narrative_beat,
+                "act": 3,
+                "beat": "REQUIRED EPILOGUE",
+                "phase": "FINALE",
+                "direction": "This is the final resolution. Honor the current locked Hero choice, close the established central mission, and give a satisfying epilogue. No new plot threads, arbitrary rescues or extra challenges.",
+            }
+            print(f"[DIRECTOR LENGTH FINALE] room={session.room_code} turn={current_turn} cap={maximum_turns}")
+        if wrap_up_active or auto_finale:
+            # A party-requested ending or a solo length cap ends on the
+            # next decisive resolution, not after three filler chapters.
+            wrap_up_active = True
+            wrap_up_turns_remaining = 1 if auto_finale else wrap_up_turns_remaining
             may_complete = wrap_up_turns_remaining <= 1
             must_complete = wrap_up_turns_remaining <= 1
             story_phase = "FINALE" if must_complete else "WRAP-UP"
@@ -2550,7 +2579,7 @@ class OpenAIRuntimeDirector:
             and draft.completed
         ):
             raise DirectorError(
-                "Story Director ended before the party's three-turn wrap-up runway was complete."
+                "Story Director ended before the approved wrap-up runway was complete."
             )
 
         if (
@@ -2559,7 +2588,7 @@ class OpenAIRuntimeDirector:
         ):
 
             raise DirectorError(
-                "Story Director did not close the adventure at the hard maximum."
+                "Story Director did not produce the required final epilogue."
             )
 
 
@@ -2569,7 +2598,7 @@ class OpenAIRuntimeDirector:
         ):
 
             raise DirectorError(
-                "Story Director attempted to end without party-approved finale or before its minimum turn window."
+                "Story Director attempted to end before the approved finale or solo length cap."
             )
 
 

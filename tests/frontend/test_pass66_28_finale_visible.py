@@ -44,7 +44,7 @@ def test_authoritative_party_snapshot_is_preferred_over_stale_character_fetch():
 def test_final_chapter_is_prominent_and_uses_existing_vote_api():
     page=(ROOT/'frontend/src/pages/game/AdventurePage.tsx').read_text()
     reader=(ROOT/'frontend/src/pages/game/InkboundLiveRoom.tsx').read_text()
-    assert 'Bring this adventure to a close' in page
+    assert 'End this adventure here' in page
     assert 'onClick={live.requestWrapUp}' in page
     assert 'props.wrapUpCallout' in reader
     assert 'wrap_up_votes.includes(live.playerId)' in page

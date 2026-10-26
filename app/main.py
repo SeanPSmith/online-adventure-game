@@ -4073,21 +4073,21 @@ async def request_wrap_up(
 
     if all_acknowledged:
         session.wrap_up_active = True
-        session.wrap_up_turns_remaining = 3
+        session.wrap_up_turns_remaining = 1
 
         print(
             "[WRAP UP APPROVED] "
             f"room={room.code} "
             f"turn={session.turn_number} "
-            "runway=3"
+            "runway=1"
         )
 
         await sio.emit(
             "wrap_up_approved",
             {
                 "room_code": room.code,
-                "turns_remaining": 3,
-                "message": "The party has called for the final chapter. Three turns remain.",
+                "turns_remaining": 1,
+                "message": "The party has called for the final chapter. The next resolved turn will complete the chronicle.",
             },
             room=room.code,
         )

@@ -119,3 +119,17 @@ def narrative_beat_plan(current_turn: int, target_turns: int, maximum_turns: int
             "Act III: bring the central conflict to a meaningful, earned decisive choice, with consequences rooted in previous decisions. A victory, evacuation, rescue, or return must follow from something the Hero established or earned. Offer the player agency to request the final chapter; do not silently finish the adventure."}
     return {"act": 3, "beat": "PLAYER-DIRECTED CONTINUATION", "phase": "FINALE WINDOW", "direction":
         "The selected length's planned runway has passed. Do not fabricate an ending or repeat filler scenes. Put the genuine final decision in reach while keeping the playable story open until the party explicitly requests closure. Summarize uneventful travel/rest, and keep the ending grounded in prior choices."}
+
+
+def solo_finale_due(*, current_turn: int, minimum_turns: int, maximum_turns: int, play_mode: str, player_count: int) -> bool:
+    """Only solo stories are automatically concluded at their selected length cap.
+
+    Multi-player stories use their existing unanimous vote.  The final
+    decision still comes from the Hero's locked turn, with authoritative dice.
+    """
+    return (
+        str(play_mode).lower() == "solo"
+        and player_count == 1
+        and int(maximum_turns or 0) > 0
+        and int(current_turn) >= max(int(minimum_turns or 1), int(maximum_turns))
+    )

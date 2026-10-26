@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { receiptKey } from "./turnFlow";
 import { cosmeticD20Face } from "./diceAnimation";
 import { playSound } from "../../services/audioDirector";
@@ -283,12 +283,53 @@ export function TurnResolutionTheater({
   const [activeIndex, setActiveIndex] = useState(0);
   const [finished, setFinished] = useState(results.length === 0);
   const [showReceiptRecovery, setShowReceiptRecovery] = useState(false);
+  const [folioStage, setFolioStage] = useState<"dice" | "consequences" | "page">(results.length ? "dice" : "consequences");
+  const [fading, setFading] = useState(false);
+  const [leaving, setLeaving] = useState(false);
+  const continueRef = useRef(onContinue);
+  continueRef.current = onContinue;
 
   useEffect(() => {
     setActiveIndex(0);
     setFinished(results.length === 0);
     setShowReceiptRecovery(false);
+    setFolioStage(results.length ? "dice" : "consequences");
+    setFading(false);
+    setLeaving(false);
   }, [turnIdentity, results.length]);
+
+  // The committed receipt owns the content. Timers here animate only the
+  // page transition; they cannot stall or re-run the Director or dice.
+  useEffect(() => {
+    if (!inkbound || !finished || folioStage !== "dice") return;
+    setFading(true);
+    const timer = window.setTimeout(() => {
+      setFolioStage("consequences");
+      setFading(false);
+    }, 260);
+    return () => window.clearTimeout(timer);
+  }, [inkbound, finished, folioStage, turnIdentity]);
+
+  useEffect(() => {
+    if (!inkbound || !leaving || folioStage !== "consequences") return;
+    const swap = window.setTimeout(() => {
+      setFolioStage("page");
+      setFading(false);
+    }, 260);
+    return () => window.clearTimeout(swap);
+  }, [inkbound, leaving, folioStage]);
+  useEffect(() => {
+    if (!inkbound || folioStage !== "page" || !leaving) return;
+    const timer = window.setTimeout(() => continueRef.current(), 850);
+    return () => window.clearTimeout(timer);
+  }, [inkbound, leaving, folioStage]);
+
+  const advanceFromConsequences = () => {
+    if (!inkbound) { onContinue(); return; }
+    if (leaving) return;
+    setLeaving(true);
+    setFading(true);
+  };
 
   // Rendering the saved receipt must never depend indefinitely on an animation
   // timer (especially on phones in background tabs). Reveal a manual bypass
@@ -315,11 +356,12 @@ export function TurnResolutionTheater({
   // Presentation only: receipt results, dice, HP and XP remain server-authored.
   // The next scene is not revealed until acknowledgeResolution runs in useTurnTheater.
   const receiptStage = finished ? "consequence" : "dice";
+  const presentedStage = inkbound ? folioStage : receiptStage;
   const steps = [
     { id: "choice", title: "Choice committed", status: "complete" },
     { id: "dice", title: "The dice", status: finished ? "complete" : "current" },
-    { id: "consequence", title: "The consequences", status: finished ? "current" : "pending" },
-    { id: "page", title: "Next page", status: "pending" },
+    { id: "consequence", title: "The consequences", status: folioStage === "page" ? "complete" : finished ? "current" : "pending" },
+    { id: "page", title: "Next page", status: folioStage === "page" ? "current" : "pending" },
   ] as const;
 
   const finishCurrent = useCallback(() => {
@@ -337,14 +379,14 @@ export function TurnResolutionTheater({
     : [];
 
   return (
-    <div className={`turn-resolution-theater ${criticalNow ? "is-critical-pulse" : ""} ${inkbound ? "is-inkbound-manuscript" : ""}`}>
+    <div className={`turn-resolution-theater ${criticalNow ? "is-critical-pulse" : ""} ${inkbound ? "is-inkbound-manuscript q43-cinematic" : ""} ${fading ? "is-fading" : ""} is-stage-${presentedStage}`} data-presentation-stage={presentedStage}>
       {inkbound ? (
         <div className="q24-receipt-masthead" aria-hidden="true">
           <span>QUILLAIRO</span><span className="q24-masthead-ornament">✧</span><span>THE TURNING PAGE</span>
         </div>
       ) : null}
       {inkbound ? (
-        <ol className="q24-turn-steps" aria-label="Turn presentation stages" data-stage={receiptStage}>
+        <ol className="q24-turn-steps" aria-label="Turn presentation stages" data-stage={presentedStage}>
           {steps.map((step, index) => (
             <li key={step.id} className={`q24-step is-${step.status}`}
               aria-current={step.status === "current" ? "step" : undefined}>
@@ -357,7 +399,7 @@ export function TurnResolutionTheater({
       <header className="theater-heading">
         <div>
           <span className="eyebrow">{inkbound ? `CHRONICLE · TURN ${receipt.resolved_turn_number ?? receipt.turn_number ?? "—"}` : "AUTHORITATIVE TURN RECEIPT"}</span>
-          <h2 id="q24-turn-title">{inkbound ? (finished ? "What the Choice Changed" : "The Dice Have Spoken") : "LET'S SEE HOW THAT WENT."}</h2>
+          <h2 id="q24-turn-title">{inkbound ? (folioStage === "page" ? "The Next Chapter Awaits" : folioStage === "consequences" ? "What the Choice Changed" : "The Dice Have Spoken") : "LET'S SEE HOW THAT WENT."}</h2>
         </div>
         <span>{receipt.preliminary ? "RESULTS READY // STORY WRITING" : (inkbound ? "A COMMITTED TURN · NO REROLL" : "SERVER RESOLVED")}</span>
       </header>
@@ -369,9 +411,9 @@ export function TurnResolutionTheater({
           <span className="q24-section-line" aria-hidden="true" />
         </div>
       ) : null}
-      <div className="theater-results">
+      {(!inkbound || folioStage === "dice") ? <div className="theater-results" key={`dice:${activeIndex}`}>
         {results.map((result, index) => {
-          if (index > activeIndex) return null;
+          if (inkbound ? index !== activeIndex : index > activeIndex) return null;
 
           return (
             <AnimatedResultCard
@@ -385,7 +427,7 @@ export function TurnResolutionTheater({
             />
           );
         })}
-      </div>
+      </div> : null}
 
       {!finished && showReceiptRecovery ? (
         <div className="q34-receipt-recovery" role="status">
@@ -397,8 +439,8 @@ export function TurnResolutionTheater({
         </div>
       ) : null}
 
-      {finished ? (
-        <div className="theater-finale-stage">
+      {finished && (!inkbound || folioStage === "consequences") ? (
+        <div className="theater-finale-stage" key="consequences">
           {inkbound ? (
             <div className="q24-outcome-masthead">
               <img src="/art/inkbound/signpost.png" alt="" loading="lazy" />
@@ -431,9 +473,18 @@ export function TurnResolutionTheater({
               </div>
             </div>
           ) : null}
-          <button className="button button-primary theater-continue" type="button" onClick={onContinue}>
+          <button className="button button-primary theater-continue" type="button" onClick={advanceFromConsequences} disabled={leaving}>
             {receipt.completed ? "SEE HOW THIS ENDS" : "CONTINUE THE CHRONICLE"}
           </button>
+        </div>
+      ) : null}
+      {inkbound && folioStage === "page" ? (
+        <div className="q43-chapter-handoff" role="status" aria-live="polite" key="page">
+          <span className="eyebrow">QUILLAIRO · THE NEXT PAGE</span>
+          <span className="q43-page-star" aria-hidden="true">✦</span>
+          <h3>{receipt.completed ? "Your ending is waiting." : "The story continues."}</h3>
+          <p>{receipt.completed ? "The final words of this journey." : "A new chapter unfolds."}</p>
+          <button className="button theater-continue" type="button" onClick={onContinue}>Continue now</button>
         </div>
       ) : null}
     </div>

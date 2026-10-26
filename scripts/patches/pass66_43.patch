@@ -1,0 +1,494 @@
+--- a/app/generation/pacing.py
++++ b/app/generation/pacing.py
+@@ -117,5 +117,19 @@
+     if turn <= ceiling:
+         return {"act": 3, "beat": "CLIMAX READY", "phase": "FINALE WINDOW", "direction":
+             "Act III: bring the central conflict to a meaningful, earned decisive choice, with consequences rooted in previous decisions. A victory, evacuation, rescue, or return must follow from something the Hero established or earned. Offer the player agency to request the final chapter; do not silently finish the adventure."}
+     return {"act": 3, "beat": "PLAYER-DIRECTED CONTINUATION", "phase": "FINALE WINDOW", "direction":
+         "The selected length's planned runway has passed. Do not fabricate an ending or repeat filler scenes. Put the genuine final decision in reach while keeping the playable story open until the party explicitly requests closure. Summarize uneventful travel/rest, and keep the ending grounded in prior choices."}
++
++
++def solo_finale_due(*, current_turn: int, minimum_turns: int, maximum_turns: int, play_mode: str, player_count: int) -> bool:
++    """Only solo stories are automatically concluded at their selected length cap.
++
++    Multi-player stories use their existing unanimous vote.  The final
++    decision still comes from the Hero's locked turn, with authoritative dice.
++    """
++    return (
++        str(play_mode).lower() == "solo"
++        and player_count == 1
++        and int(maximum_turns or 0) > 0
++        and int(current_turn) >= max(int(minimum_turns or 1), int(maximum_turns))
++    )
+--- a/app/generation/director.py
++++ b/app/generation/director.py
+@@ -13,11 +13,11 @@
+ from pydantic import (
+     ValidationError,
+ )
+ 
+ from app.generation.momentum import director_momentum_context, measure_scene_progress
+-from app.generation.pacing import narrative_beat_plan
++from app.generation.pacing import narrative_beat_plan, solo_finale_due
+ from app.game.outcome_stakes import outcome_contracts
+ 
+ from app.generation.director_schema import (
+     DirectorRecapDraft,
+     DirectorStoryTurnDraft,
+@@ -504,14 +504,16 @@
+   reset the same opportunity.
+ - Avoid arbitrary twists, sudden villains, unexplained revelations, or new
+   threats introduced merely to accelerate the ending.
+ - The ending must emerge from accumulated player decisions, discovered
+   information, relationships, checks, failures, successes, and consequences.
+-- A finale is EARNED when the accumulated story state supports one, not when a
+-  nominal turn number arrives. The Heroes explicitly call the final chapter;
+-  until then show meaningful playable choices even if the planned length has
+-  passed. Never resolve the whole mission offscreen with an unearned rescue.
++- A finale is EARNED when the accumulated story state supports one. For a SOLO
++  adventure the selected length is a real upper bound, not an excuse to invent
++  fresh conflicts beyond the central objective. Prepare the decisive choice in
++  the final act and honor that locked choice at the maximum turn. Before then
++  Heroes may explicitly call the final chapter. Never resolve the mission
++  offscreen with an unearned rescue.
+ - A breather/rest is a transition, not a trigger for an abrupt finale: show
+   the consequences of recuperating, cut past routine time, and advance the
+   established plot. A rescue, if earned, should still leave a decisive Hero
+   choice or consequence, not replace the climax.
+ 
+@@ -560,14 +562,21 @@
+ - maximum_turns is the outer PLANNING HORIZON, not a forced ending. A party
+   can keep playing beyond it; never shortcut plot for a numeric deadline.
+ - Act I establishes the driving question; Act II complicates and tests it;
+   Act III converges established threads and brings a decisive choice into reach.
+   runtime.narrative_beat supplies the current beat and a concrete instruction.
+-- Only explicit, party-approved wrap-up permits completed=true. Otherwise
+-  return completed=false with playable choices, even after maximum_turns.
++- Completion requires a party-approved final chapter OR a SOLO adventure reaching
++  its selected maximum_turns. At the solo length cap, close with completed=true
++  and a grounded epilogue; do not invent fresh dangers after the mission is won.
++  Before that cap, return completed=false and offer playable choices unless
++  the party has explicitly requested the final chapter.
+ - Do not rush merely because the target is approaching.
+ - Do not stall merely to reach the target.
++- Once the core mission is accomplished (rescue secured, destination reached,
++  threat resolved), DO NOT invent a new mission to prolong a short adventure.
++  Offer a meaningful final choice and transition into the epilogue. A rescue
++  earned through earlier decisions should be closure, not another Act II.
+ - The adventure seed sets the broad genre and destination; the Director chooses
+   the narrative TIME SCALE within it. Prefer hours, meaningful travel, changed
+   relationships and objectives, or a scene transition over second-by-second
+   choreography. Moment-to-moment storytelling is appropriate only for pivotal
+   action sequences and climaxes; use a montage/time cut when the immediate
+@@ -1617,13 +1626,33 @@
+         )
+ 
+         narrative_beat = narrative_beat_plan(
+             current_turn, target_turns, maximum_turns,
+         )
+-        if wrap_up_active:
+-            # Only an explicit party vote authorizes the terminal epilogue.
+-            # The existing three-turn convergence remains authoritative.
++        # Solo adventures respect their selected length. An ignored finale
++        # invitation must never turn a SHORT story into 37+ turns. The Hero's
++        # currently locked choice is still resolved with the original dice.
++        auto_finale = solo_finale_due(
++            current_turn=current_turn,
++            minimum_turns=minimum_turns,
++            maximum_turns=maximum_turns,
++            play_mode=str(room.play_mode or ""),
++            player_count=len(room.players),
++        ) and not opening_mode
++        if auto_finale and not wrap_up_active:
++            narrative_beat = {**narrative_beat,
++                "act": 3,
++                "beat": "REQUIRED EPILOGUE",
++                "phase": "FINALE",
++                "direction": "This is the final resolution. Honor the current locked Hero choice, close the established central mission, and give a satisfying epilogue. No new plot threads, arbitrary rescues or extra challenges.",
++            }
++            print(f"[DIRECTOR LENGTH FINALE] room={session.room_code} turn={current_turn} cap={maximum_turns}")
++        if wrap_up_active or auto_finale:
++            # A party-requested ending or a solo length cap ends on the
++            # next decisive resolution, not after three filler chapters.
++            wrap_up_active = True
++            wrap_up_turns_remaining = 1 if auto_finale else wrap_up_turns_remaining
+             may_complete = wrap_up_turns_remaining <= 1
+             must_complete = wrap_up_turns_remaining <= 1
+             story_phase = "FINALE" if must_complete else "WRAP-UP"
+         else:
+             may_complete = False
+@@ -2548,30 +2577,30 @@
+             wrap_up_active
+             and wrap_up_turns_remaining > 1
+             and draft.completed
+         ):
+             raise DirectorError(
+-                "Story Director ended before the party's three-turn wrap-up runway was complete."
++                "Story Director ended before the approved wrap-up runway was complete."
+             )
+ 
+         if (
+             must_complete
+             and not draft.completed
+         ):
+ 
+             raise DirectorError(
+-                "Story Director did not close the adventure at the hard maximum."
++                "Story Director did not produce the required final epilogue."
+             )
+ 
+ 
+         if (
+             not may_complete
+             and draft.completed
+         ):
+ 
+             raise DirectorError(
+-                "Story Director attempted to end without party-approved finale or before its minimum turn window."
++                "Story Director attempted to end before the approved finale or solo length cap."
+             )
+ 
+ 
+         usage = getattr(
+             response,
+--- a/app/main.py
++++ b/app/main.py
+@@ -4069,25 +4069,25 @@
+         for player_id in required_player_ids
+     )
+ 
+     if all_acknowledged:
+         session.wrap_up_active = True
+-        session.wrap_up_turns_remaining = 3
++        session.wrap_up_turns_remaining = 1
+ 
+         print(
+             "[WRAP UP APPROVED] "
+             f"room={room.code} "
+             f"turn={session.turn_number} "
+-            "runway=3"
++            "runway=1"
+         )
+ 
+         await sio.emit(
+             "wrap_up_approved",
+             {
+                 "room_code": room.code,
+-                "turns_remaining": 3,
+-                "message": "The party has called for the final chapter. Three turns remain.",
++                "turns_remaining": 1,
++                "message": "The party has called for the final chapter. The next resolved turn will complete the chronicle.",
+             },
+             room=room.code,
+         )
+     else:
+         await sio.emit(
+--- a/frontend/src/features/adventure/TurnResolutionTheater.tsx
++++ b/frontend/src/features/adventure/TurnResolutionTheater.tsx
+@@ -1,6 +1,6 @@
+-import { useCallback, useEffect, useState } from "react";
++import { useCallback, useEffect, useRef, useState } from "react";
+ import { receiptKey } from "./turnFlow";
+ import { cosmeticD20Face } from "./diceAnimation";
+ import { playSound } from "../../services/audioDirector";
+ import { HeroEffectDetails } from "./HeroEffectList";
+ import type {
+@@ -281,16 +281,57 @@
+   const results = receipt.results ?? [];
+   const turnIdentity = receiptKey(receipt);
+   const [activeIndex, setActiveIndex] = useState(0);
+   const [finished, setFinished] = useState(results.length === 0);
+   const [showReceiptRecovery, setShowReceiptRecovery] = useState(false);
++  const [folioStage, setFolioStage] = useState<"dice" | "consequences" | "page">(results.length ? "dice" : "consequences");
++  const [fading, setFading] = useState(false);
++  const [leaving, setLeaving] = useState(false);
++  const continueRef = useRef(onContinue);
++  continueRef.current = onContinue;
+ 
+   useEffect(() => {
+     setActiveIndex(0);
+     setFinished(results.length === 0);
+     setShowReceiptRecovery(false);
++    setFolioStage(results.length ? "dice" : "consequences");
++    setFading(false);
++    setLeaving(false);
+   }, [turnIdentity, results.length]);
++
++  // The committed receipt owns the content. Timers here animate only the
++  // page transition; they cannot stall or re-run the Director or dice.
++  useEffect(() => {
++    if (!inkbound || !finished || folioStage !== "dice") return;
++    setFading(true);
++    const timer = window.setTimeout(() => {
++      setFolioStage("consequences");
++      setFading(false);
++    }, 260);
++    return () => window.clearTimeout(timer);
++  }, [inkbound, finished, folioStage, turnIdentity]);
++
++  useEffect(() => {
++    if (!inkbound || !leaving || folioStage !== "consequences") return;
++    const swap = window.setTimeout(() => {
++      setFolioStage("page");
++      setFading(false);
++    }, 260);
++    return () => window.clearTimeout(swap);
++  }, [inkbound, leaving, folioStage]);
++  useEffect(() => {
++    if (!inkbound || folioStage !== "page" || !leaving) return;
++    const timer = window.setTimeout(() => continueRef.current(), 850);
++    return () => window.clearTimeout(timer);
++  }, [inkbound, leaving, folioStage]);
++
++  const advanceFromConsequences = () => {
++    if (!inkbound) { onContinue(); return; }
++    if (leaving) return;
++    setLeaving(true);
++    setFading(true);
++  };
+ 
+   // Rendering the saved receipt must never depend indefinitely on an animation
+   // timer (especially on phones in background tabs). Reveal a manual bypass
+   // after the normal dice presentation has had ample time to complete.
+   useEffect(() => {
+@@ -313,15 +354,16 @@
+   const currentResult = results[activeIndex] ?? null;
+   const criticalNow = Boolean(currentResult?.check?.critical && !finished);
+   // Presentation only: receipt results, dice, HP and XP remain server-authored.
+   // The next scene is not revealed until acknowledgeResolution runs in useTurnTheater.
+   const receiptStage = finished ? "consequence" : "dice";
++  const presentedStage = inkbound ? folioStage : receiptStage;
+   const steps = [
+     { id: "choice", title: "Choice committed", status: "complete" },
+     { id: "dice", title: "The dice", status: finished ? "complete" : "current" },
+-    { id: "consequence", title: "The consequences", status: finished ? "current" : "pending" },
+-    { id: "page", title: "Next page", status: "pending" },
++    { id: "consequence", title: "The consequences", status: folioStage === "page" ? "complete" : finished ? "current" : "pending" },
++    { id: "page", title: "Next page", status: folioStage === "page" ? "current" : "pending" },
+   ] as const;
+ 
+   const finishCurrent = useCallback(() => {
+     // Do not schedule setFinished from inside a setActiveIndex updater: React
+     // can run functional updaters while rendering or twice in StrictMode.
+@@ -335,18 +377,18 @@
+   const progression = receipt.hero_progression
+     ? Object.values(receipt.hero_progression)
+     : [];
+ 
+   return (
+-    <div className={`turn-resolution-theater ${criticalNow ? "is-critical-pulse" : ""} ${inkbound ? "is-inkbound-manuscript" : ""}`}>
++    <div className={`turn-resolution-theater ${criticalNow ? "is-critical-pulse" : ""} ${inkbound ? "is-inkbound-manuscript q43-cinematic" : ""} ${fading ? "is-fading" : ""} is-stage-${presentedStage}`} data-presentation-stage={presentedStage}>
+       {inkbound ? (
+         <div className="q24-receipt-masthead" aria-hidden="true">
+           <span>QUILLAIRO</span><span className="q24-masthead-ornament">✧</span><span>THE TURNING PAGE</span>
+         </div>
+       ) : null}
+       {inkbound ? (
+-        <ol className="q24-turn-steps" aria-label="Turn presentation stages" data-stage={receiptStage}>
++        <ol className="q24-turn-steps" aria-label="Turn presentation stages" data-stage={presentedStage}>
+           {steps.map((step, index) => (
+             <li key={step.id} className={`q24-step is-${step.status}`}
+               aria-current={step.status === "current" ? "step" : undefined}>
+               <span className="q24-step-mark" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+               <span>{step.title}</span>
+@@ -355,11 +397,11 @@
+         </ol>
+       ) : null}
+       <header className="theater-heading">
+         <div>
+           <span className="eyebrow">{inkbound ? `CHRONICLE · TURN ${receipt.resolved_turn_number ?? receipt.turn_number ?? "—"}` : "AUTHORITATIVE TURN RECEIPT"}</span>
+-          <h2 id="q24-turn-title">{inkbound ? (finished ? "What the Choice Changed" : "The Dice Have Spoken") : "LET'S SEE HOW THAT WENT."}</h2>
++          <h2 id="q24-turn-title">{inkbound ? (folioStage === "page" ? "The Next Chapter Awaits" : folioStage === "consequences" ? "What the Choice Changed" : "The Dice Have Spoken") : "LET'S SEE HOW THAT WENT."}</h2>
+         </div>
+         <span>{receipt.preliminary ? "RESULTS READY // STORY WRITING" : (inkbound ? "A COMMITTED TURN · NO REROLL" : "SERVER RESOLVED")}</span>
+       </header>
+ 
+       {inkbound ? (
+@@ -367,13 +409,13 @@
+           <span className="q24-section-line" aria-hidden="true" />
+           <span>{finished ? "The aftermath" : `${results.length > 1 ? `Companion check ${Math.min(activeIndex + 1, results.length)} of ${results.length}` : "The moment of chance"}`}</span>
+           <span className="q24-section-line" aria-hidden="true" />
+         </div>
+       ) : null}
+-      <div className="theater-results">
++      {(!inkbound || folioStage === "dice") ? <div className="theater-results" key={`dice:${activeIndex}`}>
+         {results.map((result, index) => {
+-          if (index > activeIndex) return null;
++          if (inkbound ? index !== activeIndex : index > activeIndex) return null;
+ 
+           return (
+             <AnimatedResultCard
+               result={result}
+               active={index === activeIndex && !finished}
+@@ -383,11 +425,11 @@
+               inkbound={inkbound}
+               key={`${result.player_id}:${result.choice_id}`}
+             />
+           );
+         })}
+-      </div>
++      </div> : null}
+ 
+       {!finished && showReceiptRecovery ? (
+         <div className="q34-receipt-recovery" role="status">
+           <p>The dice animation is taking longer than expected. Your results are already recorded.</p>
+           <button type="button" className="button" onClick={() => {
+@@ -395,12 +437,12 @@
+             setFinished(true);
+           }}>Reveal saved roll and consequences</button>
+         </div>
+       ) : null}
+ 
+-      {finished ? (
+-        <div className="theater-finale-stage">
++      {finished && (!inkbound || folioStage === "consequences") ? (
++        <div className="theater-finale-stage" key="consequences">
+           {inkbound ? (
+             <div className="q24-outcome-masthead">
+               <img src="/art/inkbound/signpost.png" alt="" loading="lazy" />
+               <div><span className="eyebrow">THE AFTERMATH</span>
+                 <h3>Every choice leaves a mark.</h3>
+@@ -429,13 +471,22 @@
+               <div><span className="eyebrow">THE NEXT PAGE</span>
+                 <p>{receipt.completed ? "Your ending is ready to be read." : "Your next passage is ready beyond this page."}</p>
+               </div>
+             </div>
+           ) : null}
+-          <button className="button button-primary theater-continue" type="button" onClick={onContinue}>
++          <button className="button button-primary theater-continue" type="button" onClick={advanceFromConsequences} disabled={leaving}>
+             {receipt.completed ? "SEE HOW THIS ENDS" : "CONTINUE THE CHRONICLE"}
+           </button>
+         </div>
+       ) : null}
++      {inkbound && folioStage === "page" ? (
++        <div className="q43-chapter-handoff" role="status" aria-live="polite" key="page">
++          <span className="eyebrow">QUILLAIRO · THE NEXT PAGE</span>
++          <span className="q43-page-star" aria-hidden="true">✦</span>
++          <h3>{receipt.completed ? "Your ending is waiting." : "The story continues."}</h3>
++          <p>{receipt.completed ? "The final words of this journey." : "A new chapter unfolds."}</p>
++          <button className="button theater-continue" type="button" onClick={onContinue}>Continue now</button>
++        </div>
++      ) : null}
+     </div>
+   );
+ }
+--- a/frontend/src/pages/game/AdventurePage.tsx
++++ b/frontend/src/pages/game/AdventurePage.tsx
+@@ -54,10 +54,11 @@
+ import { useInkboundPaper } from "../../features/appearance/inkboundPaper";
+ import "./inkboundAdventurePass657.css";
+ import "./inkboundPass658.css";
+ import "./inkboundTurnPass659.css";
+ import "./inkboundPass6628.css";
++import "./quillairoCinematicTurnPass6643.css";
+ import { useLiveAdventure } from "../../state/useLiveAdventure";
+ import { useModal } from "../../state/ModalContext";
+ import {
+   ASCII_REACTIONS,
+   ASCII_REACTION_GROUPS,
+@@ -846,14 +847,14 @@
+             <span>{live.game.wrap_up_turns_remaining} resolution turn(s) remain. Your choices still shape the ending.</span>
+           </div>
+         ) : live.game?.wrap_up_available && (live.game?.narrative_pacing?.act === 3 || (live.game?.target_turns != null && live.game.turn_number >= live.game.target_turns)) ? (
+           <div className="ibl-ending-invitation">
+             <strong>Ready to end this adventure?</strong>
+-            <p>Call the final chapter when the journey feels ready. The Director will bring your established threads to a conclusion across three final turns; your party must agree.</p>
++            <p>Call the final chapter when the journey feels ready. Your next choice will shape the ending; in co-op, your companions must agree. Short solo stories also conclude at their selected length limit.</p>
+             <button type="button" onClick={live.requestWrapUp}
+               disabled={!connected || live.status !== "ready" || Boolean(live.playerId && live.game.wrap_up_votes.includes(live.playerId))}>
+-              {live.playerId && live.game.wrap_up_votes.includes(live.playerId) ? "Waiting for your companions" : "Bring this adventure to a close →"}
++              {live.playerId && live.game.wrap_up_votes.includes(live.playerId) ? "Waiting for your companions" : "End this adventure here →"}
+             </button>
+           </div>
+         ) : null}
+         playerName={localRoomPlayer?.name ?? "Adventurer"}
+         hero={partyHeroes.find((p) => p.character_id === characterId) ?? hero ?? null}
+@@ -898,11 +899,11 @@
+             <RoomInviteButton roomCode={normalizedRoomCode} adventureTitle={live.game?.adventure_title} className="ibl-utility-invite" label="Invite another player →" />}
+           {live.game?.can_start_solo && localRoomPlayer?.is_host && <button type="button" onClick={confirmSoloStart}>Continue as solo →</button>}
+           {live.game?.wrap_up_available && !live.game.wrap_up_active && <button type="button"
+             disabled={!connected || live.status !== "ready" || Boolean(live.playerId && live.game.wrap_up_votes.includes(live.playerId))}
+             onClick={live.requestWrapUp}>
+-            {live.playerId && live.game.wrap_up_votes.includes(live.playerId) ? "Final chapter requested" : "Call the final chapter →"}
++            {live.playerId && live.game.wrap_up_votes.includes(live.playerId) ? "Final chapter requested" : "End this adventure here →"}
+           </button>}
+           {live.game?.wrap_up_active && <span className="ibl-utility-label" role="status">Final chapter · {live.game.wrap_up_turns_remaining} turns remaining</span>}
+           {theater.chapterReleased && scene?.body && <ShareMomentButton title={`${scene.title} — Quillairo`}
+             text={`${live.game?.adventure_title ?? "Quillairo"} // ${scene.title}\n${scene.body.slice(0,260)}`}
+             url={`${window.location.origin}/`} label="Share this moment →" />}
+@@ -1044,11 +1045,11 @@
+                   disabled={!connected || live.status !== "ready" || Boolean(live.playerId && live.game.wrap_up_votes.includes(live.playerId))}
+                   onClick={live.requestWrapUp}
+                 >
+                   {live.playerId && live.game.wrap_up_votes.includes(live.playerId)
+                     ? "FINAL CHAPTER REQUESTED"
+-                    : "CALL FINAL CHAPTER"}
++                    : "END ADVENTURE HERE"}
+                 </button>
+               ) : null}
+ 
+               {live.game?.wrap_up_active ? (
+                 <span className="wrap-up-status compact-wrap-up-status">
+--- a/frontend/src/pages/game/InkboundLiveRoom.tsx
++++ b/frontend/src/pages/game/InkboundLiveRoom.tsx
+@@ -155,10 +155,11 @@
+             </div>
+           </figure>
+           <Prose sceneId={props.scene.id} body={props.scene.body} wordRevealEnabled={props.wordRevealEnabled ?? false} decorativeInitials={props.decorativeInitials ?? true} followNarration={props.followNarration ?? false} narrationCue={props.narrationCue ?? null} />
+           {props.finalePanel ? props.finalePanel : <>
+           <div className="ibl-section-heading"><span />What do you do?<span /></div>
++          <div className="ibl-finale-before-choices">{props.wrapUpCallout}</div>
+           <div className="ibl-choices">
+             {props.scene.choices.map((choice, index) => <button key={choice.id} type="button" className={`ibl-choice ${props.selectedChoiceId === choice.id ? "is-chosen" : ""}`}
+               aria-pressed={props.selectedChoiceId === choice.id}
+               disabled={!liveChoices}
+               onClick={() => props.onSelectChoice(choice)}>
+@@ -185,11 +186,10 @@
+           <div className="ibl-commit" aria-live="polite">
+             {props.choiceLocked ? <span>Your choice is locked; waiting for the story.</span>
+               : selected ? <><span>Selected: {selected.label}</span><button type="button" onClick={props.onLockChoice} disabled={!liveChoices || props.lockPending}>{props.lockPending ? "Recording…" : "Commit this choice →"}</button></>
+               : <span>Select your next action. Only the server decides the outcome.</span>}
+           </div>
+-          {props.wrapUpCallout}
+           </>}
+         </article> : <section className="ibl-sealed" role="status" aria-live="polite"><div className="ibl-flourish" aria-hidden="true">── ✧ ──</div><h1>The ink is settling</h1><p>The next chapter is still sealed. Your choices, dice results, and effects are being resolved.</p></section>}
+       </main>
+       <details className="ibl-instruments-disclosure" open>
+         <summary>More from your adventure <span aria-hidden="true">＋</span></summary>
+--- a/tests/director/test_pass66_28_act_pacing.py
++++ b/tests/director/test_pass66_28_act_pacing.py
+@@ -35,18 +35,19 @@
+     second_act = narrative_beat_plan(14, 28, 40)
+     assert second_act['act'] == 2
+     assert 'rests or finds shelter' in second_act['direction']
+ 
+ 
+-def test_completion_requires_explicit_wrap_up_and_preserves_dice():
++def test_completion_requires_approved_wrap_up_or_solo_cap_and_preserves_dice():
+     source = (ROOT / 'app/generation/director.py').read_text()
+     assert 'may_complete = False' in source
+     assert 'must_complete = False' in source
+     assert 'wrap_up_turns_remaining <= 1' in source
+     assert 'narrative_beat = narrative_beat_plan(' in source
+     assert '"narrative_beat": narrative_beat' in source
+-    assert 'Only explicit, party-approved wrap-up permits completed=true' in SYSTEM_INSTRUCTIONS
++    assert 'SOLO adventure reaching' in SYSTEM_INSTRUCTIONS
++    assert 'solo_finale_due(' in source
+     assert 'TURN FACTS' in SYSTEM_INSTRUCTIONS
+ 
+ 
+ def test_server_persists_finale_with_the_frozen_receipt_and_protects_delivery():
+     source = (ROOT / 'app/main.py').read_text()
+--- a/tests/frontend/test_pass66_28_finale_visible.py
++++ b/tests/frontend/test_pass66_28_finale_visible.py
+@@ -42,9 +42,9 @@
+ 
+ 
+ def test_final_chapter_is_prominent_and_uses_existing_vote_api():
+     page=(ROOT/'frontend/src/pages/game/AdventurePage.tsx').read_text()
+     reader=(ROOT/'frontend/src/pages/game/InkboundLiveRoom.tsx').read_text()
+-    assert 'Bring this adventure to a close' in page
++    assert 'End this adventure here' in page
+     assert 'onClick={live.requestWrapUp}' in page
+     assert 'props.wrapUpCallout' in reader
+     assert 'wrap_up_votes.includes(live.playerId)' in page

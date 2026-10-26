@@ -157,6 +157,7 @@ export function InkboundLiveRoom(props: InkboundLiveRoomProps) {
           <Prose sceneId={props.scene.id} body={props.scene.body} wordRevealEnabled={props.wordRevealEnabled ?? false} decorativeInitials={props.decorativeInitials ?? true} followNarration={props.followNarration ?? false} narrationCue={props.narrationCue ?? null} />
           {props.finalePanel ? props.finalePanel : <>
           <div className="ibl-section-heading"><span />What do you do?<span /></div>
+          <div className="ibl-finale-before-choices">{props.wrapUpCallout}</div>
           <div className="ibl-choices">
             {props.scene.choices.map((choice, index) => <button key={choice.id} type="button" className={`ibl-choice ${props.selectedChoiceId === choice.id ? "is-chosen" : ""}`}
               aria-pressed={props.selectedChoiceId === choice.id}
@@ -187,7 +188,6 @@ export function InkboundLiveRoom(props: InkboundLiveRoomProps) {
               : selected ? <><span>Selected: {selected.label}</span><button type="button" onClick={props.onLockChoice} disabled={!liveChoices || props.lockPending}>{props.lockPending ? "Recording…" : "Commit this choice →"}</button></>
               : <span>Select your next action. Only the server decides the outcome.</span>}
           </div>
-          {props.wrapUpCallout}
           </>}
         </article> : <section className="ibl-sealed" role="status" aria-live="polite"><div className="ibl-flourish" aria-hidden="true">── ✧ ──</div><h1>The ink is settling</h1><p>The next chapter is still sealed. Your choices, dice results, and effects are being resolved.</p></section>}
       </main>

@@ -1,0 +1,68 @@
+/* Pass 66.43 — Full-screen cinematic receipt for the active Inkspace reader only.
+   Existing dice, stage facts and server-authoritative progression are reused. */
+.turn-theater-overlay.inkbound-turn-theater.is-resolution:has(.q43-cinematic) {
+  position:fixed;inset:0;z-index:1000;padding:0!important;
+  display:flex;align-items:stretch;justify-content:stretch;
+  background:var(--ia-paper)!important;overflow:hidden;
+}
+.turn-theater-overlay.inkbound-turn-theater.is-resolution .turn-resolution-theater.q43-cinematic {
+  width:100vw!important;max-width:none!important;height:100dvh!important;max-height:none!important;
+  min-height:0;overflow-y:auto;overscroll-behavior:contain;
+  border:0!important;border-radius:0!important;box-shadow:none!important;
+  padding:clamp(16px,3vh,30px) clamp(18px,5vw,100px)!important;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+  background:radial-gradient(ellipse at 50% 43%,var(--ia-wash,transparent),transparent 76%),var(--ia-paper)!important;
+  color:var(--ia-copy);opacity:1;transition:opacity .26s ease-in-out;
+}
+.turn-theater-overlay.inkbound-turn-theater .q43-cinematic.is-fading {opacity:0!important;pointer-events:none}
+.turn-theater-overlay.inkbound-turn-theater .q43-cinematic > :is(.q24-receipt-masthead,.q24-turn-steps,.theater-heading,.q24-section-caption,.theater-results,.theater-finale-stage,.q43-chapter-handoff) {
+  width:min(100%,1100px);flex-shrink:0;
+}
+.turn-theater-overlay.inkbound-turn-theater .q43-cinematic .q24-receipt-masthead {padding-bottom:10px}
+.turn-theater-overlay.inkbound-turn-theater .q43-cinematic .q24-turn-steps {padding:10px 0 12px}
+.turn-theater-overlay.inkbound-turn-theater .q43-cinematic .theater-heading {padding:clamp(8px,2vh,20px) 0 8px!important}
+.turn-theater-overlay.inkbound-turn-theater .q43-cinematic .theater-heading h2 {font-size:clamp(31px,4vw,56px)}
+.turn-theater-overlay.inkbound-turn-theater .q43-cinematic .q24-section-caption {margin:0}
+.turn-theater-overlay.inkbound-turn-theater .q43-cinematic .theater-results {
+  display:grid;place-items:center;min-height:0;max-width:860px;
+  flex:1 1 auto;animation:q43-appear .42s both;
+}
+.turn-theater-overlay.inkbound-turn-theater .q43-cinematic .theater-result-card {
+  width:100%;border:0!important;padding:clamp(12px,2vh,28px) 0!important;
+}
+.turn-theater-overlay.inkbound-turn-theater .q43-cinematic .theater-dice-stage {
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(18px,5vw,100px);
+}
+.turn-theater-overlay.inkbound-turn-theater .q43-cinematic .inkbound-dice-illustration {width:min(31vh,350px);max-width:100%}
+.turn-theater-overlay.inkbound-turn-theater .q43-cinematic .theater-finale-stage {
+  flex:1 0 auto;max-width:880px;display:flex;flex-direction:column;gap:clamp(12px,2vh,24px);
+  padding:clamp(12px,2vh,25px) 0 24px;animation:q43-appear .42s both;
+}
+.turn-theater-overlay.inkbound-turn-theater .q43-cinematic .q24-outcome-masthead {padding:0 0 12px}
+.turn-theater-overlay.inkbound-turn-theater .q43-cinematic .theater-progression-grid {margin:0}
+.turn-theater-overlay.inkbound-turn-theater .q43-cinematic .q24-page-handoff {margin-top:auto}
+.turn-theater-overlay.inkbound-turn-theater .q43-cinematic .q43-chapter-handoff {
+  flex:1 1 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;gap:18px;animation:q43-appear .48s both;
+}
+.q43-chapter-handoff .q43-page-star {font:clamp(65px,9vw,120px)/1 Georgia,serif;color:var(--q24-gold,#94641f)}
+.q43-chapter-handoff h3 {font:400 clamp(38px,6vw,76px)/1.12 "Iowan Old Style",Georgia,serif;color:var(--ia-text);margin:0}
+.q43-chapter-handoff p {font:clamp(17px,2vw,23px)/1.4 Georgia,serif;color:var(--ia-copy);margin:0}
+.q43-chapter-handoff .theater-continue {margin-top:20px;font:inherit;cursor:pointer}
+@keyframes q43-appear {from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:730px) {
+  .turn-theater-overlay.inkbound-turn-theater.is-resolution .turn-resolution-theater.q43-cinematic {padding:12px 16px!important}
+  .turn-theater-overlay.inkbound-turn-theater .q43-cinematic .q24-turn-steps {grid-template-columns:repeat(4,minmax(0,1fr));gap:0}
+  .turn-theater-overlay.inkbound-turn-theater .q43-cinematic .q24-step {flex-direction:column;align-items:center;text-align:center;font-size:9px;padding:0 3px}
+  .turn-theater-overlay.inkbound-turn-theater .q43-cinematic .q24-step:nth-child(2) {border-right:1px solid var(--ia-rule)}
+  .turn-theater-overlay.inkbound-turn-theater .q43-cinematic .q24-step:nth-child(3) {padding-left:3px}
+  .turn-theater-overlay.inkbound-turn-theater .q43-cinematic .theater-dice-stage {grid-template-columns:1fr;gap:8px}
+  .turn-theater-overlay.inkbound-turn-theater .q43-cinematic .inkbound-dice-illustration {width:min(25vh,210px)}
+  .turn-theater-overlay.inkbound-turn-theater .q43-cinematic .theater-finale-stage {flex:1 0 auto}
+}
+@media(prefers-reduced-motion:reduce){
+  .turn-theater-overlay.inkbound-turn-theater .q43-cinematic,
+  .turn-theater-overlay.inkbound-turn-theater .q43-cinematic :is(.theater-results,.theater-finale-stage,.q43-chapter-handoff) {
+    animation:none!important;transition:none!important;
+  }
+}

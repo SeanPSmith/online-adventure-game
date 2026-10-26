@@ -44,7 +44,8 @@ def test_mobile_is_one_journal_and_world_skin_not_overwritten():
     assert 'prefers-reduced-motion:reduce' in DESK
     assert 'data-platform-skin=' in HOME
     # Site-wide theme and Reader styling are separate from home-only skin.
-    assert 'import "../styles/deskScrapbookShell64.css"' in LAYOUT
+    assert 'import "../../styles/deskScrapbookShell64.css"' in HOME
+    assert 'import "../styles/deskScrapbookShell64.css"' not in LAYOUT
     assert '.p64-shell.is-desk-home' in SHELL
 
 

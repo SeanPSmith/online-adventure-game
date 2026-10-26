@@ -29,7 +29,8 @@ def test_book_content_replaces_long_dashboard_without_removing_controls():
     assert 'aria-label="Continue your adventure"' in SRC
     assert 'className="p64-desk"' in SRC
     assert 'className="p644-scene"' in SRC
-    assert 'import "../pages/game/livingBook644.css"' in LAYOUT
+    assert 'import "./livingBook644.css"' in SRC
+    assert 'import "../pages/game/livingBook644.css"' not in LAYOUT
 
 
 def test_art_never_supplies_interactive_data():

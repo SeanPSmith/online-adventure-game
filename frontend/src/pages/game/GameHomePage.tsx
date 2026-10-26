@@ -1,6 +1,11 @@
 import { genreInkIllustration, coverCandidateIds, coverArtUrl } from "../../features/appearance/quillairoGenreArt";
 import "./gameHomePass64.css";
 import { InkboundAuthenticatedDashboard } from "./InkboundAuthenticatedDashboard";
+// Legacy desk-shell styling is owned by this lazy /game(home-lab) module,
+// never by the shared game layout used by the live adventure reader.
+import "../../styles/deskShellFidelityPass64.css";
+import "../../styles/deskScrapbookShell64.css";
+import "../../styles/pass64_2cPerformance.css";
 import "./deskFidelityPass64.css";
 import "./deskScrapbookPass64.css";
 import "./gameBrighterWorld.css";

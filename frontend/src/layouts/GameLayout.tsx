@@ -5,16 +5,12 @@ import { canUseAuthorStudio } from "../services/author";
 import { useInkboundPaper } from "../features/appearance/inkboundPaper";
 import { useAppearance } from "../features/appearance/AppearanceContext";
 import "../styles/pass64Shell.css";
-import "../styles/deskShellFidelityPass64.css";
-import "../styles/deskScrapbookShell64.css";
-import "../styles/pass64_2cPerformance.css";
 import "../features/appearance/themePresentation.css";
 import { themeCssVars } from "../features/appearance/themePacks";
 import { themeEditionCssVars } from "../features/appearance/themeEditions";
 import "../features/appearance/themeEditions.css";
 import "../styles/brighterWorldShell.css";
 import "../styles/quillairoAdventureBoot.css";
-import "../pages/game/livingBook644.css";
 import type { CSSProperties } from "react";
 
 export function GameLayout() {
@@ -29,10 +25,13 @@ export function GameLayout() {
   // bundle resolves. Classic and physical Book are explicit opt-in exceptions.
   const reader = new URLSearchParams(location.search).get("reader");
   const isInkspaceAdventure = isAdventureMode && reader !== "classic" && reader !== "book";
-  const isDeskHome = location.pathname === "/game" || location.pathname === "/game/home-lab" || location.pathname === "/dev/home-lab";
+  // Only the protected development book preview is a fixed, leather-bound desk.
+  // The real Adventure Hall is a separate, document-scrolling Inkspace surface.
+  const isDeskHome = location.pathname === "/game/home-lab" || location.pathname === "/dev/home-lab";
+  const isInkspaceHome = location.pathname === "/game" || location.pathname === "/game/";
 
   return (
-    <div className={`site-shell game-site-shell p64-shell inkbound-system-shell ${isAdventureMode ? "is-adventure-mode" : ""} ${isInkspaceAdventure ? "is-inkspace-route" : ""} ${isDeskHome ? "is-desk-home" : ""}`} data-ink-paper={paper} data-platform-skin={preferences.platformSkin} data-edition-family={edition.family} data-edition-mode={edition.mode} data-installed-library-theme={Boolean(libraryTheme)} data-theme-material={libraryTheme?.material} style={(libraryTheme ? themeCssVars(libraryTheme) : themeEditionCssVars(edition)) as CSSProperties}>
+    <div className={`site-shell game-site-shell p64-shell inkbound-system-shell ${isAdventureMode ? "is-adventure-mode" : ""} ${isInkspaceAdventure ? "is-inkspace-route" : ""} ${isDeskHome ? "is-desk-home" : ""} ${isInkspaceHome ? "is-inkspace-home" : ""}`} data-ink-paper={paper} data-platform-skin={preferences.platformSkin} data-edition-family={edition.family} data-edition-mode={edition.mode} data-installed-library-theme={Boolean(libraryTheme)} data-theme-material={libraryTheme?.material} style={(libraryTheme ? themeCssVars(libraryTheme) : themeEditionCssVars(edition)) as CSSProperties}>
       <a className="skip-link" href="#main-content">SKIP TO CONTENT</a>
       <header className={`site-header game-header ${isAdventureMode ? "is-adventure-header" : ""}`}>
         <Link className="brand q-site-brand" to="/game" aria-label="Quillairo home"><BrandLockup paper={paper} /></Link>

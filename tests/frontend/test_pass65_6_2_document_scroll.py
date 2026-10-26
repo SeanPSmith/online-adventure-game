@@ -21,13 +21,15 @@ def declarations(selector: str) -> str:
 
 
 class InkboundDocumentScrollContracts(unittest.TestCase):
-    SHELL = 'body:has(.inkbound-home) .game-site-shell.p64-shell.is-desk-home'
+    SHELL = '.game-site-shell.p64-shell.is-inkspace-home'
     MAIN = SHELL + ' .game-main'
 
     def test_real_dashboard_remains_inside_existing_game_layout(self):
         self.assertIn('if (!homeLab) return (', DASHBOARD)
         self.assertIn('<InkboundAuthenticatedDashboard', DASHBOARD)
         self.assertIn('isDeskHome', LAYOUT)
+        self.assertIn('isInkspaceHome', LAYOUT)
+        self.assertIn('is-inkspace-home', LAYOUT)
         self.assertIn('className="game-main"', LAYOUT)
 
     def test_legacy_desktop_shell_still_constrains_old_book(self):

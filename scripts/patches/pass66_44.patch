@@ -1,0 +1,160 @@
+--- a/frontend/src/layouts/GameLayout.tsx
++++ b/frontend/src/layouts/GameLayout.tsx
+@@ -5,16 +5,12 @@
+ import { useInkboundPaper } from "../features/appearance/inkboundPaper";
+ import { useAppearance } from "../features/appearance/AppearanceContext";
+ import "../styles/pass64Shell.css";
+-import "../styles/deskShellFidelityPass64.css";
+-import "../styles/deskScrapbookShell64.css";
+-import "../styles/pass64_2cPerformance.css";
+ import "../features/appearance/themePresentation.css";
+ import { themeCssVars } from "../features/appearance/themePacks";
+ import { themeEditionCssVars } from "../features/appearance/themeEditions";
+ import "../features/appearance/themeEditions.css";
+ import "../styles/brighterWorldShell.css";
+ import "../styles/quillairoAdventureBoot.css";
+-import "../pages/game/livingBook644.css";
+ import type { CSSProperties } from "react";
+ 
+ export function GameLayout() {
+@@ -29,10 +25,13 @@
+   // bundle resolves. Classic and physical Book are explicit opt-in exceptions.
+   const reader = new URLSearchParams(location.search).get("reader");
+   const isInkspaceAdventure = isAdventureMode && reader !== "classic" && reader !== "book";
+-  const isDeskHome = location.pathname === "/game" || location.pathname === "/game/home-lab" || location.pathname === "/dev/home-lab";
++  // Only the protected development book preview is a fixed, leather-bound desk.
++  // The real Adventure Hall is a separate, document-scrolling Inkspace surface.
++  const isDeskHome = location.pathname === "/game/home-lab" || location.pathname === "/dev/home-lab";
++  const isInkspaceHome = location.pathname === "/game" || location.pathname === "/game/";
+ 
+   return (
+-    <div className={`site-shell game-site-shell p64-shell inkbound-system-shell ${isAdventureMode ? "is-adventure-mode" : ""} ${isInkspaceAdventure ? "is-inkspace-route" : ""} ${isDeskHome ? "is-desk-home" : ""}`} data-ink-paper={paper} data-platform-skin={preferences.platformSkin} data-edition-family={edition.family} data-edition-mode={edition.mode} data-installed-library-theme={Boolean(libraryTheme)} data-theme-material={libraryTheme?.material} style={(libraryTheme ? themeCssVars(libraryTheme) : themeEditionCssVars(edition)) as CSSProperties}>
++    <div className={`site-shell game-site-shell p64-shell inkbound-system-shell ${isAdventureMode ? "is-adventure-mode" : ""} ${isInkspaceAdventure ? "is-inkspace-route" : ""} ${isDeskHome ? "is-desk-home" : ""} ${isInkspaceHome ? "is-inkspace-home" : ""}`} data-ink-paper={paper} data-platform-skin={preferences.platformSkin} data-edition-family={edition.family} data-edition-mode={edition.mode} data-installed-library-theme={Boolean(libraryTheme)} data-theme-material={libraryTheme?.material} style={(libraryTheme ? themeCssVars(libraryTheme) : themeEditionCssVars(edition)) as CSSProperties}>
+       <a className="skip-link" href="#main-content">SKIP TO CONTENT</a>
+       <header className={`site-header game-header ${isAdventureMode ? "is-adventure-header" : ""}`}>
+         <Link className="brand q-site-brand" to="/game" aria-label="Quillairo home"><BrandLockup paper={paper} /></Link>
+--- a/frontend/src/pages/game/GameHomePage.tsx
++++ b/frontend/src/pages/game/GameHomePage.tsx
+@@ -1,6 +1,11 @@
+ import { genreInkIllustration, coverCandidateIds, coverArtUrl } from "../../features/appearance/quillairoGenreArt";
+ import "./gameHomePass64.css";
+ import { InkboundAuthenticatedDashboard } from "./InkboundAuthenticatedDashboard";
++// Legacy desk-shell styling is owned by this lazy /game(home-lab) module,
++// never by the shared game layout used by the live adventure reader.
++import "../../styles/deskShellFidelityPass64.css";
++import "../../styles/deskScrapbookShell64.css";
++import "../../styles/pass64_2cPerformance.css";
+ import "./deskFidelityPass64.css";
+ import "./deskScrapbookPass64.css";
+ import "./gameBrighterWorld.css";
+--- a/frontend/src/pages/game/inkboundAuthenticatedDashboard.css
++++ b/frontend/src/pages/game/inkboundAuthenticatedDashboard.css
+@@ -1,11 +1,11 @@
+ /* Pass 65.6 — REAL /game Inkbound homepage. Paper is a surface; illustrations
+    are separate genuine-alpha files. No image masks, white baked mattes, random
+    decorative captions, beveled cards, or floating marks across copy. */
+-/* Pass 65.6.2 — The old Living Book shell is a fixed, overflow-hidden viewport.
+-   The real Inkbound dashboard is a long document: release ONLY its ancestor
+-   shell and main from that constraint. Keep the bounded book and live adventure
+-   layouts unchanged. Normal window scrolling must work at every breakpoint. */
+-body:has(.inkbound-home) .game-site-shell.p64-shell.is-desk-home{
++/* Pass 66.44 — the production /game route has its own explicit Inkspace shell.
++   Never identify it using :has(.inkbound-home), which mounted too late and
++   allowed old fixed-book styling to flash during lazy loading. The protected
++   /dev/home-lab book remains bounded independently. */
++.game-site-shell.p64-shell.is-inkspace-home{
+   background:transparent!important;
+   height:auto!important;
+   min-height:100dvh!important;
+@@ -14,8 +14,8 @@
+   border:0!important;
+   box-shadow:none!important;
+ }
+-body:has(.inkbound-home) .game-site-shell.p64-shell.is-desk-home .game-header{display:none!important}
+-body:has(.inkbound-home) .game-site-shell.p64-shell.is-desk-home .game-main{
++.game-site-shell.p64-shell.is-inkspace-home .game-header{display:none!important}
++.game-site-shell.p64-shell.is-inkspace-home .game-main{
+   margin:0!important;
+   padding:0!important;
+   max-width:none!important;
+--- a/frontend/src/styles/quillairoAdventureBoot.css
++++ b/frontend/src/styles/quillairoAdventureBoot.css
+@@ -9,6 +9,35 @@
+   letter-spacing: .02em;
+   box-shadow: 0 3px 18px #0002;
+ }
++/* Pass 66.44 — the Adventure Hall must use the chosen paper BEFORE its lazy
++   dashboard renders. No inherited Pass 64 desk, fixed viewport or dark loading
++   frame; the protected /dev/home-lab still owns that presentation. */
++.game-site-shell.is-inkspace-home {
++  --q39-boot-paper: #f7f3e9;
++  --q39-boot-ink: #28251f;
++  background: var(--q39-boot-paper) !important;
++  color: var(--q39-boot-ink);
++  min-height: 100svh;
++  height: auto;
++  max-height: none;
++  overflow: visible;
++}
++.game-site-shell.is-inkspace-home[data-ink-paper="cream"] { --q39-boot-paper:#eee7d9; --q39-boot-ink:#30291e; }
++.game-site-shell.is-inkspace-home[data-ink-paper="parchment"] { --q39-boot-paper:#d9c6a4; --q39-boot-ink:#33271a; }
++.game-site-shell.is-inkspace-home[data-ink-paper="navy"] { --q39-boot-paper:#0b1725; --q39-boot-ink:#f4e9d6; }
++.game-site-shell.is-inkspace-home[data-ink-paper="midnight"] { --q39-boot-paper:#141516; --q39-boot-ink:#f4e9d6; }
++.game-site-shell.is-inkspace-home[data-ink-paper="phosphor"] { --q39-boot-paper:#06140c; --q39-boot-ink:#c6f9b1; }
++.game-site-shell.is-inkspace-home > .game-header { display:none !important; }
++.game-site-shell.is-inkspace-home > .game-main {
++  margin:0;
++  padding:0;
++  max-width:none;
++  width:100%;
++  min-height:100svh;
++  background:transparent;
++  overflow:visible;
++}
++
+ .game-site-shell.is-inkspace-route {
+   --q39-boot-paper: #f6f0e4;
+   --q39-boot-ink: #241d18;
+--- a/tests/frontend/test_pass65_6_2_document_scroll.py
++++ b/tests/frontend/test_pass65_6_2_document_scroll.py
+@@ -21,13 +21,15 @@
+ 
+ 
+ class InkboundDocumentScrollContracts(unittest.TestCase):
+-    SHELL = 'body:has(.inkbound-home) .game-site-shell.p64-shell.is-desk-home'
++    SHELL = '.game-site-shell.p64-shell.is-inkspace-home'
+     MAIN = SHELL + ' .game-main'
+ 
+     def test_real_dashboard_remains_inside_existing_game_layout(self):
+         self.assertIn('if (!homeLab) return (', DASHBOARD)
+         self.assertIn('<InkboundAuthenticatedDashboard', DASHBOARD)
+         self.assertIn('isDeskHome', LAYOUT)
++        self.assertIn('isInkspaceHome', LAYOUT)
++        self.assertIn('is-inkspace-home', LAYOUT)
+         self.assertIn('className="game-main"', LAYOUT)
+ 
+     def test_legacy_desktop_shell_still_constrains_old_book(self):
+--- a/tests/adventures/test_pass64_2b_scrapbook_contract.py
++++ b/tests/adventures/test_pass64_2b_scrapbook_contract.py
+@@ -44,7 +44,8 @@
+     assert 'prefers-reduced-motion:reduce' in DESK
+     assert 'data-platform-skin=' in HOME
+     # Site-wide theme and Reader styling are separate from home-only skin.
+-    assert 'import "../styles/deskScrapbookShell64.css"' in LAYOUT
++    assert 'import "../../styles/deskScrapbookShell64.css"' in HOME
++    assert 'import "../styles/deskScrapbookShell64.css"' not in LAYOUT
+     assert '.p64-shell.is-desk-home' in SHELL
+ 
+ 
+--- a/tests/adventures/test_pass64_4_living_book.py
++++ b/tests/adventures/test_pass64_4_living_book.py
+@@ -29,7 +29,8 @@
+     assert 'aria-label="Continue your adventure"' in SRC
+     assert 'className="p64-desk"' in SRC
+     assert 'className="p644-scene"' in SRC
+-    assert 'import "../pages/game/livingBook644.css"' in LAYOUT
++    assert 'import "./livingBook644.css"' in SRC
++    assert 'import "../pages/game/livingBook644.css"' not in LAYOUT
+ 
+ 
+ def test_art_never_supplies_interactive_data():

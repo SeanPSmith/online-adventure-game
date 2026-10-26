@@ -9,6 +9,35 @@
   letter-spacing: .02em;
   box-shadow: 0 3px 18px #0002;
 }
+/* Pass 66.44 — the Adventure Hall must use the chosen paper BEFORE its lazy
+   dashboard renders. No inherited Pass 64 desk, fixed viewport or dark loading
+   frame; the protected /dev/home-lab still owns that presentation. */
+.game-site-shell.is-inkspace-home {
+  --q39-boot-paper: #f7f3e9;
+  --q39-boot-ink: #28251f;
+  background: var(--q39-boot-paper) !important;
+  color: var(--q39-boot-ink);
+  min-height: 100svh;
+  height: auto;
+  max-height: none;
+  overflow: visible;
+}
+.game-site-shell.is-inkspace-home[data-ink-paper="cream"] { --q39-boot-paper:#eee7d9; --q39-boot-ink:#30291e; }
+.game-site-shell.is-inkspace-home[data-ink-paper="parchment"] { --q39-boot-paper:#d9c6a4; --q39-boot-ink:#33271a; }
+.game-site-shell.is-inkspace-home[data-ink-paper="navy"] { --q39-boot-paper:#0b1725; --q39-boot-ink:#f4e9d6; }
+.game-site-shell.is-inkspace-home[data-ink-paper="midnight"] { --q39-boot-paper:#141516; --q39-boot-ink:#f4e9d6; }
+.game-site-shell.is-inkspace-home[data-ink-paper="phosphor"] { --q39-boot-paper:#06140c; --q39-boot-ink:#c6f9b1; }
+.game-site-shell.is-inkspace-home > .game-header { display:none !important; }
+.game-site-shell.is-inkspace-home > .game-main {
+  margin:0;
+  padding:0;
+  max-width:none;
+  width:100%;
+  min-height:100svh;
+  background:transparent;
+  overflow:visible;
+}
+
 .game-site-shell.is-inkspace-route {
   --q39-boot-paper: #f6f0e4;
   --q39-boot-ink: #241d18;

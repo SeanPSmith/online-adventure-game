@@ -1,0 +1,32 @@
+/* Pass 66.39 — eager reader shell and navigation status. Applied before the
+   lazily loaded AdventurePage styling, so Pass 64 never flashes on route load.
+   Legacy Classic/Book readers remain explicit supported alternatives. */
+.quillairo-route-transition.route-transition-status {
+  background: #f6f0e4;
+  border: 1px solid #9d8054;
+  color: #241d18;
+  font: 600 13px/1.4 Georgia, "Times New Roman", serif;
+  letter-spacing: .02em;
+  box-shadow: 0 3px 18px #0002;
+}
+.game-site-shell.is-inkspace-route {
+  --q39-boot-paper: #f6f0e4;
+  --q39-boot-ink: #241d18;
+  background: var(--q39-boot-paper) !important;
+  color: var(--q39-boot-ink);
+  min-height: 100svh;
+}
+.game-site-shell.is-inkspace-route[data-ink-paper="cream"] { --q39-boot-paper: #f6efdb; }
+.game-site-shell.is-inkspace-route[data-ink-paper="parchment"] { --q39-boot-paper: #e9dac1; }
+.game-site-shell.is-inkspace-route[data-ink-paper="navy"] { --q39-boot-paper: #172639; --q39-boot-ink: #f6f0e4; }
+.game-site-shell.is-inkspace-route[data-ink-paper="midnight"] { --q39-boot-paper: #151515; --q39-boot-ink: #f6f0e4; }
+.game-site-shell.is-inkspace-route[data-ink-paper="phosphor"] { --q39-boot-paper: #092116; --q39-boot-ink: #a9e4bb; }
+/* The official Inkspace reader has its own live folio masthead. Hide the
+   retired page chrome before the lazy page finishes loading, not afterward. */
+.game-site-shell.is-inkspace-route > .game-header { display: none !important; }
+.game-site-shell.is-inkspace-route > .game-main {
+  background: transparent;
+  min-height: 100svh;
+  padding: 0;
+  max-width: none;
+}

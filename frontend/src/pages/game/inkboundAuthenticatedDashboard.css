@@ -1,11 +1,11 @@
 /* Pass 65.6 — REAL /game Inkbound homepage. Paper is a surface; illustrations
    are separate genuine-alpha files. No image masks, white baked mattes, random
    decorative captions, beveled cards, or floating marks across copy. */
-/* Pass 65.6.2 — The old Living Book shell is a fixed, overflow-hidden viewport.
-   The real Inkbound dashboard is a long document: release ONLY its ancestor
-   shell and main from that constraint. Keep the bounded book and live adventure
-   layouts unchanged. Normal window scrolling must work at every breakpoint. */
-body:has(.inkbound-home) .game-site-shell.p64-shell.is-desk-home{
+/* Pass 66.44 — the production /game route has its own explicit Inkspace shell.
+   Never identify it using :has(.inkbound-home), which mounted too late and
+   allowed old fixed-book styling to flash during lazy loading. The protected
+   /dev/home-lab book remains bounded independently. */
+.game-site-shell.p64-shell.is-inkspace-home{
   background:transparent!important;
   height:auto!important;
   min-height:100dvh!important;
@@ -14,8 +14,8 @@ body:has(.inkbound-home) .game-site-shell.p64-shell.is-desk-home{
   border:0!important;
   box-shadow:none!important;
 }
-body:has(.inkbound-home) .game-site-shell.p64-shell.is-desk-home .game-header{display:none!important}
-body:has(.inkbound-home) .game-site-shell.p64-shell.is-desk-home .game-main{
+.game-site-shell.p64-shell.is-inkspace-home .game-header{display:none!important}
+.game-site-shell.p64-shell.is-inkspace-home .game-main{
   margin:0!important;
   padding:0!important;
   max-width:none!important;

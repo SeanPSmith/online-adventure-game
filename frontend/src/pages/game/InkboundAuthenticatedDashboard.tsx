@@ -12,6 +12,7 @@ import type { Character } from "../../services/characters";
 import type { AdventureCatalogItem, AdventureListItem } from "../../services/game";
 import { useInkboundPaper } from "../../features/appearance/inkboundPaper";
 import "./inkboundAuthenticatedDashboard.css";
+import "./quillairoAtlasPass6645.css";
 
 type Page = "home" | "worlds" | "heroes" | "journeys" | "join";
 
@@ -59,6 +60,20 @@ export type InkboundDashboardProps = {
   error?: string;
   onDismissError?: () => void;
 };
+
+/** Purely presentational. The selected Hero and all stats come from the live Character record. */
+function TravelHeroFolio({ hero }: { hero: Character | undefined }) {
+  if (!hero) return null;
+  return <aside className="i656-travel-folio" aria-label={`Selected Hero: ${hero.name}`}>
+    <span className="i656-travel-emblem" aria-hidden="true">✦</span>
+    <div className="i656-travel-info">
+      <p className="i656-eyebrow">Your companion through the pages</p>
+      <strong>{hero.name}</strong>
+      <span>Level {hero.level} · Health {hero.health}/{hero.max_health}</span>
+    </div>
+    <Link to={`/game/heroes/${encodeURIComponent(hero.character_id)}`}>View Hero folio <span aria-hidden="true">↗</span></Link>
+  </aside>;
+}
 
 export function InkboundAuthenticatedDashboard({
   username, userId, isAuthor, isAdmin, connected, directoryReady,
@@ -187,6 +202,7 @@ export function InkboundAuthenticatedDashboard({
               <TerminalSelect className="i656-select" ariaLabel="Hero used to start an adventure" value={selectedHeroId} onChange={onSelectHero} options={heroOptions} disabled={!freeHeroes.length} />
             </div>
           </div>
+          <TravelHeroFolio hero={selectedHero} />
           {!freeHeroes.length && <p className="i656-availability-note">{available.length ? "Your living Heroes are already in adventures. Resume a story, or create another Hero." : "Create a living Hero before starting a new adventure."} <Link to="/game/heroes/new">Create a Hero →</Link></p>}
           <div className="i656-worlds-list">{found.map((item, index) => <article className="i656-world" key={item.adventure_id}><button className="i656-world-cover" type="button" onClick={() => inspect(item)} aria-label={`Read ${item.title} synopsis`}><img src={storyCover(item.title,item.tags,item.metadata)} onError={event => nextCoverSource(event.currentTarget,item.title,item.tags,item.metadata)} alt={`Illustrated cover for ${item.title}`} loading="lazy"/></button><div><p className="i656-eyebrow">No. {String(index+1).padStart(2,"0")} {item.tags.slice(0,2).join(" · ")}</p><h2>{item.title}</h2><p>{synopsis(item)}</p><button type="button" className="i656-text-link" onClick={() => inspect(item)}>Read the introduction ↗</button></div></article>)}</div>
           {directoryReady && !found.length && <p className="i656-empty-line">No matching worlds. Try another search.</p>}{!directoryReady && <p className="i656-empty-line" role="status">The atlas is being prepared…</p>}
@@ -225,6 +241,6 @@ export function InkboundAuthenticatedDashboard({
         </div>
       </section>
     </div>}
-    {selectedStory && <div className="i656-veil" onMouseDown={(event) => { if(event.target===event.currentTarget) closeInspect(); }}><section className="i656-dialog" role="dialog" aria-modal="true" aria-labelledby="i656-story-title"><div className="i656-dialog-head"><p className="i656-eyebrow">Before the first chapter</p><button ref={modalCloseRef} type="button" onClick={closeInspect} aria-label="Close story introduction">×</button></div><h2 id="i656-story-title">{selectedStory.title}</h2><p>{synopsis(selectedStory)}</p><fieldset className="i656-mode"><legend>How will you travel?</legend><label><input type="radio" name="i656-mode" checked={mode==="solo"} onChange={() => setMode("solo")}/> On my own</label><label><input type="radio" name="i656-mode" checked={mode==="coop"} onChange={() => setMode("coop")}/> With a companion</label></fieldset><div className="i656-dialog-hero i656-choice-field"><span className="i656-field-label">Your Hero</span><TerminalSelect className="i656-select" ariaLabel="Hero used to enter the lobby" value={selectedHeroId} onChange={onSelectHero} options={heroOptions} disabled={!freeHeroes.length}/></div><p className="i656-muted">{mode === "coop" ? "You will enter a co-op lobby. Invite your friend and begin only when both players are ready." : "You will enter the solo lobby, then choose when to begin Chapter One."}</p><div className="i656-dialog-actions"><button type="button" onClick={closeInspect}>Not yet</button><button className="i656-primary-action" type="button" disabled={!canEnter} onClick={() => { onCreate(selectedStory,mode); closeInspect(); }}>Enter the lobby →</button></div></section></div>}
+    {selectedStory && <div className="i656-veil" onMouseDown={(event) => { if(event.target===event.currentTarget) closeInspect(); }}><section className="i656-dialog" role="dialog" aria-modal="true" aria-labelledby="i656-story-title"><div className="i656-dialog-head"><p className="i656-eyebrow">Before the first chapter</p><button ref={modalCloseRef} type="button" onClick={closeInspect} aria-label="Close story introduction">×</button></div><h2 id="i656-story-title">{selectedStory.title}</h2><p>{synopsis(selectedStory)}</p><fieldset className="i656-mode"><legend>How will you travel?</legend><label><input type="radio" name="i656-mode" checked={mode==="solo"} onChange={() => setMode("solo")}/> On my own</label><label><input type="radio" name="i656-mode" checked={mode==="coop"} onChange={() => setMode("coop")}/> With a companion</label></fieldset><div className="i656-dialog-hero i656-choice-field"><span className="i656-field-label">Your Hero</span><TerminalSelect className="i656-select" ariaLabel="Hero used to enter the lobby" value={selectedHeroId} onChange={onSelectHero} options={heroOptions} disabled={!freeHeroes.length}/></div><TravelHeroFolio hero={selectedHero} /><p className="i656-muted">{mode === "coop" ? "You will enter a co-op lobby. Invite your friend and begin only when both players are ready." : "You will enter the solo lobby, then choose when to begin Chapter One."}</p><div className="i656-dialog-actions"><button type="button" onClick={closeInspect}>Not yet</button><button className="i656-primary-action" type="button" disabled={!canEnter} onClick={() => { onCreate(selectedStory,mode); closeInspect(); }}>Enter the lobby →</button></div></section></div>}
   </div>;
 }

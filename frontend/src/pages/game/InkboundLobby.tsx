@@ -6,6 +6,7 @@ import { Link } from "react-router";
 import type { InkPaper } from "../../features/appearance/inkboundPaper";
 import type { ReadinessPlayer, RoomPlayer } from "../../services/game";
 import { RoomInviteButton } from "../../components/game/RoomInviteButton";
+import "./quillairoLobbyPass6645.css";
 
 export interface InkboundLobbyProps {
   roomCode: string;
@@ -54,7 +55,7 @@ export function InkboundLobby(props: InkboundLobbyProps) {
         <span id="ibl-lobby-about" className="ibl-lobby-kicker">The tale ahead</span>
         <p>{props.synopsis || "A new road opens before your Hero. Every choice will shape the tale that follows."}</p>
       </section>
-      <section className="ibl-lobby-preparation" aria-label="Party readiness">
+      <section className="ibl-lobby-preparation" aria-label="Party readiness" data-can-begin={props.canBeginAdventure && props.connected ? "yes" : "no"}>
         <div className="ibl-lobby-roster">
           <h2>{props.playMode === "coop" ? "Two travelers, one story" : "The solitary road"}</h2>
           <p>{props.chapterPreparing ? "The Story Director is preparing your first chapter." : props.playMode === "coop" ? "Your adventure starts when the host and party are ready." : "Your first chapter will be written when you begin."}</p>

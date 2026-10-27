@@ -1,0 +1,189 @@
+/* Pass 66.45: real Adventure Atlas and selected-Hero folio, not a second game shell.
+   Scoped exclusively to the production Inkspace dashboard. */
+.inkbound-home{
+  --q45-gold:#a37738;
+  --q45-gold-muted:rgba(163,119,56,.40);
+  --q45-surface:rgba(255,252,244,.38);
+}
+.inkbound-home:is([data-ink-paper="parchment"],[data-ink-paper="cream"]){
+  --q45-surface:rgba(255,248,231,.26);
+}
+.inkbound-home:is([data-ink-paper="midnight"],[data-ink-paper="navy"]){
+  --q45-gold:#cba872;
+  --q45-gold-muted:rgba(203,168,114,.45);
+  --q45-surface:rgba(255,255,255,.035);
+}
+.inkbound-home[data-ink-paper="phosphor"]{
+  --q45-gold:#a9cc81;
+  --q45-gold-muted:rgba(169,204,129,.45);
+  --q45-surface:rgba(169,204,129,.04);
+}
+/* The actual live world entries use the same illustration source/fallback as before. */
+.inkbound-home .i656-worlds-list{
+  gap:clamp(16px,2.2vw,30px);
+  padding-block:clamp(26px,3.5vw,48px);
+  align-items:stretch;
+}
+.inkbound-home .i656-world{
+  position:relative;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  border:1px solid var(--paper-rule);
+  background:var(--q45-surface);
+  transition:border-color .2s ease, transform .2s ease;
+  overflow:hidden;
+}
+.inkbound-home .i656-world:hover,
+.inkbound-home .i656-world:focus-within{
+  border-color:var(--q45-gold);
+}
+.inkbound-home .i656-world:focus-within{outline:1px solid var(--q45-gold);outline-offset:3px}
+.inkbound-home .i656-world-cover{
+  width:100%;
+  padding:clamp(12px,1.5vw,22px) clamp(12px,1.5vw,22px) 0;
+  border:0;
+  min-height:165px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--paper-text);
+}
+.inkbound-home .i656-world-cover img{
+  max-width:100%;
+  width:100%;
+  height:clamp(156px,15vw,248px);
+  aspect-ratio:auto;
+  object-fit:contain!important;
+  filter:none!important;
+  transition:transform .24s ease;
+}
+.inkbound-home .i656-world:hover .i656-world-cover img{transform:translateY(-3px) scale(1.012)}
+.inkbound-home .i656-world>div{
+  padding:17px clamp(17px,1.8vw,25px) 23px;
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  border-top:1px solid var(--paper-rule);
+}
+.inkbound-home .i656-world .i656-eyebrow{
+  color:var(--q45-gold)!important;
+  letter-spacing:.15em;
+  margin:0 0 9px;
+  min-height:0;
+}
+.inkbound-home .i656-world h2{
+  color:var(--paper-text);
+  font-size:clamp(25px,2.3vw,35px);
+  text-wrap:balance;
+}
+.inkbound-home .i656-world>div>p:not(.i656-eyebrow){
+  min-height:0;
+  max-width:none;
+  margin:0 0 17px;
+  font-size:clamp(15px,1.15vw,17px);
+  line-height:1.58;
+  flex:1;
+  display:-webkit-box;
+  -webkit-line-clamp:4;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+.inkbound-home .i656-world .i656-text-link{
+  align-self:flex-start;
+  min-height:38px;
+  padding-top:10px!important;
+  font-size:13px!important;
+}
+/* The Hero is always the actual selected, eligible character; never a demo model. */
+.inkbound-home .i656-travel-folio{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  align-items:center;
+  gap:clamp(13px,1.8vw,24px);
+  border-block:1px solid var(--paper-rule);
+  padding:17px clamp(10px,1.2vw,18px);
+  background:var(--q45-surface);
+  color:var(--paper-text);
+  margin:0 0 24px;
+}
+.inkbound-home .i656-travel-emblem{
+  width:clamp(42px,4.5vw,62px);
+  height:clamp(42px,4.5vw,62px);
+  display:grid;
+  place-items:center;
+  border:1px solid var(--q45-gold-muted);
+  border-radius:50%;
+  color:var(--q45-gold);
+  font-size:clamp(23px,2.8vw,34px);
+  line-height:1;
+}
+.inkbound-home .i656-travel-info{display:flex;flex-direction:column;gap:3px;min-width:0}
+.inkbound-home .i656-travel-info .i656-eyebrow{margin:0;font-size:10px!important;letter-spacing:.09em}
+.inkbound-home .i656-travel-info strong{
+  font:400 clamp(22px,2.2vw,32px)/1.18 var(--paper-ser);
+  color:var(--paper-text);
+  overflow-wrap:anywhere;
+}
+.inkbound-home .i656-travel-info>span{
+  font:12px/1.6 var(--paper-type);
+  color:var(--paper-dim);
+}
+.inkbound-home .i656-travel-folio>a{
+  font:600 12px/1.5 var(--paper-type);
+  color:var(--paper-text);
+  border-bottom:1px solid var(--q45-gold-muted);
+  padding:10px 1px;
+  text-align:right;
+}
+.inkbound-home .i656-travel-folio>a:hover{text-decoration:none;color:var(--q45-gold)}
+/* Make the synopsis/readiness decision a genuine frontispiece, not a utility dialog. */
+.inkbound-home .i656-dialog{
+  border:1px solid var(--q45-gold-muted);
+  box-shadow:0 24px 75px rgba(10,8,5,.38);
+  position:relative;
+}
+.inkbound-home .i656-dialog:before{
+  content:"";
+  pointer-events:none;
+  position:absolute;
+  inset:8px;
+  border:1px solid var(--paper-rule);
+}
+.inkbound-home .i656-dialog .i656-travel-folio{
+  margin:3px 0 14px;
+  padding:12px 8px;
+}
+.inkbound-home .i656-dialog .i656-travel-emblem{width:42px;height:42px;font-size:24px}
+.inkbound-home .i656-mode{gap:18px}
+.inkbound-home .i656-mode label{
+  flex:1 1 175px;
+  padding:12px 14px;
+  border:1px solid var(--paper-rule);
+  background:var(--q45-surface);
+  min-height:48px;
+}
+.inkbound-home .i656-mode label:has(input:checked){border-color:var(--q45-gold);color:var(--paper-text)}
+.inkbound-home .i656-mode input{accent-color:var(--q45-gold)}
+/* The custom TerminalSelect is retained; only its production colors change. */
+.inkbound-home .i656-select .terminal-select-trigger:focus-visible,
+.inkbound-home .i656-select .terminal-select-menu button:focus-visible{
+  outline:2px solid var(--q45-gold)!important;
+  outline-offset:2px;
+}
+@media(max-width:780px){
+  .inkbound-home .i656-worlds-list{gap:16px}
+  .inkbound-home .i656-world-cover img{height:clamp(150px,23vw,215px)}
+  .inkbound-home .i656-world>div{padding:15px 17px 20px}
+}
+@media(max-width:560px){
+  .inkbound-home .i656-world-cover{min-height:0;padding:13px 15px 0}
+  .inkbound-home .i656-world-cover img{height:clamp(185px,55vw,275px)}
+  .inkbound-home .i656-travel-folio{grid-template-columns:42px minmax(0,1fr);gap:12px}
+  .inkbound-home .i656-travel-folio>a{grid-column:2;justify-self:start;text-align:left;padding:4px 0}
+  .inkbound-home .i656-dialog{padding:30px 20px}
+}
+@media(prefers-reduced-motion:reduce){
+  .inkbound-home .i656-world,
+  .inkbound-home .i656-world-cover img{transition:none!important;transform:none!important}
+}

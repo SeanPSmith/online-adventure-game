@@ -1,0 +1,142 @@
+/* Pass 66.45: presentation only. Existing server readiness, invitation and
+   Begin Adventure callbacks remain the sole source of truth. */
+.inkbound-lobby{--q45-lobby-gold:#a37738;--q45-lobby-border:rgba(163,119,56,.42)}
+.inkbound-lobby:is([data-ink-paper="midnight"],[data-ink-paper="navy"]){--q45-lobby-gold:#cba872;--q45-lobby-border:rgba(203,168,114,.48)}
+.inkbound-lobby[data-ink-paper="phosphor"]{--q45-lobby-gold:#a9cc81;--q45-lobby-border:rgba(169,204,129,.48)}
+.inkbound-lobby .ibl-lobby-main{
+  width:min(92%,1350px);
+  display:grid;
+  grid-template-columns:minmax(0,.93fr) minmax(0,1.07fr);
+  column-gap:clamp(25px,4vw,75px);
+  grid-template-areas:"introduction artwork" "synopsis artwork" "preparation preparation";
+  align-items:center;
+  padding:clamp(32px,5vw,77px) 0 65px;
+}
+.inkbound-lobby .ibl-lobby-intro{
+  grid-area:introduction;
+  text-align:left;
+  max-width:none;
+  margin:0;
+  align-self:end;
+}
+.inkbound-lobby .ibl-lobby-intro h1{
+  font-size:clamp(48px,5.9vw,89px);
+  letter-spacing:-.045em;
+  margin-block:13px 15px;
+  text-wrap:balance;
+}
+.inkbound-lobby .ibl-lobby-kicker{color:var(--q45-lobby-gold)}
+.inkbound-lobby .ibl-lobby-subtitle{font-size:clamp(18px,2vw,24px)}
+.inkbound-lobby .ibl-lobby-art,
+.inkbound-lobby .ibl-lobby-open-space{
+  grid-area:artwork;
+  width:100%;
+  min-width:0;
+  margin:0;
+  align-self:center;
+}
+.inkbound-lobby .ibl-lobby-art img{
+  display:block;
+  width:100%;
+  height:auto;
+  max-height:min(62vh,610px);
+  object-fit:contain;
+}
+.inkbound-lobby .ibl-lobby-open-space{
+  min-height:clamp(190px,24vw,330px);
+  background:transparent;
+  border-block:1px solid var(--ia-rule);
+  opacity:.65;
+}
+.inkbound-lobby .ibl-lobby-synopsis{
+  grid-area:synopsis;
+  max-width:580px;
+  width:100%;
+  margin:22px 0 0;
+  padding:20px 0 0;
+  text-align:left;
+  align-self:start;
+}
+.inkbound-lobby .ibl-lobby-synopsis p{
+  margin:11px 0 0;
+  font-size:clamp(17px,1.55vw,21px);
+  line-height:1.6;
+}
+.inkbound-lobby .ibl-lobby-preparation{
+  grid-area:preparation;
+  grid-template-columns:minmax(0,1fr) minmax(285px,.82fr);
+  gap:clamp(25px,4vw,70px);
+  padding-top:clamp(28px,3vw,43px);
+  margin-top:clamp(40px,4.5vw,72px);
+  border-top:1px solid var(--q45-lobby-border);
+}
+.inkbound-lobby .ibl-lobby-roster h2{font-size:clamp(29px,3vw,42px)}
+.inkbound-lobby .ibl-lobby-player{
+  border-bottom:1px solid var(--ia-rule);
+  min-height:75px;
+  padding:13px 11px;
+}
+.inkbound-lobby .ibl-lobby-player-mark{color:var(--q45-lobby-gold)}
+.inkbound-lobby .ibl-lobby-player em{font-style:normal;font-size:12px}
+.inkbound-lobby .ibl-lobby-actions{
+  padding:clamp(20px,2.2vw,31px);
+  border:1px solid var(--ia-rule);
+  position:relative;
+  gap:13px;
+}
+.inkbound-lobby .ibl-lobby-actions:before{
+  content:"";
+  pointer-events:none;
+  position:absolute;
+  inset:7px;
+  border:1px solid var(--ia-rule);
+}
+.inkbound-lobby .ibl-lobby-actions>.ibl-lobby-kicker{
+  padding-bottom:11px;
+  border-bottom:1px solid var(--ia-rule);
+}
+.inkbound-lobby .ibl-lobby-begin{
+  margin-top:18px;
+  min-height:59px;
+  border:1px solid var(--q45-lobby-gold);
+  box-shadow:inset 0 0 0 2px var(--ia-paper);
+  transition:background .2s ease,color .2s ease,transform .2s ease;
+}
+.inkbound-lobby .ibl-lobby-begin:hover:not(:disabled){
+  opacity:1;
+  background:var(--q45-lobby-gold);
+  color:var(--ia-paper);
+  transform:translateY(-1px);
+}
+.inkbound-lobby .ibl-lobby-preparation[data-can-begin="yes"] .ibl-lobby-status{
+  color:var(--q45-lobby-gold);
+}
+.inkbound-lobby .ibl-lobby-status{min-height:21px}
+.inkbound-lobby :is(.ibl-lobby-invite,.ibl-lobby-narrator,.ibl-lobby-begin):focus-visible{
+  outline:2px solid var(--q45-lobby-gold);
+  outline-offset:3px;
+}
+@media(max-width:920px){
+  .inkbound-lobby .ibl-lobby-main{
+    grid-template-columns:minmax(0,1fr);
+    grid-template-areas:"introduction" "artwork" "synopsis" "preparation";
+    padding-top:31px;
+  }
+  .inkbound-lobby .ibl-lobby-intro{text-align:center;align-self:start}
+  .inkbound-lobby .ibl-lobby-intro h1{font-size:clamp(44px,8.2vw,72px)}
+  .inkbound-lobby .ibl-lobby-art{max-width:720px;margin:12px auto 0}
+  .inkbound-lobby .ibl-lobby-art img{max-height:400px}
+  .inkbound-lobby .ibl-lobby-synopsis{max-width:720px;margin:20px auto 0}
+  .inkbound-lobby .ibl-lobby-preparation{margin-top:32px}
+  .inkbound-lobby .ibl-lobby-open-space{min-height:38px}
+}
+@media(max-width:650px){
+  .inkbound-lobby .ibl-lobby-main{width:min(92%,600px);padding-bottom:35px}
+  .inkbound-lobby .ibl-lobby-preparation{grid-template-columns:minmax(0,1fr);gap:28px}
+  .inkbound-lobby .ibl-lobby-actions{padding:19px}
+  .inkbound-lobby .ibl-lobby-roster h2{font-size:30px}
+  .inkbound-lobby .ibl-lobby-intro h1{font-size:clamp(39px,10.1vw,60px)}
+}
+@media(prefers-reduced-motion:reduce){
+  .inkbound-lobby .ibl-lobby-begin{transition:none!important;transform:none!important}
+}

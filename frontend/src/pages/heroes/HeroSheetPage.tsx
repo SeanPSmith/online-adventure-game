@@ -6,6 +6,7 @@ import { Panel } from "../../components/ui/Panel";
 import { HeroEffectList } from "../../features/adventure/HeroEffectList";
 import { activeHeroEffects } from "../../features/adventure/heroEffects";
 import "./quillairoHeroArchivePass6615.css";
+import "./quillairoHeroQuizPass6646.css";
 import {
   advanceCharacter,
   getCharacter,
@@ -285,6 +286,7 @@ export function HeroSheetPage() {
                 <span>THE LIKENESS IS YET TO BE DRAWN</span>
               </div>
             )}
+            {portraitBook?.selected_attempt ? <div className="qh46-sheet-pfp" aria-label="Profile portrait crop"><img src={`/api/characters/${encodeURIComponent(hero.character_id)}/portrait/${portraitBook.selected_attempt}`} alt={`Profile portrait of ${hero.name}`} /></div> : null}
           </div>
           <div className="qh15-sheet-identity">
             <span className="qh15-kicker">AN ILLUSTRATED LIFE · THE CHARACTER SHEET</span>

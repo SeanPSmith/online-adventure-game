@@ -133,16 +133,10 @@
 .inkbound-global-dialog :is(.terminal-select-menu button,[role="option"]):is(:hover,:focus-visible,[aria-selected="true"]) {
   background:var(--ib-wash)!important;
 }
-/* App modals are React/native-dialog, but entirely custom skinned.
-   Don't style the browser chrome or invent native window.alert theming. */
-#modal-root .inkbound-global-dialog.modal-panel {
-  width:min(1040px,calc(100vw - 28px))!important;
-  max-height:calc(100dvh - 28px)!important;
-  overflow-y:auto!important;
-}
+/* Modal sizing lives in the shared Inkscape foundation; do not reintroduce
+   an oversized width or blur over the user's selected paper edition. */
 #modal-root .inkbound-global-dialog::backdrop {
   background:rgba(0,0,0,.64);
-  backdrop-filter:blur(3px);
 }
 :is(.inkbound-live,.inkbound-lobby,.inkbound-turn-theater,.inkbound-system-shell,.inkbound-global-dialog)
   :is(a,button,input,textarea,.terminal-select-trigger):focus-visible {

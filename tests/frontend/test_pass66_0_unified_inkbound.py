@@ -39,7 +39,7 @@ def test_inkbound_reuses_voice_synchronized_word_reveal():
 
 def test_modal_sizes_and_component_css_imports():
     css=read("frontend/src/styles/inkboundSystemPass660.css")
-    assert 'width:min(960px,calc(100vw - 32px))' in css
+    assert 'width:min(760px,calc(100vw - 32px))' in css
     assert 'calc(100dvh - 32px)' in css
     assert 'inkboundSystemPass660.css' in read("frontend/src/main.tsx")
     # Guard package completeness for stylesheet imports in modified React files.

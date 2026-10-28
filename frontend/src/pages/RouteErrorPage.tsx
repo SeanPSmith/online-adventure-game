@@ -1,9 +1,13 @@
 import { Link, isRouteErrorResponse, useRouteError } from "react-router";
+import { useAuth } from "../state/AuthContext";
+import { useInkboundPaper } from "../features/appearance/inkboundPaper";
 
 const CHUNK_LOAD_FAILURE = /failed to fetch dynamically imported module|importing a module script failed|error loading dynamically imported module|loading chunk .+ failed|unable to preload css/i;
 
 export function RouteErrorPage() {
   const error = useRouteError();
+  const { user } = useAuth();
+  const [paper] = useInkboundPaper(user?.user_id ?? "");
   const isAssetFailure = error instanceof Error && CHUNK_LOAD_FAILURE.test(error.message);
   const isMissing = isRouteErrorResponse(error) && error.status === 404;
   const detail = isAssetFailure
@@ -13,7 +17,7 @@ export function RouteErrorPage() {
       : "The Chronicle could not open this page. Try again; if the passage stays closed, return to the Adventure Hall.";
 
   return (
-    <main className="not-found" role="alert">
+    <main className="not-found inkscape-route-state" data-ink-paper={paper} role="alert">
       <span className="eyebrow">THE CHRONICLE // A LOST PAGE</span>
       <h1>THE INK HAS GONE ASTRAY.</h1>
       <p className="muted-copy">{detail}</p>

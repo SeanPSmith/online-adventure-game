@@ -199,24 +199,74 @@
 .inkbound-author-intro p{font:clamp(18px,2vw,26px)/1.55 var(--ib-serif);color:var(--ib-copy)}
 .inkbound-author-enter{display:inline-flex;gap:22px;align-items:center;font:600 17px/1.5 var(--ib-mono);text-decoration:none;border-bottom:1px solid var(--ib-text);padding:10px 0;color:var(--ib-text)}
 .inkbound-author-aside{max-width:190px;font-style:italic!important;font-size:16px!important;color:var(--ib-muted)!important}
-/* All global dialogs are paper-bound, wide enough for real settings and longer text. */
+/* Shared Inkscape portal. A dialog is an editorial reading surface, not a
+   terminal window or a fake manuscript page. Scope to the global dialog only:
+   no Adventure theater, Arcade, dice, or other modal implementations. */
 #modal-root .inkbound-global-dialog.modal-panel{
-  box-sizing:border-box;position:fixed;width:min(960px,calc(100vw - 32px));max-width:none;
+  box-sizing:border-box;position:fixed;width:min(760px,calc(100vw - 32px));max-width:none;
   max-height:calc(100dvh - 32px);margin:auto;padding:0;
-  border:1px solid var(--ib-line)!important;border-radius:1px!important;
-  background:var(--ib-paper)!important;color:var(--ib-text)!important;
-  box-shadow:0 24px 70px rgba(0,0,0,.28)!important;overflow:auto;
+  border:1px solid var(--ix-rule,var(--ib-line))!important;border-radius:0!important;
+  background:var(--ix-paper,var(--ib-paper))!important;color:var(--ix-ink,var(--ib-text))!important;
+  box-shadow:0 14px 44px rgba(0,0,0,.22)!important;
+  overflow:auto;overscroll-behavior:contain;
 }
-#modal-root .inkbound-global-dialog :is(.panel-heading,.modal-body,.modal-footer){background:transparent!important;border-color:var(--ib-line)!important;color:var(--ib-text)!important}
-#modal-root .inkbound-global-dialog :is(.panel-heading strong,.modal-body h1,.modal-body h2,.modal-body h3){color:var(--ib-text)!important;font-family:var(--ib-serif)}
-#modal-root .inkbound-global-dialog .panel-heading{padding:20px clamp(18px,4vw,44px)}
-#modal-root .inkbound-global-dialog .modal-body{padding:clamp(20px,3vw,42px)}
-#modal-root .inkbound-global-dialog .modal-footer{padding:18px clamp(18px,4vw,44px);flex-wrap:wrap}
-#modal-root .inkbound-global-dialog :is(p,label,span){color:var(--ib-copy)}
-#modal-root .inkbound-global-dialog :is(button,.button,a){color:var(--ib-text);background:transparent;border-color:var(--ib-line);box-shadow:none}
-#modal-root .inkbound-global-dialog :is(.button-primary,.button.button-primary){background:var(--ib-highlight)!important;color:var(--ib-button-ink)!important;border-color:var(--ib-highlight)!important}
-#modal-root .inkbound-global-dialog :is(input,textarea){background:transparent!important;color:var(--ib-text)!important;border:1px solid var(--ib-line)!important;max-width:100%}
-#modal-root .inkbound-global-dialog :is(a,button,input,textarea):focus-visible{outline:2px solid var(--ib-text);outline-offset:3px}
+#modal-root .inkbound-global-dialog :is(.panel-heading,.modal-body,.modal-footer){
+  background:transparent!important;border-color:var(--ix-rule,var(--ib-line))!important;
+  color:var(--ix-copy,var(--ib-copy))!important;
+}
+#modal-root .inkbound-global-dialog .panel-heading{
+  display:flex;align-items:center;justify-content:space-between;gap:18px;
+  padding:clamp(20px,3vw,32px) clamp(20px,4vw,40px) 18px;
+  border-bottom:1px solid var(--ix-rule,var(--ib-line))!important;
+}
+#modal-root .inkbound-global-dialog .panel-heading strong{
+  font:400 clamp(24px,3vw,34px)/1.18 var(--ix-display-font,var(--ib-serif))!important;
+  color:var(--ix-ink,var(--ib-text))!important;
+  letter-spacing:-.025em!important;text-transform:none!important;text-wrap:balance;
+}
+#modal-root .inkbound-global-dialog .panel-heading .icon-button{
+  flex:0 0 44px;width:44px;height:44px;min-width:44px;min-height:44px;padding:0;
+  display:grid;place-items:center;border:0!important;background:transparent!important;
+  color:var(--ix-ink,var(--ib-text))!important;font:400 28px/1 var(--ix-ui-font,var(--ib-serif))!important;
+}
+#modal-root .inkbound-global-dialog .panel-heading .icon-button:hover:not(:disabled){
+  background:var(--ix-wash,var(--ib-wash))!important;
+}
+#modal-root .inkbound-global-dialog .modal-body{
+  padding:clamp(22px,4vw,40px);overflow-wrap:anywhere;
+}
+#modal-root .inkbound-global-dialog .modal-body :is(p,li){
+  max-width:72ch;line-height:1.65;
+}
+#modal-root .inkbound-global-dialog :is(.modal-body,.modal-footer) :is(h1,h2,h3,strong){
+  color:var(--ix-ink,var(--ib-text))!important;
+}
+#modal-root .inkbound-global-dialog .modal-footer{
+  display:flex;justify-content:flex-end;flex-wrap:wrap;gap:12px;
+  padding:18px clamp(20px,4vw,40px);
+  border-top:1px solid var(--ix-rule,var(--ib-line))!important;
+}
+#modal-root .inkbound-global-dialog :is(.modal-footer,.modal-body) :is(button,.button){
+  min-height:44px;max-width:100%;font-family:var(--ix-ui-font,var(--ib-serif));
+  letter-spacing:.045em;box-shadow:none!important;
+}
+#modal-root .inkbound-global-dialog :is(p,label){color:var(--ix-copy,var(--ib-copy))}
+#modal-root .inkbound-global-dialog :is(button,.button,a){
+  color:var(--ix-ink,var(--ib-text));background:transparent;
+  border-color:var(--ix-rule,var(--ib-line));box-shadow:none;
+}
+#modal-root .inkbound-global-dialog :is(.button-primary,.button.button-primary){
+  background:var(--ix-action,var(--ib-highlight))!important;
+  color:var(--ix-action-ink,var(--ib-button-ink))!important;
+  border-color:var(--ix-gold,var(--ib-highlight))!important;
+}
+#modal-root .inkbound-global-dialog :is(input,textarea){
+  background:transparent!important;color:var(--ix-ink,var(--ib-text))!important;
+  border:1px solid var(--ix-rule,var(--ib-line))!important;max-width:100%;
+}
+#modal-root .inkbound-global-dialog :is(a,button,input,textarea):focus-visible{
+  outline:2px solid var(--ix-focus,var(--ib-text));outline-offset:3px;
+}
 .inkbound-turn-theater :is(.turn-resolution-theater,.intermission-runtime,.turn-theater-stage){width:min(980px,calc(100vw - 32px))!important;max-width:calc(100vw - 32px);max-height:calc(100dvh - 32px);overflow:auto}
 .inkbound-live .ibl-prose .story-reveal{font:inherit;color:inherit}
 .inkbound-live .ibl-prose .story-reveal p{font:inherit;color:var(--ia-copy);letter-spacing:inherit}

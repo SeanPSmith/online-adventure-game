@@ -75,7 +75,7 @@
 }
 .inkbound-system-shell :is(.brand strong,.page-title h1){color:var(--ib-text)!important;font-family:var(--ib-serif);font-weight:400;letter-spacing:-.025em}
 .inkbound-system-shell .brand-mark{background:transparent;border:0;font-family:var(--ib-serif);font-weight:400;color:var(--ib-text)}
-.inkbound-system-shell :is(.brand small,.eyebrow,.header-nav a,.header-nav button){color:var(--ib-muted)!important;font-family:var(--ib-mono)}
+.inkbound-system-shell :is(.brand small,.eyebrow,.header-nav a,.header-nav button){color:var(--ib-muted)!important;font-family:var(--ix-ui-font);letter-spacing:.09em}
 .inkbound-system-shell .header-nav a.active{color:var(--ib-text)!important;border-bottom:1px solid var(--ib-text);border-top:0;border-left:0;border-right:0}
 .inkbound-system-shell:not(.is-desk-home):not(.is-adventure-mode) :is(.page-title,.panel,.account-command-bar,.account-tab-content,.account-tabs){
   background:transparent!important;box-shadow:none!important;color:var(--ib-text);border-radius:0!important;
@@ -91,7 +91,7 @@
   background:transparent!important;color:var(--ib-text)!important;border:1px solid var(--ib-line)!important;box-shadow:none!important;
 }
 .inkbound-system-shell:not(.is-desk-home):not(.is-adventure-mode) :is(button,.button,.icon-button){
-  font-family:var(--ib-mono);box-shadow:none!important;border-radius:0!important;
+  font-family:var(--ix-ui-font);letter-spacing:.055em;box-shadow:none!important;border-radius:0!important;
 }
 .inkbound-system-shell:not(.is-desk-home):not(.is-adventure-mode) :is(.button-primary,.button.button-primary){
   background:var(--ib-highlight)!important;color:var(--ib-button-ink)!important;border:1px solid var(--ib-highlight)!important;
@@ -103,6 +103,96 @@
 /* CRT edition: mono in functional chrome, luminous headers only. Not glowing narrative paragraphs. */
 .inkbound-system-shell[data-ink-paper="phosphor"] :is(.brand strong,.page-title h1){font-family:var(--ib-mono);text-shadow:0 0 13px rgba(144,255,125,.29)}
 :where(.inkbound-home,.inkbound-live,.inkbound-lobby)[data-ink-paper="phosphor"] :is(.i656-wordmark,.ibl-brand,.ibl-chapter h1,.ibl-sealed h1,.ibl-topbar h1){font-family:"Courier Prime","Courier New",monospace!important;text-shadow:0 0 12px rgba(144,255,125,.24)}
+/* PASS 66.47 / INKSCAPE FOUNDATION
+   Canonical presentation tokens mapped to the six established paper themes.
+   Existing --ib-* variables remain supported for old UI while it migrates.
+   No turn theater, active adventure reader, Arcade board or author API selectors. */
+:where(.inkbound-system-shell,.inkbound-global-dialog) {
+  --ix-paper: var(--ib-paper);
+  --ix-ink: var(--ib-text);
+  --ix-copy: var(--ib-copy);
+  --ix-muted: var(--ib-muted);
+  --ix-rule: var(--ib-line);
+  --ix-wash: var(--ib-wash);
+  --ix-action: var(--ib-highlight);
+  --ix-action-ink: var(--ib-button-ink);
+  --ix-gold: #986a34;
+  --ix-ui-font: "Iowan Old Style", "Baskerville", Georgia, serif;
+  --ix-display-font: var(--ib-serif);
+  --ix-focus: var(--ix-gold);
+}
+:where(.inkbound-system-shell,.inkbound-global-dialog)[data-ink-paper="cream"] { --ix-gold:#91662f; }
+:where(.inkbound-system-shell,.inkbound-global-dialog)[data-ink-paper="parchment"] { --ix-gold:#805621; }
+:where(.inkbound-system-shell,.inkbound-global-dialog)[data-ink-paper="navy"] { --ix-gold:#d8ae70; }
+:where(.inkbound-system-shell,.inkbound-global-dialog)[data-ink-paper="midnight"] { --ix-gold:#d8ae70; }
+:where(.inkbound-system-shell,.inkbound-global-dialog)[data-ink-paper="phosphor"] {
+  --ix-gold:#b8d69a;
+  --ix-ui-font:var(--ib-mono);
+  --ix-display-font:var(--ib-serif);
+}
+
+/* These are SHARED production app controls, not simulated book furniture.
+   Excludes the live reader and the old book preview by design. */
+.inkbound-system-shell:is(.inkbound-account-shell,.game-site-shell:not(.is-adventure-mode):not(.is-desk-home))
+  :is(.page-title h1,.panel-heading strong,.account-section-title) {
+  font-family:var(--ix-display-font);
+  font-weight:400;
+  text-wrap:balance;
+}
+.inkbound-system-shell:is(.inkbound-account-shell,.game-site-shell:not(.is-adventure-mode):not(.is-desk-home))
+  :is(.panel-heading,.form-stack label,.eyebrow) {
+  letter-spacing:.09em;
+  border-color:var(--ix-rule);
+}
+.inkbound-system-shell:is(.inkbound-account-shell,.game-site-shell:not(.is-adventure-mode):not(.is-desk-home))
+  :is(.form-stack input,.form-stack textarea,.form-control,.account-input) {
+  color:var(--ix-ink);
+  background:transparent;
+  border:1px solid var(--ix-rule);
+  min-height:44px;
+  max-width:100%;
+}
+.inkbound-system-shell:is(.inkbound-account-shell,.game-site-shell:not(.is-adventure-mode):not(.is-desk-home))
+  :is(.form-stack input,.form-stack textarea,.form-control,.account-input):focus-visible {
+  outline:2px solid var(--ix-focus);
+  outline-offset:2px;
+}
+.inkbound-system-shell:is(.inkbound-account-shell,.game-site-shell:not(.is-adventure-mode):not(.is-desk-home))
+  :is(.button-primary,.button.button-primary) {
+  border-color:var(--ix-gold)!important;
+  background:var(--ix-action)!important;
+  color:var(--ix-action-ink)!important;
+}
+.inkbound-system-shell:is(.inkbound-account-shell,.game-site-shell:not(.is-adventure-mode):not(.is-desk-home))
+  :is(.button-primary,.button.button-primary):hover:not(:disabled) {
+  outline:1px solid var(--ix-gold);
+  outline-offset:2px;
+}
+.inkbound-system-shell:is(.inkbound-account-shell,.game-site-shell:not(.is-adventure-mode):not(.is-desk-home))
+  :is(.empty-state,.system-notice,.status-line) {
+  border-color:var(--ix-rule);
+  background:var(--ix-wash);
+  color:var(--ix-copy);
+}
+#modal-root .inkbound-global-dialog .panel-heading {
+  border-bottom:1px solid var(--ix-rule)!important;
+  font-family:var(--ix-display-font);
+  letter-spacing:.015em;
+}
+#modal-root .inkbound-global-dialog :is(.button-primary,.button.button-primary) {
+  border-color:var(--ix-gold)!important;
+}
+#modal-root .inkbound-global-dialog :is(a,button,input,textarea):focus-visible {
+  outline-color:var(--ix-focus)!important;
+}
+@media (prefers-reduced-motion:reduce) {
+  .inkbound-system-shell :is(.button,.icon-button),
+  #modal-root .inkbound-global-dialog :is(.button,.icon-button) {
+    transition:none!important;
+  }
+}
+/* END PASS 66.47 / INKSCAPE FOUNDATION */
+
 /* Large author links are composition, not another boxed dashboard. */
 .inkbound-author-intro{display:flex;align-items:flex-end;justify-content:space-between;gap:30px;padding:10px 0 48px;max-width:1100px}
 .inkbound-author-intro>div{max-width:680px}

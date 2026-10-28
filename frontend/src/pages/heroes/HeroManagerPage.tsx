@@ -114,7 +114,7 @@ export function HeroManagerPage() {
         actions={<Link className="button button-primary" to="/game/heroes/new">CREATE HERO →</Link>} />
       <section className="qh15-hall-intro" aria-label="Hero Hall introduction">
         <div className="qh15-intro-copy">
-          <span className="qh15-kicker">AN OPEN BOOK OF LIVES</span>
+          <span className="qh15-kicker">THE HERO REGISTER</span>
           <h2>Every hero begins<br/>with a name.</h2>
           <p>Your characters cross worlds, gather scars, and become part of the stories they write. Choose a Hero to read their chronicle or continue their journey.</p>
           <div className="qh15-hall-counts" aria-label="Hero archive totals">

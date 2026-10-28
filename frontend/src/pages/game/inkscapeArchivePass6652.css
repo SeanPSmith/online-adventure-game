@@ -1,0 +1,161 @@
+/* Quillairo Inkscape 66.52 — player archives only. No gameplay surfaces or
+   global card selectors. User-generated portraits and saved manuscripts retain
+   their authentic ink/watercolor materials without color filters. */
+:is(.ix52-archive,.game-main:has(.history-grid)) {
+  --ix52-paper: var(--ix-paper,var(--ib-paper));
+  --ix52-ink: var(--ix-ink,var(--ib-text));
+  --ix52-copy: var(--ix-copy,var(--ib-copy));
+  --ix52-muted: var(--ix-muted,var(--ib-muted));
+  --ix52-rule: var(--ix-rule,var(--ib-line));
+  --ix52-wash: var(--ix-wash,var(--ib-wash));
+  --ix52-gold: var(--ix-gold,#986a34);
+  --ix52-serif: var(--ix-display-font,var(--ib-serif));
+  --ix52-ui: var(--ix-ui-font,var(--ib-serif));
+  min-width:0;color:var(--ix52-ink);
+}
+:is(.ix52-archive > .page-title, .ix52-chronicles .page-title, .game-main:has(.history-grid) .page-title) {
+  display:flex;align-items:end;justify-content:space-between;flex-wrap:wrap;
+  gap:18px;margin-bottom:clamp(26px,4vw,48px);
+  padding:0 0 clamp(20px,3vw,32px);border-bottom:1px solid var(--ix52-rule);
+}
+:is(.ix52-archive > .page-title, .ix52-chronicles .page-title, .game-main:has(.history-grid) .page-title) .eyebrow {
+  color:var(--ix52-gold)!important;font:600 12px/1.45 var(--ix52-ui)!important;
+  letter-spacing:.12em;
+}
+:is(.ix52-archive > .page-title, .ix52-chronicles .page-title, .game-main:has(.history-grid) .page-title) h1 {
+  margin:10px 0 0;color:var(--ix52-ink)!important;
+  font:400 clamp(40px,5vw,72px)/1.06 var(--ix52-serif)!important;
+  text-transform:none!important;letter-spacing:-.045em;text-wrap:balance;
+}
+:is(.ix52-archive > .panel, .ix52-chronicles .panel, .game-main:has(.history-grid) .panel:has(.history-grid)) {
+  border:0!important;background:transparent!important;
+  padding:0!important;margin:0!important;box-shadow:none!important;
+}
+:is(.ix52-archive > .panel, .ix52-chronicles .panel, .game-main:has(.history-grid) .panel:has(.history-grid)) > .panel-heading {
+  display:block;margin:0 0 14px;padding:0!important;
+  border:0!important;background:transparent!important;
+  color:var(--ix52-gold)!important;font:600 12px/1.5 var(--ix52-ui)!important;
+  letter-spacing:.12em;text-transform:uppercase;
+}
+:is(.ix52-archive > .panel, .ix52-chronicles .panel, .game-main:has(.history-grid) .panel:has(.history-grid)) > .panel-body {padding:0!important;background:transparent!important;min-width:0}
+:is(.ix52-archive > .panel, .ix52-chronicles .panel, .game-main:has(.history-grid) .panel:has(.history-grid)) > .panel-body > p:first-child {
+  margin:0 0 clamp(24px,3vw,38px);max-width:65ch;
+  color:var(--ix52-copy)!important;font:400 clamp(16px,1.55vw,19px)/1.65 var(--ix52-serif)!important;
+}
+:is(.ix52-archive,.game-main:has(.history-grid)) .history-card-actions[role="group"] {
+  padding:0 0 16px;margin:0 0 23px;gap:12px 22px;
+  border:0!important;border-bottom:1px solid var(--ix52-rule)!important;
+}
+:is(.ix52-archive,.game-main:has(.history-grid)) .history-card-actions[role="group"] > button {
+  border:0!important;border-bottom:2px solid transparent!important;
+  margin:0;padding:11px 1px!important;background:transparent!important;
+  color:var(--ix52-muted)!important;min-height:44px;
+  box-shadow:none!important;font:600 12px/1.5 var(--ix52-ui)!important;
+  letter-spacing:.07em;
+}
+:is(.ix52-archive,.game-main:has(.history-grid)) .history-card-actions[role="group"] > button[aria-pressed="true"] {
+  color:var(--ix52-ink)!important;border-bottom-color:var(--ix52-gold)!important;
+}
+:is(.ix52-archive,.game-main:has(.history-grid)) .catalog-search-field {
+  display:grid;gap:9px;max-width:440px;margin:0 0 clamp(26px,4vw,46px);
+  font:600 12px/1.45 var(--ix52-ui)!important;color:var(--ix52-muted)!important;
+  letter-spacing:.08em;
+}
+:is(.ix52-archive,.game-main:has(.history-grid)) .catalog-search-field input {
+  width:100%;min-height:48px;padding:10px 12px;border:1px solid var(--ix52-rule)!important;
+  border-radius:0!important;background:transparent!important;color:var(--ix52-ink)!important;
+  font:400 16px/1.4 var(--ix52-ui)!important;letter-spacing:normal;
+}
+:is(.ix52-archive,.game-main:has(.history-grid)) .catalog-search-field input::placeholder {color:var(--ix52-muted)!important;opacity:.85}
+:is(.ix52-archive,.game-main:has(.history-grid)) .history-grid {
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:clamp(24px,3vw,42px);margin:0;padding:0 0 clamp(26px,4vw,56px);
+}
+:is(.ix52-archive,.game-main:has(.history-grid)) .history-card {
+  box-sizing:border-box;display:flex;flex-direction:column;min-width:0;
+  padding:24px 0 10px!important;margin:0;
+  border:0!important;border-top:1px solid var(--ix52-rule)!important;
+  background:transparent!important;box-shadow:none!important;
+}
+:is(.ix52-archive,.game-main:has(.history-grid)) .history-card > .eyebrow {
+  color:var(--ix52-gold)!important;font:600 11px/1.6 var(--ix52-ui)!important;
+  letter-spacing:.15em;overflow-wrap:anywhere;
+}
+:is(.ix52-archive,.game-main:has(.history-grid)) .history-card h2 {
+  margin:13px 0 17px!important;
+  color:var(--ix52-ink)!important;font:400 clamp(28px,2.8vw,43px)/1.13 var(--ix52-serif)!important;
+  letter-spacing:-.025em;overflow-wrap:anywhere;text-wrap:balance;
+}
+:is(.ix52-archive,.game-main:has(.history-grid)) .history-meta {
+  display:flex;gap:7px 16px;flex-wrap:wrap;margin:0 0 14px;
+  color:var(--ix52-muted)!important;font:500 12px/1.55 var(--ix52-ui)!important;
+  letter-spacing:.02em;overflow-wrap:anywhere;
+}
+:is(.ix52-archive,.game-main:has(.history-grid)) .history-meta > span:not(:last-child)::after {content:"·";padding-left:16px;color:var(--ix52-gold)}
+:is(.ix52-archive,.game-main:has(.history-grid)) .history-card > small {
+  color:var(--ix52-muted)!important;font:400 12px/1.6 var(--ix52-ui)!important;
+}
+:is(.ix52-archive,.game-main:has(.history-grid)) .history-card > p {
+  margin:17px 0 18px!important;color:var(--ix52-copy)!important;
+  font:400 16px/1.7 var(--ix52-serif)!important;
+  overflow-wrap:anywhere;
+}
+:is(.ix52-archive,.game-main:has(.history-grid)) .history-card > .history-card-actions {
+  margin-top:auto;padding:18px 0 0!important;border:0!important;
+  border-top:1px solid var(--ix52-rule)!important;
+  gap:10px 16px;
+}
+:is(.ix52-archive,.game-main:has(.history-grid)) .history-card .history-card-actions :is(a,button) {min-height:44px;white-space:normal}
+:is(.ix52-archive,.game-main:has(.history-grid)) .history-card .history-card-actions > span {
+  color:var(--ix52-muted)!important;font:400 13px/1.6 var(--ix52-ui);
+}
+:is(.ix52-archive,.game-main:has(.history-grid)) .history-card details {
+  width:100%;min-width:0;margin:0 0 13px;padding:0;
+  border-top:1px solid var(--ix52-rule);border-bottom:1px solid var(--ix52-rule);
+}
+:is(.ix52-archive,.game-main:has(.history-grid)) .history-card details summary {
+  cursor:pointer;list-style-position:inside;min-height:44px;
+  padding:13px 0;color:var(--ix52-ink);
+  font:600 12px/1.5 var(--ix52-ui);letter-spacing:.08em;
+}
+:is(.ix52-archive,.game-main:has(.history-grid)) .history-card details[open] {padding-bottom:15px}
+:is(.ix52-archive,.game-main:has(.history-grid)) .history-card details p {
+  color:var(--ix52-copy);font:400 16px/1.65 var(--ix52-serif);overflow-wrap:anywhere;
+}
+:is(.ix52-archive,.game-main:has(.history-grid)) .history-card details section {
+  padding:18px 0;border-top:1px solid var(--ix52-rule);
+}
+:is(.ix52-archive,.game-main:has(.history-grid)) .history-card details section strong {
+  color:var(--ix52-ink);font:600 12px/1.5 var(--ix52-ui);letter-spacing:.05em;
+}
+:is(.ix52-archive,.game-main:has(.history-grid)) .history-card details section p {margin:10px 0 0}
+:is(.ix52-archive,.game-main:has(.history-grid)) .history-card .chronicle-audio {width:100%;min-width:0;margin:8px 0 18px}
+:is(.ix52-archive,.game-main:has(.history-grid)) .history-card .chronicle-audio audio {display:block;width:100%;max-width:100%;margin:12px 0}
+:is(.ix52-archive,.game-main:has(.history-grid)) .history-card .chronicle-voice-track {display:grid;gap:10px;max-width:430px;margin:12px 0}
+:is(.ix52-archive,.game-main:has(.history-grid)) .history-card .chronicle-voice-track > span,
+:is(.ix52-archive,.game-main:has(.history-grid)) .history-card .chronicle-voice-track > small {
+  color:var(--ix52-muted);font:500 12px/1.5 var(--ix52-ui);
+}
+:is(.ix52-archive,.game-main:has(.history-grid)) .history-card .chronicle-audio .history-card-actions {padding:10px 0 0;border-top:1px solid var(--ix52-rule)}
+:is(.ix52-archive,.game-main:has(.history-grid)) .empty-state {
+  max-width:650px;padding:clamp(30px,4vw,56px)!important;
+  background:transparent!important;border:1px solid var(--ix52-rule)!important;
+}
+:is(.ix52-archive,.game-main:has(.history-grid)) .empty-state strong {
+  display:block;color:var(--ix52-ink);font:400 clamp(24px,3vw,36px)/1.2 var(--ix52-serif);
+  letter-spacing:-.02em;
+}
+:is(.ix52-archive,.game-main:has(.history-grid)) .empty-state span {color:var(--ix52-copy)!important;font:400 16px/1.65 var(--ix52-serif)}
+:is(.ix52-archive,.game-main:has(.history-grid)) :is(button,a,input,summary):focus-visible {
+  outline:2px solid var(--ix52-gold)!important;outline-offset:3px;
+}
+@media(max-width:950px){:is(.ix52-archive,.game-main:has(.history-grid)) .history-grid{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:640px){
+  :is(.ix52-archive > .page-title, .ix52-chronicles .page-title, .game-main:has(.history-grid) .page-title){align-items:flex-start}
+  :is(.ix52-archive,.game-main:has(.history-grid)) .history-card{padding-top:20px!important}
+  :is(.ix52-archive,.game-main:has(.history-grid)) .history-meta > span:not(:last-child)::after{padding-left:10px}
+}
+
+/* Scope archives by their existing `.history-grid` markup; no React render
+   wrappers, TSX inspection or selector assumptions are necessary. All styling
+   stays confined to archive routes and existing archive-specific elements. */

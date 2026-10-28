@@ -8,7 +8,7 @@
   --qh15-line:var(--ib-line,rgba(68,55,40,.28));
   --qh15-wash:var(--ib-wash,rgba(68,55,40,.055));
   --qh15-serif:var(--ib-serif,Georgia,serif);
-  --qh15-mono:var(--ib-mono,"American Typewriter","Courier New",monospace);
+  --qh15-mono:var(--ix-ui-font,var(--ib-serif,Georgia,serif));
   color:var(--qh15-ink);
 }
 .qh15-archive,.qh15-graveyard{width:100%;min-width:0}
@@ -26,7 +26,7 @@
 .qh15-subtle-link:hover{border-bottom-width:2px}
 .qh15-archive-tools{display:flex;justify-content:space-between;align-items:flex-end;gap:28px;padding:31px 0 23px}
 .qh15-filter-tabs{display:flex;flex-wrap:wrap;gap:8px}
-.qh15-filter-tabs button{border:1px solid transparent;background:transparent;padding:9px 12px;color:var(--qh15-muted)!important;font:12px var(--qh15-mono);text-transform:capitalize;cursor:pointer}
+.qh15-filter-tabs button{border:1px solid transparent;background:transparent;padding:11px 12px;min-height:44px;color:var(--qh15-muted)!important;font:600 13px/1.45 var(--qh15-mono);text-transform:capitalize;cursor:pointer}
 .qh15-filter-tabs button.is-active{color:var(--qh15-ink)!important;border-color:var(--qh15-line);border-bottom:2px solid var(--qh15-ink);background:var(--qh15-wash)}
 .qh15-search{display:grid;gap:6px;min-width:220px;font:12px var(--qh15-mono);color:var(--qh15-muted)}
 .qh15-search input{border:0!important;border-bottom:1px solid var(--qh15-line)!important;border-radius:0;background:transparent!important;color:var(--qh15-ink)!important;padding:10px 4px;min-width:0;font:14px var(--qh15-serif)}
@@ -47,7 +47,7 @@
 .qh15-card-ledger span{font:10px var(--qh15-mono);letter-spacing:.1em;color:var(--qh15-muted)}
 .qh15-card-ledger strong{font:400 19px var(--qh15-serif);color:var(--qh15-ink)}
 .qh15-card-actions{display:flex;align-items:center;gap:8px 16px;flex-wrap:wrap;min-height:60px;padding:15px 0}
-.qh15-card-actions>button{border:0;background:transparent;color:var(--qh15-muted)!important;font:12px var(--qh15-mono);cursor:pointer;padding:7px 0}
+.qh15-card-actions>button{border:0;background:transparent;color:var(--qh15-muted)!important;font:500 13px/1.5 var(--qh15-mono);cursor:pointer;padding:12px 0;min-height:44px}
 .qh15-card-actions>button:hover{text-decoration:underline;color:var(--qh15-ink)!important}
 .qh15-card-actions .qh15-danger-link{margin-left:auto}
 .qh15-confirm{padding:19px;border:1px solid var(--qh15-line);background:var(--qh15-wash);display:grid;gap:12px}
@@ -112,9 +112,8 @@
 .qh15-grave-empty{padding:70px 10px;text-align:center;border-top:1px solid var(--qh15-line);font:italic 20px var(--qh15-serif)}
 .qh15-grave-empty>span{font-size:36px}
 .qh15-archive :is(button,a,input,textarea):focus-visible,.qh15-graveyard :is(button,a):focus-visible,.qh15-sheet-frontispiece :is(button,a):focus-visible{outline:2px solid var(--qh15-ink);outline-offset:3px}
-/* The approved six papers share layout, with contrast inherited from their theme tokens. */
-[data-ink-paper="navy"] .qh15-sheet-portrait-frame>img,[data-ink-paper="midnight"] .qh15-sheet-portrait-frame>img,[data-ink-paper="navy"] .qh15-card-image>img:not(.qh15-card-emblem),[data-ink-paper="midnight"] .qh15-card-image>img:not(.qh15-card-emblem){filter:invert(1) grayscale(1)}
-[data-ink-paper="phosphor"] .qh15-sheet-portrait-frame>img,[data-ink-paper="phosphor"] .qh15-card-image>img:not(.qh15-card-emblem){filter:invert(1) grayscale(1) sepia(1) hue-rotate(53deg)}
+/* Keep privately selected character art unfiltered across every paper theme.
+   Only the decorative fallback monogram receives optional contrast treatment. */
 @media(min-width:1400px){.qh15-archive-tools{padding-top:37px}}
 @media(max-width:1100px){.qh15-hero-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.qh15-sheet-frontispiece{grid-template-columns:minmax(0,1fr) minmax(0,1.05fr)}.qh15-sheet-vitals{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;padding:18px 0 0;border-left:0;border-top:1px solid var(--qh15-line);align-items:start}.qh15-sheet-vitals>.qh15-kicker{grid-column:1/-1}.qh15-vital:first-of-type{margin:0}.qh15-sheet-vitals>.qh15-subtle-link{grid-column:1/-1;justify-self:start}}
 @media(max-width:760px){.qh15-hall-intro,.qh15-grave-intro{display:flex;flex-direction:column;align-items:stretch;gap:7px;min-height:0}.qh15-intro-art,.qh15-grave-intro>img{max-height:none;height:220px}.qh15-archive-tools{flex-direction:column;align-items:stretch;gap:16px}.qh15-filter-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.qh15-search{min-width:0}.qh15-hero-grid,.qh15-memorials{grid-template-columns:1fr;gap:21px}.qh15-card-image{height:240px}.qh15-card-excerpt{min-height:0}.qh15-sheet-frontispiece{display:grid;grid-template-columns:1fr;gap:23px}.qh15-sheet-portrait-frame{height:min(78vw,460px)}.qh15-sheet-vitals{grid-column:auto;grid-template-columns:repeat(2,minmax(0,1fr))}.game-site-shell:has(.qh15-sheet-frontispiece) .hero-sheet-grid.hero-sheet-redesign{grid-template-columns:1fr}.game-site-shell:has(.qh15-sheet-frontispiece) .hero-sheet-grid>.hero-sheet-wide{grid-column:1/-1}.qh15-inventory-list,.qh15-conditions{grid-template-columns:1fr}}

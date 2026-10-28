@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+
+import "./inkscapeArchivePass6652.css";
 import { PageTitle } from "../../components/ui/PageTitle";
 import { Panel } from "../../components/ui/Panel";
 import "./quillairoChronicleArchivePass6622.css";

@@ -3,20 +3,20 @@
 .inkbound-home{
   --q45-gold:#a37738;
   --q45-gold-muted:rgba(163,119,56,.40);
-  --q45-surface:rgba(255,252,244,.38);
+  --q45-surface:transparent;
 }
 .inkbound-home:is([data-ink-paper="parchment"],[data-ink-paper="cream"]){
-  --q45-surface:rgba(255,248,231,.26);
+  --q45-surface:transparent;
 }
 .inkbound-home:is([data-ink-paper="midnight"],[data-ink-paper="navy"]){
   --q45-gold:#cba872;
   --q45-gold-muted:rgba(203,168,114,.45);
-  --q45-surface:rgba(255,255,255,.035);
+  --q45-surface:transparent;
 }
 .inkbound-home[data-ink-paper="phosphor"]{
   --q45-gold:#a9cc81;
   --q45-gold-muted:rgba(169,204,129,.45);
-  --q45-surface:rgba(169,204,129,.04);
+  --q45-surface:transparent;
 }
 /* The actual live world entries use the same illustration source/fallback as before. */
 .inkbound-home .i656-worlds-list{
@@ -58,7 +58,7 @@
   filter:none!important;
   transition:transform .24s ease;
 }
-.inkbound-home .i656-world:hover .i656-world-cover img{transform:translateY(-3px) scale(1.012)}
+.inkbound-home .i656-world:hover .i656-world-cover img{transform:none}
 .inkbound-home .i656-world>div{
   padding:17px clamp(17px,1.8vw,25px) 23px;
   flex:1;
@@ -142,13 +142,6 @@
   border:1px solid var(--q45-gold-muted);
   box-shadow:0 24px 75px rgba(10,8,5,.38);
   position:relative;
-}
-.inkbound-home .i656-dialog:before{
-  content:"";
-  pointer-events:none;
-  position:absolute;
-  inset:8px;
-  border:1px solid var(--paper-rule);
 }
 .inkbound-home .i656-dialog .i656-travel-folio{
   margin:3px 0 14px;

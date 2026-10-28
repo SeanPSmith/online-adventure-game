@@ -11,8 +11,8 @@ def read(relative: str) -> str:
 
 def test_public_home_explains_product_and_primary_paths() -> None:
     home = read("frontend/src/pages/public/PublicHomePage.tsx")
-    assert "A living storybook" in home
-    assert "A LIVING STORYBOOK" in home
+    assert "Living adventures" in home
+    assert "AI-POWERED ADVENTURES" in home
     assert 'id="how-it-works"' in home
     assert 'id="worlds"' in home
     assert 'id="story-preview"' in home

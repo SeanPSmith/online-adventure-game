@@ -41,20 +41,20 @@
 .public-shell.qpub-shell .footer-nav :is(a,span){color:var(--q-ink)!important;font-size:11px!important;letter-spacing:.03em}
 .public-shell.qpub-shell .footer-meta .build-indicator{color:var(--q-sub)!important}
 .qpub-home{display:block;width:100%;max-width:100%;}
-.qpub-overline{display:block;font-family:Georgia,"Palatino Linotype",serif;font-size:11px!important;letter-spacing:.27em!important;color:var(--q-sub)!important;line-height:1.6!important;font-weight:normal!important}
+.qpub-overline{display:block;font-family:Georgia,"Palatino Linotype",serif;font-size:11px!important;letter-spacing:.16em!important;color:var(--q-sub)!important;line-height:1.6!important;font-weight:normal!important}
 .qpub-hero{position:relative;isolation:isolate;min-height:clamp(490px,42vw,630px);display:flex;align-items:center;overflow:hidden;border-bottom:1px solid var(--q-rule)}
 .qpub-hero-copy{position:relative;z-index:2;width:48%;padding:32px 0 35px clamp(12px,2vw,35px)}
 .qpub-hero h1{font-size:clamp(45px,5vw,86px)!important;line-height:1.06!important;letter-spacing:-.045em!important;color:var(--q-ink)!important;font-weight:500!important;margin:19px 0 23px!important}
 .qpub-hero h1 em{font-style:normal;color:var(--q-gold)}
-.qpub-hero-copy>p{max-width:530px;font-size:clamp(16px,1.25vw,19px)!important;line-height:1.55;color:var(--q-ink)!important;margin-bottom:28px}
-.qpub-hero-illustration{position:absolute;z-index:1;right:-5.5%;top:50%;width:70%;height:auto;transform:translateY(-49%);object-fit:contain;pointer-events:none}
+.qpub-hero-copy>p{max-width:490px;font-size:clamp(16px,1.25vw,19px)!important;line-height:1.55;color:var(--q-ink)!important;margin-bottom:28px}
+.qpub-hero-illustration{position:absolute;z-index:1;right:-4%;top:50%;width:68%;height:auto;transform:translateY(-49%);object-fit:contain;pointer-events:none}
 .qpub-hero-note{display:block;font-size:10px!important;letter-spacing:.22em;color:var(--q-sub)!important;margin-top:35px}
 .qpub-cta-pair{display:flex;gap:12px;flex-wrap:wrap}
-.qpub-button{display:inline-flex!important;align-items:center!important;justify-content:space-between!important;gap:22px;min-height:48px;max-width:100%;padding:11px 18px!important;border:1px solid var(--q-rule)!important;border-radius:2px!important;color:var(--q-ink)!important;font-size:12px!important;letter-spacing:.065em!important;text-decoration:none!important;line-height:1.35!important;cursor:pointer;background:transparent!important;transition:background-color .18s ease,border-color .18s ease,transform .18s ease}
+.qpub-button{display:inline-flex!important;align-items:center!important;justify-content:space-between!important;gap:22px;min-height:48px;max-width:100%;padding:11px 18px!important;border:1px solid var(--q-rule)!important;border-radius:2px!important;color:var(--q-ink)!important;font-size:12px!important;letter-spacing:.065em!important;text-decoration:none!important;line-height:1.35!important;cursor:pointer;background:transparent!important;transition:background-color .18s ease,border-color .18s ease}
 .qpub-button span:last-child{font-size:19px!important;color:inherit!important;line-height:1}
 .qpub-button-primary{background:var(--q-btn)!important;color:var(--q-btn-ink)!important;border-color:var(--q-gold)!important}
 .qpub-button-secondary{background:transparent!important;color:var(--q-ink)!important;border-color:var(--q-gold)!important}
-.qpub-button:hover:not(:disabled){transform:translateY(-1px);border-color:var(--q-gold)!important}
+.qpub-button:hover:not(:disabled){border-color:var(--q-gold)!important}
 .qpub-button:disabled{opacity:.55;cursor:wait}
 .qpub-pillar-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:28px 12px;border-bottom:1px solid var(--q-rule);gap:0}
 .qpub-pillar-row>div{display:flex;align-items:center;gap:15px;padding:0 22px;border-right:1px solid var(--q-rule)}
@@ -68,9 +68,9 @@
 .qpub-section-title h2{font-weight:500!important;letter-spacing:-.03em!important;font-size:clamp(30px,3vw,46px)!important;line-height:1.1;margin:4px 0!important;color:var(--q-ink)!important}
 .qpub-caption{font-size:14px!important;line-height:1.5;text-align:center;color:var(--q-sub)!important;max-width:630px;margin:0 auto 30px}
 .qpub-worlds-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:23px}
-.qpub-world-card{min-width:0;border:1px solid var(--q-rule);padding:0 0 22px;background:var(--q-paper2)}
+.qpub-world-card{min-width:0;border:1px solid var(--q-rule);padding:0 0 22px;background:transparent}
 .qpub-world-frame{width:100%;aspect-ratio:2.05;overflow:hidden;border-bottom:1px solid var(--q-rule);background:var(--q-paper)}
-.qpub-world-frame img{width:100%;height:100%;object-fit:cover;display:block;filter:grayscale(.55)}
+.qpub-world-frame img{width:100%;height:100%;object-fit:cover;display:block}
 .qpub-world-heading{padding:18px 18px 0}
 .qpub-world-heading span{font-size:10px!important;letter-spacing:.22em;color:var(--q-gold)!important}
 .qpub-world-heading h3{font-size:clamp(21px,2vw,29px)!important;font-weight:500!important;letter-spacing:-.02em;margin:7px 0!important;color:var(--q-ink)!important}
@@ -154,8 +154,7 @@
  .qpub-hero-copy{width:100%;order:1;padding:10px 6px 20px}
  .qpub-hero h1{font-size:clamp(40px,9vw,67px)!important;margin:14px 0!important}
  .qpub-hero-copy>p{font-size:16px!important}
- .qpub-hero-note{margin-top:22px}
- .qpub-worlds{padding:43px 0 20px}.qpub-worlds-grid{gap:12px;grid-template-columns:1fr}
+  .qpub-worlds{padding:43px 0 20px}.qpub-worlds-grid{gap:12px;grid-template-columns:1fr}
  .qpub-world-frame{aspect-ratio:2.6}
  .qpub-worlds-grid article{padding-bottom:16px}
  .qpub-how-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 0}
@@ -173,7 +172,7 @@
  .qpub-auth-heading h1{font-size:clamp(39px,8vw,54px)!important}
 }
 @media (max-width:440px){
- .qpub-hero h1{font-size:clamp(40px,11vw,55px)!important}.qpub-overline{font-size:9px!important;letter-spacing:.21em!important}
+ .qpub-hero h1{font-size:clamp(40px,11vw,55px)!important}.qpub-overline{font-size:9px!important;letter-spacing:.16em!important}
  .qpub-cta-pair{flex-direction:column;align-items:stretch}.qpub-cta-pair .qpub-button{width:100%}
  .qpub-pillar-row{padding:22px 0;gap:18px 0}.qpub-pillar-row>div{gap:10px;padding:0 8px}.qpub-pillar-row .qpub-pillar-glyph{font-size:24px!important}.qpub-pillar-row strong{font-size:9px!important}.qpub-pillar-row small{font-size:11px!important}
  .qpub-section-title>.qpub-rule{width:25px}

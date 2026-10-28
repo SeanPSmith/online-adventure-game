@@ -23,14 +23,13 @@ export function PublicHomePage() {
     <div className="qpub-home" id="about">
       <section className="qpub-hero" aria-labelledby="qpub-headline">
         <div className="qpub-hero-copy">
-          <span className="qpub-overline">A LIVING STORYBOOK · SOLO OR CO-OP</span>
-          <h1 id="qpub-headline">A living storybook,<br /><em>written with you.</em></h1>
+          <span className="qpub-overline">AI-POWERED ADVENTURES · SOLO OR CO-OP</span>
+          <h1 id="qpub-headline">Living adventures,<br /><em>written as you play.</em></h1>
           <p>Quillairo is a literary adventure game where your choices shape the story, the dice decide the risk, and the world remembers what you do. Play alone or share the journey with someone else.</p>
           <div className="qpub-cta-pair">
             <Link className="qpub-button qpub-button-primary" to={startHref}>{authenticated ? "Continue your adventure" : "Begin your adventure"}<span aria-hidden="true">↗</span></Link>
             <a className="qpub-button qpub-button-secondary" href="#story-preview">See a sample story <span aria-hidden="true">↓</span></a>
           </div>
-          <span className="qpub-hero-note">YOUR HERO. YOUR CHOICES. AN UNWRITTEN ROAD.</span>
         </div>
         <img className="qpub-hero-illustration" src={`${ART}home-vista.png`} alt="Two travelers looking toward a castle, a strange planet and distant city rendered in hand-painted ink" fetchPriority="high" />
       </section>

@@ -5,6 +5,7 @@ import {
   deleteCharacter, getHeroPortraits, listCharacters, setHeroDisposition, type Character,
 } from "../../services/characters";
 import "./quillairoHeroArchivePass6615.css";
+import "./inkscapeHeroPass6653.css";
 
 type Action = "bury" | "retire" | "restore" | "delete";
 type View = "living" | "retired" | "fallen" | "all";
@@ -110,7 +111,7 @@ export function HeroManagerPage() {
 
   return (
     <div className="qh15-archive">
-      <PageTitle eyebrow="THE HERO HALL · YOUR CHRONICLES" title="The people behind the stories"
+      <PageTitle eyebrow="THE HERO REGISTER" title="Hero Hall"
         actions={<Link className="button button-primary" to="/game/heroes/new">CREATE HERO →</Link>} />
       <section className="qh15-hall-intro" aria-label="Hero Hall introduction">
         <div className="qh15-intro-copy">
@@ -139,6 +140,7 @@ export function HeroManagerPage() {
           <input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Name, calling, species…" />
         </label>
       </div>
+      {!loading && !error && characters.length > 0 ? <p className="q53-view-count" role="status">Showing {visibleHeroes.length} of {characters.length} {characters.length === 1 ? "hero" : "heroes"}</p> : null}
       {loading ? <p className="route-loading" role="status">Opening the Hero archive…</p> : null}
       {error ? <div className="form-error" role="alert">{error}</div> : null}
       {!loading && !error && characters.length === 0 ? (

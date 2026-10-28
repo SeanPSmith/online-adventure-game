@@ -7,6 +7,7 @@ import { HeroEffectList } from "../../features/adventure/HeroEffectList";
 import { activeHeroEffects } from "../../features/adventure/heroEffects";
 import "./quillairoHeroArchivePass6615.css";
 import "./quillairoHeroQuizPass6646.css";
+import "./inkscapeHeroPass6653.css";
 import {
   advanceCharacter,
   getCharacter,
@@ -237,7 +238,7 @@ export function HeroSheetPage() {
     <>
       <PageTitle
         eyebrow="CHARACTER SHEET // HERO RECORD"
-        title={hero?.name?.toUpperCase() ?? "RECOVERING CHARACTER SHEET_"}
+        title={hero?.name ?? "Character sheet"}
         actions={hero ? (
           <div className="hero-sheet-title-actions">
             <span className="hero-level-chip">LVL {hero.level}</span>
@@ -298,7 +299,7 @@ export function HeroSheetPage() {
               <div><span>BUILD</span><strong>{[hero.appearance?.height, hero.appearance?.build].filter(Boolean).join(" · ") || "Unrecorded"}</strong></div>
               <div><span>CALLING</span><strong>{hero.appearance?.calling || hero.archetype || "A path to choose"}</strong></div>
             </div>
-            <p className="qh15-sheet-motto">“Every road changes the traveler, and every traveler changes the road.”</p>
+            <p className="q53-sheet-status">{!hero.is_alive ? "Fallen in adventure" : hero.hero_status === "retired" ? "Retired from adventure" : "Ready for adventure"}</p>
           </div>
           <aside className="qh15-sheet-vitals" aria-label="Hero progression">
             <span className="qh15-kicker">CURRENT RECORD</span>

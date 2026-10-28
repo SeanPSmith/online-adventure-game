@@ -1,0 +1,185 @@
+/* Quillairo / Inkscape 66.53 — intentional Hero Hall, character sheet and
+   creator composition. The actual portrait artwork, service state and rules
+   are untouched. All declarations are scoped to these three surfaces. */
+.qh15-archive,
+.game-site-shell:has(.qh15-sheet-frontispiece),
+.quill-hero-creator {
+  --q53-ink:var(--ix-ink,var(--ib-text,var(--qh-text,#28251f)));
+  --q53-copy:var(--ix-copy,var(--ib-copy,var(--qh-copy,#514b40)));
+  --q53-muted:var(--ix-muted,var(--ib-muted,var(--qh-muted,#756c60)));
+  --q53-line:var(--ix-rule,var(--ib-line,var(--qh-rule,rgba(48,40,30,.25))));
+  --q53-wash:var(--ix-wash,var(--ib-wash,var(--qh-tint,rgba(48,40,30,.055))));
+  --q53-gold:var(--ix-gold,#986a34);
+  --q53-serif:var(--ix-display-font,var(--ib-serif,var(--qh-serif,Georgia,serif)));
+  --q53-ui:var(--ix-ui-font,var(--ib-serif,var(--qh-type,Georgia,serif)));
+  min-width:0;
+}
+/* Hero Hall: one strong title, one illustration, then the actual collection. */
+.qh15-archive > .page-title {
+  display:flex;align-items:end;justify-content:space-between;flex-wrap:wrap;
+  gap:15px 24px;padding-bottom:23px;margin-bottom:0;
+  border-bottom:1px solid var(--q53-line);
+}
+.qh15-archive > .page-title h1 {
+  margin:8px 0 0!important;
+  font:400 clamp(41px,4.6vw,66px)/1.07 var(--q53-serif)!important;
+  letter-spacing:-.042em!important;text-transform:none!important;
+}
+.qh15-archive > .page-title .eyebrow {
+  color:var(--q53-gold)!important;font:600 11px/1.5 var(--q53-ui)!important;
+  letter-spacing:.15em;
+}
+.qh15-archive > .page-title .button-primary {min-height:46px;display:inline-flex;align-items:center;justify-content:center}
+.qh15-archive .qh15-hall-intro {
+  grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);
+  gap:clamp(18px,4vw,66px);min-height:0;
+  padding:clamp(30px,4vw,58px) 0 clamp(26px,3.6vw,50px);
+}
+.qh15-archive .qh15-intro-copy {max-width:545px}
+.qh15-archive .qh15-hall-intro h2 {
+  max-width:12ch;margin:11px 0 18px;
+  font:400 clamp(40px,4.4vw,69px)/1.07 var(--q53-serif);
+  letter-spacing:-.044em;text-wrap:balance;
+}
+.qh15-archive .qh15-hall-intro p {max-width:51ch;font:400 clamp(16px,1.45vw,19px)/1.6 var(--q53-serif)}
+.qh15-archive .qh15-intro-art {
+  width:100%;height:clamp(240px,28vw,380px);max-height:none;
+  object-fit:contain;object-position:center;
+}
+.qh15-archive .qh15-hall-counts {
+  gap:10px 24px;padding:15px 0;margin:22px 0 10px;
+  border-top:1px solid var(--q53-line);
+}
+.qh15-archive .qh15-hall-counts span {font:500 12px/1.4 var(--q53-ui);letter-spacing:.01em}
+.qh15-archive .qh15-hall-counts strong {font:400 26px/1 var(--q53-serif)}
+.qh15-archive .qh15-archive-tools {align-items:center;padding:26px 0 5px;gap:16px 28px}
+.qh15-archive .qh15-filter-tabs {gap:4px 18px}
+.qh15-archive .qh15-filter-tabs button {
+  padding:12px 2px;min-height:44px;border:0;border-bottom:2px solid transparent;
+  background:transparent!important;font:600 13px/1.4 var(--q53-ui);
+  color:var(--q53-muted)!important;
+}
+.qh15-archive .qh15-filter-tabs button[aria-pressed="true"] {
+  color:var(--q53-ink)!important;border-bottom:2px solid var(--q53-gold);
+}
+.qh15-archive .qh15-search {min-width:min(100%,250px)}
+.qh15-archive .qh15-search input {min-height:44px;font-size:16px}
+.qh15-archive .q53-view-count {
+  margin:7px 0 26px;color:var(--q53-muted);
+  font:500 12px/1.5 var(--q53-ui);letter-spacing:.04em;
+}
+.qh15-archive .qh15-hero-grid {
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  column-gap:clamp(19px,3vw,46px);row-gap:38px;padding:0 0 50px;
+}
+.qh15-archive .qh15-hero-card {padding-top:13px;border-top:1px solid var(--q53-line)}
+.qh15-archive .qh15-card-image {height:clamp(210px,20vw,304px);background:var(--q53-wash)}
+.qh15-archive .qh15-card-fate {
+  padding:9px 10px;font:600 10px/1.3 var(--q53-ui);
+  letter-spacing:.12em;
+}
+.qh15-archive .qh15-card-body {padding-top:17px}
+.qh15-archive .qh15-card-body h2 {margin:7px 0 8px;font:400 clamp(30px,2.7vw,43px)/1.09 var(--q53-serif);text-wrap:balance}
+.qh15-archive .qh15-card-identity {min-height:0;margin-bottom:13px;font-size:15px}
+.qh15-archive .qh15-card-excerpt {min-height:0;margin-bottom:20px;font:400 16px/1.65 var(--q53-serif)}
+.qh15-archive .qh15-card-ledger {gap:12px;padding:15px 0}
+.qh15-archive .qh15-card-ledger strong {font:400 21px/1.3 var(--q53-serif)}
+.qh15-archive .qh15-card-ledger span {font:600 10px/1.4 var(--q53-ui);letter-spacing:.08em}
+.qh15-archive .qh15-card-actions {align-content:start;gap:4px 16px;padding:15px 0 4px;min-height:0}
+.qh15-archive .qh15-card-actions > :is(a,button) {min-height:44px;display:inline-flex;align-items:center}
+.qh15-archive .qh15-card-actions > .qh15-danger-link {margin-left:auto;opacity:.78}
+.qh15-archive .qh15-card-actions > .qh15-danger-link:hover {opacity:1}
+.qh15-archive .qh15-confirm {margin-top:12px;padding:clamp(14px,2vw,20px)}
+.qh15-archive .qh15-confirm-actions > button {min-height:44px}
+/* Character sheet: real identity and progression stay readable beside the art. */
+.game-site-shell:has(.qh15-sheet-frontispiece) .page-title h1 {
+  font:400 clamp(37px,4vw,59px)/1.07 var(--q53-serif)!important;
+  text-transform:none!important;letter-spacing:-.045em!important;overflow-wrap:anywhere;
+}
+.game-site-shell:has(.qh15-sheet-frontispiece) .qh15-sheet-frontispiece {
+  grid-template-columns:minmax(0,1.04fr) minmax(0,1.03fr) minmax(245px,.83fr);
+  gap:clamp(22px,2.8vw,46px);padding-top:clamp(24px,3vw,41px);
+}
+.game-site-shell:has(.qh15-sheet-frontispiece) .qh15-sheet-portrait-frame {
+  min-height:340px;height:clamp(345px,34vw,490px);
+  border:1px solid var(--q53-line);background:var(--q53-wash);
+}
+.game-site-shell:has(.qh15-sheet-frontispiece) .qh15-sheet-portrait-frame > img {
+  object-fit:contain;object-position:center;
+}
+.game-site-shell:has(.qh15-sheet-frontispiece) .qh15-sheet-identity h2 {
+  font:400 clamp(38px,3.9vw,63px)/1.07 var(--q53-serif);
+  letter-spacing:-.044em;text-wrap:balance;
+}
+.game-site-shell:has(.qh15-sheet-frontispiece) .q53-sheet-status {
+  display:inline-block;margin-top:17px;border-top:1px solid var(--q53-line);
+  padding-top:11px;color:var(--q53-gold);
+  font:600 11px/1.5 var(--q53-ui);letter-spacing:.13em;text-transform:uppercase;
+}
+.game-site-shell:has(.qh15-sheet-frontispiece) .qh15-sheet-info-list > div {align-items:start;gap:12px}
+.game-site-shell:has(.qh15-sheet-frontispiece) .qh15-sheet-info-list strong {overflow-wrap:anywhere}
+.game-site-shell:has(.qh15-sheet-frontispiece) .qh15-sheet-vitals {padding-left:clamp(16px,2vw,30px)}
+.game-site-shell:has(.qh15-sheet-frontispiece) .qh15-vital {padding:15px 0}
+.game-site-shell:has(.qh15-sheet-frontispiece) .qh15-bar > span {background:var(--q53-ink)}
+.game-site-shell:has(.qh15-sheet-frontispiece) .hero-sheet-grid > .panel {min-width:0}
+.game-site-shell:has(.qh15-sheet-frontispiece) .hero-sheet-grid :is(button,input,textarea):focus-visible,
+.qh15-archive :is(button,a,input,textarea):focus-visible {
+  outline:2px solid var(--q53-gold)!important;outline-offset:3px;
+}
+/* The creator is a questionnaire, not a gallery of decorative boxes. */
+.quill-hero-creator {--q53-ink:var(--qh-text);--q53-copy:var(--qh-copy);--q53-muted:var(--qh-muted);--q53-line:var(--qh-rule);--q53-wash:var(--qh-tint);--q53-serif:var(--ix-display-font,var(--qh-serif));--q53-ui:var(--ix-ui-font,var(--qh-serif));--q53-gold:var(--q27-hero-gold)}
+.quill-hero-creator .qh-header {max-width:1350px;margin:0 auto;padding-top:clamp(40px,5vw,74px);padding-bottom:36px}
+.quill-hero-creator .qh-header h1 {max-width:880px;font:400 clamp(48px,6vw,85px)/1.06 var(--q53-serif)}
+.quill-hero-creator .qh-header p:last-child {max-width:55ch;font:400 clamp(16px,1.6vw,19px)/1.64 var(--q53-serif)}
+.quill-hero-creator .qh-steps {margin-top:10px;margin-bottom:0}
+.quill-hero-creator .qh-steps button {min-height:56px;padding-top:13px;padding-bottom:13px;font:600 clamp(13px,1.2vw,15px)/1.4 var(--q53-ui)}
+.quill-hero-creator .qh-steps button[aria-current="step"] {background:transparent;border-bottom-color:var(--q53-gold)}
+.quill-hero-creator .qh-sheet {padding-top:clamp(34px,4.4vw,65px)}
+.quill-hero-creator .qh-section-heading {max-width:70ch;padding-left:22px;border-left:2px solid var(--q53-gold)}
+.quill-hero-creator .qh46-prompt {margin-bottom:0}
+.quill-hero-creator .qh46-options button {background:transparent;min-height:46px;border-color:var(--q53-line);font:500 15px/1.4 var(--q53-ui)}
+.quill-hero-creator .qh46-options button[aria-pressed="true"] {background:var(--q53-wash);border-color:var(--q53-gold);box-shadow:inset 0 0 0 1px var(--q53-gold)}
+.quill-hero-creator .qh46-answer-grid button {min-height:118px;background:transparent;padding:18px 20px}
+.quill-hero-creator .qh46-answer-grid button strong {font:600 19px/1.35 var(--q53-serif)}
+.quill-hero-creator .qh46-answer-grid button small {font:400 14px/1.5 var(--q53-serif)}
+.quill-hero-creator .qh46-answer-grid button[aria-pressed="true"] {background:var(--q53-wash)}
+.quill-hero-creator .qh-primary {min-height:48px}
+.quill-hero-creator .qh46-art-pair > img {object-fit:contain}
+.quill-hero-creator :is(button,input,textarea,a):focus-visible {outline:2px solid var(--q53-gold)!important;outline-offset:3px}
+@media(max-width:1160px) {
+  .qh15-archive .qh15-hero-grid {grid-template-columns:repeat(2,minmax(0,1fr))}
+  .game-site-shell:has(.qh15-sheet-frontispiece) .qh15-sheet-frontispiece {grid-template-columns:minmax(0,1fr) minmax(0,1.1fr)}
+  .game-site-shell:has(.qh15-sheet-frontispiece) .qh15-sheet-vitals {grid-column:1/-1;grid-template-columns:repeat(4,minmax(0,1fr));border-left:0;border-top:1px solid var(--q53-line);padding:18px 0 0;gap:16px}
+}
+@media(max-width:760px) {
+  .qh15-archive > .page-title {align-items:start}
+  .qh15-archive .qh15-hall-intro {display:flex;flex-direction:column;gap:0}
+  .qh15-archive .qh15-hall-intro h2 {max-width:16ch}
+  .qh15-archive .qh15-intro-art {height:clamp(190px,49vw,300px)}
+  .qh15-archive .qh15-archive-tools {align-items:stretch;flex-direction:column;padding-top:25px}
+  .qh15-archive .qh15-filter-tabs {display:flex;flex-wrap:wrap;gap:3px 13px}
+  .qh15-archive .qh15-filter-tabs button {padding:10px 2px}
+  .qh15-archive .qh15-search {width:100%;min-width:0}
+  .qh15-archive .qh15-hero-grid {grid-template-columns:minmax(0,1fr);gap:27px}
+  .qh15-archive .qh15-card-image {height:clamp(230px,62vw,360px)}
+  .game-site-shell:has(.qh15-sheet-frontispiece) .qh15-sheet-frontispiece {grid-template-columns:1fr}
+  .game-site-shell:has(.qh15-sheet-frontispiece) .qh15-sheet-portrait-frame {height:min(90vw,480px);min-height:280px}
+  .game-site-shell:has(.qh15-sheet-frontispiece) .qh15-sheet-vitals {grid-column:auto;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px 15px}
+  .quill-hero-creator .qh-header {padding-top:36px}
+  .quill-hero-creator .qh-header h1 {font-size:clamp(44px,9vw,63px)}
+  .quill-hero-creator .qh-steps {gap:0}
+  .quill-hero-creator .qh-steps button {flex:0 0 145px}
+  .quill-hero-creator .qh-section-heading {padding-left:15px}
+  .quill-hero-creator .qh46-answer-grid {grid-template-columns:1fr}
+}
+@media(max-width:420px) {
+  .qh15-archive .qh15-hall-counts {gap:12px 18px}
+  .qh15-archive .qh15-card-ledger {gap:6px}
+  .qh15-archive .qh15-card-ledger strong {font-size:19px}
+  .game-site-shell:has(.qh15-sheet-frontispiece) .qh15-sheet-vitals {grid-template-columns:1fr 1fr}
+  .quill-hero-creator .qh-steps button {flex-basis:125px}
+}
+@media(prefers-reduced-motion:reduce) {
+  .qh15-archive .qh15-card-actions > :is(a,button),
+  .quill-hero-creator .qh46-answer-grid button {transition:none}
+}

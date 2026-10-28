@@ -8,6 +8,7 @@ import {
 import "./quillairoHeroCreator.css";
 import "./quillairoHeroCreatorPass6627.css";
 import "./quillairoHeroQuizPass6646.css";
+import "./inkscapeHeroPass6653.css";
 import { APPEARANCE_CHAPTERS, PERSONALITY_QUESTIONS, quizSummary, suggestedBuild } from "./heroQuestionnaire";
 
 type Step = "identity" | "journey" | "abilities" | "record" | "portraits";

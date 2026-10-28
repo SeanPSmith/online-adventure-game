@@ -1,0 +1,207 @@
+/* Quillairo / INKSCAPE — Pass 66.48. Presentation-only refinement of the
+   existing server-driven InkboundLiveRoom. No other readers, games or dialogs.
+   Reference: supplied editorial ink/map/manuscript mockups; never a faux book. */
+.inkbound-live {
+  --ix48-paper:var(--ia-paper,var(--ink-paper,#faf7f0));
+  --ix48-ink:var(--ia-text,var(--ink-dark,#201c18));
+  --ix48-copy:var(--ia-copy,var(--ink-body,#39332d));
+  --ix48-muted:var(--ia-dim,var(--ink-muted,#756b60));
+  --ix48-rule:var(--ia-rule,rgba(95,77,56,.22));
+  --ix48-strong-rule:var(--ia-strong-rule,rgba(95,77,56,.36));
+  --ix48-gold:var(--q23-gold,#976c32);
+  --ix48-gold-wash:var(--q23-gold-wash,rgba(151,108,50,.075));
+  --ix48-serif:"Iowan Old Style",Baskerville,"Palatino Linotype",Georgia,serif;
+  --ix48-label:var(--ix48-serif);
+  color:var(--ix48-copy);
+  background-color:var(--ix48-paper);
+  /* Artwork and grain come from existing independent artwork assets. */
+}
+.inkbound-live .ibl-topbar {
+  width:min(calc(100% - 4vw),1700px);
+  min-height:72px;
+  background:var(--ix48-paper);
+  border-bottom:1px solid var(--ix48-rule);
+}
+.inkbound-live .ibl-nav :is(a,button) {
+  font-family:var(--ix48-label)!important;
+  font-size:13px!important;
+  letter-spacing:.055em;
+  color:var(--ix48-ink)!important;
+  min-height:44px;
+  transition:color .18s ease;
+}
+.inkbound-live .ibl-nav :is(a,button):hover {color:var(--ix48-gold)!important}
+.inkbound-live .ibl-layout {max-width:1700px}
+.inkbound-live .ibl-meta {
+  font:500 11px/1.45 var(--ix48-label)!important;
+  letter-spacing:.16em;
+  color:var(--ix48-muted);
+  border-bottom:1px solid var(--ix48-rule);
+  padding:18px 0 14px;
+  text-transform:uppercase;
+}
+.inkbound-live .ibl-chapter {padding-bottom:34px}
+.inkbound-live .ibl-chapter h1 {
+  font:400 clamp(42px,4.6vw,76px)/1.08 var(--ix48-serif)!important;
+  letter-spacing:-.04em;
+  color:var(--ix48-ink)!important;
+  text-wrap:balance;
+  margin:18px auto 10px;
+}
+.inkbound-live .ibl-flourish {color:var(--ix48-gold);letter-spacing:.25em;margin:4px auto 15px}
+.inkbound-live .ibl-chapter-illustration {
+  width:min(100%,1160px);
+  margin:0 auto;
+  border:0!important;
+  background:transparent!important;
+  overflow:hidden;
+}
+.inkbound-live .ibl-chapter-illustration .ibl-story-art {
+  min-height:clamp(200px,27vw,395px);
+  overflow:visible;
+}
+.inkbound-live .ibl-chapter-illustration .ibl-story-art img {
+  max-height:390px;
+  object-fit:contain!important;
+  background:transparent;
+}
+.inkbound-live .ibl-prose {
+  width:min(100%,780px);
+  margin:clamp(20px,2vw,35px) auto 28px;
+  font:400 clamp(17px,1.22vw,20px)/1.72 var(--ix48-serif)!important;
+  letter-spacing:.012em;
+  color:var(--ix48-copy);
+  text-align:left;
+  text-wrap:pretty;
+}
+.inkbound-live .ibl-prose p {color:var(--ix48-copy);margin-bottom:1.12em}
+.inkbound-live .ibl-section-heading {
+  font:500 12px/1.4 var(--ix48-label)!important;
+  letter-spacing:.2em;
+  color:var(--ix48-gold);
+  margin:32px auto 22px;
+}
+.inkbound-live .ibl-choices {width:100%;max-width:1100px;margin-inline:auto;gap:clamp(12px,1.25vw,20px)}
+.inkbound-live .ibl-choice {
+  position:relative;
+  min-height:168px;
+  padding:18px 19px!important;
+  background:transparent!important;
+  border:1px solid var(--ix48-rule)!important;
+  box-shadow:none!important;
+  border-radius:0!important;
+  color:var(--ix48-ink)!important;
+  transition:border-color .18s,background-color .18s,box-shadow .18s;
+}
+.inkbound-live .ibl-choice:hover:not(:disabled),
+.inkbound-live .ibl-choice.is-chosen {
+  background:var(--ix48-gold-wash)!important;
+  border-color:var(--ix48-gold)!important;
+}
+.inkbound-live .ibl-choice.is-chosen {box-shadow:inset 0 0 0 1px var(--ix48-gold)!important}
+.inkbound-live .ibl-choice-body strong {
+  color:var(--ix48-ink)!important;
+  font:400 clamp(20px,1.55vw,25px)/1.24 var(--ix48-serif)!important;
+}
+.inkbound-live .ibl-choice-body small {
+  color:var(--ix48-copy)!important;
+  font:400 14px/1.5 var(--ix48-serif)!important;
+}
+.inkbound-live .ibl-choice-index,
+.inkbound-live .ibl-choice-statline,
+.inkbound-live .ibl-choice-stakes {
+  font-family:var(--ix48-label)!important;
+  color:var(--ix48-muted);
+}
+.inkbound-live .ibl-choice-index {color:var(--ix48-gold);font-size:12px}
+.inkbound-live .ibl-choice-statline {font-size:12px;line-height:1.5}
+.inkbound-live .ibl-choice-stakes {font-size:12px;line-height:1.55}
+.inkbound-live .ibl-choice-arrow {color:var(--ix48-gold)}
+.inkbound-live .ibl-commit {
+  padding:17px 0 12px;
+  min-height:72px;
+  font:400 13px/1.45 var(--ix48-label)!important;
+  color:var(--ix48-muted);
+}
+.inkbound-live .ibl-commit button {
+  min-height:46px;
+  padding:12px 22px;
+  color:var(--ix48-paper)!important;
+  background:var(--ix48-ink)!important;
+  border:1px solid var(--ix48-gold)!important;
+  font:500 13px/1.35 var(--ix48-label)!important;
+  letter-spacing:.07em;
+}
+.inkbound-live .ibl-commit button:hover:not(:disabled) {box-shadow:inset 0 0 0 1px var(--ix48-gold)}
+/* Left folio: one restrained, persistent information rail, not boxed dashboards. */
+.inkbound-live .ibl-sidebar {color:var(--ix48-copy)}
+.inkbound-live .ibl-sidebar-section {
+  border:0!important;
+  border-bottom:1px solid var(--ix48-rule)!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  border-radius:0!important;
+}
+.inkbound-live .ibl-sidebar-head h2 {
+  font:400 22px/1.2 var(--ix48-serif)!important;
+  color:var(--ix48-ink)!important;
+}
+.inkbound-live .ibl-sidebar-head button,
+.inkbound-live .ibl-journal-link {
+  font:400 13px/1.4 var(--ix48-label)!important;
+  color:var(--ix48-copy)!important;
+}
+.inkbound-live .ibl-hero-name strong {font:400 23px/1.2 var(--ix48-serif)!important;color:var(--ix48-ink)}
+.inkbound-live .ibl-hero-name small,
+.inkbound-live .ibl-sidebar-note {color:var(--ix48-muted)}
+.inkbound-live .ibl-resource,
+.inkbound-live .ibl-active-effects>span,
+.inkbound-live .ibl-kicker {
+  font-family:var(--ix48-label)!important;
+  color:var(--ix48-muted);
+}
+.inkbound-live .ibl-progress {height:7px;border-color:var(--ix48-rule)}
+.inkbound-live .ibl-progress>span {background:var(--ix48-ink)}
+.inkbound-live .ibl-party-avatar,.inkbound-live .ibl-avatar {border-color:var(--ix48-rule);color:var(--ix48-ink)}
+.inkbound-live .ibl-chat-form input {
+  color:var(--ix48-ink)!important;
+  background:transparent!important;
+  border-color:var(--ix48-rule)!important;
+}
+.inkbound-live .ibl-chat-form button {color:var(--ix48-ink)}
+.inkbound-live .ibl-footer {color:var(--ix48-muted);font-family:var(--ix48-label)!important}
+.inkbound-live :is(button,a,input,textarea,summary):focus-visible {outline:2px solid var(--ix48-gold)!important;outline-offset:3px}
+/* The real on-screen reader on desktop: fixed folio rail, independently scrollable prose. */
+@media (min-width:1100px) and (min-height:720px) {
+  .inkbound-live .ibl-layout {height:calc(100dvh - 190px);min-height:490px;align-items:stretch}
+  .inkbound-live .ibl-main {min-height:0;overflow-y:auto;overscroll-behavior-y:contain;padding-bottom:34px}
+  .inkbound-live .ibl-instruments-disclosure {min-height:0;overflow-y:auto;overscroll-behavior-y:contain}
+}
+@media (min-width:1100px) {
+  .inkbound-live .ibl-layout {grid-template-columns:clamp(245px,19vw,305px) minmax(0,1fr)!important}
+  .inkbound-live .ibl-instruments-disclosure {border-right:1px solid var(--ix48-rule)!important}
+  .inkbound-live .ibl-instruments-disclosure>summary {display:none}
+  .inkbound-live .ibl-sidebar-section {padding:16px 8px 16px 0!important}
+}
+@media (max-width:1099px) {
+  .inkbound-live .ibl-layout {height:auto;overflow:visible}
+  .inkbound-live .ibl-main {overflow:visible}
+  .inkbound-live .ibl-instruments-disclosure {overflow:visible}
+  .inkbound-live .ibl-choice {min-height:0}
+  .inkbound-live .ibl-choices {grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media (max-width:760px) {
+  .inkbound-live .ibl-topbar {width:calc(100% - 28px)}
+  .inkbound-live .ibl-layout {width:calc(100% - 28px)}
+  .inkbound-live .ibl-choices {grid-template-columns:1fr!important}
+  .inkbound-live .ibl-prose {font-size:17px!important;line-height:1.65!important}
+  .inkbound-live .ibl-chapter h1 {font-size:clamp(38px,9vw,55px)!important}
+  .inkbound-live .ibl-meta {font-size:10px!important;gap:7px;flex-wrap:wrap}
+  .inkbound-live .ibl-choice {padding:16px!important}
+  .inkbound-live .ibl-sidebar-section {padding:15px 0!important}
+  .inkbound-live .ibl-commit {gap:9px}
+}
+@media (prefers-reduced-motion:reduce) {
+  .inkbound-live .ibl-choice,
+  .inkbound-live .ibl-nav :is(a,button) {transition:none!important}
+}

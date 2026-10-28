@@ -14,6 +14,7 @@ import type { InkPaper } from "../../features/appearance/inkboundPaper";
 import type { ChatMessage, HeroProgressionUpdate, PartyHeroSnapshot, RoomPlayer, SceneChoice, TurnHistoryEntry, TurnResult } from "../../services/game";
 import "./inkboundFoundation.css";
 import "./inkboundLiveRoom.css";
+import "./quillairoInkscapeLivePass6648.css";
 
 type Hero = Character | PartyHeroSnapshot;
 type Panel = "menu" | "journal" | "notes" | "party" | "chat" | "hero" | "history" | null;

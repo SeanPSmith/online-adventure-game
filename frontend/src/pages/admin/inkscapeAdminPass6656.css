@@ -1,0 +1,93 @@
+/* 66.56 — Control Room editorial hierarchy. No operational mutation or telemetry changes. */
+.inkbound-account-shell .q56-admin-page {--q56-accent:var(--qs-accent,var(--ib-text));min-width:0}
+.inkbound-account-shell .q56-admin-page>.page-title {margin-bottom:24px!important}
+.inkbound-account-shell .q56-admin-index {
+  display:flex; flex-wrap:wrap; align-items:center; gap:8px clamp(14px,2vw,28px);
+  padding:3px 0 18px; margin:0 0 22px; border-bottom:1px solid var(--ib-line);
+}
+.inkbound-account-shell .q56-admin-index a {
+  display:inline-flex;min-height:42px;align-items:center; padding:8px 2px;
+  border-bottom:2px solid transparent; color:var(--ib-copy)!important;
+  font:600 .77rem/1.35 var(--ib-mono);letter-spacing:.02em; text-decoration:none;
+}
+.inkbound-account-shell .q56-admin-index a:hover,
+.inkbound-account-shell .q56-admin-index a:focus-visible {
+  color:var(--ib-text)!important; border-bottom-color:var(--q56-accent);
+}
+.inkbound-account-shell .q56-admin-index a:focus-visible {outline:2px solid var(--q56-accent);outline-offset:3px}
+.inkbound-account-shell .q56-admin-page .admin-control-actions {
+  display:flex;gap:8px 12px;align-items:center;margin:0 0 clamp(24px,3vw,36px);
+}
+.inkbound-account-shell .q56-admin-page .admin-live-pulse {
+  font:600 .7rem/1.5 var(--ib-mono);letter-spacing:.02em;opacity:1;color:var(--ib-muted);
+}
+.inkbound-account-shell .q56-admin-region,
+.inkbound-account-shell .q56-admin-anchor {scroll-margin-top:28px}
+.inkbound-account-shell .q56-admin-anchor {height:0;min-height:0}
+.inkbound-account-shell .q56-admin-page .panel {min-width:0}
+.inkbound-account-shell .q56-admin-page .panel>.panel-heading {
+  padding:14px 0!important; font:400 clamp(1.4rem,2.3vw,2.05rem)/1.22 var(--ib-serif)!important;
+  letter-spacing:-.02em; text-transform:none;
+}
+.inkbound-account-shell .q56-admin-page .panel>.panel-body {padding:clamp(17px,2vw,26px) 0!important}
+.inkbound-account-shell .q56-admin-page .admin-stat-grid {
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;
+  border:1px solid var(--ib-line);background:var(--ib-line);margin:12px 0 20px;
+}
+.inkbound-account-shell .q56-admin-page .admin-stat-grid>div {
+  border:0!important;border-radius:0; min-width:0; padding:clamp(15px,1.7vw,24px)!important;
+  background:var(--ib-paper)!important; gap:8px;
+}
+.inkbound-account-shell .q56-admin-page .admin-stat-grid span {
+  color:var(--ib-muted);opacity:1; font:600 .66rem/1.5 var(--ib-mono);letter-spacing:.04em;
+}
+.inkbound-account-shell .q56-admin-page .admin-stat-grid strong {
+  color:var(--ib-text)!important; font:400 clamp(1.45rem,2.35vw,2.15rem)/1.12 var(--ib-serif);
+  overflow-wrap:anywhere;
+}
+.inkbound-account-shell .q56-admin-page .admin-user-row {
+  display:grid;grid-template-columns:minmax(165px,1fr) minmax(140px,.8fr) minmax(215px,1.5fr);
+  gap:14px 22px;align-items:start;padding:20px clamp(14px,2vw,24px);
+  background:transparent!important;border:0!important;border-bottom:1px solid var(--ib-line)!important;
+}
+.inkbound-account-shell .q56-admin-page .admin-user-row:first-child {border-top:1px solid var(--ib-line)!important}
+.inkbound-account-shell .q56-admin-page .admin-user-row>div:first-child strong {
+  font:400 clamp(1.12rem,1.8vw,1.48rem)/1.25 var(--ib-serif);
+}
+.inkbound-account-shell .q56-admin-page .admin-user-row small {font-size:.76rem;line-height:1.5;overflow-wrap:anywhere}
+.inkbound-account-shell .q56-admin-page .admin-user-actions {justify-content:flex-start;gap:8px}
+.inkbound-account-shell .q56-admin-page .admin-user-actions .button {white-space:normal; min-height:40px; font-size:.73rem}
+.inkbound-account-shell .q56-admin-page .admin-user-actions>.system-notice {flex:1 1 100%;min-width:0}
+.inkbound-account-shell .q56-admin-page .admin-search,
+.inkbound-account-shell .q56-admin-page .admin-import-controls {gap:10px; margin:16px 0 24px}
+.inkbound-account-shell .q56-admin-page .admin-search input {flex:1 1 250px}
+.inkbound-account-shell .q56-admin-page .admin-ranking-list>div,
+.inkbound-account-shell .q56-admin-page .admin-recent-list>div {border-bottom:1px solid var(--ib-line);padding:13px 0}
+.inkbound-account-shell .q56-admin-page .admin-ranking-list>div:last-child,
+.inkbound-account-shell .q56-admin-page .admin-recent-list>div:last-child {border-bottom:0}
+.inkbound-account-shell .q56-admin-page .admin-activity-track {height:8px;border:1px solid var(--ib-line)}
+.inkbound-account-shell .q56-admin-page .admin-activity-track i {background:var(--q56-accent);opacity:.85}
+.inkbound-account-shell .q56-admin-page .admin-doc-intro,
+.inkbound-account-shell .q56-admin-page .admin-doc-section pre {font:400 .83rem/1.7 var(--ib-mono);white-space:pre-wrap;overflow-wrap:anywhere}
+.inkbound-account-shell .q56-admin-page .operations-table-wrap {max-width:100%;overflow-x:auto;overscroll-behavior-inline:contain}
+.inkbound-account-shell .q56-admin-page .operations-table-wrap th {font:600 .7rem/1.4 var(--ib-mono);letter-spacing:.03em;color:var(--ib-muted)}
+.inkbound-account-shell .q56-admin-page .operations-table-wrap td {font:400 .82rem/1.6 var(--ib-mono);color:var(--ib-text)}
+.inkbound-account-shell .q56-admin-page .admin-import-report,
+.inkbound-account-shell .q56-admin-page .admin-author-map {padding:clamp(14px,2vw,24px)!important}
+@media(max-width:1080px) {
+  .inkbound-account-shell .q56-admin-page .admin-user-row {grid-template-columns:minmax(140px,1fr) minmax(0,1.4fr)}
+  .inkbound-account-shell .q56-admin-page .admin-user-permissions {grid-column:1}
+  .inkbound-account-shell .q56-admin-page .admin-user-actions {grid-column:2;grid-row:1 / span 2}
+}
+@media(max-width:760px) {
+  .inkbound-account-shell .q56-admin-page .admin-stat-grid {grid-template-columns:repeat(2,minmax(0,1fr))}
+  .inkbound-account-shell .q56-admin-page .admin-user-row {grid-template-columns:1fr;gap:12px}
+  .inkbound-account-shell .q56-admin-page .admin-user-permissions,
+  .inkbound-account-shell .q56-admin-page .admin-user-actions {grid-column:auto;grid-row:auto}
+  .inkbound-account-shell .q56-admin-page .admin-user-actions>.button {flex:1 1 145px; width:auto;}
+  .inkbound-account-shell .q56-admin-page .admin-live-pulse {flex:1 1 100%;margin:4px 0 0}
+}
+@media(max-width:420px) {
+  .inkbound-account-shell .q56-admin-page .admin-stat-grid {grid-template-columns:1fr}
+  .inkbound-account-shell .q56-admin-page .q56-admin-index {gap:4px 16px}
+}

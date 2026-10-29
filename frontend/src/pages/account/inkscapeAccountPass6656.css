@@ -1,0 +1,81 @@
+/* 66.56 — Quillairo account center. Presentation only; all account actions remain real.
+   One paper surface, one typography hierarchy, theme-derived ink and fine rules. */
+.inkbound-account-shell:has(.account-tabs) .account-main { --q56-rule: var(--ib-line); --q56-accent: var(--qs-accent, var(--ib-text)); }
+.inkbound-account-shell .account-command-bar {
+  display:flex; flex-wrap:wrap; align-items:baseline; gap:12px clamp(24px,3vw,46px);
+  margin:0 0 clamp(22px,3vw,38px); padding:0 0 clamp(17px,2vw,25px);
+  border:0!important; border-bottom:1px solid var(--ib-line)!important; background:transparent!important;
+}
+.inkbound-account-shell .account-command-bar>div {
+  display:grid; gap:4px; padding:0; min-width:min(185px,100%);
+  background:transparent!important;
+}
+.inkbound-account-shell .account-command-bar strong {
+  margin:0; color:var(--ib-text); font:500 .86rem/1.45 var(--ib-serif);
+  white-space:normal; overflow-wrap:anywhere; text-overflow:clip;
+}
+.inkbound-account-shell .account-tabs {
+  display:flex; flex-wrap:wrap; justify-content:flex-start; align-items:center;
+  gap:6px clamp(12px,1.5vw,26px); margin:0 0 clamp(25px,3.5vw,46px);
+  padding:0 0 10px; border:0!important; border-bottom:1px solid var(--ib-line)!important;
+  background:transparent!important;
+}
+.inkbound-account-shell .account-tabs button,
+.inkbound-account-shell:has(.quill-settings-page) .account-tabs button {
+  width:auto; min-height:45px; min-width:0; grid-column:auto; display:flex; align-items:baseline;
+  justify-content:center; gap:8px; padding:8px 4px 11px!important;
+  border:0!important; border-bottom:2px solid transparent!important;
+  background:transparent!important; box-shadow:none!important;
+  color:var(--ib-copy)!important; font:600 .79rem/1.4 var(--ib-mono);
+  cursor:pointer; text-align:center;
+}
+.inkbound-account-shell .account-tabs button span {font-size:inherit;font-weight:inherit;letter-spacing:.045em}
+.inkbound-account-shell .account-tabs button small {display:none}
+.inkbound-account-shell .account-tabs button:hover,
+.inkbound-account-shell .account-tabs button:focus-visible,
+.inkbound-account-shell .account-tabs button[aria-selected="true"] {
+  color:var(--ib-text)!important; border-bottom-color:var(--q56-accent,var(--qs-accent))!important;
+}
+.inkbound-account-shell .account-tabs button:focus-visible { outline:2px solid var(--q56-accent,var(--ib-text))!important; outline-offset:4px!important; }
+.inkbound-account-shell .account-tab-content {min-width:0; outline:0}
+.inkbound-account-shell .account-tab-stack {gap:clamp(18px,2.5vw,35px)}
+.inkbound-account-shell .account-tab-stack>.panel {margin:0 0 clamp(5px,1.5vw,20px)!important}
+.inkbound-account-shell .account-tab-stack>.panel>.panel-heading {
+  font:400 clamp(1.55rem,2.4vw,2.15rem)/1.17 var(--ib-serif)!important;
+  letter-spacing:-.025em; text-transform:none; padding:0 0 14px!important;
+}
+.inkbound-account-shell .account-tab-stack>.panel>.panel-body {padding:clamp(18px,2vw,26px) 0!important}
+.inkbound-account-shell .account-form-grid {gap:clamp(18px,2vw,32px)}
+.inkbound-account-shell .account-field {gap:8px}
+.inkbound-account-shell .account-field>span {
+  color:var(--ib-text)!important; font:600 .74rem/1.4 var(--ib-mono)!important; letter-spacing:.045em;
+}
+.inkbound-account-shell .account-field small {font:400 .8rem/1.5 var(--ib-serif)!important; color:var(--ib-muted)!important}
+.inkbound-account-shell .account-form-actions .muted-copy {font-size:.82rem;max-width:48ch}
+.inkbound-account-shell .account-data-grid>div {overflow-wrap:anywhere}
+.inkbound-account-shell .account-danger-panel {border-color:var(--ib-line)!important}
+.inkbound-account-shell .account-danger-panel .panel-heading {color:var(--ib-text)!important}
+.inkbound-account-shell .account-danger-row {align-items:start}
+.inkbound-account-shell .account-danger-row p {margin:9px 0 0;font:400 .91rem/1.55 var(--ib-serif)}
+.inkbound-account-shell .account-delete-button {border-color:var(--red, #a04135)!important;color:var(--red,#a04135)!important}
+.inkbound-account-shell .account-delete-button:hover:not(:disabled) {background:var(--red,#a04135)!important;color:var(--ib-button-ink)!important}
+.inkbound-account-shell .billing-status-card {
+  display:block; margin:0 0 20px; padding:0 0 clamp(14px,2vw,23px);
+  background:transparent!important; border:0!important; border-bottom:1px solid var(--ib-line)!important;
+}
+.inkbound-account-shell .billing-status-card h2 {font:400 clamp(1.6rem,3vw,2.4rem)/1.12 var(--ib-serif);color:var(--ib-text)!important}
+.inkbound-account-shell .billing-status-card p {max-width:65ch;font:400 .96rem/1.7 var(--ib-serif)}
+.inkbound-account-shell .billing-data-grid {gap:12px}
+.inkbound-account-shell .account-billing-note {max-width:66ch}
+.inkbound-account-shell .quill-settings-index a {min-height:44px; align-items:center}
+.inkbound-account-shell :is(.quill-settings-block,.quill-settings-wardrobe,.inkpaper-preferences){scroll-margin-top:35px}
+@media (max-width:700px) {
+  .inkbound-account-shell .account-command-bar {gap:15px 26px}
+  .inkbound-account-shell .account-command-bar>div {min-width:0;flex:1 1 140px}
+  .inkbound-account-shell .account-tabs {gap:2px 16px}
+  .inkbound-account-shell .account-tabs button {flex:0 0 auto;min-height:44px}
+  .inkbound-account-shell .account-tab-stack>.panel>.panel-body {padding:16px 0!important}
+}
+@media (prefers-reduced-motion:reduce) {
+  .inkbound-account-shell .account-tabs button {transition:none!important}
+}

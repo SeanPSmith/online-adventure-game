@@ -1,0 +1,6 @@
+Quillairo 66.56: Account, Settings and Admin presentation overlay.
+frontend/src/pages/account/AccountPage.tsx
+frontend/src/pages/admin/AdminPage.tsx
+frontend/src/pages/account/inkscapeAccountPass6656.css
+frontend/src/pages/admin/inkscapeAdminPass6656.css
+tests/frontend/test_pass66_56_inkscape_account_admin.py

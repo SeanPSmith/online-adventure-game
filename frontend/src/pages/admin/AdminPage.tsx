@@ -2,6 +2,7 @@ import { PlaytestDiagnostics } from "./PlaytestDiagnostics";
 import { OperationsDashboard } from "./OperationsDashboard";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import "./AdminPage.css";
+import "./inkscapeAdminPass6656.css";
 import { Link, Navigate } from "react-router";
 import { PageTitle } from "../../components/ui/PageTitle";
 import { Panel } from "../../components/ui/Panel";
@@ -264,8 +265,17 @@ export function AdminPage() {
   }
 
   return (
-    <>
+    <div className="q56-admin-page">
       <PageTitle eyebrow="SUPERUSER" title="CONTROL ROOM" />
+      <nav className="q56-admin-index" aria-label="Control room sections">
+        <a href="#q56-admin-operations">Operations</a>
+        <a href="#q56-admin-diagnostics">Diagnostics</a>
+        <a href="#q56-admin-activity">Player activity</a>
+        <a href="#q56-admin-spend">AI spending</a>
+        <a href="#q56-admin-narration">Narration</a>
+        <a href="#q56-admin-accounts">Accounts</a>
+        <a href="#q56-admin-import">Content import</a>
+      </nav>
 
       <div className="admin-control-actions">
         <Link className="button primary" to="/game/arcade">ARCADE LAB</Link>
@@ -283,7 +293,7 @@ export function AdminPage() {
         <button className="button subtle" type="button" onClick={() => void loadAnalytics()}>
           REFRESH TELEMETRY
         </button>
-        <span className="admin-live-pulse">LIVE // 10 SEC REFRESH</span>
+        <span className="admin-live-pulse">TELEMETRY REFRESHES EVERY 10 SEC</span>
       </div>
 
       {projectDocsOpen ? (
@@ -346,10 +356,11 @@ export function AdminPage() {
         </Panel>
       ) : null}
 
-      <OperationsDashboard />
+      <div id="q56-admin-operations" className="q56-admin-region"><OperationsDashboard /></div>
 
-      <PlaytestDiagnostics />
+      <div id="q56-admin-diagnostics" className="q56-admin-region"><PlaytestDiagnostics /></div>
 
+      <div id="q56-admin-activity" className="q56-admin-anchor" aria-hidden="true" />
       <Panel title="PLAYER ACTIVITY">
         {analyticsError ? <div className="form-error">{analyticsError}</div> : null}
 
@@ -366,6 +377,7 @@ export function AdminPage() {
 
       </Panel>
 
+      <div id="q56-admin-spend" className="q56-admin-anchor" aria-hidden="true" />
       <Panel title="AI COST CONTROL // PLAYTEST GUARDRAILS">
         {usageError ? <div className="form-error">{usageError}</div> : null}
         <div className="admin-stat-grid">
@@ -400,6 +412,7 @@ export function AdminPage() {
         <p className="muted-copy">Model costs are estimates from configured per-token rates. The server enforces both per-account monthly allowances and a global daily ceiling before each OpenAI request leaves the app.</p>
       </Panel>
 
+      <div id="q56-admin-narration" className="q56-admin-anchor" aria-hidden="true" />
       <Panel title="STORY TIME // USAGE & ABUSE PROTECTION">
         {narrationUsageError ? <div className="form-error">{narrationUsageError}</div> : null}
         {narrationUsage?.configured === false ? (
@@ -489,6 +502,7 @@ export function AdminPage() {
         </div>
       </Panel>
 
+      <div id="q56-admin-accounts" className="q56-admin-anchor" aria-hidden="true" />
       <Panel title="ACCOUNTS / ACCESS / ALLOWANCES">
         <p className="muted-copy">
           Granting Author access also grants Publish. This console cannot create another
@@ -591,6 +605,7 @@ export function AdminPage() {
         ) : null}
       </Panel>
 
+      <div id="q56-admin-import" className="q56-admin-anchor" aria-hidden="true" />
       <Panel title="LEGACY AUTHOR CONTENT">
         <p className="muted-copy">
           Import a portable Author bundle exported from the old SQLite database. The
@@ -672,6 +687,6 @@ export function AdminPage() {
           </div>
         ) : null}
       </Panel>
-    </>
+    </div>
   );
 }

@@ -6,6 +6,7 @@ import { SettingsPage } from "./SettingsPage";
 import { AppearanceWardrobe } from "../../features/appearance/AppearanceWardrobe";
 import { InkboundPaperPreferences } from "../../features/appearance/InkboundPaperPreferences";
 import "./quillairoSettingsPass665.css";
+import "./inkscapeAccountPass6656.css";
 import * as authApi from "../../services/auth";
 import { useAuth } from "../../state/AuthContext";
 import { useModal } from "../../state/ModalContext";
@@ -58,9 +59,9 @@ function ProfileTab() {
       await authApi.updateProfile(email.trim(), username.trim(), password);
       await refresh();
       setPassword("");
-      setStatus("(^_^)/ ACCOUNT DETAILS UPDATED");
+      setStatus("Profile updated.");
     } catch (reason) {
-      setStatus(`:/ ${errorMessage(reason)}`);
+      setStatus(errorMessage(reason));
     } finally {
       setBusy(false);
     }
@@ -117,7 +118,7 @@ function ProfileTab() {
             <span className="muted-copy">Identity changes are protected by your current password.</span>
           </div>
 
-          {status ? <div className="system-notice account-inline-status">{status}</div> : null}
+          {status ? <div className="system-notice account-inline-status" role="status">{status}</div> : null}
         </form>
       </Panel>
 
@@ -151,7 +152,7 @@ function DeleteAccountDialog({ username }: { username: string }) {
       closeModal();
       window.location.assign("/");
     } catch (reason) {
-      setStatus(`:/ ${errorMessage(reason)}`);
+      setStatus(errorMessage(reason));
       setBusy(false);
     }
   }
@@ -185,7 +186,7 @@ function DeleteAccountDialog({ username }: { username: string }) {
           onChange={(event) => setPassword(event.target.value)}
         />
       </label>
-      {status ? <div className="system-notice account-inline-status">{status}</div> : null}
+      {status ? <div className="system-notice account-inline-status" role="status">{status}</div> : null}
       <div className="modal-action-row account-delete-actions">
         <button className="button" type="button" onClick={closeModal} disabled={busy}>CANCEL</button>
         <button className="button account-delete-button" type="submit" disabled={busy || !exact || !password}>
@@ -204,7 +205,7 @@ function SecurityTab() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [busy, setBusy] = useState(false);
-  const [status, setStatus] = useState("LOADING SESSION SECURITY...");
+  const [status, setStatus] = useState("Loading session security…");
 
   async function refreshSecurity() {
     try {
@@ -212,7 +213,7 @@ function SecurityTab() {
       setSecurity(next);
       setStatus("");
     } catch (reason) {
-      setStatus(`:/ ${errorMessage(reason)}`);
+      setStatus(errorMessage(reason));
     }
   }
 
@@ -230,10 +231,10 @@ function SecurityTab() {
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-      setStatus(`(^_^)/ ${response.message.toUpperCase()}`);
+      setStatus(response.message);
       await refreshSecurity();
     } catch (reason) {
-      setStatus(`:/ ${errorMessage(reason)}`);
+      setStatus(errorMessage(reason));
     } finally {
       setBusy(false);
     }
@@ -244,10 +245,10 @@ function SecurityTab() {
     setStatus("");
     try {
       const response = await authApi.logoutOtherSessions();
-      setStatus(`(^_^)/ ${response.revoked_sessions} OTHER SESSION${response.revoked_sessions === 1 ? "" : "S"} DISCONNECTED`);
+      setStatus(`${response.revoked_sessions} other session${response.revoked_sessions === 1 ? "" : "s"} signed out.`);
       await refreshSecurity();
     } catch (reason) {
-      setStatus(`:/ ${errorMessage(reason)}`);
+      setStatus(errorMessage(reason));
     } finally {
       setBusy(false);
     }
@@ -297,7 +298,7 @@ function SecurityTab() {
         </div>
       </Panel>
 
-      {status ? <div className="system-notice account-inline-status">{status}</div> : null}
+      {status ? <div className="system-notice account-inline-status" role="status">{status}</div> : null}
 
       <Panel title="DANGER ZONE" className="account-danger-panel">
         <div className="account-danger-row">
@@ -324,7 +325,7 @@ function SecurityTab() {
 
 function BillingTab() {
   const [usage, setUsage] = useState<authApi.AccountUsageSnapshot | null>(null);
-  const [status, setStatus] = useState("LOADING PLAYTEST ALLOWANCE...");
+  const [status, setStatus] = useState("Loading playtest allowance…");
 
   useEffect(() => {
     void authApi.getAccountUsage()
@@ -332,7 +333,7 @@ function BillingTab() {
         setUsage(snapshot);
         setStatus("");
       })
-      .catch((reason) => setStatus(`:/ ${errorMessage(reason)}`));
+      .catch((reason) => setStatus(errorMessage(reason)));
   }, []);
 
   const budget = usage?.entitlement.monthly_budget_usd ?? 0;
@@ -346,7 +347,6 @@ function BillingTab() {
     <div className="account-tab-stack">
       <Panel title="ACCESS & AI USAGE // PLAYTEST">
         <div className="billing-status-card">
-          <div className="billing-plan-mark">T2</div>
           <div>
             <span className="eyebrow">CURRENT ACCESS</span>
             <h2>{usage?.entitlement.plan_id.toUpperCase() ?? "PLAYTESTER"}</h2>
@@ -357,7 +357,7 @@ function BillingTab() {
           </div>
         </div>
 
-        {status ? <div className="system-notice account-inline-status">{status}</div> : null}
+        {status ? <div className="system-notice account-inline-status" role="status">{status}</div> : null}
 
         {usage ? (
           <>
@@ -432,6 +432,8 @@ export function AccountPage() {
             key={tab}
             type="button"
             role="tab"
+            id={`q56-account-tab-${tab}`}
+            aria-controls="q56-account-tabpanel"
             aria-selected={activeTab === tab}
             className={activeTab === tab ? "is-active" : ""}
             onClick={() => chooseTab(tab)}
@@ -444,7 +446,7 @@ export function AccountPage() {
         ))}
       </nav>
 
-      <section className={`account-tab-content${activeTab === "preferences" ? " quill-account-preferences" : ""}`} role="tabpanel">
+      <section className={`account-tab-content${activeTab === "preferences" ? " quill-account-preferences" : ""}`} role="tabpanel" id="q56-account-tabpanel" aria-labelledby={`q56-account-tab-${activeTab}`}>
         {activeTab === "profile" ? <ProfileTab /> : null}
         {activeTab === "preferences" ? <div className="quill-settings-page">
           <aside className="quill-settings-intro" aria-label="Settings introduction">

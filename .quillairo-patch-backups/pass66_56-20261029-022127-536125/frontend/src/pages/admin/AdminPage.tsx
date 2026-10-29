@@ -1,0 +1,677 @@
+import { PlaytestDiagnostics } from "./PlaytestDiagnostics";
+import { OperationsDashboard } from "./OperationsDashboard";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import "./AdminPage.css";
+import { Link, Navigate } from "react-router";
+import { PageTitle } from "../../components/ui/PageTitle";
+import { Panel } from "../../components/ui/Panel";
+import {
+  contentImportErrorMessage,
+  getAdminAnalytics,
+  getAdminUsage,
+  getAdminNarrationUsage,
+  getAdminProjectDocumentation,
+  importAuthorContent,
+  listUsers,
+  setAuthorAccess,
+  setAccountActive,
+  setUserEntitlement,
+  type AdminAnalyticsSnapshot,
+  type AdminUsageSnapshot,
+  type NarrationUsageSnapshot,
+  type AdminProjectDocumentation,
+  type ContentImportReport,
+} from "../../services/admin";
+import type { User } from "../../services/auth";
+import { useAuth } from "../../state/AuthContext";
+
+function permissionLabel(user: User) {
+  if (user.permissions.includes("admin")) return "SUPERUSER";
+  if (user.permissions.includes("author")) return "AUTHOR";
+  return "PLAYER";
+}
+
+interface LegacyContentBundle {
+  format?: string;
+  authors?: Array<{
+    username?: string;
+    email?: string;
+  }>;
+  [key: string]: unknown;
+}
+
+export function AdminPage() {
+  const { user, refresh } = useAuth();
+  const isAdmin = user?.permissions.includes("admin") ?? false;
+
+  const [users, setUsers] = useState<User[]>([]);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [pendingAccount, setPendingAccount] = useState<User | null>(null);
+  const [workingUserId, setWorkingUserId] = useState("");
+  const [bundle, setBundle] = useState<LegacyContentBundle | null>(null);
+  const [bundleName, setBundleName] = useState("");
+  const [authorMap, setAuthorMap] = useState<Record<string, string>>({});
+  const [importing, setImporting] = useState(false);
+  const [importError, setImportError] = useState("");
+  const [importReport, setImportReport] = useState<ContentImportReport | null>(null);
+  const [analytics, setAnalytics] = useState<AdminAnalyticsSnapshot | null>(null);
+  const [analyticsError, setAnalyticsError] = useState("");
+  const [usage, setUsage] = useState<AdminUsageSnapshot | null>(null);
+  const [usageError, setUsageError] = useState("");
+  const [narrationUsage, setNarrationUsage] = useState<NarrationUsageSnapshot | null>(null);
+  const [narrationUsageError, setNarrationUsageError] = useState("");
+  const [usageWorkingUserId, setUsageWorkingUserId] = useState("");
+  const [projectDocs, setProjectDocs] = useState<AdminProjectDocumentation | null>(null);
+  const [projectDocsOpen, setProjectDocsOpen] = useState(false);
+  const [projectDocsLoading, setProjectDocsLoading] = useState(false);
+  const [projectDocsError, setProjectDocsError] = useState("");
+  const [projectDocsSearch, setProjectDocsSearch] = useState("");
+
+  const loadUsers = useCallback(async (query = "") => {
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await listUsers(query);
+      setUsers(response.users);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Admin user list unavailable.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const loadAnalytics = useCallback(async () => {
+    try {
+      const snapshot = await getAdminAnalytics();
+      setAnalytics(snapshot);
+      setAnalyticsError("");
+    } catch (reason) {
+      setAnalyticsError(
+        reason instanceof Error ? reason.message : "Control-room telemetry unavailable.",
+      );
+    }
+  }, []);
+
+
+  const loadUsage = useCallback(async () => {
+    try {
+      const snapshot = await getAdminUsage();
+      setUsage(snapshot);
+      setUsageError("");
+    } catch (reason) {
+      setUsageError(reason instanceof Error ? reason.message : "AI usage telemetry unavailable.");
+    }
+  }, []);
+
+  const loadNarrationUsage = useCallback(async () => {
+    try {
+      const snapshot = await getAdminNarrationUsage();
+      setNarrationUsage(snapshot);
+      setNarrationUsageError("");
+    } catch (reason) {
+      setNarrationUsageError(reason instanceof Error ? reason.message : "Narrator metering unavailable.");
+    }
+  }, []);
+
+  const loadProjectDocs = useCallback(async () => {
+    setProjectDocsLoading(true);
+    setProjectDocsError("");
+
+    try {
+      const documentation = await getAdminProjectDocumentation();
+      setProjectDocs(documentation);
+    } catch (reason) {
+      setProjectDocsError(
+        reason instanceof Error ? reason.message : "Project documentation unavailable.",
+      );
+    } finally {
+      setProjectDocsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isAdmin) {
+      setLoading(false);
+      return;
+    }
+
+    void loadUsers();
+    void loadAnalytics();
+    void loadUsage();
+    void loadNarrationUsage();
+
+    const interval = window.setInterval(() => {
+      void loadAnalytics();
+      void loadUsage();
+    }, 10000);
+    // DynamoDB seven-day dashboard queries are slower and need less polling.
+    const narrationInterval = window.setInterval(() => void loadNarrationUsage(), 60000);
+
+    return () => {
+      window.clearInterval(interval);
+      window.clearInterval(narrationInterval);
+    };
+  }, [isAdmin, loadAnalytics, loadUsage, loadNarrationUsage, loadUsers]);
+
+  const visibleUsers = useMemo(() => users, [users]);
+  const maxDailyTurns = useMemo(
+    () => Math.max(1, ...(analytics?.daily_activity.map((day) => day.turns) ?? [1])),
+    [analytics],
+  );
+  const visibleProjectDocSections = useMemo(() => {
+    if (!projectDocs) return [];
+    const query = projectDocsSearch.trim().toLowerCase();
+    if (!query) return projectDocs.sections;
+
+    return projectDocs.sections.filter((section) =>
+      `${section.title}\n${section.content}`.toLowerCase().includes(query),
+    );
+  }, [projectDocs, projectDocsSearch]);
+
+  if (!isAdmin) {
+    return <Navigate to="/game" replace />;
+  }
+
+  async function toggleAuthor(target: User) {
+    const currentlyAuthor = target.permissions.includes("author");
+    setWorkingUserId(target.user_id);
+    setError("");
+
+    try {
+      await setAuthorAccess(target.user_id, !currentlyAuthor);
+      await loadUsers(search);
+      if (target.user_id === user?.user_id) await refresh();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Permission update failed.");
+    } finally {
+      setWorkingUserId("");
+    }
+  }
+
+  async function toggleAccount(target: User) {
+    setWorkingUserId(target.user_id);
+    setError("");
+    try {
+      await setAccountActive(target.user_id, !target.is_active);
+      setPendingAccount(null);
+      await loadUsers(search);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Account update failed.");
+    } finally {setWorkingUserId("");}
+  }
+
+  async function setAllowance(userId: string, budget: number, unlimited = false) {
+    setUsageWorkingUserId(userId);
+    setUsageError("");
+    try {
+      await setUserEntitlement(userId, {
+        plan_id: unlimited ? "operator" : "playtester",
+        monthly_budget_usd: budget,
+        monthly_request_limit: unlimited ? 0 : 500,
+        is_unlimited: unlimited,
+      });
+      await loadUsage();
+    } catch (reason) {
+      setUsageError(reason instanceof Error ? reason.message : "Allowance update failed.");
+    } finally {
+      setUsageWorkingUserId("");
+    }
+  }
+
+  async function readBundle(file: File | null) {
+    setBundle(null);
+    setBundleName("");
+    setAuthorMap({});
+    setImportError("");
+    setImportReport(null);
+
+    if (!file) return;
+
+    try {
+      const parsed = JSON.parse(await file.text()) as LegacyContentBundle;
+      setBundle(parsed);
+      setBundleName(file.name);
+
+      const initialMap: Record<string, string> = {};
+      for (const author of parsed.authors ?? []) {
+        const username = String(author.username ?? "").trim();
+        if (username) initialMap[username] = username;
+      }
+      setAuthorMap(initialMap);
+    } catch {
+      setImportError("That file is not valid JSON.");
+    }
+  }
+
+  async function runImport() {
+    if (!bundle) return;
+
+    setImporting(true);
+    setImportError("");
+    setImportReport(null);
+
+    try {
+      const report = await importAuthorContent(bundle, authorMap);
+      setImportReport(report);
+    } catch (reason) {
+      setImportError(contentImportErrorMessage(reason));
+    } finally {
+      setImporting(false);
+    }
+  }
+
+  return (
+    <>
+      <PageTitle eyebrow="SUPERUSER" title="CONTROL ROOM" />
+
+      <div className="admin-control-actions">
+        <Link className="button primary" to="/game/arcade">ARCADE LAB</Link>
+        <button
+          className={`button ${projectDocsOpen ? "primary" : "subtle"}`}
+          type="button"
+          onClick={() => {
+            const nextOpen = !projectDocsOpen;
+            setProjectDocsOpen(nextOpen);
+            if (nextOpen && !projectDocs) void loadProjectDocs();
+          }}
+        >
+          {projectDocsOpen ? "CLOSE PROJECT DOCS" : "PROJECT DOCS"}
+        </button>
+        <button className="button subtle" type="button" onClick={() => void loadAnalytics()}>
+          REFRESH TELEMETRY
+        </button>
+        <span className="admin-live-pulse">LIVE // 10 SEC REFRESH</span>
+      </div>
+
+      {projectDocsOpen ? (
+        <Panel title="PROJECT DOCUMENTATION // CANONICAL MASTER">
+          <div className="admin-doc-shell">
+            <div className="admin-doc-toolbar">
+              <input
+                value={projectDocsSearch}
+                onChange={(event) => setProjectDocsSearch(event.target.value)}
+                placeholder="Search project documentation"
+                aria-label="Search project documentation"
+              />
+              <button className="button subtle" type="button" onClick={() => void loadProjectDocs()}>
+                RELOAD
+              </button>
+              <button
+                className="button subtle"
+                type="button"
+                disabled={!projectDocs}
+                onClick={() => {
+                  if (projectDocs) void navigator.clipboard?.writeText(projectDocs.content);
+                }}
+              >
+                COPY MARKDOWN
+              </button>
+            </div>
+
+            {projectDocsLoading ? <p className="muted-copy">READING THE MASTER FILE_</p> : null}
+            {projectDocsError ? <div className="form-error">{projectDocsError}</div> : null}
+
+            {projectDocs ? (
+              <>
+                <div className="admin-doc-meta">
+                  <span>{projectDocs.filename}</span>
+                  <span>{projectDocs.sections.length} SECTIONS</span>
+                  <span>PACKAGED {new Date(projectDocs.updated_at).toLocaleString()}</span>
+                </div>
+
+                {projectDocs.intro ? <pre className="admin-doc-intro">{projectDocs.intro}</pre> : null}
+
+                <div className="admin-doc-sections">
+                  {visibleProjectDocSections.map((section, index) => (
+                    <details
+                      className="admin-doc-section"
+                      key={section.id}
+                      open={!projectDocsSearch && index === 0}
+                    >
+                      <summary>{section.title}</summary>
+                      <pre>{section.content}</pre>
+                    </details>
+                  ))}
+                </div>
+
+                {visibleProjectDocSections.length === 0 ? (
+                  <div className="admin-doc-empty">NO DOCUMENTATION SECTION MATCHES THAT SEARCH.</div>
+                ) : null}
+              </>
+            ) : null}
+          </div>
+        </Panel>
+      ) : null}
+
+      <OperationsDashboard />
+
+      <PlaytestDiagnostics />
+
+      <Panel title="PLAYER ACTIVITY">
+        {analyticsError ? <div className="form-error">{analyticsError}</div> : null}
+
+        <div className="admin-stat-grid">
+          <div><span>ONLINE PLAYERS</span><strong>{analytics?.live.online_players ?? "—"}</strong></div>
+          <div><span>STORED ROOMS</span><strong>{analytics?.live.rooms ?? "—"}</strong></div>
+          <div><span>RECENT USERS</span><strong>{analytics?.accounts.recently_active_users ?? "—"}</strong></div>
+          <div><span>REGISTERED</span><strong>{analytics?.accounts.registered_users ?? "—"}</strong></div>
+          <div><span>ADVENTURES COMPLETE</span><strong>{analytics?.totals.adventures_completed ?? "—"}</strong></div>
+          <div><span>RESOLVED TURNS</span><strong>{analytics?.totals.turns_completed ?? "—"}</strong></div>
+          <div><span>AVG TURNS / RUN</span><strong>{analytics?.totals.average_turns ?? "—"}</strong></div>
+          <div><span>AUTHORS</span><strong>{analytics?.accounts.authors ?? "—"}</strong></div>
+        </div>
+
+      </Panel>
+
+      <Panel title="AI COST CONTROL // PLAYTEST GUARDRAILS">
+        {usageError ? <div className="form-error">{usageError}</div> : null}
+        <div className="admin-stat-grid">
+          <div><span>TODAY EST. COST</span><strong>${(usage?.today.estimated_cost_usd ?? 0).toFixed(4)}</strong></div>
+          <div><span>TODAY REQUESTS</span><strong>{usage?.today.requests ?? "—"}</strong></div>
+          <div><span>MONTH EST. COST</span><strong>${(usage?.month.estimated_cost_usd ?? 0).toFixed(4)}</strong></div>
+          <div><span>MONTH REQUESTS</span><strong>{usage?.month.requests ?? "—"}</strong></div>
+          <div><span>FAILED CALLS</span><strong>{usage?.month.failed_requests ?? "—"}</strong></div>
+          <div><span>AVG LATENCY</span><strong>{usage ? `${Math.round(usage.month.average_latency_ms / 100) / 10}s` : "—"}</strong></div>
+          <div><span>DAILY KILL SWITCH</span><strong>${(usage?.guardrails.global_daily_budget_usd ?? 0).toFixed(2)}</strong></div>
+          <div><span>DEFAULT TESTER</span><strong>${(usage?.guardrails.default_playtester_budget_usd ?? 0).toFixed(2)}/MO</strong></div>
+        </div>
+        <div className="admin-ranking-list admin-usage-list">
+          {(usage?.top_users ?? []).map((entry, index) => (
+            <div key={entry.user_id}>
+              <b>{String(index + 1).padStart(2, "0")}</b>
+              <span><strong>{entry.username}</strong><small>${entry.estimated_cost_usd.toFixed(4)} // {entry.requests} calls // {entry.input_tokens.toLocaleString()} in / {entry.output_tokens.toLocaleString()} out</small></span>
+              <span className="admin-usage-actions">
+                <button className="button subtle" type="button" disabled={usageWorkingUserId === entry.user_id} onClick={() => void setAllowance(entry.user_id, 5)}> $5 </button>
+                <button className="button subtle" type="button" disabled={usageWorkingUserId === entry.user_id} onClick={() => void setAllowance(entry.user_id, 10)}> $10 </button>
+                <button className="button subtle" type="button" disabled={usageWorkingUserId === entry.user_id} onClick={() => void setAllowance(entry.user_id, 0, true)}> UNLIMITED </button>
+              </span>
+            </div>
+          ))}
+        </div>
+        <details>
+          <summary>CALLS BY OPERATION / MODEL</summary>
+          <div className="operations-table-wrap"><table><thead><tr><th>Operation / Model</th><th>Calls</th><th>Input / Output tokens</th><th>Estimated cost</th><th>Average latency</th></tr></thead><tbody>
+            {(usage?.operations ?? []).map(row => <tr key={`${row.operation}:${row.model}`}><td>{row.operation}<br />{row.model}</td><td>{row.requests}</td><td>{row.input_tokens.toLocaleString()} / {row.output_tokens.toLocaleString()}</td><td>${row.estimated_cost_usd.toFixed(4)}</td><td>{(row.average_latency_ms / 1000).toFixed(1)}s</td></tr>)}
+          </tbody></table></div>
+        </details>
+        <p className="muted-copy">Model costs are estimates from configured per-token rates. The server enforces both per-account monthly allowances and a global daily ceiling before each OpenAI request leaves the app.</p>
+      </Panel>
+
+      <Panel title="STORY TIME // USAGE & ABUSE PROTECTION">
+        {narrationUsageError ? <div className="form-error">{narrationUsageError}</div> : null}
+        {narrationUsage?.configured === false ? (
+          <p className="muted-copy">Narrator metering is not configured. Public access must remain restricted.</p>
+        ) : null}
+        <div className="admin-stat-grid">
+          <div><span>VOICE REQUESTS / 7D</span><strong>{narrationUsage?.totals.requests ?? "—"}</strong></div>
+          <div><span>GPU GENERATIONS / 7D</span><strong>{narrationUsage?.totals.generated ?? "—"}</strong></div>
+          <div><span>MEMORY CACHE / 7D</span><strong>{narrationUsage?.totals.memory ?? "—"}</strong></div>
+          <div><span>S3 CACHE / 7D</span><strong>{narrationUsage?.totals.s3 ?? "—"}</strong></div>
+          <div><span>INFERENCE FAILURES / 7D</span><strong>{narrationUsage?.totals.failed ?? "—"}</strong></div>
+          <div><span>THROTTLE ALERT WINDOWS / 7D</span><strong>{narrationUsage?.totals.denied ?? "—"}</strong></div>
+          <div><span>PER-USER DAILY CAP</span><strong>{narrationUsage?.limits.user_daily_generations ?? "—"}</strong></div>
+          <div><span>GLOBAL DAILY CAP</span><strong>{narrationUsage?.limits.global_daily_generations ?? "—"}</strong></div>
+          <div><span>REQUEST LIMIT / 5 MIN</span><strong>{narrationUsage?.limits.window_requests ?? "—"}</strong></div>
+        </div>
+        {(narrationUsage?.alerts.length ?? 0) > 0 ? (
+          <div className="system-notice" role="status">
+            <strong>HIGH USAGE ACCOUNTS</strong> — {narrationUsage?.alerts.map(entry =>
+              `${entry.user_id} (${entry.generations} generated)`
+            ).join(" • ")}
+          </div>
+        ) : null}
+        <details>
+          <summary>TOP NARRATION USERS // LAST 7 DAYS</summary>
+          <div className="operations-table-wrap"><table><thead><tr>
+            <th>Account ID</th><th>Requests</th><th>GPU</th><th>Cache</th><th>Failures / Throttle</th>
+          </tr></thead><tbody>
+            {(narrationUsage?.top_users ?? []).map(entry => (
+              <tr key={entry.user_id}><td>{entry.user_id}</td><td>{entry.requests}</td>
+              <td>{entry.generated} ({entry.today_generated} today)</td>
+              <td>{entry.memory + entry.s3}</td><td>{entry.failed} / {entry.denied}</td></tr>
+            ))}
+          </tbody></table></div>
+        </details>
+        <p className="muted-copy">Server-side DynamoDB counters, not dollar charges. GPU boot/runtime, previews, and AWS overhead are not attributed here. CloudWatch, AWS Cost Explorer, and provider invoices remain necessary for actual spending.</p>
+      </Panel>
+
+      <Panel title="PLAY ACTIVITY // LAST 14 COMPLETION DAYS">
+        <div className="admin-activity-chart">
+          {(analytics?.daily_activity ?? []).map((day) => (
+            <div className="admin-activity-day" key={day.day}>
+              <span>{day.day.slice(5)}</span>
+              <div className="admin-activity-track">
+                <i style={{ width: `${Math.max(4, (day.turns / maxDailyTurns) * 100)}%` }} />
+              </div>
+              <strong>{day.turns}T / {day.adventures}A</strong>
+            </div>
+          ))}
+        </div>
+      </Panel>
+
+      <div className="admin-ranking-grid">
+        <Panel title="POPULAR ADVENTURES">
+          <div className="admin-ranking-list">
+            {(analytics?.popular_adventures ?? []).map((adventure, index) => (
+              <div key={adventure.adventure_id}>
+                <b>{String(index + 1).padStart(2, "0")}</b>
+                <span><strong>{adventure.adventure_title}</strong><small>{adventure.completions} completions // {adventure.turns} turns // avg {adventure.average_turns}</small></span>
+              </div>
+            ))}
+          </div>
+        </Panel>
+
+        <Panel title="TOP PLAYERS // BY TURNS">
+          <div className="admin-ranking-list">
+            {(analytics?.top_players ?? []).map((player, index) => (
+              <div key={player.user_id}>
+                <b>{String(index + 1).padStart(2, "0")}</b>
+                <span><strong>{player.username}</strong><small>{player.turns_played} turns // {player.adventures_completed} adventures // {player.intermission_wins} arcade wins</small></span>
+              </div>
+            ))}
+          </div>
+        </Panel>
+      </div>
+
+      <Panel title="RECENT COMPLETIONS">
+        <div className="admin-recent-list">
+          {(analytics?.recent_completions ?? []).map((entry) => (
+            <div key={entry.history_id}>
+              <span><strong>{entry.adventure_title}</strong><small>{entry.heroes || "UNKNOWN HEROES"}</small></span>
+              <span>{entry.turn_count} TURNS</span>
+              <span>{entry.ending_label || "COMPLETE"}</span>
+              <time>{entry.completed_at ? new Date(entry.completed_at).toLocaleString() : ""}</time>
+            </div>
+          ))}
+        </div>
+      </Panel>
+
+      <Panel title="ACCOUNTS / ACCESS / ALLOWANCES">
+        <p className="muted-copy">
+          Granting Author access also grants Publish. This console cannot create another
+          administrator; superuser authority remains bootstrap-only. Allowance buttons set the total monthly budget; they do not add credits or reset usage.
+        </p>
+
+        <form
+          className="admin-search"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void loadUsers(search);
+          }}
+        >
+          <input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search username or email"
+            aria-label="Search users"
+          />
+          <button className="button" type="submit">SEARCH</button>
+          <button
+            className="button subtle"
+            type="button"
+            onClick={() => {
+              setSearch("");
+              void loadUsers("");
+            }}
+          >
+            ALL USERS
+          </button>
+        </form>
+
+        {loading ? <p className="muted-copy">READING THE ACCOUNT LEDGER_</p> : null}
+        {error ? <div className="form-error">{error}</div> : null}
+
+        <div className="admin-user-list">
+          {visibleUsers.map((target) => {
+            const isTargetAdmin = target.permissions.includes("admin");
+            const hasAuthor = target.permissions.includes("author") || isTargetAdmin;
+            const busy = workingUserId === target.user_id;
+
+            return (
+              <article className="admin-user-row" key={target.user_id}>
+                <div>
+                  <span className="eyebrow">{permissionLabel(target)}</span>
+                  <strong>{target.username}</strong>
+                  <small>{target.email}</small>
+                </div>
+                <div className="admin-user-permissions">
+                  {target.permissions.length
+                    ? target.permissions.map((permission) => (
+                        <span className="admin-permission-chip" key={permission}>
+                          {permission.toUpperCase()}
+                        </span>
+                      ))
+                    : <span className="muted-copy">NO SPECIAL ACCESS</span>}
+                </div>
+                <div className="admin-user-actions">
+                  <button
+                    className={`button ${hasAuthor ? "subtle" : "primary"}`}
+                    type="button"
+                    disabled={busy || isTargetAdmin}
+                    onClick={() => void toggleAuthor(target)}
+                    title={
+                      isTargetAdmin
+                        ? "Administrator author access is protected."
+                        : hasAuthor
+                          ? "Revoke Author and Publish access"
+                          : "Grant Author and Publish access"
+                    }
+                  >
+                    {busy ? "UPDATING_" : hasAuthor ? "REVOKE AUTHOR" : "GRANT AUTHOR"}
+                  </button>
+                  {pendingAccount?.user_id === target.user_id ? (
+                    <div className="system-notice" role="group" aria-label="Confirm account status change">
+                      <p>{pendingAccount.is_active ? "Disable" : "Enable"} {pendingAccount.username}? Disabling revokes all login sessions and blocks new play. Existing Hero and adventure data is preserved.</p>
+                      <button className="button" type="button" disabled={busy} onClick={() => void toggleAccount(pendingAccount)}>CONFIRM {pendingAccount.is_active ? "DISABLE" : "ENABLE"}</button>
+                      <button className="button" type="button" disabled={busy} onClick={() => setPendingAccount(null)}>CANCEL</button>
+                    </div>
+                  ) : null}
+                  {!isTargetAdmin ? (
+                    <>
+                      <button className="button subtle" type="button" disabled={busy} onClick={() => setPendingAccount(target)}>{target.is_active ? "DISABLE ACCOUNT" : "ENABLE ACCOUNT"}</button>
+                      <button className="button subtle" type="button" disabled={usageWorkingUserId === target.user_id} onClick={() => void setAllowance(target.user_id, 5)}>SET $5/MO</button>
+                      <button className="button subtle" type="button" disabled={usageWorkingUserId === target.user_id} onClick={() => void setAllowance(target.user_id, 10)}>SET $10/MO</button>
+                      <button className="button subtle" type="button" disabled={usageWorkingUserId === target.user_id} onClick={() => void setAllowance(target.user_id, 0, true)}>SET UNLIMITED</button>
+                    </>
+                  ) : null}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+
+        {!loading && !error && visibleUsers.length === 0 ? (
+          <div className="empty-state">
+            <strong>NO MATCHING ACCOUNT.</strong>
+            <span>The player must register before you can approve them.</span>
+          </div>
+        ) : null}
+      </Panel>
+
+      <Panel title="LEGACY AUTHOR CONTENT">
+        <p className="muted-copy">
+          Import a portable Author bundle exported from the old SQLite database. The
+          importer preserves document IDs, versions, publication state, generated stories,
+          and ownership by username. It refuses the entire import if a legacy author does
+          not yet have a cloud account.
+        </p>
+
+        <div className="admin-import-controls">
+          <label className="button subtle admin-file-picker">
+            SELECT CONTENT BUNDLE
+            <input
+              type="file"
+              accept="application/json,.json"
+              onChange={(event) => void readBundle(event.target.files?.[0] ?? null)}
+            />
+          </label>
+          <span>{bundleName || "NO BUNDLE SELECTED"}</span>
+          <button
+            className="button primary"
+            type="button"
+            disabled={!bundle || importing}
+            onClick={() => void runImport()}
+          >
+            {importing ? "IMPORTING_" : "IMPORT CONTENT"}
+          </button>
+        </div>
+
+        {bundle && Object.keys(authorMap).length ? (
+          <div className="admin-author-map">
+            <strong>LEGACY OWNERSHIP MAP</strong>
+            <span className="muted-copy">
+              Leave a username unchanged when the cloud account uses the same name.
+              Change the destination when your new account name differs from the old one.
+            </span>
+            {Object.entries(authorMap).map(([legacyUsername, destinationUsername]) => (
+              <label key={legacyUsername}>
+                <span>{legacyUsername}</span>
+                <span aria-hidden="true">→</span>
+                <input
+                  value={destinationUsername}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    setAuthorMap((current) => ({
+                      ...current,
+                      [legacyUsername]: value,
+                    }));
+                  }}
+                  aria-label={`Cloud username for ${legacyUsername}`}
+                />
+              </label>
+            ))}
+          </div>
+        ) : null}
+
+        {importError ? <div className="form-error">{importError}</div> : null}
+
+        {importReport ? (
+          <div className="admin-import-report">
+            <strong>THE ARCHIVE HAS BEEN RESTORED.</strong>
+            <span>Authors: {importReport.authors_resolved.join(", ") || "none"}</span>
+            {Object.entries(importReport.ownership_map)
+              .filter(([legacy, current]) => legacy !== current)
+              .map(([legacy, current]) => (
+                <span key={legacy}>Ownership: {legacy} → {current}</span>
+              ))}
+            <span>
+              Documents: {importReport.documents.inserted} inserted / {importReport.documents.skipped} already present
+            </span>
+            <span>
+              Versions: {importReport.versions.inserted} inserted / {importReport.versions.skipped} already present
+            </span>
+            <span>
+              Generated stories: {importReport.generated_adventures.inserted} inserted / {importReport.generated_adventures.skipped} already present
+            </span>
+            {importReport.restart_required ? (
+              <span>Restart the backend once so newly imported approved stories are registered in the live catalog.</span>
+            ) : null}
+          </div>
+        ) : null}
+      </Panel>
+    </>
+  );
+}

@@ -1,0 +1,195 @@
+/* Quillairo 66.54 — Adventure library and saved endings.
+ * One readable archive composition rather than rows of miniature cover cards.
+ * Route-scoped: only /game/adventures and /game/history. No scene, gameplay,
+ * generated illustration, theme, or global component selectors. */
+.q22-archive.q22-journey-library,
+.q22-archive.q22-sealed-archive {
+  --q54-ink: var(--ix-ink, var(--ib-text, #25211d));
+  --q54-copy: var(--ix-copy, var(--ib-copy, #514a40));
+  --q54-muted: var(--ix-muted, var(--ib-muted, #70675c));
+  --q54-rule: var(--ix-rule, var(--ib-line, #b8ad9e));
+  --q54-gold: var(--ix-gold, var(--qs-accent, #986a34));
+  --q54-display: var(--ix-display-font, var(--ib-serif, Georgia, serif));
+  --q54-ui: var(--ix-ui-font, var(--ib-serif, Georgia, serif));
+}
+/* Preserve the existing hero-world text and the user-facing count; remove the
+ * faux double-title visual hierarchy that previously competed with the page. */
+.q22-archive.q22-journey-library .q22-archive-intro,
+.q22-archive.q22-sealed-archive .q22-archive-intro {
+  gap: clamp(24px, 4vw, 56px);
+  padding-block: clamp(12px, 2vw, 28px) clamp(28px, 4vw, 52px);
+}
+.q22-archive.q22-journey-library .q22-archive-intro h2,
+.q22-archive.q22-sealed-archive .q22-archive-intro h2 {
+  font: 400 clamp(25px, 2.8vw, 38px)/1.2 var(--q54-display) !important;
+  letter-spacing: -.022em;
+  margin-block: 8px 12px;
+}
+.q22-archive.q22-journey-library .q22-archive-intro p,
+.q22-archive.q22-sealed-archive .q22-archive-intro p {
+  max-width: 62ch;
+  font: 400 clamp(16px, 1.5vw, 18px)/1.62 var(--q54-display);
+}
+.q22-archive.q22-journey-library .q22-archive-ledger,
+.q22-archive.q22-sealed-archive .q22-archive-ledger {
+  padding-block: 6px;
+}
+.q22-archive.q22-journey-library .q22-archive-ledger strong,
+.q22-archive.q22-sealed-archive .q22-archive-ledger strong {
+  font-size: clamp(40px, 4.6vw, 65px);
+}
+/* Filtering and search: real live counts, keyboard-friendly targets, no false
+ * affordances or ornamental UI. */
+.q22-archive .q54-browser-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  column-gap: clamp(14px, 3vw, 26px);
+  row-gap: 12px;
+  margin-block: 3px clamp(20px, 2.8vw, 32px);
+}
+.q22-archive .q54-browser-tools .q22-archive-search {
+  flex: 1 1 280px;
+  max-width: 440px;
+  margin: 0;
+}
+.q22-archive .q54-browser-tools .q22-archive-search input {
+  min-height: 48px;
+  background: transparent !important;
+}
+.q22-archive .q54-browser-tools .q54-results {
+  flex: 1 0 160px;
+  margin: 0 0 12px;
+  color: var(--q54-muted);
+  font: 400 13px/1.45 var(--q54-ui);
+  text-align: right;
+}
+.q22-archive .q54-browser-tools .q54-clear-search {
+  min-height: 44px;
+  margin-bottom: 1px;
+  padding-inline: 12px;
+  background: transparent !important;
+  border: 1px solid var(--q54-rule) !important;
+  color: var(--q54-ink) !important;
+  font: 500 13px/1.4 var(--q54-ui);
+  white-space: nowrap;
+}
+.q22-archive .q54-browser-tools .q54-clear-search:hover {
+  border-color: var(--q54-gold) !important;
+}
+/* Full-width manuscript entries with distinct metadata; completed story text
+ * does not expand inside a narrow card column anymore. */
+.q22-archive.q22-journey-library .history-grid,
+.q22-archive.q22-sealed-archive .history-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  padding-bottom: clamp(24px, 4vw, 48px);
+}
+.q22-archive .history-card.q54-chronicle-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(215px, 28%);
+  column-gap: clamp(22px, 5vw, 68px);
+  row-gap: 6px;
+  align-content: start;
+  padding: clamp(26px, 3.6vw, 48px) 0 !important;
+  margin: 0;
+  border-top: 1px solid var(--q54-rule) !important;
+  border-bottom: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.q22-archive .history-card.q54-chronicle-card > .eyebrow {
+  grid-column: 1;
+  grid-row: 1;
+  margin-bottom: 4px;
+  font: 600 11px/1.5 var(--q54-ui) !important;
+  letter-spacing: .11em;
+}
+.q22-archive .history-card.q54-chronicle-card > h2 {
+  grid-column: 1;
+  grid-row: 2;
+  margin: 0 0 12px !important;
+  font: 400 clamp(28px, 3.2vw, 44px)/1.15 var(--q54-display) !important;
+  letter-spacing: -.028em;
+}
+.q22-archive .history-card.q54-chronicle-card > .history-meta {
+  grid-column: 2;
+  grid-row: 2;
+  align-self: center;
+  display: flex;
+  gap: 6px 12px;
+  margin: 0 0 12px;
+  color: var(--q54-muted) !important;
+}
+.q22-archive .history-card.q54-chronicle-card > small {
+  grid-column: 2;
+  grid-row: 3;
+  align-self: start;
+  margin: 0;
+  font: 400 13px/1.5 var(--q54-ui);
+}
+.q22-archive .history-card.q54-chronicle-card > p {
+  grid-column: 1;
+  grid-row: 3;
+  max-width: 76ch;
+  margin: 0 0 15px !important;
+  font: 400 clamp(16px, 1.5vw, 18px)/1.73 var(--q54-display) !important;
+  color: var(--q54-copy) !important;
+  white-space: pre-wrap;
+}
+.q22-archive .history-card.q54-chronicle-card > :is(.history-card-actions, details, .chronicle-audio) {
+  grid-column: 1 / -1;
+  margin-top: 6px;
+}
+.q22-archive .history-card.q54-chronicle-card > .history-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 18px;
+  padding: 16px 0 0 !important;
+}
+.q22-archive .history-card.q54-chronicle-card .history-card-actions details {
+  flex-basis: 100%;
+}
+.q22-archive .history-card.q54-chronicle-card details > p {
+  max-width: 76ch;
+  white-space: pre-wrap;
+}
+.q22-archive .history-card.q54-chronicle-card details > strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--q54-ink);
+  font: 400 22px/1.35 var(--q54-display);
+}
+.q22-archive.q22-sealed-archive .history-card.q54-chronicle-card > .q54-ending {
+  padding-top: 0;
+  border-bottom: 1px solid var(--q54-rule);
+}
+.q22-archive .history-card.q54-chronicle-card :is(a, button, input, summary):focus-visible {
+  outline: 2px solid var(--q54-gold) !important;
+  outline-offset: 4px;
+}
+@media (max-width: 960px) {
+  .q22-archive .history-card.q54-chronicle-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .q22-archive .history-card.q54-chronicle-card > h2 { margin: 9px 0 12px !important; }
+  .q22-archive .history-card.q54-chronicle-card > .history-meta { margin: 0 0 8px; }
+  .q22-archive .history-card.q54-chronicle-card > small { margin-bottom: 12px; }
+  .q22-archive .history-card.q54-chronicle-card > p { margin-bottom: 16px !important; }
+}
+@media (max-width: 600px) {
+  .q22-archive .q54-browser-tools { align-items: stretch; gap: 10px; }
+  .q22-archive .q54-browser-tools .q22-archive-search { flex-basis: 100%; max-width: none; }
+  .q22-archive .q54-browser-tools .q54-results { flex: 1 1 100%; text-align: left; margin: 0; }
+  .q22-archive .q54-browser-tools .q54-clear-search { align-self: start; margin: 0; }
+  .q22-archive.q22-journey-library .q22-archive-intro,
+  .q22-archive.q22-sealed-archive .q22-archive-intro { padding-block: 10px 24px; }
+  .q22-archive .history-card.q54-chronicle-card { padding-block: 24px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .q22-archive .q54-browser-tools :is(input, button) { transition: none !important; }
+}

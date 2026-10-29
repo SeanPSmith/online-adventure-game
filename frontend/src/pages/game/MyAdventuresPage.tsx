@@ -5,6 +5,7 @@ import { Link } from "react-router";
 import { PageTitle } from "../../components/ui/PageTitle";
 import { Panel } from "../../components/ui/Panel";
 import "./quillairoChronicleArchivePass6622.css";
+import "./inkscapeChroniclesPass6654.css";
 import { ShareMomentButton } from "../../components/game/ShareMomentButton";
 import { ArchivedChronicleAudio } from "../../components/game/ArchivedChronicleAudio";
 import { apiFetch } from "../../services/api";
@@ -35,14 +36,15 @@ export function MyAdventuresPage() {
    .catch(reason => {if(alive) setError(reason instanceof Error ? reason.message : "Your library could not be opened.");});
   return () => {alive = false;};
  }, [adventures, reload]);
- const rows = (library?.[shelf] ?? []).filter(row => [row.adventure_title, row.adventure_id, ...row.players.map(p => p.character_name)].join(" ").toLowerCase().includes(search.toLowerCase()));
+ const searchTerm = search.trim().toLowerCase();
+ const rows = (library?.[shelf] ?? []).filter(row => [row.adventure_title, row.adventure_id, row.world_title, row.ending_label, row.play_mode, ...row.players.map(p => p.character_name)].join(" ").toLowerCase().includes(searchTerm));
  return <div className="q22-archive q22-journey-library">
   <PageTitle eyebrow="YOUR STORY LIBRARY" title="Your adventures" actions={<Link className="button" to="/game">Begin a new adventure →</Link>} />
   <section className="q22-archive-intro" aria-label="Adventure library introduction">
    <div className="q22-archive-intro-copy">
-    <span className="q22-folio-label">THE CHRONICLE SHELF · VOL. I</span>
+    <span className="q22-folio-label">SAVED ADVENTURES</span>
     <h2>Every journey leaves a trace.</h2>
-    <p>Open a chapter in progress, revisit a finished tale, or find the Hero who traveled beside you.</p>
+    <p>Continue a journey in progress or revisit one you finished.</p>
    </div>
    <div className="q22-archive-ledger" aria-label="Saved adventure counts">
     <span className="q22-folio-label">YOUR COLLECTION</span>
@@ -50,21 +52,25 @@ export function MyAdventuresPage() {
     <span>adventures recorded</span>
    </div>
   </section>
-  <Panel title="BROWSE YOUR JOURNEYS">
-   <p>Adventures save automatically as you play. Continue with the same Hero and party, or revisit a finished Chronicle.</p>
+  <Panel title="BROWSE ADVENTURES">
+   <p>Progress is saved as you play. Resume with the same Hero and party.</p>
    <div className="history-card-actions q22-shelf-tabs" role="group" aria-label="Adventure status">
     {(["active", "completed", "abandoned"] as Shelf[]).map(value => <button type="button" className="button q22-shelf-tab" aria-pressed={shelf === value} onClick={() => setShelf(value)} key={value}>{value === "active" ? "In progress" : value === "completed" ? "Finished" : "Abandoned"} ({library?.[value].length ?? 0})</button>)}
    </div>
-   <label className="catalog-search-field q22-archive-search"><span>SEARCH YOUR ADVENTURES</span><input type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Adventure or Hero name" /></label>
+   <div className="q54-browser-tools">
+    <label className="catalog-search-field q22-archive-search"><span>SEARCH YOUR ADVENTURES</span><input type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Adventure, world, or Hero" /></label>
+    {search ? <button type="button" className="button q54-clear-search" onClick={() => setSearch("")}>Clear search</button> : null}
+    {library && !error ? <p className="q54-results" role="status" aria-live="polite">Showing {rows.length} of {library[shelf].length} {shelf === "active" ? "in-progress" : shelf} {library[shelf].length === 1 ? "adventure" : "adventures"}</p> : null}
+   </div>
    {error ? <div className="form-error" role="alert">{error} <button className="button" type="button" onClick={() => setReload(n => n + 1)}>TRY AGAIN</button></div> : null}
    {!library && !error ? <p role="status">Opening your library…</p> : null}
    {library && !error && !rows.length ? <div className="empty-state"><strong>{search ? "No matching adventures" : `No ${shelf} adventures`}</strong><span>{shelf === "active" ? "Choose an adventure on Home to begin." : shelf === "completed" ? "Finished stories will appear here." : "Adventures abandoned from this release onward appear here. They cannot be resumed."}</span></div> : null}
    <div className="history-grid">{rows.map(row => {
     const title = row.adventure_title || catalog.find(a => a.adventure_id === row.adventure_id)?.title || row.adventure_id;
     const text = row.recap || row.final_resolution || "Your party is assembled. Continue to begin the story.";
-    return <article className="history-card q22-chronicle" key={`${row.room_code}:${row.character_id ?? shelf}`}>
+    return <article className="history-card q22-chronicle q54-chronicle-card" data-chronicle-status={shelf} key={`${row.room_code}:${row.character_id ?? shelf}`}>
      <span className="eyebrow q22-chronicle-status">{row.ending_label || (shelf === "active" ? "In progress" : shelf === "completed" ? "Finished" : "Abandoned")}</span><h2>{title}</h2>
-     <div className="history-meta"><span>{row.world_title}</span><span>{row.turn_count} TURNS{row.target_turns ? ` / ~${row.target_turns} EXPECTED` : ""}</span><span>{row.play_mode?.toUpperCase()}</span><span>{row.players.map(p => p.character_name).join(" + ")}</span></div>
+     <div className="history-meta" aria-label="Adventure details">{row.world_title ? <span>{row.world_title}</span> : null}<span>{row.turn_count} TURNS{row.target_turns ? ` / ~${row.target_turns} EXPECTED` : ""}</span>{row.play_mode ? <span>{row.play_mode.toUpperCase()}</span> : null}{row.players.length ? <span>{row.players.map(p => p.character_name).join(" + ")}</span> : null}</div>
      <small>{shelf === "completed" ? "Completed" : "Last saved"}: {savedDate(row.completed_at || row.updated_at)}</small>
      <p>{shelf === "active" ? "Previously: " : ""}{text}</p>
      <div className="history-card-actions">

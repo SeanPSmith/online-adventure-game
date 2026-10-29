@@ -13,6 +13,7 @@ import type { AdventureCatalogItem, AdventureListItem } from "../../services/gam
 import { useInkboundPaper } from "../../features/appearance/inkboundPaper";
 import "./inkboundAuthenticatedDashboard.css";
 import "./quillairoAtlasPass6645.css";
+import "./inkscapeWorldsPass6655.css";
 
 type Page = "home" | "worlds" | "heroes" | "journeys" | "join";
 
@@ -192,7 +193,7 @@ export function InkboundAuthenticatedDashboard({
             <div className="i656-discovery-note"><p className="i656-eyebrow">An atlas of possibilities</p><h2>Somewhere new awaits.</h2><p>Fantasy, mystery, faraway futures—each world begins with a choice. Pick a setting and invite someone along.</p><button className="i656-text-link" type="button" onClick={() => setPage("worlds")}>Discover stories →</button></div>
           </section>
         </>}
-        {page === "worlds" && <section className="i656-interior" aria-label="Discover adventures"><div className="i656-interior-intro"><p className="i656-eyebrow">The adventure atlas</p><h1>Choose a world<br/><em>to get lost in.</em></h1><p>Every cover is an invitation. The story inside is never quite the same twice.</p></div>
+        {page === "worlds" && <section className="i656-interior q55-atlas" aria-label="Discover adventures"><div className="i656-interior-intro"><p className="i656-eyebrow">The adventure atlas</p><h1>Choose a world<br/><em>to get lost in.</em></h1><p>Every cover is an invitation. The story inside is never quite the same twice.</p></div>
           <div className="i656-library-tools">
             <label>Search the atlas<input type="search" value={needle} onChange={(event) => setNeedle(event.target.value)} placeholder="Title, setting, or a whisper…" /></label>
             <div className="i656-choice-field"><span className="i656-field-label">Find your kind of story</span>
@@ -202,10 +203,14 @@ export function InkboundAuthenticatedDashboard({
               <TerminalSelect className="i656-select" ariaLabel="Hero used to start an adventure" value={selectedHeroId} onChange={onSelectHero} options={heroOptions} disabled={!freeHeroes.length} />
             </div>
           </div>
+          <div className="q55-atlas-status" aria-live="polite" aria-atomic="true">
+            <p>{directoryReady ? `${found.length} ${found.length === 1 ? "world" : "worlds"} ${needle.trim() || filter !== "ALL" ? "match your search" : "available"}` : "Loading the world atlas…"}</p>
+            {(needle.trim() || filter !== "ALL") && <button type="button" onClick={() => { setNeedle(""); setFilter("ALL"); }}>Clear filters</button>}
+          </div>
           <TravelHeroFolio hero={selectedHero} />
           {!freeHeroes.length && <p className="i656-availability-note">{available.length ? "Your living Heroes are already in adventures. Resume a story, or create another Hero." : "Create a living Hero before starting a new adventure."} <Link to="/game/heroes/new">Create a Hero →</Link></p>}
-          <div className="i656-worlds-list">{found.map((item, index) => <article className="i656-world" key={item.adventure_id}><button className="i656-world-cover" type="button" onClick={() => inspect(item)} aria-label={`Read ${item.title} synopsis`}><img src={storyCover(item.title,item.tags,item.metadata)} onError={event => nextCoverSource(event.currentTarget,item.title,item.tags,item.metadata)} alt={`Illustrated cover for ${item.title}`} loading="lazy"/></button><div><p className="i656-eyebrow">No. {String(index+1).padStart(2,"0")} {item.tags.slice(0,2).join(" · ")}</p><h2>{item.title}</h2><p>{synopsis(item)}</p><button type="button" className="i656-text-link" onClick={() => inspect(item)}>Read the introduction ↗</button></div></article>)}</div>
-          {directoryReady && !found.length && <p className="i656-empty-line">No matching worlds. Try another search.</p>}{!directoryReady && <p className="i656-empty-line" role="status">The atlas is being prepared…</p>}
+          <div className="i656-worlds-list">{found.map((item) => <article className="i656-world" key={item.adventure_id}><button className="i656-world-cover" type="button" onClick={() => inspect(item)} aria-label={`Read ${item.title} synopsis`}><img src={storyCover(item.title,item.tags,item.metadata)} onError={event => nextCoverSource(event.currentTarget,item.title,item.tags,item.metadata)} alt={`Illustrated cover for ${item.title}`} loading="lazy"/></button><div><p className="i656-eyebrow">{item.tags.slice(0,2).join(" · ") || "Adventure"}</p><h2>{item.title}</h2><p>{synopsis(item)}</p><button type="button" className="i656-text-link" onClick={() => inspect(item)}>Read the introduction ↗</button></div></article>)}</div>
+          {directoryReady && !found.length && <div className="q55-atlas-empty" role="status"><h2>No worlds found.</h2><p>Try a different title or genre.</p>{(needle.trim() || filter !== "ALL") && <button type="button" onClick={() => { setNeedle(""); setFilter("ALL"); }}>Show all worlds →</button>}</div>}{!directoryReady && <p className="i656-empty-line" role="status">The atlas is being prepared…</p>}
         </section>}
         {page === "heroes" && <section className="i656-interior i656-heroes" aria-label="Hero Hall"><div className="i656-interior-intro"><p className="i656-eyebrow">Portraits of the living</p><h1>Every Hero<br/><em>has a history.</em></h1><p>Some are still writing theirs.</p><Link className="i656-primary-action" to="/game/heroes/new">Create a Hero →</Link></div>
           <div className="i656-records">{heroes.map((hero, index) => <article key={hero.character_id} className="i656-hero-record"><span className="i656-entry-index">{String(index+1).padStart(2,"0")}</span><div><h2>{hero.name}</h2><p>{hero.bio || "An unwritten past."}</p><small>Level {hero.level} · HP {hero.health}/{hero.max_health} · {hero.is_alive ? hero.hero_status : "Fallen"}</small></div><div className="i656-record-actions">{usableHero(hero) && !occupied.has(hero.character_id) && <button type="button" aria-pressed={selectedHeroId === hero.character_id} onClick={() => onSelectHero(hero.character_id)}>{selectedHeroId === hero.character_id ? "Selected ✓" : "Choose Hero"}</button>}<Link to={`/game/heroes/${encodeURIComponent(hero.character_id)}`}>Character folio ↗</Link></div></article>)}{!heroes.length && <p className="i656-empty-line">No Heroes have entered your story yet.</p>}</div><Link className="i656-text-link" to="/game/graveyard">Visit the Graveyard ↗</Link></section>}

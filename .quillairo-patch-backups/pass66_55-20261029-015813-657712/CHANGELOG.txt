@@ -1,0 +1,8 @@
+Quillairo 66.55 presentation-only overlay
+frontend/src/pages/game/InkboundAuthenticatedDashboard.tsx
+frontend/src/pages/author/AuthorPage.tsx
+app/web/author/index.html
+frontend/src/pages/game/inkscapeWorldsPass6655.css
+frontend/src/pages/author/inkscapeAuthorPass6655.css
+app/web/author/inkscapeStudioPass6655.css
+tests/frontend/test_pass66_55_inkscape_worlds_author.py

@@ -10,6 +10,7 @@ import {
 } from "../../services/author";
 import { useAuth } from "../../state/AuthContext";
 import "./quillairoAuthorHomePass6627.css";
+import "./inkscapeAuthorPass6655.css";
 
 export function AuthorPage() {
   const { user } = useAuth();
@@ -54,7 +55,7 @@ export function AuthorPage() {
 
   if (!canAuthor) {
     return (
-      <div className="q27-author-home">
+      <div className="q27-author-home q55-author-home">
         <PageTitle eyebrow="THE WRITER’S DESK" title="Author access required" />
         <Panel title="THIS MANUSCRIPT IS RESTRICTED">
           <p className="muted-copy" role="status">
@@ -68,7 +69,7 @@ export function AuthorPage() {
   }
 
   return (
-    <div className="q27-author-home">
+    <div className="q27-author-home q55-author-home">
       <PageTitle eyebrow="THE WRITER’S DESK" title="At the writer’s desk" />
       <div className="inkbound-author-intro">
         <div>
@@ -78,14 +79,18 @@ export function AuthorPage() {
             Enter the Author Studio <span aria-hidden="true">→</span>
           </a>
         </div>
-        <p className="inkbound-author-aside">The ink remembers what you write.</p>
+        <div className="q55-author-metadata" aria-live="polite">
+          <span>YOUR LIBRARY</span>
+          <strong>{loading ? "…" : error ? "—" : documents.length}</strong>
+          <small>{documents.length === 1 ? "manuscript" : "manuscripts"}</small>
+        </div>
       </div>
 
       <Panel title="YOUR MANUSCRIPTS">
         {loading ? <p className="muted-copy">Opening your manuscript library…</p> : null}
         {error ? <div className="form-error">{error}</div> : null}
 
-        <div className="author-document-grid">
+        <div className="author-document-grid" aria-label="Saved manuscripts">
           {documents.map((document, index) => (
             <article
               className="author-document"
@@ -108,8 +113,7 @@ export function AuthorPage() {
         ) : null}
 
         <p className="muted-copy author-migration-note">
-          The Author Studio holds the full editing workflow: autosave, AI suggestions,
-          version history, preview, and publishing. Select a manuscript there to continue writing.
+          Open the Author Studio to select a manuscript, review proposals, preview changes, or publish.
         </p>
       </Panel>
     </div>

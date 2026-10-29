@@ -1,0 +1,698 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Quillairo — Author Studio</title>
+    <link rel="stylesheet" href="/static/author/author.css?v=06631">
+    <link rel="stylesheet" href="/static/author/quillairoStudioPass6627.css?v=06631">
+</head>
+<body>
+<a class="q-author-skip" href="#author-workspace">Skip to the editor</a>
+<header class="topbar">
+    <div>
+        <a class="q-author-logo" href="/game" aria-label="Quillairo home">
+            <img class="q-author-logo--light" src="/brand/primary-light.png" alt="" />
+            <img class="q-author-logo--dark" src="/brand/secondary-dark.png" alt="" />
+        </a>
+        <div class="eyebrow">AUTHOR STUDIO</div>
+        <h1>The Writer’s Desk</h1>
+    </div>
+    <div class="topbar-actions">
+        <div id="author-user" class="author-user">AUTHORIZING...</div>
+        <button id="author-guide-button" class="button subtle" type="button">
+            HOW THIS WORKS
+        </button>
+        <a class="button subtle" href="/account/author">AUTHOR HOME</a>
+        <a id="return-to-game-link" class="button subtle" href="/game">RETURN TO GAME</a>
+    </div>
+</header>
+
+<main class="shell">
+    <aside class="sidebar">
+        <div class="sidebar-heading">
+            <div>
+                <div class="section-kicker">SOURCE LIBRARY</div>
+                <h2>Worlds & Briefs</h2>
+            </div>
+            <button id="new-adventure-button" class="icon-button" type="button" title="New source document">+</button>
+        </div>
+
+        <div class="library-filters">
+            <button class="filter-button active" type="button" data-filter="all">ALL</button>
+            <button class="filter-button" type="button" data-filter="world">WORLDS</button>
+            <button class="filter-button" type="button" data-filter="brief">BRIEFS</button>
+            <button class="filter-button" type="button" data-filter="archived">ARCHIVED</button>
+        </div>
+
+        <div id="adventure-list" class="adventure-list"></div>
+    </aside>
+
+    <section class="workspace" id="author-workspace" tabindex="-1">
+        <div id="empty-state" class="empty-state">
+            <div class="empty-mark">+</div>
+            <h2>Build a world.</h2>
+            <p>
+                Create a living World, or write an Adventure Brief to set its next story in motion.
+                Draft freely, refine with AI, and publish when the pages are ready.
+            </p>
+            <button id="empty-new-button" class="button primary" type="button">NEW SOURCE</button>
+        </div>
+
+        <div id="editor" class="editor" hidden>
+            <div class="editor-header">
+                <div>
+                    <div id="editor-kicker" class="section-kicker">DRAFT</div>
+                    <h2 id="editor-title">Source</h2>
+                    <div id="editor-meta" class="editor-meta"></div>
+                </div>
+
+                <div class="editor-actions">
+                    <button id="preview-document-button" class="button subtle" type="button">DESIGN DOCUMENT</button>
+                    <button id="preview-compiled-button" class="button subtle" type="button">COMPILED PACK</button>
+                    <button id="versions-button" class="button subtle" type="button">VERSIONS</button>
+                    <button id="new-brief-button" class="button subtle" type="button" hidden>+ BRIEF</button>
+                    <button id="duplicate-button" class="button subtle" type="button">DUPLICATE</button>
+                    <button id="archive-button" class="button subtle" type="button">ARCHIVE</button>
+                    <button id="new-version-button" class="button subtle" type="button" hidden>NEW VERSION</button>
+                    <button id="save-button" class="button primary" type="button">SAVE NOW</button>
+                    <button id="publish-button" class="button danger" type="button">PUBLISH</button>
+                </div>
+            </div>
+
+
+            <section id="q-world-art-panel" class="q-world-art-panel" hidden aria-label="World illustration studio">
+                <div class="q-world-art-head"><div><div class="section-kicker">ILLUSTRATED ATLAS</div>
+                    <h3>World &amp; Story Cover Illustration</h3><p>Generate one persistent cover for this World or adventure Brief. Browse-story art is reused; individual chapters receive artwork from actual events.</p></div>
+                    <button class="button subtle" id="q-world-art-generate" type="button">GENERATE WORLD ART</button>
+                </div>
+                <div class="q-world-art-image"><img id="q-world-art-preview" alt="Approved world cover illustration" hidden />
+                    <p id="q-world-art-status" role="status">No world illustration yet. Genre artwork is used until you generate one.</p></div>
+                <p class="q-world-art-notice">Transparent RGBA, 10% clear margins, no rectangular mask. Generation uses a paid image call. Maximum three attempts per world.</p>
+            </section>
+
+            <section class="strength-panel">
+                <div class="strength-summary">
+                    <div>
+                        <div class="section-kicker">DOCUMENT STRENGTH</div>
+                        <div class="strength-line">
+                            <strong id="strength-label" class="strength-label">EMPTY</strong>
+                            <span id="strength-score">0%</span>
+                        </div>
+                    </div>
+                    <div id="save-state" class="save-state">SAVED</div>
+                </div>
+
+                <div class="progress-track">
+                    <div id="progress-fill" class="progress-fill"></div>
+                </div>
+
+                <div id="section-strengths" class="section-strengths"></div>
+
+                <p class="strength-note">
+                    Strength is not a grade and you do not need to reach 100%.
+                    It only measures how much direction you supplied. Sparse leaves
+                    more room for improvisation; detailed documents create tighter
+                    guardrails. Drafts autosave after you stop typing.
+                </p>
+            </section>
+
+            <section id="world-link-panel" class="world-link-panel" hidden>
+                <div class="section-kicker">WORLD CONTEXT</div>
+                <strong id="world-link-title"></strong>
+                <p>
+                    This adventure brief is linked to the world above. Future
+                    generation will compile the selected published world version
+                    together with this brief.
+                </p>
+            </section>
+
+            <section id="generation-panel" class="generation-panel" hidden>
+                <div class="generation-header">
+                    <div>
+                        <div class="section-kicker">ADVENTURE SEEDS</div>
+                        <h3>Generate Playable Story Seed</h3>
+                    </div>
+
+                    <div class="generation-readiness-wrap">
+                        <div id="generation-readiness" class="generation-readiness">
+                            PUBLISH THIS BRIEF TO GENERATE
+                        </div>
+                        <button
+                            id="generation-info-button"
+                            class="generation-info-button"
+                            type="button"
+                            aria-label="Show seed generation requirements"
+                            title="Seed generation requirements"
+                        >
+                            ? INFO
+                        </button>
+                    </div>
+                </div>
+
+                <div class="generation-provider-strip">
+                    <div>
+                        <span class="generation-provider-label">GENERATION PROVIDER</span>
+                        <strong id="generation-provider-name">MOCK</strong>
+                    </div>
+                    <div id="generation-provider-model" class="generation-provider-model">
+                        MODEL // DETERMINISTIC
+                    </div>
+                </div>
+
+                <p class="helper">
+                    STORY prioritizes stronger story planning, dialogue logic, and branching
+                    coherence. ECONOMY uses the lower-cost model for rapid iteration. Both
+                    profiles still pass through the same server-side schema and approval flow.
+                </p>
+
+                <label class="generation-quality-label">
+                    Generation Quality
+                    <select id="generation-quality-tier">
+                        <option value="story">STORY</option>
+                        <option value="economy">ECONOMY</option>
+                    </select>
+                    <span id="generation-quality-help" class="field-help">
+                        Loading generation profiles...
+                    </span>
+                </label>
+
+                <label>
+                    Optional Special Request
+                    <textarea
+                        id="generation-special-request"
+                        rows="4"
+                        placeholder="Use Mudd early. Make the opening personal. Include a storm. Keep the secret hidden until late."
+                    ></textarea>
+                </label>
+
+                <div class="generation-actions">
+                    <button
+                        id="generate-seed-button"
+                        class="button primary"
+                        type="button"
+                    >
+                        GENERATE SEED
+                    </button>
+
+                    <button
+                        id="refresh-generated-button"
+                        class="button subtle"
+                        type="button"
+                    >
+                        REFRESH
+                    </button>
+                </div>
+
+                <div
+                    id="generated-seed-list"
+                    class="generated-seed-list"
+                ></div>
+            </section>
+
+            <section id="migration-panel" class="migration-panel" hidden>
+                <div class="section-kicker">LEGACY SOURCE PORTED</div>
+                <strong id="migration-title">SCHEMA V2 → V3</strong>
+                <p>Nothing was discarded. Obvious fields were moved into their new scope, and the original legacy source is retained internally for review.</p>
+                <div id="migration-review-list" class="migration-review-list"></div>
+            </section>
+
+            <form id="adventure-form" autocomplete="off" spellcheck="true">
+                <details open>
+                    <summary><span>01</span>Identity</summary>
+                    <div class="section-body grid two">
+                        <label>Title<input id="identity-title" data-path="identity.title" type="text"></label>
+                        <label>Slug<input id="identity-slug" data-path="identity.slug" type="text"></label>
+
+                        <div class="kind-only-grid wide" data-doc-kind="brief">
+                            <label>Primary Type
+                                <select data-path="identity.primary_type">
+                                    <option value="journey">Journey</option>
+                                    <option value="mystery">Mystery</option>
+                                    <option value="expedition">Expedition</option>
+                                    <option value="quest">Quest</option>
+                                    <option value="survival">Survival</option>
+                                    <option value="escape_heist">Escape / Heist</option>
+                                    <option value="social_intrigue">Social / Intrigue</option>
+                                </select>
+                            </label>
+                            <label>Secondary Type
+                                <select data-path="identity.secondary_type">
+                                    <option value="">None</option>
+                                    <option value="journey">Journey</option>
+                                    <option value="mystery">Mystery</option>
+                                    <option value="expedition">Expedition</option>
+                                    <option value="quest">Quest</option>
+                                    <option value="survival">Survival</option>
+                                    <option value="escape_heist">Escape / Heist</option>
+                                    <option value="social_intrigue">Social / Intrigue</option>
+                                </select>
+                            </label>
+                            <label>Length
+                                <select data-path="identity.length">
+                                    <option value="short">Short</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="long">Long</option>
+                                </select>
+                            </label>
+                            <label>Difficulty
+                                <select data-path="identity.difficulty">
+                                    <option value="introductory">Introductory</option>
+                                    <option value="easy">Easy</option>
+                                    <option value="moderate">Moderate</option>
+                                    <option value="hard">Hard</option>
+                                    <option value="brutal">Brutal</option>
+                                </select>
+                            </label>
+                        </div>
+
+                        <label>Genre<input data-path="identity.genre" type="text" placeholder="Supernatural mystery, weird western, cozy fantasy..."></label>
+                        <label>Tone<input data-path="identity.tone" type="text" placeholder="Quiet, eerie, funny, tense..."></label>
+                        <label class="wide"><span data-kind-label-world="Default Weirdness" data-kind-label-brief="Weirdness">Weirdness</span><input data-path="identity.weirdness" type="range" min="0" max="5" step="1"></label>
+                        <label class="wide">One-Sentence Pitch<textarea data-path="identity.one_sentence_pitch" rows="3" placeholder="What is this source fundamentally about?"></textarea></label>
+                        <label class="wide">Player Experience<textarea data-path="identity.player_experience" rows="4" placeholder="What should players feel in this world / during this adventure?"></textarea></label>
+                    </div>
+                </details>
+
+                <details open data-doc-kind="world">
+                    <summary><span>02</span>Setting & World Premise</summary>
+                    <div class="section-body">
+                        <p class="helper">What is this world, when/where is it, and what makes it distinct? Do not describe one specific adventure mission here.</p>
+                        <label>World Premise<textarea data-path="premise" rows="9" placeholder="The durable setting premise shared by adventures in this World..."></textarea></label>
+                    </div>
+                </details>
+
+                <details open data-doc-kind="brief">
+                    <summary><span>02</span>Hook, Goal & Pressure</summary>
+                    <div class="section-body grid two">
+                        <label class="wide">Starting Situation<textarea data-path="starting_situation" rows="8" placeholder="What is happening when this particular adventure begins?"></textarea></label>
+                        <label class="wide">Core Goal / Pressure<textarea data-path="core_goal" rows="5" placeholder="What initially drives the players forward? What needs doing, finding, escaping, protecting, solving, or surviving?"></textarea></label>
+                    </div>
+                </details>
+
+                <details data-doc-kind="world">
+                    <summary><span>03</span>Canon / World Truths</summary>
+                    <div class="section-body">
+                        <p class="helper">Objective facts that remain true across adventures.</p>
+                        <div id="world-truths-list" class="repeat-list"></div>
+                        <button class="button add-button" type="button" data-add="world_truths">+ ADD WORLD TRUTH</button>
+                    </div>
+                </details>
+
+                <details data-doc-kind="world">
+                    <summary><span>04</span>World Rules</summary>
+                    <div class="section-body">
+                        <p class="helper">How magic, technology, supernatural forces, society, geography, or other world systems work.</p>
+                        <div id="world-rules-list" class="repeat-list"></div>
+                        <button class="button add-button" type="button" data-add="world_rules">+ ADD WORLD RULE</button>
+                    </div>
+                </details>
+
+                <details data-doc-kind="brief">
+                    <summary><span>03</span>Adventure Facts / Local Conditions</summary>
+                    <div class="section-body">
+                        <p class="helper">Facts true for this adventure without becoming permanent World canon.</p>
+                        <div id="adventure-facts-list" class="repeat-list"></div>
+                        <button class="button add-button" type="button" data-add="adventure_facts">+ ADD ADVENTURE FACT</button>
+                    </div>
+                </details>
+
+                <details data-doc-kind="brief" id="world-reference-section">
+                    <summary><span>04</span>Featured World Content</summary>
+                    <div class="section-body">
+                        <p class="helper">Select existing World material to feature. The Brief stores references and adventure-specific usage notes; it does not duplicate the World canon.</p>
+                        <div id="world-reference-picker" class="world-reference-picker"></div>
+                    </div>
+                </details>
+
+                <details>
+                    <summary><span id="locations-section-number">05</span><span id="locations-section-title">Locations</span></summary>
+                    <div class="section-body">
+                        <p id="locations-section-help" class="helper"></p>
+                        <div id="locations-list" class="repeat-list"></div>
+                        <button id="locations-add-button" class="button add-button" type="button" data-add="locations">+ ADD LOCATION</button>
+                    </div>
+                </details>
+
+                <details>
+                    <summary><span id="npcs-section-number">06</span><span id="npcs-section-title">People</span></summary>
+                    <div class="section-body">
+                        <p id="npcs-section-help" class="helper">Three words is valid. Three pages is also valid.</p>
+                        <div id="npcs-list" class="repeat-list"></div>
+                        <button id="npcs-add-button" class="button add-button" type="button" data-add="npcs">+ ADD NPC</button>
+                    </div>
+                </details>
+
+                <details>
+                    <summary><span id="lore-section-number">07</span><span id="lore-section-title">Lore & Secrets</span></summary>
+                    <div class="section-body">
+                        <p id="lore-section-help" class="helper"></p>
+                        <div id="lore-secrets-list" class="repeat-list"></div>
+                        <button id="lore-add-button" class="button add-button" type="button" data-add="lore_secrets">+ ADD LORE / SECRET</button>
+                    </div>
+                </details>
+
+                <details data-doc-kind="brief">
+                    <summary><span>08</span>Required / Preferred Moments</summary>
+                    <div class="section-body">
+                        <p class="helper">Adventure beats only. These are not World lore.</p>
+                        <div id="moments-list" class="repeat-list"></div>
+                        <button class="button add-button" type="button" data-add="moments">+ ADD MOMENT</button>
+                    </div>
+                </details>
+
+                <details>
+                    <summary><span id="guidance-section-number">08</span><span id="guidance-section-title">Story Flavor</span></summary>
+                    <div class="section-body grid two">
+                        <label>Humor<textarea data-path="story_guidance.humor" rows="4"></textarea></label>
+                        <label>Danger<textarea data-path="story_guidance.danger" rows="4"></textarea></label>
+                        <label>Violence<textarea data-path="story_guidance.violence" rows="4"></textarea></label>
+                        <label>Weirdness<textarea data-path="story_guidance.weirdness" rows="4"></textarea></label>
+                        <label class="wide" data-doc-kind="brief">Choice Guidance<textarea data-path="story_guidance.choice_guidance" rows="7" placeholder="Serious, risky, aggressive, chill, goofy, passive, character-specific..."></textarea></label>
+                    </div>
+                </details>
+
+                <details>
+                    <summary><span id="forbidden-section-number">09</span><span id="forbidden-section-title">Boundaries</span></summary>
+                    <div class="section-body">
+                        <p id="forbidden-section-help" class="helper"></p>
+                        <div id="forbidden-rules-list" class="repeat-list"></div>
+                        <button id="forbidden-add-button" class="button add-button" type="button" data-add="forbidden_rules">+ ADD BOUNDARY</button>
+                    </div>
+                </details>
+
+                <details>
+                    <summary><span id="threads-section-number">10</span><span id="threads-section-title">Threads</span></summary>
+                    <div class="section-body">
+                        <p id="threads-section-help" class="helper"></p>
+                        <div id="story-threads-list" class="repeat-list"></div>
+                        <button id="threads-add-button" class="button add-button" type="button" data-add="story_threads">+ ADD THREAD</button>
+                    </div>
+                </details>
+
+                <details data-doc-kind="brief">
+                    <summary><span>12</span>Replayability</summary>
+                    <div class="section-body grid two">
+                        <label>May Change Between Runs<textarea data-path="replayability.variable_elements" rows="7"></textarea></label>
+                        <label>Must Stay Fixed In This Adventure<textarea data-path="replayability.fixed_elements" rows="7"></textarea></label>
+                        <label class="wide">Notes<textarea data-path="replayability.notes" rows="5"></textarea></label>
+                    </div>
+                </details>
+
+                <details>
+                    <summary><span id="notes-section-number">11</span>Notes</summary>
+                    <div class="section-body grid two">
+                        <label class="wide">Director Notes <span class="field-help">Sent to AI/runtime.</span><textarea data-path="director_notes" rows="8" placeholder="Loose creative direction the Director should see..."></textarea></label>
+                        <label class="wide private-note-label">Private Author Notes <span class="field-help">Never sent to AI or runtime.</span><textarea data-path="private_notes" rows="8" placeholder="Your own reminders, TODOs, production notes, ideas to revisit..."></textarea></label>
+                    </div>
+                </details>
+            </form>
+        </div>
+    </section>
+</main>
+
+<dialog id="author-ai-dialog" class="author-ai-dialog">
+    <div class="dialog-card author-ai-card">
+        <div class="preview-header">
+            <div>
+                <div class="section-kicker">AI HELPER</div>
+                <h2 id="author-ai-title">Expand Field</h2>
+            </div>
+            <button id="author-ai-close" class="icon-button" type="button" aria-label="Close AI helper">×</button>
+        </div>
+
+        <p id="author-ai-context" class="author-ai-context"></p>
+
+        <label>One-sentence direction
+            <textarea
+                id="author-ai-prompt"
+                rows="4"
+                spellcheck="true"
+                placeholder="Give the helper the rough version. It will expand only this field or item."
+            ></textarea>
+        </label>
+
+        <section id="author-ai-preview" class="author-ai-preview" hidden aria-live="polite">
+            <h3>REVIEW BEFORE APPLYING</h3>
+            <p>The proposal has NOT changed your draft. Check that the AI kept your
+               setting, incident, characters and tone before accepting.</p>
+            <div id="author-ai-preview-changes" class="author-ai-preview-changes"></div>
+        </section>
+
+        <div class="author-ai-footer">
+            <span id="author-ai-state" class="author-assist-state">READY</span>
+            <span class="field-help">AI proposals are never applied or saved without your review.</span>
+        </div>
+
+        <div class="dialog-actions">
+            <button id="author-ai-cancel" class="button subtle" type="button">CANCEL</button>
+            <button id="author-ai-submit" class="button primary" type="button">GENERATE PROPOSAL</button>
+            <button id="author-ai-apply" class="button primary" type="button" hidden>APPLY REVIEWED CHANGES</button>
+        </div>
+    </div>
+</dialog>
+
+<dialog id="author-confirm-dialog" class="author-confirm-dialog">
+    <div class="dialog-card author-confirm-card">
+        <div id="author-confirm-kicker" class="section-kicker">CONFIRM ACTION</div>
+        <h2 id="author-confirm-title">Are you sure?</h2>
+        <p id="author-confirm-message" class="author-confirm-message"></p>
+
+        <div class="dialog-actions author-confirm-actions">
+            <button id="author-confirm-cancel" class="button subtle" type="button">CANCEL</button>
+            <button id="author-confirm-accept" class="button primary" type="button">CONFIRM</button>
+        </div>
+    </div>
+</dialog>
+
+<dialog id="generation-info-dialog" class="generation-info-dialog">
+    <div class="dialog-card generation-info-card">
+        <div class="preview-header">
+            <div>
+                <div class="section-kicker">SEED GENERATION</div>
+                <h2>What Generate Seed Needs</h2>
+            </div>
+            <button id="generation-info-close" class="icon-button" type="button" aria-label="Close generation info">×</button>
+        </div>
+
+        <p class="generation-info-intro">
+            Generate Seed compiles one exact published World version with one exact published Adventure Brief version, then sends that locked source material through the configured generation provider.
+        </p>
+
+        <div id="generation-info-checklist" class="generation-info-checklist" aria-live="polite"></div>
+
+        <div class="generation-info-rules">
+            <strong>REQUIREMENTS</strong>
+            <ol>
+                <li>Open an <strong>Adventure Brief</strong>, not a World document.</li>
+                <li>The Brief must be linked to a World.</li>
+                <li>The linked World must have a published version.</li>
+                <li>The currently selected Brief version must be published.</li>
+                <li>The generation provider must be configured and available.</li>
+            </ol>
+            <p>
+                If you create a newer draft after publishing, that draft is not eligible until it is published. Generation always uses exact published versions so a seed can be traced back to its source.
+            </p>
+        </div>
+
+        <div class="dialog-actions">
+            <button id="generation-info-done" class="button primary" type="button">GOT IT</button>
+        </div>
+    </div>
+</dialog>
+
+<dialog id="author-guide-dialog" class="author-guide-dialog">
+    <div class="dialog-card author-guide-card">
+        <div class="preview-header">
+            <div>
+                <div class="section-kicker">BEGINNER GUIDE</div>
+                <h2>How Authoring Works</h2>
+            </div>
+            <button id="author-guide-close" class="icon-button" type="button" aria-label="Close guide">×</button>
+        </div>
+
+        <div class="author-guide-intro">
+            <strong>You do not need to fill out everything.</strong>
+            Give the system the ideas you care about and leave breathing room everywhere else.
+            A few strong details can make a great adventure.
+        </div>
+
+        <div class="author-guide-flow">
+            <span>CREATE WORLD</span>
+            <span>→</span>
+            <span>PUBLISH</span>
+            <span>→</span>
+            <span>CREATE BRIEF</span>
+            <span>→</span>
+            <span>PUBLISH</span>
+            <span>→</span>
+            <span>GENERATE</span>
+            <span>→</span>
+            <span>REVIEW</span>
+            <span>→</span>
+            <span>APPROVE</span>
+            <span>→</span>
+            <span>PLAY</span>
+        </div>
+
+        <div class="author-guide-grid">
+            <section class="author-guide-section">
+                <div class="section-kicker">WORLD BIBLE</div>
+                <h3>Define the playground.</h3>
+                <p>
+                    Use a World Bible for facts that can matter across many adventures:
+                    places, recurring people, lore, tone, rules, secrets, and things the
+                    story should never contradict.
+                </p>
+                <p>
+                    You can make it huge, but you do not have to. A premise, a few truths,
+                    a location or two, and a memorable NPC are enough to start.
+                </p>
+            </section>
+
+            <section class="author-guide-section">
+                <div class="section-kicker">ADVENTURE BRIEF</div>
+                <h3>Define tonight's story.</h3>
+                <p>
+                    A Brief points at a World and says what this particular adventure
+                    should be about: the hook, mood, length, difficulty, important
+                    characters or places, desired moments, and any special restrictions.
+                </p>
+                <p>
+                    The Brief does not need to retell the whole World. Use <strong>Featured World Content</strong>
+                    to select existing places, people, factions, and secrets, then describe only how they matter
+                    in this run. Add Adventure-Only content only when it genuinely exists for this story.
+                </p>
+            </section>
+        </div>
+
+        <section class="author-guide-section">
+            <div class="section-kicker">AUTHORITY LABELS</div>
+            <h3>These tell the generator what it may improvise.</h3>
+
+            <div class="authority-guide">
+                <div><strong>CANON</strong><span>Treat this as objectively true. Do not contradict it.</span></div>
+                <div><strong>REQUIRED</strong><span>This must be included or honored in the generated adventure.</span></div>
+                <div><strong>PREFERRED</strong><span>Try to use this when it fits naturally, but the story may bend around it.</span></div>
+                <div><strong>INSPIRATION</strong><span>This is creative fuel, not a promise. Remixing and improvisation are welcome.</span></div>
+                <div><strong>FORBIDDEN</strong><span>Do not include this or cross this boundary.</span></div>
+            </div>
+        </section>
+
+        <section class="author-guide-section">
+            <div class="section-kicker">WHAT SHOULD I WORRY ABOUT?</div>
+            <h3>Mostly the things you actually care about.</h3>
+            <ul class="author-guide-list">
+                <li><strong>Be specific about non-negotiables.</strong> Put hard facts in Canon and hard boundaries in Forbidden Rules.</li>
+                <li><strong>Do not chase 100% strength.</strong> More detail means more control, not automatically a better story.</li>
+                <li><strong>Three words can be useful.</strong> An NPC can begin as “mean baker, secretly lonely.” You can always expand later.</li>
+                <li><strong>Leave blanks on purpose.</strong> Empty space gives the generator room to surprise you.</li>
+                <li><strong>Use Required sparingly.</strong> Too many mandatory beats can make a short adventure feel railroaded.</li>
+                <li><strong>Secrets belong in the right scope.</strong> Persistent hidden truth goes in the World; a one-night twist goes in the Brief.</li>
+                <li><strong>Use AI helpers freely, but keep the scopes honest.</strong> World AI deepens durable canon; Brief AI can read the linked World and should reference it instead of duplicating it.</li>
+                <li><strong>Director Notes are instructions; Private Author Notes are yours.</strong> Private notes are never sent to AI or runtime generation.</li>
+                <li><strong>Write the feeling, not just the facts.</strong> Tone and Player Experience are useful when you care how the session should feel.</li>
+            </ul>
+        </section>
+
+        <section class="author-guide-section">
+            <div class="section-kicker">PUBLISHING & VERSIONS</div>
+            <h3>Draft freely. Publish when it represents the truth you want used.</h3>
+            <p>
+                Drafts autosave and can keep changing. Publishing freezes that version
+                so generation can point at an exact World version and exact Brief version.
+                If you want to change a published source later, create a new version rather
+                than rewriting history underneath an existing adventure.
+            </p>
+        </section>
+
+        <section class="author-guide-section author-guide-note">
+            <div class="section-kicker">THE IMPORTANT PART</div>
+            <h3>You are not writing the whole adventure.</h3>
+            <p>
+                You are defining the sandbox, the boundaries, and the things worth caring
+                about. The generator/director supplies connective tissue, scenes, surprises,
+                complications, dialogue, and details inside those boundaries.
+            </p>
+            <p>
+                The game server still owns mechanical truth during play: character stats,
+                checks, dice, inventory, flags, damage, and other canonical game state are
+                not supposed to be invented by the narrator.
+            </p>
+        </section>
+
+        <div class="dialog-actions">
+            <button id="author-guide-done" class="button primary" type="button">GOT IT</button>
+        </div>
+    </div>
+</dialog>
+
+<dialog id="new-adventure-dialog">
+    <div class="dialog-card">
+        <div class="section-kicker">NEW SOURCE DOCUMENT</div>
+        <h2 id="new-dialog-title">New Source</h2>
+
+        <label>Type
+            <select id="new-kind">
+                <option value="world">World Bible</option>
+                <option value="brief">Adventure Brief</option>
+            </select>
+        </label>
+
+        <label id="new-parent-label" hidden>World
+            <select id="new-parent"></select>
+        </label>
+
+        <label>Title<input id="new-title" type="text" maxlength="160"></label>
+        <label>Slug<input id="new-slug" type="text" maxlength="80"></label>
+
+        <div class="dialog-actions">
+            <button id="new-cancel" class="button subtle" type="button">CANCEL</button>
+            <button id="create-adventure-confirm" class="button primary" type="button">CREATE</button>
+        </div>
+    </div>
+</dialog>
+
+<dialog id="duplicate-dialog">
+    <div class="dialog-card">
+        <div class="section-kicker">FORK SOURCE</div>
+        <h2>Duplicate</h2>
+        <label>New Title<input id="duplicate-title" type="text" maxlength="160"></label>
+        <label>New Slug<input id="duplicate-slug" type="text" maxlength="80"></label>
+        <div class="dialog-actions">
+            <button id="duplicate-cancel" class="button subtle" type="button">CANCEL</button>
+            <button id="duplicate-confirm" class="button primary" type="button">DUPLICATE</button>
+        </div>
+    </div>
+</dialog>
+
+<dialog id="versions-dialog">
+    <div class="dialog-card versions-card">
+        <div class="preview-header">
+            <div>
+                <div class="section-kicker">VERSION HISTORY</div>
+                <h2>Versions</h2>
+            </div>
+            <button id="versions-close" class="icon-button" type="button">×</button>
+        </div>
+        <div id="versions-list" class="versions-list"></div>
+    </div>
+</dialog>
+
+<dialog id="preview-dialog">
+    <div class="dialog-card preview-card">
+        <div class="preview-header">
+            <div>
+                <div id="preview-kicker" class="section-kicker">PREVIEW</div>
+                <h2 id="preview-title">Document</h2>
+            </div>
+            <button id="preview-close" class="icon-button" type="button">×</button>
+        </div>
+        <pre id="preview-content"></pre>
+    </div>
+</dialog>
+
+<div id="toast" class="toast" hidden></div>
+<script src="/static/author/author.js?v=066" defer></script>
+</body>
+</html>

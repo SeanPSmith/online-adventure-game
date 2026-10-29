@@ -1,0 +1,163 @@
+/* Pass 66.55 — production Atlas. Uses existing approved illustrations, never new/baked UI art.
+   World discovery presentation only: no room, hero eligibility or socket changes. */
+.inkbound-home .q55-atlas {
+  --q55-accent: var(--q45-gold);
+  --q55-rule: var(--paper-strong-rule);
+  max-width: 1280px;
+  margin-inline: auto;
+}
+.inkbound-home .q55-atlas .i656-interior-intro {
+  margin-bottom: clamp(25px, 3vw, 46px);
+}
+.inkbound-home .q55-atlas .i656-interior-intro h1 {
+  max-width: 780px;
+  font-size: clamp(46px, 5.8vw, 85px);
+  letter-spacing: -.045em;
+  text-wrap: balance;
+}
+.inkbound-home .q55-atlas .i656-interior-intro > p:not(.i656-eyebrow) {
+  max-width: 630px;
+  font-size: clamp(17px, 1.6vw, 20px);
+}
+.inkbound-home .q55-atlas .i656-library-tools {
+  gap: clamp(12px, 1.5vw, 22px);
+  padding: clamp(18px, 2vw, 26px) 0;
+}
+.inkbound-home .q55-atlas .i656-library-tools label,
+.inkbound-home .q55-atlas .i656-library-tools .i656-choice-field {
+  min-width: 0;
+}
+.inkbound-home .q55-atlas .i656-library-tools :is(input, button):focus-visible {
+  outline: 2px solid var(--q55-accent);
+  outline-offset: 2px;
+}
+.inkbound-home .q55-atlas-status {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 48px;
+  gap: 8px 24px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--paper-rule);
+}
+.inkbound-home .q55-atlas-status p {
+  margin: 0;
+  font: 13px/1.5 var(--paper-type);
+  color: var(--paper-dim);
+}
+.inkbound-home .q55-atlas-status button,
+.inkbound-home .q55-atlas-empty button {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--q55-accent);
+  border-radius: 0;
+  padding: 4px 1px;
+  color: var(--paper-text);
+  font: 600 13px/1.4 var(--paper-type);
+  cursor: pointer;
+}
+.inkbound-home .q55-atlas-status button:focus-visible,
+.inkbound-home .q55-atlas-empty button:focus-visible {
+  outline: 2px solid var(--q55-accent);
+  outline-offset: 3px;
+}
+.inkbound-home .q55-atlas .i656-travel-folio {
+  margin-top: 13px;
+  margin-bottom: 13px;
+}
+.inkbound-home .q55-atlas .i656-worlds-list {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(17px, 2.3vw, 32px);
+  padding: clamp(22px, 3.5vw, 43px) 0;
+}
+.inkbound-home .q55-atlas .i656-world {
+  border: 0;
+  border-top: 1px solid var(--q55-rule);
+  overflow: visible;
+  background: transparent;
+  transition: border-color .17s ease;
+}
+.inkbound-home .q55-atlas .i656-world:hover,
+.inkbound-home .q55-atlas .i656-world:focus-within {
+  border-top-color: var(--q55-accent);
+}
+.inkbound-home .q55-atlas .i656-world:focus-within {
+  outline: none;
+}
+.inkbound-home .q55-atlas .i656-world-cover {
+  min-height: 0;
+  padding: clamp(12px, 1.5vw, 20px) 0 0;
+  border: 0;
+}
+.inkbound-home .q55-atlas .i656-world-cover:focus-visible {
+  outline: 2px solid var(--q55-accent);
+  outline-offset: 3px;
+}
+.inkbound-home .q55-atlas .i656-world-cover img {
+  width: 100%;
+  height: clamp(180px, 17vw, 245px);
+  object-fit: contain !important;
+  background: transparent;
+  filter: none !important;
+}
+.inkbound-home .q55-atlas .i656-world > div {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 15px 0 20px;
+  border-top: 0;
+}
+.inkbound-home .q55-atlas .i656-world .i656-eyebrow {
+  font-size: 11px !important;
+  letter-spacing: .09em;
+  line-height: 1.4;
+  color: var(--q55-accent) !important;
+}
+.inkbound-home .q55-atlas .i656-world h2 {
+  font: 400 clamp(27px, 2.5vw, 37px)/1.14 var(--paper-ser);
+  letter-spacing: -.026em;
+  text-wrap: balance;
+}
+.inkbound-home .q55-atlas .i656-world > div > p:not(.i656-eyebrow) {
+  min-height: 0;
+  margin: 0 0 22px;
+  color: var(--paper-copy);
+  font: 16px/1.57 var(--paper-ser);
+  -webkit-line-clamp: 4;
+}
+.inkbound-home .q55-atlas .i656-world .i656-text-link {
+  margin-top: auto;
+  min-height: 40px;
+  padding: 8px 0;
+  font-size: 14px !important;
+}
+.inkbound-home .q55-atlas-empty {
+  border-top: 1px solid var(--q55-rule);
+  padding: clamp(26px, 4vw, 56px) 0;
+}
+.inkbound-home .q55-atlas-empty h2 {
+  margin: 0 0 7px;
+  font: 400 clamp(29px, 3vw, 42px)/1.2 var(--paper-ser);
+}
+.inkbound-home .q55-atlas-empty p {
+  margin: 0 0 16px;
+  color: var(--paper-copy);
+  font: 16px/1.5 var(--paper-ser);
+}
+@media (max-width: 900px) {
+  .inkbound-home .q55-atlas .i656-worlds-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .inkbound-home .q55-atlas .i656-world-cover img { height: clamp(180px, 26vw, 250px); }
+}
+@media (max-width: 580px) {
+  .inkbound-home .q55-atlas .i656-worlds-list { grid-template-columns: minmax(0, 1fr); gap: 15px; }
+  .inkbound-home .q55-atlas .i656-world-cover img { height: clamp(190px, 57vw, 295px); }
+  .inkbound-home .q55-atlas .i656-world > div { padding: 14px 0 19px; }
+  .inkbound-home .q55-atlas .i656-library-tools { align-items: stretch; }
+  .inkbound-home .q55-atlas .i656-library-tools label,
+  .inkbound-home .q55-atlas .i656-library-tools .i656-choice-field { flex: 1 1 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .inkbound-home .q55-atlas .i656-world,
+  .inkbound-home .q55-atlas .i656-world-cover img { transition: none !important; }
+}

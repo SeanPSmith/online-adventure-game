@@ -1,0 +1,67 @@
+/* Quillairo 66.57 — Sitewide QA refinements.
+   Scoped to navigation, keyboard operation, reading anchors and responsive chrome.
+   No animation/state changes, art filters, gameplay surfaces or global recoloring. */
+
+/* Keep the real theme's ink focus treatment on details/summary in the outer
+   navigation. Summary controls otherwise inherit the old global palette. */
+.inkbound-system-shell:not(.is-desk-home):not(.is-adventure-mode)
+  .site-header :is(a, button, summary):focus-visible {
+  outline: 2px solid var(--ib-text) !important;
+  outline-offset: 3px;
+}
+
+/* Account's header differs from the game header: at narrow widths the former
+   must wrap its real links rather than shrink them beyond readability. */
+.inkbound-account-shell .site-header .header-nav {
+  min-width: 0;
+  row-gap: 6px;
+}
+.inkbound-account-shell .site-header .header-nav > a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+/* Long manuscript indexes should never hide the requested section beneath
+   header chrome; retain each page's own heading and illustration treatment. */
+.inkbound-account-shell :is(.q56-admin-region, .q56-admin-anchor),
+.game-site-shell:not(.is-adventure-mode) :is(.q-rulebook-section-title, .q22-archive-intro) {
+  scroll-margin-block-start: 24px;
+}
+
+@media (max-width: 760px) {
+  .inkbound-account-shell .site-header {
+    gap: 8px 12px;
+  }
+  .inkbound-account-shell .site-header .header-nav {
+    flex-basis: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+    align-items: center;
+  }
+  .inkbound-account-shell .site-header .header-nav > a {
+    white-space: normal;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  /* Pass64 made this navigation an overflow-x:auto strip, which can clip the
+     SYSTEM details popover on mobile. On *non-adventure* pages, wrap it instead
+     so the menu and its links remain fully reachable without horizontal drag. */
+  .game-site-shell:not(.is-adventure-mode):not(.is-desk-home)
+    .game-header .header-nav {
+    flex-wrap: wrap;
+    overflow: visible;
+    width: 100%;
+    gap: 3px 8px;
+  }
+  .game-site-shell:not(.is-adventure-mode):not(.is-desk-home)
+    .game-header .header-system-menu {
+    position: relative;
+  }
+  .game-site-shell:not(.is-adventure-mode):not(.is-desk-home)
+    .game-header .header-system-popover {
+    z-index: 40;
+  }
+}

@@ -27,6 +27,9 @@ say "Static source, import and brand-art integrity"
 say "Production route and touchpoint import integrity"
 "$PYTHON_BIN" scripts/audit-player-touchpoints.py --strict
 
+say "Pass 66.57 Inkscape cross-route presentation integrity"
+"$PYTHON_BIN" scripts/audit-inkscape-ui.py --strict
+
 say "Python regression suite"
 "$PYTHON_BIN" -m pytest tests -q
 

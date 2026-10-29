@@ -19,7 +19,7 @@ export function AccountLayout() {
         <Link className="brand q-site-brand" to="/game" aria-label="Quillairo home">
           <BrandLockup paper={paper} />
         </Link>
-        <nav className="header-nav">
+        <nav className="header-nav" aria-label="Account navigation">
           <NavLink to="/account">ACCOUNT</NavLink>
           {canAuthor ? <NavLink to="/account/author">AUTHOR</NavLink> : null}
           {isAdmin ? <NavLink to="/admin">ADMIN</NavLink> : null}

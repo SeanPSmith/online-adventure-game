@@ -1,0 +1,8 @@
+Quillairo 66.57: Cross-route presentation QA and static gate.
+frontend/src/main.tsx
+frontend/src/layouts/AccountLayout.tsx
+frontend/src/styles/inkscapeSitewideQaPass6657.css
+scripts/check-project.sh
+scripts/audit-inkscape-ui.py
+tests/frontend/test_pass66_57_sitewide_qa.py
+docs/inkscape-sitewide-qa-66_57.md

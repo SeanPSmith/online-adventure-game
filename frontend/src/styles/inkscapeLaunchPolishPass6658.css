@@ -1,0 +1,70 @@
+/* Quillairo Inkscape Pass 66.58 — public and authentication legibility.
+   The nine approved references remain the visual standard. No image filters,
+   new art, animation, global resets or gameplay/reader selectors. */
+
+/* The small type is metadata, not decoration; retain legibility at full size. */
+.public-shell.qpub-shell .qpub-world-heading span {
+  font-size: 11px !important;
+}
+.public-shell.qpub-shell .qpub-choice-demo button {
+  min-height: 44px;
+}
+.public-shell.qpub-shell .qpub-auth-fields label small {
+  font-size: 12px !important;
+}
+
+@media (max-width: 760px) {
+  .public-shell.qpub-shell .public-nav.is-open > a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding-block: 10px;
+  }
+  .public-shell.qpub-shell .qpub-overline {
+    font-size: 11px !important;
+    letter-spacing: .11em !important;
+  }
+  .public-shell.qpub-shell .qpub-choice-demo button {
+    font-size: 15px !important;
+    line-height: 1.4;
+  }
+  .public-shell.qpub-shell .qpub-choice-demo small {
+    font-size: 12px !important;
+  }
+  .public-shell.qpub-shell .qpub-pillar-row strong {
+    font-size: 12px !important;
+    letter-spacing: .06em !important;
+    line-height: 1.35;
+  }
+  .public-shell.qpub-shell .qpub-pillar-row small {
+    font-size: 12px !important;
+  }
+  .public-shell.qpub-shell .qpub-how-grid p {
+    font-size: 14px !important;
+  }
+}
+
+/* At very narrow widths, two abbreviated columns make the selling points
+   unreadable. Use one clean information column; preserve the art above it. */
+@media (max-width: 375px) {
+  .public-shell.qpub-shell .qpub-pillar-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+  .public-shell.qpub-shell .qpub-pillar-row > div {
+    border-right: 0;
+    border-bottom: 1px solid var(--q-rule);
+    padding: 12px 8px;
+  }
+  .public-shell.qpub-shell .qpub-pillar-row > div:last-child {
+    border-bottom: 0;
+  }
+  .public-shell.qpub-shell .qpub-how-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  .public-shell.qpub-shell .qpub-how-grid > div {
+    border-right: 0;
+    padding: 0 8px;
+  }
+}

@@ -1,0 +1,9 @@
+Quillairo 66.58: mobile/public Inkscape accessibility and launch readiness.
+frontend/src/layouts/PublicLayout.tsx
+frontend/src/pages/RouteErrorPage.tsx
+frontend/src/main.tsx
+frontend/src/styles/inkscapeLaunchPolishPass6658.css
+scripts/check-project.sh
+scripts/audit-inkscape-launch-readiness.py
+tests/frontend/test_pass66_58_launch_readiness.py
+docs/inkscape-launch-readiness-66_58.md

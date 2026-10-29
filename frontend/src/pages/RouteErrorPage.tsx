@@ -6,7 +6,7 @@ const CHUNK_LOAD_FAILURE = /failed to fetch dynamically imported module|importin
 
 export function RouteErrorPage() {
   const error = useRouteError();
-  const { user } = useAuth();
+  const { authenticated, user } = useAuth();
   const [paper] = useInkboundPaper(user?.user_id ?? "");
   const isAssetFailure = error instanceof Error && CHUNK_LOAD_FAILURE.test(error.message);
   const isMissing = isRouteErrorResponse(error) && error.status === 404;
@@ -25,9 +25,11 @@ export function RouteErrorPage() {
         <button className="button button-primary" type="button" onClick={() => window.location.reload()}>
           TRY THIS PAGE AGAIN
         </button>
-        <Link className="button" to="/game">
-          RETURN TO ADVENTURE HALL
-        </Link>
+        {authenticated ? (
+          <Link className="button" to="/game">RETURN TO ADVENTURE HALL</Link>
+        ) : (
+          <Link className="button" to="/">RETURN HOME</Link>
+        )}
       </div>
     </main>
   );

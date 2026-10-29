@@ -30,6 +30,9 @@ say "Production route and touchpoint import integrity"
 say "Pass 66.57 Inkscape cross-route presentation integrity"
 "$PYTHON_BIN" scripts/audit-inkscape-ui.py --strict
 
+say "Pass 66.58 public Inkscape and launch readiness inventory (public blockers advisory for staging)"
+"$PYTHON_BIN" scripts/audit-inkscape-launch-readiness.py --strict-source
+
 say "Python regression suite"
 "$PYTHON_BIN" -m pytest tests -q
 

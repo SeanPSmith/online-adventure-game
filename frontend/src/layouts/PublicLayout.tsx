@@ -1,5 +1,5 @@
 import { BrandLockup } from "../components/brand/BrandLockup";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, Outlet, useLocation } from "react-router";
 import { useAuth } from "../state/AuthContext";
 import { useInkboundPaper } from "../features/appearance/inkboundPaper";
@@ -12,6 +12,7 @@ export function PublicLayout() {
   const [paper] = useInkboundPaper(user?.user_id ?? "");
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuButton = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     setMenuOpen(false);
@@ -24,13 +25,20 @@ export function PublicLayout() {
   return (
     <div className="site-shell public-shell qpub-shell" data-ink-paper={paper}>
       <a className="skip-link" href="#main-content">SKIP TO CONTENT</a>
-      <header className="site-header public-header">
+      <header className="site-header public-header" onKeyDown={(event) => {
+        if (event.key === "Escape" && menuOpen) {
+          setMenuOpen(false);
+          menuButton.current?.focus();
+        }
+      }}>
         <Link className="brand q-site-brand" to="/" aria-label="Quillairo home">
           <BrandLockup paper={paper} />
         </Link>
 
         <button
           className="public-menu-toggle"
+          ref={menuButton}
+          aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
           type="button"
           aria-expanded={menuOpen}
           aria-controls="public-navigation"
@@ -80,9 +88,7 @@ export function PublicLayout() {
           <Link to="/terms">TERMS</Link>
           {feedbackHref ? (
             <a href={feedbackHref}>FEEDBACK</a>
-          ) : (
-            <span title="Configure VITE_FEEDBACK_EMAIL to enable this channel">FEEDBACK // OFFLINE</span>
-          )}
+          ) : null}
         </nav>
 
         <div className="footer-meta">

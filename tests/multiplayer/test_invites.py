@@ -42,11 +42,7 @@ def test_room_invite_supports_native_share_copy_text_and_email():
 
 
 def test_invite_controls_are_exposed_for_open_coop_rooms():
-    home = read("frontend/src/pages/game/GameHomePage.tsx")
     adventure = read("frontend/src/pages/game/AdventurePage.tsx")
-
-    assert "RoomInviteButton" in home
-    assert 'adventure.play_mode === "coop"' in home
     assert "RoomInviteButton" in adventure
     assert 'live.room?.play_mode === "coop"' in adventure
     assert "INVITE / SHARE" in adventure

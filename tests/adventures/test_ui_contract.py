@@ -9,11 +9,11 @@ def read(relative: str) -> str:
 
 
 def test_adventure_synopsis_uses_generated_player_synopsis() -> None:
-    source = read("pages/game/GameHomePage.tsx")
+    source = read("pages/game/InkboundAuthenticatedDashboard.tsx")
 
     assert "metadata?.player_synopsis" in source
-    assert "generatedSynopsis(pendingAdventure)" in source
-    assert "ADVENTURE SYNOPSIS" in source
+    assert "synopsis(selectedStory)" in source
+    assert 'role="dialog"' in source
 
 
 def test_adventure_page_exposes_retry_without_reroll_ui() -> None:
@@ -89,10 +89,10 @@ def test_adventure_hall_has_server_backed_emergency_exit_controls() -> None:
 
     assert 'emit("abandon_adventure"' in socket_context
     assert 'emit("leave_adventure"' in socket_context
-    assert '"ABANDON FOR GOOD"' in home
-    assert '"LEAVE ROOM"' in home
-    assert "adventure.director_retry_required" in home
-    assert "adventure.director_request_active" in home
+    hall = read("pages/game/InkboundAuthenticatedDashboard.tsx")
+    assert "onAbandonAdventure(exitJourney.room_code)" in hall
+    assert "onLeaveAdventure(exitJourney.room_code, exitJourney.character_id)" in hall
+    assert "onAbandonAdventure={abandonAdventure}" in home
 
 
 def test_resume_watchdog_prevents_infinite_restoring_screen() -> None:
@@ -139,7 +139,7 @@ def test_arcade_micro_engine_exposes_lab_and_timing_sport_cabinets() -> None:
     engine = read("features/arcade/engine/useTimingShotEngine.ts")
 
     assert 'path: "arcade"' in router
-    assert 'to="/game/arcade"' in home
+    assert '/game/arcade' in read("pages/game/InkboundAuthenticatedDashboard.tsx")
     assert 'id: "bowling"' in registry
     assert 'id: "golf"' in registry
     assert 'id: "projectile_duel"' in registry
@@ -323,42 +323,34 @@ def test_playtest_pass_21_adds_mobile_arcade_readability_finale_and_qte_resoluti
     assert ".finale-hero-grid" in styles
 
 
-def test_dashboard_pass_22_prioritizes_journey_hero_search_and_system_menu() -> None:
+def test_dashboard_prioritizes_current_journeys_hero_search_and_system_menu() -> None:
     home = read("pages/game/GameHomePage.tsx")
+    dashboard = read("pages/game/InkboundAuthenticatedDashboard.tsx")
     layout = read("layouts/GameLayout.tsx")
-    styles = read("styles/components.css")
     layout_styles = read("styles/layout.css")
 
-    assert 'className="p64-desk"' in home
-    assert 'aria-label="Continue your adventure"' in home
-    assert 'title="CONTINUE JOURNEY"' in home
-    assert 'YOUR HEROES' in home
-    assert 'ADVENTURE LIBRARY' in home
-    assert 'type="search"' in home
-    assert 'catalogSearch' in home
-    assert 'selectedTag' in home
-    assert 'title="SYSTEM MENU"' in home
-    assert 'CONTROL ROOM' in home
-    assert '<NavLink to="/game" end>HOME</NavLink>' in layout
+    assert '<InkboundAuthenticatedDashboard' in home
+    assert 'Continue your story' in dashboard
+    assert 'The Hero Hall' in dashboard
+    assert 'Search the atlas' in dashboard
+    assert 'type="search"' in dashboard
+    assert 'onSelectHero={setSelectedHeroId}' in home
     assert 'className="header-system-menu"' in layout
+    assert '<NavLink to="/game" end>HOME</NavLink>' in layout
     assert '.dashboard-command-grid' in layout_styles
-    assert '.dashboard-system-menu' in styles
 
 
-def test_dashboard_and_hero_sheet_pass_23_promotes_join_styles_selects_and_reframes_progression() -> None:
-    home = read("pages/game/GameHomePage.tsx")
+def test_dashboard_and_hero_sheet_preserve_join_selection_and_progression() -> None:
+    dashboard = read("pages/game/InkboundAuthenticatedDashboard.tsx")
     sheet = read("pages/heroes/HeroSheetPage.tsx")
     styles = read("styles/components.css")
     global_styles = read("styles/global.css")
 
-    continue_at = home.index('title="CONTINUE JOURNEY"')
-    join_at = home.index('title="JOIN A FRIEND"')
-    hero_at = home.index('YOUR HEROES', join_at)
-    adventure_at = home.index('ADVENTURE LIBRARY')
-
-    assert continue_at < join_at < hero_at < adventure_at
-    assert 'className="dashboard-hero-stack dashboard-hero-grid"' in home
-    assert 'className="dashboard-system-section"' in home
+    assert 'id: "join", label: "Join a friend"' in dashboard
+    assert 'type="search"' in dashboard
+    assert 'onJoin(roomCode.trim().toUpperCase())' in dashboard
+    assert 'Hero used to join the adventure' in dashboard
+    assert 'onSelectHero(hero.character_id)' in dashboard
 
     assert "appearance: none" in global_styles
     assert "background-image:" in global_styles

@@ -8,7 +8,6 @@ const LABS = [
   { path: "inkspace-reader", name: "Paginated Reader", summary: "Long story, pagination and attached journal" },
   { path: "tabletop-kit", name: "Floating Instruments", summary: "Character, chat and notes interaction prototype" },
   { path: "space-lab", name: "Cosmetic Space Lab", summary: "Photographic alpha anchors, matching shadows, paper textures, safe zones, and lighting — Pass 64.4P" },
-  { path: "home-lab", name: "Authenticated Home", summary: "Real Heroes and adventures, safely isolated" },
 ] as const;
 
 /** Deliberately a practical developer index, not another faux production page. */

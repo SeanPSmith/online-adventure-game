@@ -4,7 +4,7 @@ ROOT = Path(__file__).resolve().parents[2]
 SRC = ROOT / 'frontend' / 'src'
 def read(path): return (SRC / path).read_text(encoding='utf-8')
 
-def test_brighter_world_is_available_without_erasing_previous_skins():
+def test_saved_appearance_preferences_remain_compatible():
     contract = read('features/appearance/themeContract.ts')
     assert "platformSkin: 'brighter-world'" in contract
     for skin in ('brighter-world', 'wanderers-desk', 'midnight-codex', 'clear-journal'):
@@ -12,19 +12,20 @@ def test_brighter_world_is_available_without_erasing_previous_skins():
     assert 'normalizeAppearance' in contract
     assert 'verifiedEntitlements' in contract
 
-def test_living_book_is_real_dom_and_illustration_is_decorative():
+def test_production_home_has_live_service_callbacks_and_no_retired_book():
     home = read('pages/game/GameHomePage.tsx')
-    css = read('pages/game/gameBrighterWorld.css')
-    assert 'p644-watercolor-plate' in home
-    assert 'aria-hidden="true"' in home
-    assert 'brighter-vista.webp' in css
-    assert 'brighter-desk.webp' in css
-    assert 'brighter-paper.webp' in css
-    assert 'background:url(' not in home
-    for marker in ('createRoom(selectedHeroId, adventureId, pendingPlayMode)',
-                   'joinRoom(selectedHeroId, roomCode)', 'RoomInviteButton',
-                   'setPendingJourneyExit({', 'catalogSearch', 'selectedTag', 'FirstRunGuide'):
+    hall = read('pages/game/InkboundAuthenticatedDashboard.tsx')
+    for marker in ('useGameSocket()', 'listCharacters()',
+                   'createRoom(selectedHeroId, item.adventure_id, mode)',
+                   'joinRoom(selectedHeroId, code)',
+                   'onLeaveAdventure={leaveAdventure}',
+                   'onAbandonAdventure={abandonAdventure}',
+                   'clearRoomEntry()', 'refreshCatalog();'):
         assert marker in home
+    for marker in ('setSelectedStory(', 'onCreate(selectedStory,mode)',
+                   'onAbandonAdventure(exitJourney.room_code)'):
+        assert marker in hall
+    assert 'p644-bound-book' not in home
 
 def test_narration_and_turns_remain_authoritative():
     adventure = read('pages/game/AdventurePage.tsx')

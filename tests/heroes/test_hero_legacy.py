@@ -92,7 +92,7 @@ def test_selector_filters_and_server_join_guard_are_present():
     invite = (root / 'frontend/src/pages/public/JoinInvitePage.tsx').read_text()
     server = (root / 'app/main.py').read_text()
     assert 'hero.is_alive && hero.hero_status === "active"' in home
-    assert 'playableHeroes.slice(0, 4)' in home
+    assert 'selectableHeroes[0]?.character_id' in home
     assert 'hero.is_alive && hero.hero_status === "active"' in invite
     assert 'if not character.is_alive or character.hero_status != "active"' in server
     assert 'await require_owned_character(' in server

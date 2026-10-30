@@ -1,0 +1,157 @@
+{
+  "pass": "66.63r2",
+  "baseline": "quillairo-review-20261030-004500.zip",
+  "files": {
+    "frontend/src/router.tsx": {
+      "before": "6e6ac46f516068d2fb56e5c317b206755bbf5524dc870e0b3a9a3521c0451424",
+      "after": "ef854214b9e541978de9ac46a14b8a40da933981cd78225a284c7e550157b421"
+    },
+    "frontend/src/styles/pass64_2cPerformance.css": {
+      "before": "21a96b6c26e088086b02c3724e515d584d912f589d5ad40d2b9517d27d1b8903",
+      "after": null
+    },
+    "frontend/src/styles/deskScrapbookShell64.css": {
+      "before": "e38e58ec31a9dd38c4c9454a5cc24d870cfb65a83059b8a835c67392f38992f7",
+      "after": null
+    },
+    "frontend/src/styles/deskShellFidelityPass64.css": {
+      "before": "b97dddc59516ac9c270ec8a3b3f8ae08d052a3571e72e883e5d899b54c2ca65f",
+      "after": null
+    },
+    "frontend/src/layouts/GameLayout.tsx": {
+      "before": "36e860b2fd85b5d708c0b47b17a360d77cc664d21c695d96e1de5b1014092fb1",
+      "after": "af39cf2e8b019d493ce718f5fcc5d602003ad94bece09e631184ef638b098949"
+    },
+    "frontend/src/pages/game/deskFidelityPass64.css": {
+      "before": "fc1d1d4410d90fddf95c1feabe6857ff375ca3ab48227fb32abe2740d84b1831",
+      "after": null
+    },
+    "frontend/src/pages/game/gameHomePass64.css": {
+      "before": "133fef1bb24b47501b0a5e62588f121b0ee093287f5f9bb411541e4261eec350",
+      "after": null
+    },
+    "frontend/src/pages/game/livingBook644Ink.css": {
+      "before": "8a79e340f841f82475ce161dc30e4fa9fd4161a969029867516b177957dca567",
+      "after": null
+    },
+    "frontend/src/pages/game/DevWorkshopPage.tsx": {
+      "before": "6bfb828869cbbd248db6f1b803eafa203942a72fa8020a478ff479fbed9fad80",
+      "after": "80fe1247d3247c23dc0908dbb7e35d64091d7ca981c22f2983b7939329f4616b"
+    },
+    "frontend/src/pages/game/inkspaceAuthenticatedHome.css": {
+      "before": "831d73c6d1b9debf132911b5589862cabe4eff4a0a92662a6ac427f708046b96",
+      "after": null
+    },
+    "frontend/src/pages/game/InkspaceAuthenticatedHome.tsx": {
+      "before": "5cf64a421ee2e95e508af1ca8c38a9aeb36881bea8e4071f7b881e535f555d81",
+      "after": null
+    },
+    "frontend/src/pages/game/livingBook644.css": {
+      "before": "8af06d081906fdd02d3218bc2834774de3d6c87dea608025dd4ac7b50ec2d41e",
+      "after": null
+    },
+    "frontend/src/pages/game/deskScrapbookPass64.css": {
+      "before": "f8e2f4d2006c3dfc1f9f81e0cdafa47c690491fcdd47d2d840ff4865249f4cd6",
+      "after": null
+    },
+    "frontend/src/pages/game/livingBook644Fidelity.css": {
+      "before": "1bd279641c9faabf7b9a3dfb230028ac107bf33da7d66df55dc10bbd83304340",
+      "after": null
+    },
+    "frontend/src/pages/game/GameHomePage.tsx": {
+      "before": "632fe3304ac21297a9d39fd7dfd868e34d199217d88458790892a60ff5fdbe27",
+      "after": "ff9d15d2116f4a8f0addea60a044f67fb6fcec7b719bf9b2fd4d9c457a562a92"
+    },
+    "frontend/src/pages/game/gameBrighterWorld.css": {
+      "before": "f9b22ba8983e61e6b9cbdcf401aa61054e49f6cabbb5401cecd408c9dc50bb26",
+      "after": null
+    },
+    "tests/adventures/test_pass64_4n_authenticated_home.py": {
+      "before": "0e6134dded85b35024395d27681c6cb120a909e4ee44eba48a3800a0925fb827",
+      "after": null
+    },
+    "tests/adventures/test_launch_story.py": {
+      "before": "ff854879c2f791fffffab418666b9fa1e9763d51a0f635a262658b6bb0e9df07",
+      "after": "becc9c73df6f82e4e295724183bade4c6564674c2e766f2bf34a9b2b1ec00a22"
+    },
+    "tests/adventures/test_ui_contract.py": {
+      "before": "6052fbb2f1199dbe59cdc0745efc83473b1ef8d61588f6cf6b6679ebce848c93",
+      "after": "2842b4ae3de22b9631e9e1c8516f2e7a619b8a77a1d991ff8675cc619a0e6cb7"
+    },
+    "tests/adventures/test_pass64_4c_persistent_ink.py": {
+      "before": "2c9b8a68ba80943fb0f3319b78e2102c40220088684d45393116f43f49a3b9d5",
+      "after": null
+    },
+    "tests/adventures/test_pass64_3a_living_storybook.py": {
+      "before": "134080a26d27985f012ccd1f6361821f5da1905bd26556befeee23d19bc07dbf",
+      "after": "7869595d39d00bbccfce389eef1971116e90fcea1181de29452d4b5550aa5135"
+    },
+    "tests/adventures/test_pass64_4o_dev_workshop.py": {
+      "before": "da06b793fbdfcb7d2341fbc6e4b56d266d9c3964197d3faa1bcbe894c1182af9",
+      "after": "efb3d927eba0a60cd3f42578ac9cc3a326ff4acc81553dff16b4540e53b943b3"
+    },
+    "tests/adventures/test_pass64_2b_scrapbook_contract.py": {
+      "before": "9f5f990010247bc59c44952324d2b5ab38011d0733208f4bf4fad5695b65d5ca",
+      "after": null
+    },
+    "tests/adventures/test_pass64_4_living_book.py": {
+      "before": "b1ddc1d5de19ed1ea1aa611c88f8f566aab2788a3ec004f55ee94229aebc5bf6",
+      "after": null
+    },
+    "tests/adventures/test_pass64_4b_photo_fidelity.py": {
+      "before": "d55f863470754fbf2397c197866b3144a1902aa2f9cf2ba131d2a5e73f175c09",
+      "after": null
+    },
+    "tests/multiplayer/test_invites.py": {
+      "before": "7508782145360a570efdb35ec3047f13417a958751c63643ccf65da21af72af4",
+      "after": "885f40be692ac5df48b03ebaf956ac172b676de18c30e8b37ed2aa81348fc4b8"
+    },
+    "tests/frontend/hero-legacy.cjs": {
+      "before": "4aa1fad2e9775572f3cb353020b61378e4e10793d4797d2dcf90b746852a3e39",
+      "after": "a101613d6df48dffb974b7b490ff2c37a04b68021b1f071632cc4e95d9fe22c1"
+    },
+    "tests/frontend/test_pass65_6_2_document_scroll.py": {
+      "before": "e4ce26c486c1db32f5a5c09b3d6351c0e809dd9bbe48365a87fc1c2a4d4a95fb",
+      "after": "94c8b65d164a57a1bf559fb3193a65b7620220b0406a296ed1506bea3049ced3"
+    },
+    "tests/frontend/test_pass66_44_production_inkspace_shell.py": {
+      "before": "13b14f912a4a6a30cc452259c26c56fbda6c9cef8b6f5cef88537a0f51f4a8ff",
+      "after": "c4f964d1f307224198cb076d82348b6f8b79228a993f6b2d26fff859d2dd586c"
+    },
+    "tests/frontend/test_pass65_6_live_inkbound_home.py": {
+      "before": "07c39abca81af5ee53fcb405e227444f4b64b51350fc64dae0ef0025e4018172",
+      "after": "4ae6cd30c2366fbb46dceb527018e041b0a941805e8b7707ecc3290f7af6cdaa"
+    },
+    "tests/heroes/test_hero_legacy.py": {
+      "before": "6636955c51072994033096ad9f5a90b386423baa62dcc3d574c7694f309a4c62",
+      "after": "2fe6bee36c4ff39b69720f9c41949c9c2d5cca5520563046f7513f193d4a5039"
+    },
+    "tests/frontend/test_pass66_63r2_live_home_cleanup.py": {
+      "before": null,
+      "after": "c24801a5035d3e4157af59c76e5c05f93e455bfcf098fc6c294483f5d1722d65"
+    },
+    "docs/pass66_63_actual_source_cleanup.md": {
+      "before": null,
+      "after": "e4dc01d7a523486df43e4cb089c4bb8c12970e1352cda08f86140eddc6f54f71"
+    }
+  },
+  "checks": {
+    "pytest": [
+      "tests/frontend/test_pass66_63r2_live_home_cleanup.py",
+      "tests/frontend/test_pass66_44_production_inkspace_shell.py",
+      "tests/frontend/test_pass65_6_2_document_scroll.py",
+      "tests/frontend/test_pass65_6_live_inkbound_home.py",
+      "tests/adventures/test_pass64_3a_living_storybook.py",
+      "tests/adventures/test_pass64_4o_dev_workshop.py",
+      "tests/adventures/test_ui_contract.py",
+      "tests/adventures/test_launch_story.py",
+      "tests/multiplayer/test_invites.py",
+      "tests/heroes/test_hero_legacy.py",
+      "tests/frontend/test_pass66_29_finished_hero_recovery.py"
+    ],
+    "node": [
+      "scripts/tests/route-loading.cjs",
+      "tests/frontend/hero-legacy.cjs"
+    ]
+  }
+}

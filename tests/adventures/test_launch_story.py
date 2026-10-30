@@ -118,7 +118,7 @@ def test_react_launch_ui_uses_get_started_and_no_browser_native_controls() -> No
     # The voice selector must follow the same custom, themed control contract.
     # Native <select> widgets diverge from the adventure UI on mobile/desktop.
     assert "<select" not in react_source
-    assert "TerminalSelect" in read("frontend/src/pages/game/GameHomePage.tsx")
+    assert "TerminalSelect" in read("frontend/src/pages/game/InkboundAuthenticatedDashboard.tsx")
     # The 28-voice searchable picker is now shared by Settings and live play;
     # archived Chronicles use the same styled, accessible TerminalSelect as other UI.
     settings = read("frontend/src/pages/account/SettingsPage.tsx")

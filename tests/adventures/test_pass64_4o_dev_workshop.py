@@ -5,7 +5,7 @@ SRC = ROOT / "frontend/src"
 ROUTER = (SRC / "router.tsx").read_text(encoding="utf-8")
 GATE = (SRC / "components/auth/DevLabGate.tsx").read_text(encoding="utf-8")
 INDEX = (SRC / "pages/game/DevWorkshopPage.tsx").read_text(encoding="utf-8")
-LABS = ("visual-playground", "ink-lab", "inkspace-story", "inkspace-reader", "tabletop-kit", "space-lab", "home-lab")
+LABS = ("visual-playground", "ink-lab", "inkspace-story", "inkspace-reader", "tabletop-kit", "space-lab")
 
 def test_all_experiments_canonical_dev_only_and_legacy_redirects():
     assert 'element: <RequireAuth />' in ROUTER
@@ -13,9 +13,9 @@ def test_all_experiments_canonical_dev_only_and_legacy_redirects():
     assert ROUTER.index('element: <DevLabGate />') < ROUTER.index('path: "dev/visual-playground"')
     for lab in LABS:
         assert f'path: "dev/{lab}"' in ROUTER
-        if lab != "home-lab":
-            assert f'path: "game/{lab}", element: <Navigate to="/dev/{lab}" replace />' in ROUTER
-    assert 'path: "home-lab", element: <Navigate to="/dev/home-lab" replace />' in ROUTER
+        assert f'path: "game/{lab}", element: <Navigate to="/dev/{lab}" replace />' in ROUTER
+    assert 'path: "home-lab", element: <Navigate to="/dev" replace />' in ROUTER
+    assert 'path: "dev/home-lab", element: <Navigate to="/dev" replace />' in ROUTER
     assert 'path: "adventure/:roomId"' in ROUTER
     assert 'index: true' in ROUTER
 
@@ -33,7 +33,7 @@ def test_dev_index_is_explicit_and_player_shell_is_unchanged():
     for lab in LABS:
         assert f'path: "{lab}"' in INDEX
     layout = (SRC / "layouts/GameLayout.tsx").read_text(encoding="utf-8")
-    assert 'location.pathname === "/dev/home-lab"' in layout
+    assert 'isDeskHome' not in layout
     assert 'location.pathname === "/game"' in layout
     # No menu is added to primary player navigation.
     assert 'to="/dev' not in layout

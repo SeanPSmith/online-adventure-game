@@ -57,7 +57,7 @@ export const router = createBrowserRouter([
               { path: "dev/inkbound", lazy: async () => ({ Component: (await import("./pages/game/InkboundFoundationPage")).InkboundFoundationPage }) },
               { path: "dev/space-lab", lazy: async () => ({ Component: (await import("./pages/game/VisualBookPlaygroundPage")).SpaceBookPlaygroundPage }) },
               { element: <GameLayout />, children: [
-                { path: "dev/home-lab", lazy: async () => ({ Component: (await import("./pages/game/GameHomePage")).LivingBookHomeLabPage }) },
+                { path: "dev/home-lab", element: <Navigate to="/dev" replace /> },
               ] },
             ],
           },
@@ -66,7 +66,7 @@ export const router = createBrowserRouter([
             element: <GameLayout />,
             children: [
               { index: true, lazy: async () => ({ Component: (await import("./pages/game/GameHomePage")).GameHomePage }) },
-              { path: "home-lab", element: <Navigate to="/dev/home-lab" replace /> },
+              { path: "home-lab", element: <Navigate to="/dev" replace /> },
               { path: "adventure/:roomId", lazy: async () => ({ Component: (await import("./pages/game/AdventurePage")).AdventurePage }) },
               { path: "heroes", lazy: async () => ({ Component: (await import("./pages/heroes/HeroManagerPage")).HeroManagerPage }) },
               { path: "graveyard", lazy: async () => ({ Component: (await import("./pages/heroes/GraveyardPage")).GraveyardPage }) },

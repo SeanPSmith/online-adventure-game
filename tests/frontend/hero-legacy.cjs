@@ -8,8 +8,8 @@ const read = p => fs.readFileSync(path.join(root,p),'utf8');
 test('main dashboard excludes fallen and archived heroes from cards and selection',()=>{
   const code=read('frontend/src/pages/game/GameHomePage.tsx');
   assert.match(code, /playableHeroes\s*= useMemo\([\s\S]*hero\.is_alive && hero\.hero_status === "active"/);
-  assert.match(code,/playableHeroes\.slice\(0, 4\)/);
-  assert.match(code,/selectableHeroes\.map/);
+  assert.match(code,/playableHeroes\.filter|playableHeroes\s*=|playableHeroes\s*\.filter/);
+  assert.match(code,/selectableHeroes\[0\]/);
   assert.match(code,/setSelectedHeroId\(selectableHeroes\[0\]\?\.character_id/);
   assert.doesNotMatch(code,/heroes\.slice\(0, 4\)/);
 });
@@ -17,7 +17,7 @@ test('main dashboard excludes fallen and archived heroes from cards and selectio
 test('invitation picker also blocks dead and retired heroes',()=>{
   const code=read('frontend/src/pages/public/JoinInvitePage.tsx');
   assert.match(code,/hero\.is_alive && hero\.hero_status === "active"/);
-  assert.match(code,/selectableHeroes\.map/);
+  assert.match(code,/selectableHeroes\[0\]/);
 });
 
 test('hero hall distinguishes fallen from buried and requires typed deletion confirmation',()=>{

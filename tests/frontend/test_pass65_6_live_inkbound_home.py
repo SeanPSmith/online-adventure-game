@@ -17,7 +17,8 @@ PICKER = (ROOT / 'frontend/src/features/appearance/InkboundPaperPreferences.tsx'
 
 class InkboundHomeContracts(unittest.TestCase):
     def test_real_home_route_renders_live_dashboard(self):
-        self.assertIn('if (!homeLab) return (', PARENT)
+        self.assertIn('return (', PARENT)
+        self.assertNotIn('homeLab', PARENT)
         self.assertIn('<InkboundAuthenticatedDashboard', PARENT)
         self.assertIn('onCreate={(item, mode)', PARENT)
         self.assertIn('createRoom(selectedHeroId, item.adventure_id, mode)', PARENT)

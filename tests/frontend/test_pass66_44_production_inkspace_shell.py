@@ -17,7 +17,7 @@ def test_production_home_has_a_distinct_inkspace_shell_from_first_render() -> No
     layout = read("layouts/GameLayout.tsx")
     boot = read("styles/quillairoAdventureBoot.css")
     assert 'const isInkspaceHome = location.pathname === "/game"' in layout
-    assert 'const isDeskHome = location.pathname === "/game/home-lab"' in layout
+    assert "isDeskHome" not in layout
     assert 'isInkspaceHome ? "is-inkspace-home"' in layout
     assert '.game-site-shell.is-inkspace-home > .game-header { display:none !important; }' in boot
     assert '.game-site-shell.is-inkspace-home > .game-main' in boot
@@ -45,16 +45,9 @@ def test_legacy_book_stays_opt_in_and_off_shared_game_layout() -> None:
         'import "../pages/game/livingBook644.css"',
     ):
         assert old_import not in layout, old_import
-    for kept_import in (
-        'import "../../styles/deskShellFidelityPass64.css"',
-        'import "../../styles/deskScrapbookShell64.css"',
-        'import "../../styles/pass64_2cPerformance.css"',
-        'import "./livingBook644.css"',
-    ):
-        assert kept_import in home, kept_import
-    assert 'if (!homeLab) return (' in home
-    assert '<InkboundAuthenticatedDashboard' in home
-    assert 'className="p644-scene"' in home
+    for obsolete in ("livingBook644.css", "deskShellFidelityPass64.css", "deskScrapbookShell64.css", "p644-scene", "homeLab"):
+        assert obsolete not in home, obsolete
+    assert "<InkboundAuthenticatedDashboard" in home
 
 
 def test_protected_lab_and_live_adventure_are_independent() -> None:
@@ -63,5 +56,5 @@ def test_protected_lab_and_live_adventure_are_independent() -> None:
     assert 'const isInkspaceAdventure = isAdventureMode' in layout
     assert 'isInkspaceRoute' not in layout or 'is-inkspace-route' in layout
     assert 'element: <DevLabGate />' in router
-    assert 'path: "dev/home-lab"' in router
+    assert 'path: "dev/home-lab", element: <Navigate to="/dev" replace />' in router
     assert 'path: "adventure/:roomId"' in router

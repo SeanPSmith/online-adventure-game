@@ -9,7 +9,6 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
 CSS = (ROOT / 'frontend/src/pages/game/inkboundAuthenticatedDashboard.css').read_text(encoding='utf-8')
-LEGACY = (ROOT / 'frontend/src/pages/game/livingBook644.css').read_text(encoding='utf-8')
 DASHBOARD = (ROOT / 'frontend/src/pages/game/GameHomePage.tsx').read_text(encoding='utf-8')
 LAYOUT = (ROOT / 'frontend/src/layouts/GameLayout.tsx').read_text(encoding='utf-8')
 
@@ -25,17 +24,17 @@ class InkboundDocumentScrollContracts(unittest.TestCase):
     MAIN = SHELL + ' .game-main'
 
     def test_real_dashboard_remains_inside_existing_game_layout(self):
-        self.assertIn('if (!homeLab) return (', DASHBOARD)
+        self.assertIn('return (', DASHBOARD)
         self.assertIn('<InkboundAuthenticatedDashboard', DASHBOARD)
-        self.assertIn('isDeskHome', LAYOUT)
+        self.assertNotIn('isDeskHome', LAYOUT)
         self.assertIn('isInkspaceHome', LAYOUT)
         self.assertIn('is-inkspace-home', LAYOUT)
         self.assertIn('className="game-main"', LAYOUT)
 
-    def test_legacy_desktop_shell_still_constrains_old_book(self):
-        self.assertIn('height:100dvh!important;min-height:0!important;max-height:100dvh;overflow:hidden!important', LEGACY)
-        self.assertIn('overflow:hidden!important', LEGACY)
-        self.assertIn('homeLab', DASHBOARD)
+    def test_abandoned_book_css_is_not_in_production_home(self):
+        self.assertNotIn("livingBook644", DASHBOARD)
+        self.assertNotIn("homeLab", DASHBOARD)
+        self.assertFalse((ROOT / "frontend/src/pages/game/livingBook644.css").exists())
 
     def test_only_real_inkbound_shell_releases_viewport(self):
         style = declarations(self.SHELL)

@@ -25,13 +25,11 @@ export function GameLayout() {
   // bundle resolves. Classic and physical Book are explicit opt-in exceptions.
   const reader = new URLSearchParams(location.search).get("reader");
   const isInkspaceAdventure = isAdventureMode && reader !== "classic" && reader !== "book";
-  // Only the protected development book preview is a fixed, leather-bound desk.
-  // The real Adventure Hall is a separate, document-scrolling Inkspace surface.
-  const isDeskHome = location.pathname === "/game/home-lab" || location.pathname === "/dev/home-lab";
+  // The live Adventure Hall has its own document-scrolling Inkscape surface.
   const isInkspaceHome = location.pathname === "/game" || location.pathname === "/game/";
 
   return (
-    <div className={`site-shell game-site-shell p64-shell inkbound-system-shell ${isAdventureMode ? "is-adventure-mode" : ""} ${isInkspaceAdventure ? "is-inkspace-route" : ""} ${isDeskHome ? "is-desk-home" : ""} ${isInkspaceHome ? "is-inkspace-home" : ""}`} data-ink-paper={paper} data-platform-skin={preferences.platformSkin} data-edition-family={edition.family} data-edition-mode={edition.mode} data-installed-library-theme={Boolean(libraryTheme)} data-theme-material={libraryTheme?.material} style={(libraryTheme ? themeCssVars(libraryTheme) : themeEditionCssVars(edition)) as CSSProperties}>
+    <div className={`site-shell game-site-shell p64-shell inkbound-system-shell ${isAdventureMode ? "is-adventure-mode" : ""} ${isInkspaceAdventure ? "is-inkspace-route" : ""} ${isInkspaceHome ? "is-inkspace-home" : ""}`} data-ink-paper={paper} data-platform-skin={preferences.platformSkin} data-edition-family={edition.family} data-edition-mode={edition.mode} data-installed-library-theme={Boolean(libraryTheme)} data-theme-material={libraryTheme?.material} style={(libraryTheme ? themeCssVars(libraryTheme) : themeEditionCssVars(edition)) as CSSProperties}>
       <a className="skip-link" href="#main-content">SKIP TO CONTENT</a>
       <header className={`site-header game-header ${isAdventureMode ? "is-adventure-header" : ""}`}>
         <Link className="brand q-site-brand" to="/game" aria-label="Quillairo home"><BrandLockup paper={paper} /></Link>

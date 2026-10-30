@@ -3,6 +3,7 @@ import { receiptKey } from "./turnFlow";
 import { cosmeticD20Face } from "./diceAnimation";
 import { playSound } from "../../services/audioDirector";
 import { HeroEffectDetails } from "./HeroEffectList";
+import "./inkscapeHeldDicePass6660.css";
 import type {
   HeroProgressionUpdate,
   TurnResolvedPayload,
@@ -281,6 +282,7 @@ export function TurnResolutionTheater({
   const results = receipt.results ?? [];
   const turnIdentity = receiptKey(receipt);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [settledIndex, setSettledIndex] = useState(-1);
   const [finished, setFinished] = useState(results.length === 0);
   const [showReceiptRecovery, setShowReceiptRecovery] = useState(false);
   const [folioStage, setFolioStage] = useState<"dice" | "consequences" | "page">(results.length ? "dice" : "consequences");
@@ -291,6 +293,7 @@ export function TurnResolutionTheater({
 
   useEffect(() => {
     setActiveIndex(0);
+    setSettledIndex(-1);
     setFinished(results.length === 0);
     setShowReceiptRecovery(false);
     setFolioStage(results.length ? "dice" : "consequences");
@@ -298,17 +301,10 @@ export function TurnResolutionTheater({
     setLeaving(false);
   }, [turnIdentity, results.length]);
 
-  // The committed receipt owns the content. Timers here animate only the
-  // page transition; they cannot stall or re-run the Director or dice.
-  useEffect(() => {
-    if (!inkbound || !finished || folioStage !== "dice") return;
-    setFading(true);
-    const timer = window.setTimeout(() => {
-      setFolioStage("consequences");
-      setFading(false);
-    }, 260);
-    return () => window.clearTimeout(timer);
-  }, [inkbound, finished, folioStage, turnIdentity]);
+  // The authoritative roll remains visible until the reader deliberately
+  // opens consequences. Never fade away the settled result on a timer.
+  // The following timed transition remains presentation-only and starts only
+  // after the explicit continue action from the consequences screen.
 
   useEffect(() => {
     if (!inkbound || !leaving || folioStage !== "consequences") return;
@@ -359,27 +355,31 @@ export function TurnResolutionTheater({
   const presentedStage = inkbound ? folioStage : receiptStage;
   const steps = [
     { id: "choice", title: "Choice committed", status: "complete" },
-    { id: "dice", title: "The dice", status: finished ? "complete" : "current" },
-    { id: "consequence", title: "The consequences", status: folioStage === "page" ? "complete" : finished ? "current" : "pending" },
+    { id: "dice", title: "The dice", status: folioStage === "dice" ? "current" : "complete" },
+    { id: "consequence", title: "The consequences", status: folioStage === "dice" ? "pending" : folioStage === "page" ? "complete" : "current" },
     { id: "page", title: "Next page", status: folioStage === "page" ? "current" : "pending" },
   ] as const;
 
   const finishCurrent = useCallback(() => {
     // Do not schedule setFinished from inside a setActiveIndex updater: React
     // can run functional updaters while rendering or twice in StrictMode.
-    if (activeIndex >= results.length - 1) {
+    if (inkbound && activeIndex < results.length - 1) {
+      // Let co-op players read their individual committed result before
+      // advancing to the next person's roll. No server operation occurs.
+      setSettledIndex(activeIndex);
+    } else if (activeIndex >= results.length - 1) {
       setFinished(true);
     } else {
       setActiveIndex(activeIndex + 1);
     }
-  }, [activeIndex, results.length]);
+  }, [activeIndex, inkbound, results.length]);
 
   const progression = receipt.hero_progression
     ? Object.values(receipt.hero_progression)
     : [];
 
   return (
-    <div className={`turn-resolution-theater ${criticalNow ? "is-critical-pulse" : ""} ${inkbound ? "is-inkbound-manuscript q43-cinematic" : ""} ${fading ? "is-fading" : ""} is-stage-${presentedStage}`} data-presentation-stage={presentedStage}>
+    <div className={`turn-resolution-theater ${criticalNow ? "is-critical-pulse" : ""} ${inkbound ? "is-inkbound-manuscript q43-cinematic q6660-held-dice" : ""} ${fading ? "is-fading" : ""} is-stage-${presentedStage}`} data-presentation-stage={presentedStage}>
       {inkbound ? (
         <div className="q24-receipt-masthead" aria-hidden="true">
           <span>QUILLAIRO</span><span className="q24-masthead-ornament">✧</span><span>THE TURNING PAGE</span>
@@ -407,7 +407,7 @@ export function TurnResolutionTheater({
       {inkbound ? (
         <div className="q24-section-caption" aria-live="polite">
           <span className="q24-section-line" aria-hidden="true" />
-          <span>{finished ? "The aftermath" : `${results.length > 1 ? `Companion check ${Math.min(activeIndex + 1, results.length)} of ${results.length}` : "The moment of chance"}`}</span>
+          <span>{finished && folioStage === "dice" ? "The settled roll" : finished ? "The aftermath" : `${results.length > 1 ? `Companion check ${Math.min(activeIndex + 1, results.length)} of ${results.length}` : "The moment of chance"}`}</span>
           <span className="q24-section-line" aria-hidden="true" />
         </div>
       ) : null}
@@ -429,6 +429,26 @@ export function TurnResolutionTheater({
         })}
       </div> : null}
 
+      {inkbound && !finished && settledIndex === activeIndex && folioStage === "dice" ? (
+        <div className="q6660-dice-hold-actions" role="group" aria-label="Continue to the next player's roll">
+          <p>This result is recorded. Review it before revealing the next player's roll.</p>
+          <button type="button" className="button button-primary theater-continue"
+            onClick={() => { setSettledIndex(-1); setActiveIndex(activeIndex + 1); }}>
+            Next player's roll
+          </button>
+        </div>
+      ) : null}
+
+      {inkbound && finished && folioStage === "dice" ? (
+        <div className="q6660-dice-hold-actions" role="group" aria-label="Continue after the dice roll">
+          <p>The roll is recorded. You can review the number and modifiers before turning to the consequences.</p>
+          <button type="button" className="button button-primary theater-continue"
+            onClick={() => setFolioStage("consequences")}>
+            View consequences
+          </button>
+        </div>
+      ) : null}
+
       {!finished && showReceiptRecovery ? (
         <div className="q34-receipt-recovery" role="status">
           <p>The dice animation is taking longer than expected. Your results are already recorded.</p>
@@ -441,6 +461,22 @@ export function TurnResolutionTheater({
 
       {finished && (!inkbound || folioStage === "consequences") ? (
         <div className="theater-finale-stage" key="consequences">
+          {inkbound && results.length > 0 ? (
+            <section className="q6660-resolved-rolls" aria-label="Recorded dice and check results">
+              <span className="eyebrow">THE RECORDED ROLL</span>
+              {results.map((result) => (
+                <AnimatedResultCard
+                  result={result}
+                  active={false}
+                  complete={true}
+                  onDone={() => {}}
+                  soundId={`${turnIdentity}:${result.player_id}:${result.choice_id}`}
+                  inkbound={true}
+                  key={`${result.player_id}:${result.choice_id}`}
+                />
+              ))}
+            </section>
+          ) : null}
           {inkbound ? (
             <div className="q24-outcome-masthead">
               <img src="/art/inkbound/signpost.png" alt="" loading="lazy" />

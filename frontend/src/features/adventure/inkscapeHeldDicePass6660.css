@@ -1,0 +1,82 @@
+/* Pass 66.60 — player-held, authoritative dice receipt.
+   The cinematic roll persists until a deliberate action; no countdown or
+   timer may hide it. Presentation only: never changes server dice or progression. */
+.turn-theater-overlay.inkbound-turn-theater .q43-cinematic.q6660-held-dice .q6660-dice-hold-actions {
+  width:min(100%,860px); flex:0 0 auto; display:flex;
+  align-items:center; justify-content:space-between; flex-wrap:wrap;
+  gap:14px 24px; border-top:1px solid var(--ia-rule);
+  margin:12px auto 0; padding:17px 0 20px;
+}
+.turn-theater-overlay.inkbound-turn-theater .q43-cinematic.q6660-held-dice .q6660-dice-hold-actions p {
+  flex:1 1 250px; margin:0; max-width:44ch;
+  color:var(--ia-copy); font:16px/1.5 "Iowan Old Style",Georgia,serif;
+}
+.turn-theater-overlay.inkbound-turn-theater .q43-cinematic.q6660-held-dice .q6660-dice-hold-actions .theater-continue {
+  flex:0 0 auto; min-width:min(100%,220px); margin:0;
+}
+/* Keep the settled D20 and its full server-authored breakdown in the
+   consequences manuscript, too. No decorative or speculative numbers. */
+.turn-theater-overlay.inkbound-turn-theater .q43-cinematic.q6660-held-dice .q6660-resolved-rolls {
+  width:100%; min-width:0; max-height:min(69dvh,650px); overflow-y:auto;
+  overscroll-behavior:contain; align-self:start; position:sticky; top:4px;
+  padding:16px clamp(14px,2vw,25px) 12px;
+  border:1px solid var(--ia-rule); background:var(--ia-paper);
+}
+.turn-theater-overlay.inkbound-turn-theater .q43-cinematic.q6660-held-dice .q6660-resolved-rolls > .eyebrow {
+  display:block; color:var(--q24-gold); font:700 11px/1.4 "American Typewriter",monospace;
+  letter-spacing:.16em; margin:0 0 10px;
+}
+.turn-theater-overlay.inkbound-turn-theater .q43-cinematic.q6660-held-dice .q6660-resolved-rolls .theater-result-card {
+  padding:9px 0 14px!important;
+  margin:0; border-bottom:1px solid var(--ia-rule)!important;
+}
+.turn-theater-overlay.inkbound-turn-theater .q43-cinematic.q6660-held-dice .q6660-resolved-rolls .theater-result-card:last-child {border-bottom:0!important;}
+.turn-theater-overlay.inkbound-turn-theater .q43-cinematic.q6660-held-dice .q6660-resolved-rolls .theater-dice-stage {
+  grid-template-columns:minmax(75px,125px) minmax(0,1fr); gap:13px; padding:7px 0;
+}
+.turn-theater-overlay.inkbound-turn-theater .q43-cinematic.q6660-held-dice .q6660-resolved-rolls .inkbound-dice-illustration {
+  width:min(100%,125px); height:auto;
+}
+.turn-theater-overlay.inkbound-turn-theater .q43-cinematic.q6660-held-dice .q6660-resolved-rolls .theater-breakdown {
+  padding-left:13px;
+}
+.turn-theater-overlay.inkbound-turn-theater .q43-cinematic.q6660-held-dice .q6660-resolved-rolls .theater-outcome {
+  font-size:clamp(19px,2.2vw,27px); padding:8px 0 0;
+}
+/* Read the roll beside its actual consequences on wide screens rather than
+   making the dice vanish as the page turns. */
+@media (min-width:851px) {
+  .turn-theater-overlay.inkbound-turn-theater .q43-cinematic.q6660-held-dice .theater-finale-stage {
+    display:grid; grid-template-columns:minmax(270px,.83fr) minmax(0,1.17fr);
+    grid-auto-flow:row; align-content:start; align-items:start;
+    column-gap:clamp(22px,3vw,55px); row-gap:16px;
+    max-width:1100px;
+  }
+  .turn-theater-overlay.inkbound-turn-theater .q43-cinematic.q6660-held-dice .theater-finale-stage > :not(.q6660-resolved-rolls) {
+    grid-column:2;
+    min-width:0;
+  }
+  .turn-theater-overlay.inkbound-turn-theater .q43-cinematic.q6660-held-dice .theater-finale-stage > .q6660-resolved-rolls {
+    grid-column:1; grid-row:1 / span 8;
+  }
+  .turn-theater-overlay.inkbound-turn-theater .q43-cinematic.q6660-held-dice .q24-outcome-masthead {
+    justify-content:flex-start;
+  }
+}
+@media (max-width:850px) {
+  .turn-theater-overlay.inkbound-turn-theater .q43-cinematic.q6660-held-dice .q6660-resolved-rolls {
+    position:static; max-height:none;
+  }
+}
+@media (max-width:420px) {
+  .turn-theater-overlay.inkbound-turn-theater .q43-cinematic.q6660-held-dice .q6660-resolved-rolls .theater-dice-stage {
+    grid-template-columns:minmax(67px,90px) minmax(0,1fr);gap:9px;
+  }
+  .turn-theater-overlay.inkbound-turn-theater .q43-cinematic.q6660-held-dice .q6660-resolved-rolls .theater-breakdown {padding-left:9px;}
+  .turn-theater-overlay.inkbound-turn-theater .q43-cinematic.q6660-held-dice .q6660-dice-hold-actions .theater-continue {width:100%;}
+}
+@media (prefers-reduced-motion:reduce) {
+  .turn-theater-overlay.inkbound-turn-theater .q43-cinematic.q6660-held-dice :is(.theater-results,.q6660-resolved-rolls) {
+    animation:none!important; transition:none!important;
+  }
+}

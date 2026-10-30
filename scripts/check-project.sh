@@ -103,6 +103,9 @@ node --test tests/frontend/author-ai-review.cjs
 say "Author console custom dropdown hydration and autosave regressions"
 node --test tests/frontend/author-terminal-select.cjs
 
+say "Pass 66.59 real-browser QA harness source checks (no live browser or AWS in release gate)"
+"$PYTHON_BIN" scripts/inkscape-browser-qa.py --self-check
+
 say "React production build"
 (
   cd frontend

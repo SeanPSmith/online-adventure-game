@@ -1,0 +1,4 @@
+66.60: Hold authoritative visual dice results; preserve full receipts.
+frontend/src/features/adventure/TurnResolutionTheater.tsx
+frontend/src/features/adventure/inkscapeHeldDicePass6660.css
+tests/frontend/test_pass66_60_held_dice_ui.py

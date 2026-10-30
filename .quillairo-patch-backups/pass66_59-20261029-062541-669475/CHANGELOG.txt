@@ -1,0 +1,6 @@
+Pass 66.59 browser screenshot QA harness.
+scripts/check-project.sh
+scripts/inkscape-browser-qa.py
+scripts/run-inkscape-browser-qa.sh
+tests/frontend/test_pass66_59_browser_qa.py
+docs/inkscape-real-browser-qa-66_59.md

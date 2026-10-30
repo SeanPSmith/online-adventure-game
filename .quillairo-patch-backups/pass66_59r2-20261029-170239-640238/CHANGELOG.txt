@@ -1,0 +1,4 @@
+Pass 66.59 R2 macOS 11 isolated Playwright runtime compatibility.
+scripts/run-inkscape-browser-qa.sh
+tests/frontend/test_pass66_59r2_macos_browser_compat.py
+docs/inkscape-browser-qa-macos11-66_59r2.md

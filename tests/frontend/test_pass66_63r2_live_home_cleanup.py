@@ -16,7 +16,7 @@ def test_current_game_route_renders_only_real_dashboard():
     router = read("router.tsx")
     home = read("pages/game/GameHomePage.tsx")
     assert '.GameHomePage' in router
-    assert 'path: "dev/home-lab", element: <Navigate to="/dev" replace />' in router
+    assert 'path: "home-lab", element: <Navigate to="/game" replace />' in router
     assert '.LivingBookHomeLabPage' not in router
     assert 'export function GameHomePage()' in home
     assert '<InkboundAuthenticatedDashboard' in home
@@ -59,11 +59,10 @@ def test_removed_book_styles_are_not_loaded_anywhere_in_production():
 def test_admin_lab_retirement_does_not_break_reader_or_auth_gate():
     router = read("router.tsx")
     layout = read("layouts/GameLayout.tsx")
-    workshop = read("pages/game/DevWorkshopPage.tsx")
-    assert 'element: <DevLabGate />' in router
+    assert not (SRC / 'pages/game/DevWorkshopPage.tsx').exists()
+    assert 'DevLabGate' not in router
     assert 'element: <RequireAuth />' in router
     assert 'path: "adventure/:roomId"' in router
-    assert 'path: "home-lab", element: <Navigate to="/dev" replace />' in router
-    assert 'path: "home-lab"' not in workshop
+    assert 'path: "home-lab", element: <Navigate to="/game" replace />' in router
     assert 'const isInkspaceAdventure = isAdventureMode' in layout
     assert 'const isInkspaceHome' in layout

@@ -55,6 +55,6 @@ def test_protected_lab_and_live_adventure_are_independent() -> None:
     router = read("router.tsx")
     assert 'const isInkspaceAdventure = isAdventureMode' in layout
     assert 'isInkspaceRoute' not in layout or 'is-inkspace-route' in layout
-    assert 'element: <DevLabGate />' in router
-    assert 'path: "dev/home-lab", element: <Navigate to="/dev" replace />' in router
+    assert 'DevLabGate' not in router and 'DevWorkshopPage' not in router
+    assert 'path: "dev/*", element: <Navigate to="/game" replace />' in router
     assert 'path: "adventure/:roomId"' in router

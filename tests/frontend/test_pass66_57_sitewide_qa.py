@@ -25,7 +25,7 @@ def audit():
 def test_inkscape_route_integrity_all_checks_pass():
     result = audit()
     assert not result["failed"], result["failed"]
-    assert result["production_lazy_declarations"] >= 25
+    assert result["production_lazy_declarations"] >= 22
     assert result["imports_inspected"] >= 100
 
 

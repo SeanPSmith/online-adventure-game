@@ -5,7 +5,6 @@ import { PublicLayout } from "./layouts/PublicLayout";
 import { GameLayout } from "./layouts/GameLayout";
 import { AccountLayout } from "./layouts/AccountLayout";
 import { RequireAuth } from "./components/auth/RequireAuth";
-import { DevLabGate } from "./components/auth/DevLabGate";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { RouteErrorPage } from "./pages/RouteErrorPage";
 
@@ -35,38 +34,21 @@ export const router = createBrowserRouter([
       {
         element: <RequireAuth />,
         children: [
-          // Temporary compatibility links for existing previews. All experiments now
-          // live behind the admin-gated /dev workshop; no old URL loads a lab.
-          { path: "game/visual-playground", element: <Navigate to="/dev/visual-playground" replace /> },
-          { path: "game/ink-lab", element: <Navigate to="/dev/ink-lab" replace /> },
-          { path: "game/inkspace-story", element: <Navigate to="/dev/inkspace-story" replace /> },
-          { path: "game/inkspace-reader", element: <Navigate to="/dev/inkspace-reader" replace /> },
-          { path: "game/tabletop-kit", element: <Navigate to="/dev/tabletop-kit" replace /> },
-          { path: "game/space-lab", element: <Navigate to="/dev/space-lab" replace /> },
-          {
-            // No unprotected production-visible lab routes. The gate requires
-            // authenticated administrator permission before rendering any preview.
-            element: <DevLabGate />,
-            children: [
-              { path: "dev", lazy: async () => ({ Component: (await import("./pages/game/DevWorkshopPage")).DevWorkshopPage }) },
-              { path: "dev/visual-playground", lazy: async () => ({ Component: (await import("./pages/game/VisualBookPlaygroundPage")).VisualBookPlaygroundPage }) },
-              { path: "dev/ink-lab", lazy: async () => ({ Component: (await import("./pages/game/VisualBookPlaygroundPage")).InkBookPlaygroundPage }) },
-              { path: "dev/inkspace-story", lazy: async () => ({ Component: (await import("./pages/game/VisualBookPlaygroundPage")).InkspaceStoryPlaygroundPage }) },
-              { path: "dev/inkspace-reader", lazy: async () => ({ Component: (await import("./pages/game/VisualBookPlaygroundPage")).InkspaceReaderPlaygroundPage }) },
-              { path: "dev/tabletop-kit", lazy: async () => ({ Component: (await import("./pages/game/VisualBookPlaygroundPage")).TabletopInteractionPlaygroundPage }) },
-              { path: "dev/inkbound", lazy: async () => ({ Component: (await import("./pages/game/InkboundFoundationPage")).InkboundFoundationPage }) },
-              { path: "dev/space-lab", lazy: async () => ({ Component: (await import("./pages/game/VisualBookPlaygroundPage")).SpaceBookPlaygroundPage }) },
-              { element: <GameLayout />, children: [
-                { path: "dev/home-lab", element: <Navigate to="/dev" replace /> },
-              ] },
-            ],
-          },
+          // Pass 66.68: the CRT/book/tabletop experiments and their /dev workshop were
+          // retired. Old bookmarks resolve to the real game instead of a 404.
+          { path: "game/visual-playground", element: <Navigate to="/game" replace /> },
+          { path: "game/ink-lab", element: <Navigate to="/game" replace /> },
+          { path: "game/inkspace-story", element: <Navigate to="/game" replace /> },
+          { path: "game/inkspace-reader", element: <Navigate to="/game" replace /> },
+          { path: "game/tabletop-kit", element: <Navigate to="/game" replace /> },
+          { path: "game/space-lab", element: <Navigate to="/game" replace /> },
+          { path: "dev/*", element: <Navigate to="/game" replace /> },
           {
             path: "game",
             element: <GameLayout />,
             children: [
               { index: true, lazy: async () => ({ Component: (await import("./pages/game/GameHomePage")).GameHomePage }) },
-              { path: "home-lab", element: <Navigate to="/dev" replace /> },
+              { path: "home-lab", element: <Navigate to="/game" replace /> },
               { path: "adventure/:roomId", lazy: async () => ({ Component: (await import("./pages/game/AdventurePage")).AdventurePage }) },
               { path: "heroes", lazy: async () => ({ Component: (await import("./pages/heroes/HeroManagerPage")).HeroManagerPage }) },
               { path: "graveyard", lazy: async () => ({ Component: (await import("./pages/heroes/GraveyardPage")).GraveyardPage }) },

@@ -11,4 +11,7 @@ def test_finale_return_safely_handles_optional_hero_id():
 
 
 def test_live_reader_still_uses_server_hero_first():
-    assert SOURCE.count("hero={partyHeroes.find((p) => p.character_id === characterId) ?? hero ?? null}") == 2
+    expression = "hero={partyHeroes.find((p) => p.character_id === characterId) ?? hero ?? null}"
+    assert SOURCE.count(expression) == 1
+    # The one remaining use must belong to the Inkbound live reader element.
+    assert SOURCE.index(expression) > SOURCE.index("<InkboundLiveRoom")

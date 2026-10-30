@@ -13,11 +13,10 @@ import { Link, useLocation, useNavigate, useParams, useSearchParams } from "reac
 import { Panel } from "../../components/ui/Panel";
 import { observeStoryTime, prepareStoryTime, stopStoryTimeEngine, keepStoryTimeAlive, type StoryTimeState } from "../../services/storyTimeEngine";
 import { RoomInviteButton } from "../../components/game/RoomInviteButton";
-import { InkspaceLiveRoom } from "./InkspaceLiveRoom";
 import { InkboundLiveRoom } from "./InkboundLiveRoom";
 import { useSceneArtwork } from "../../features/adventure/useSceneArtwork";
 import { InkboundLobby } from "./InkboundLobby";
-import "./inkspaceLiveRoom.css";
+import "./adventureReaderSwitchPass6668.css";
 import { ShareMomentButton } from "../../components/game/ShareMomentButton";
 import { ChoiceInspector } from "../../features/adventure/ChoiceInspector";
 import { LevelUpModal } from "../../features/adventure/LevelUpModal";
@@ -107,20 +106,14 @@ export function AdventurePage() {
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const bookRequested = searchParams.get("reader") === "book";
   const inkboundRequested = searchParams.get("reader") === "inkbound";
   // Inkbound is the normal started-adventure reader; the classic UI remains an explicit fallback.
+  // Retired reader values (including the former "book" preview) fall through to Inkbound.
   const classicRequested = searchParams.get("reader") === "classic";
-  const defaultInkbound = !classicRequested && !bookRequested;
+  const defaultInkbound = !classicRequested;
   // Preserve the selected edition throughout reconnects, loading and turn
   // transitions; data readiness must never flash legacy terminal dialogs.
   const inkspacePaper = (inkboundRequested || defaultInkbound) ? inkPaper : undefined;
-  const changeBookView = (enabled: boolean) => {
-    const next = new URLSearchParams(searchParams);
-    if (enabled) next.set("reader", "book");
-    else next.delete("reader");
-    navigate({ pathname: location.pathname, search: next.toString() }, { replace: true });
-  };
   const { openModal, closeModal } = useModal();
 
   const {
@@ -169,7 +162,7 @@ export function AdventurePage() {
   });
 
   const [chatText, setChatText] = useState("");
-  const [bookNotes, setBookNotes] = useState("");
+  const [fieldNotes, setFieldNotes] = useState("");
   const [asciiPickerOpen, setAsciiPickerOpen] = useState(false);
   const [hero, setHero] = useState<Character | null>(null);
   const [heroError, setHeroError] = useState("");
@@ -652,8 +645,6 @@ export function AdventurePage() {
     normalizedRoomCode, scene?.id ?? "", sceneArtReady,
   );
 
-  const bookReady = Boolean(bookRequested && live.status === "ready" && live.game?.started && scene && theater.chapterReleased && theater.phase === "none" && !live.game?.turn_pending && !live.game?.director_request_active && !live.game?.director_retry_required && !live.game?.pending_micro_event && !choiceLocked && !showDeath && !showLevelUp);
-
   // Single existing finale presentation reused by Classic and the Inkbound
   // manuscript. The Inkbound layout hides Classic's DOM, so its summary must
   // live in the reader itself after the acknowledged dice/turn receipt.
@@ -864,8 +855,8 @@ export function AdventurePage() {
         onSelectChoice={selectChoice}
         onLockChoice={lockChoice}
         onSendChat={(message) => { if (connected && live.status === "ready") live.sendChat(message); }}
-        notes={bookNotes}
-        onNotesChange={setBookNotes}
+        notes={fieldNotes}
+        onNotesChange={setFieldNotes}
         narrationEnabled={audioPreferences.narrationEnabled}
         wordRevealEnabled={storyPreferences.wordReveal}
         decorativeInitials={storyPreferences.decorativeInitials}
@@ -905,36 +896,12 @@ export function AdventurePage() {
         </>}
         onClose={() => { const next = new URLSearchParams(searchParams); next.set("reader", "classic"); navigate({pathname:location.pathname,search:next.toString()},{replace:true}); }}
       />}
-      {bookReady && scene && <InkspaceLiveRoom
-        roomCode={normalizedRoomCode}
-        turnNumber={turnNumber}
-        adventureTitle={live.game?.adventure_title ?? matchingAdventure?.adventure_title ?? "The Chronicle"}
-        scene={scene}
-        hero={partyHeroes.find((p) => p.character_id === characterId) ?? hero ?? null}
-        playerName={localRoomPlayer?.name ?? "Adventurer"}
-        messages={live.messages}
-        selectedChoiceId={selectedChoiceId}
-        choiceLocked={choiceLocked}
-        lockPending={lockPending}
-        choicesBlocked={choicesBlocked}
-        connected={connected && live.status === "ready"}
-        onSelectChoice={selectChoice}
-        onLockChoice={lockChoice}
-        onSendChat={(message) => { if (connected && live.status === "ready") live.sendChat(message); }}
-        notes={bookNotes}
-        onNotesChange={setBookNotes}
-        onClose={() => changeBookView(false)}
-      />}
-      {!bookReady && !inkboundReady && !inkboundLobbyReady && <div className="inkspace-live-entry">
-        {bookRequested ? <span className="muted-copy">Book view resumes after the current turn is released.</span> : null}
+      {!inkboundReady && !inkboundLobbyReady && <div className="inkspace-live-entry">
         <button type="button" onClick={() => { const next = new URLSearchParams(searchParams); if (inkboundRequested || defaultInkbound) next.set("reader", "classic"); else next.set("reader", "inkbound"); navigate({pathname:location.pathname, search: next.toString()}, {replace:true}); }}>
           {inkboundRequested || defaultInkbound ? "USE CLASSIC READER" : "OPEN QUILLAIRO READER"}
         </button>
-        <button type="button" onClick={() => changeBookView(!bookRequested)}>
-          {bookRequested ? "USE STANDARD READER" : "OPEN LIVING BOOK · PREVIEW"}
-        </button>
       </div>}
-      <div className={`adventure-layout ${bookReady || inkboundReady || inkboundLobbyReady ? "adventure-layout--reader-hidden" : ""}`} data-ink-paper={inkPaper}>
+      <div className={`adventure-layout ${inkboundReady || inkboundLobbyReady ? "adventure-layout--reader-hidden" : ""}`} data-ink-paper={inkPaper}>
         <section className="story-pane panel" ref={storyPaneRef}>
           <div className="scene-art">
             <pre>{theater.chapterReleased ? (scene?.ascii_art?.trim() || "SETTING THE STAGE_") : "THE NEXT CHAPTER IS SEALED_"}</pre>

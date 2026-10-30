@@ -14,7 +14,7 @@ def test_live_inkbound_reader_is_opt_in_and_does_not_open_another_socket():
     for fragment in ['onSelectChoice={selectChoice}','onLockChoice={lockChoice}',
                      'history={turnHistory}', 'party={live.room?.players ?? []}',
                      'messages={live.messages}', 'onToggleStoryTime={toggleStoryTime}',
-                     'notes={bookNotes}', 'onNotesChange={setBookNotes}']:
+                     'notes={fieldNotes}', 'onNotesChange={setFieldNotes}']:
         assert fragment in parent,fragment
     for forbidden in ('import { useGameSocket','import { useLiveAdventure','new WebSocket','socket.emit','fetch('):
         assert forbidden not in live
@@ -52,13 +52,13 @@ def test_live_controls_reuse_real_data_instead_of_demo_labels():
     assert 'activeHeroEffects(effects)' in effects_component
 
 
-def test_active_readers_use_fades_not_33_mask_swap():
-    preview,book=source('InkboundFoundationPage.tsx'),source('InkspaceLiveRoom.tsx')
-    css=source('inkboundFoundation.css')
-    assert 'preloadInkMasks()' not in preview
-    assert 'USE_INK_MASKS_IN_LIVE_READER = false' in book
-    assert 'node.style.opacity = String(' in book
-    assert 'clearInkMask(node)' in book
+
+
+def test_active_reader_uses_plain_opacity_fades_not_mask_swaps():
+    live = source('InkboundLiveRoom.tsx')
+    css = source('inkboundFoundation.css')
+    for retired in ('preloadInkMasks', 'clearInkMask', 'USE_INK_MASKS_IN_LIVE_READER'):
+        assert retired not in live, retired
     assert 'inkbound-opacity-in' in css
     assert '.inkbound-fade' in css
     assert '@media(prefers-reduced-motion:reduce)' in css

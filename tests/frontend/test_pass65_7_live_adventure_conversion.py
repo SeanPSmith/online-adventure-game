@@ -13,11 +13,12 @@ def load(path):
 def test_inkbound_is_the_default_only_after_adventure_begins():
     page = load(PAGES / "AdventurePage.tsx")
     assert 'const classicRequested = searchParams.get("reader") === "classic"' in page
-    assert 'const defaultInkbound = !classicRequested && !bookRequested' in page
+    assert 'const defaultInkbound = !classicRequested' in page
+    assert 'bookRequested' not in page and 'bookReady' not in page
     assert '(inkboundRequested || defaultInkbound)' in page
     assert 'live.game?.started && scene' in page
     assert 'next.set("reader", "classic")' in page
-    assert 'searchParams.get("reader") === "book"' in page
+    assert 'searchParams.get("reader") === "book"' not in page  # retired Living Book preview
     # Lobby and turn authority stay in the original parent, never the visual layer.
     assert 'live.startAdventure' in page
     assert 'live.submitChoice(selectedChoiceId)' in page

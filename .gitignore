@@ -44,6 +44,11 @@ build/
 .aws-build/
 cdk.out/
 
+# Installer backups written by guarded release overlays
+.quillairo-patch-backups/
+.quillairo_backups/
+.pass66-42-backup/
+
 # Source review packages and logs
 _packages/
 __MACOSX/

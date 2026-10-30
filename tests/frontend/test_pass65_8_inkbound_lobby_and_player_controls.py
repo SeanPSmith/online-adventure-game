@@ -88,8 +88,8 @@ def test_all_six_theme_lobby_and_device_breakpoints():
 
 def test_legacy_shell_is_hidden_without_clipping_the_document():
     page, css = text(PAGE), text(CSS)
-    assert 'bookReady || inkboundReady || inkboundLobbyReady' in page
-    assert '!bookReady && !inkboundReady && !inkboundLobbyReady' in page
+    assert 'inkboundReady || inkboundLobbyReady' in page
+    assert '!inkboundReady && !inkboundLobbyReady' in page
     assert '.game-site-shell:has(.inkbound-lobby)' in css
     assert 'height:auto!important' in css
     assert 'overflow:visible!important' in css

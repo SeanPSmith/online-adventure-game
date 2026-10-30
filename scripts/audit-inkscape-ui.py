@@ -34,7 +34,7 @@ def run_audit() -> dict:
 
     router = source("frontend/src/router.tsx")
     lazy = re.findall(r'await import\("(\./pages/[^\"]+)"\)', router)
-    check("lazy route discovery", len(lazy) >= 25, f"{len(lazy)} lazy declarations")
+    check("lazy route discovery", len(lazy) >= 22, f"{len(lazy)} lazy declarations")
     targets = sorted(set(lazy))
     missing = [name for name in targets if not (FRONTEND / (name.removeprefix("./") + ".tsx")).is_file()]
     check("lazy route modules", not missing, ", ".join(missing))
@@ -44,12 +44,17 @@ def run_audit() -> dict:
     for label, fragment in (
         ("public shell", "<PublicLayout />"),
         ("authentication gate", "<RequireAuth />"),
-        ("development gate", "<DevLabGate />"),
         ("game shell", "<GameLayout />"),
         ("account shell", "<AccountLayout />"),
         ("route error fallback", "<RouteErrorPage />"),
     ):
         check(label, fragment in router)
+
+    # Pass 66.68 retired the admin /dev workshop of CRT/book/tabletop experiments.
+    # This guard fails if a lab gate, workshop page or lab route reappears.
+    check("retired lab routes stay retired",
+          "DevLabGate" not in router and "DevWorkshopPage" not in router and 'path: "dev"' not in router,
+          "no lab gate, workshop page or /dev route")
 
     layouts = {
         "Public": source("frontend/src/layouts/PublicLayout.tsx"),

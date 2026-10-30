@@ -48,7 +48,6 @@ test("every major Hero surface uses the same effect ledger", () => {
   const expected = [
     "frontend/src/pages/game/InkboundLiveRoom.tsx",
     "frontend/src/pages/game/AdventurePage.tsx",
-    "frontend/src/pages/game/InkboundHeroFolio.tsx",
     "frontend/src/pages/heroes/HeroSheetPage.tsx",
   ];
   for (const file of expected) {

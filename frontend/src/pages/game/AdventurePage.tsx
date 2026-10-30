@@ -640,6 +640,9 @@ export function AdventurePage() {
     live.submitChoice(selectedChoiceId);
   }
 
+  // Presentation-only mount point. The existing authoritative resolution receipt
+  // is shown in the manuscript rail at desktop widths, not reimplemented here.
+  const [resolutionHost, setResolutionHost] = useState<HTMLDivElement | null>(null);
   const inkboundReady = Boolean((inkboundRequested || defaultInkbound) && live.status === "ready" && live.game?.started && scene);
   const inkboundLobbyReady = Boolean((inkboundRequested || defaultInkbound) && live.status === "ready" && live.game && !live.game.started);
   const fantasyIllustration = Boolean(worldCatalogItem?.tags?.some((tag) => /fantasy|medieval|fairy|sword/i.test(tag)));
@@ -816,6 +819,7 @@ export function AdventurePage() {
         onClassicView={() => { const next = new URLSearchParams(searchParams); next.set("reader", "classic"); navigate({ pathname: location.pathname, search: next.toString() }, { replace: true }); }}
       />}
       {inkboundReady && scene && <InkboundLiveRoom
+        onResolutionHost={setResolutionHost}
         roomCode={normalizedRoomCode}
         adventureTitle={live.game?.adventure_title ?? matchingAdventure?.adventure_title ?? "The Chronicle"}
         paper={inkPaper}
@@ -1668,6 +1672,7 @@ ${scene.body.slice(0, 260)}`}
       />
 
       <TurnTheater
+        resolutionHost={inkboundReady ? resolutionHost : null}
         inkPaper={inkspacePaper}
         choiceLabel={choiceLocked ? (live.choiceAccepted?.choice_label ?? selectedChoice?.label) : null}
         hero={(() => {

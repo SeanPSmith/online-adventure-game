@@ -16,6 +16,7 @@ import "./inkboundFoundation.css";
 import "./inkboundLiveRoom.css";
 import "./quillairoInkscapeLivePass6648.css";
 import "./inkscapeGameplayPass6665.css";
+import "./inkscapeResolutionRailPass6666.css";
 
 type Hero = Character | PartyHeroSnapshot;
 type Panel = "menu" | "journal" | "notes" | "party" | "chat" | "hero" | "history" | null;
@@ -59,6 +60,7 @@ export type InkboundLiveRoomProps = Readonly<{
   wrapUpCallout?: ReactNode;
   lastResult?: TurnResult | null;
   turnPhase?: "none" | "intermission" | "story-ready" | "resolution" | "retry";
+  onResolutionHost?: (element: HTMLDivElement | null) => void;
   lastProgression?: HeroProgressionUpdate | null;
   onClose: () => void;
 }>;
@@ -139,7 +141,7 @@ export function InkboundLiveRoom(props: InkboundLiveRoomProps) {
     if (!panel) panelOpener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setPanel((old) => old === next ? null : next);
   };
-  return <div className="inkbound inkbound-live" data-ink-paper={props.paper} aria-label="Inkbound adventure reader">
+  return <div className="inkbound inkbound-live" data-ink-paper={props.paper} data-turn-phase={props.turnPhase} aria-label="Inkbound adventure reader">
     <a className="inkbound-skip" href="#ibl-chapter">Skip to chapter</a>
     <header className="ibl-topbar">
       <Link to="/game" className="ibl-brand" aria-label="Quillairo home"><BrandLockup paper={props.paper} /></Link>
@@ -246,6 +248,9 @@ export function InkboundLiveRoom(props: InkboundLiveRoomProps) {
       </aside>
       </details>
       <aside className="ibl-turn-rail" aria-label="Turn record and chapter continuity">
+        {/* Render host on every turn, but only display the authoritative receipt here
+            while resolving. The desktop rail is not a second gameplay controller. */}
+        <div className="ibl-resolution-rail-host" ref={props.onResolutionHost} />
         <section className="ibl-rail-section ibl-rail-current">
           <span className="ibl-rail-kicker">THE CHRONICLE</span>
           <h2>Chapter {props.turnNumber}</h2>

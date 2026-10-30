@@ -1,0 +1,118 @@
+/* Pass 66.66 — Active committed dice in the 66.65 right folio.
+   Presentation only. No dice simulation/state transitions, chapter release,
+   server calls or gameplay logic live in this stylesheet. */
+.inkbound-live .ibl-resolution-rail-host:empty {display:none}
+@media (min-width:1240px) {
+  .game-site-shell.is-adventure-mode .inkbound-live[data-turn-phase="resolution"] > .ibl-layout {
+    grid-template-columns:clamp(205px,16.4vw,258px) minmax(0,1fr) clamp(335px,28vw,425px)!important;
+  }
+  .inkbound-live .ibl-turn-rail:has(.q6666-resolution-rail) > .ibl-rail-section {display:none!important}
+  .inkbound-live .ibl-turn-rail:has(.q6666-resolution-rail) {
+    padding-top:0!important; overflow-y:auto!important;
+    scrollbar-width:thin;
+  }
+  .inkbound-live .ibl-turn-rail:has(.q6666-resolution-rail) .ibl-resolution-rail-host {
+    min-width:0;max-width:100%;
+  }
+  .q6666-resolution-rail.inkbound-turn-theater {
+    --q24-gold:#94641f;--q24-gold-line:rgba(148,100,31,.52);
+    --q24-soft-wash:rgba(119,87,38,.055);
+    color:var(--ia-copy);width:100%;min-width:0;
+    font-family:"Iowan Old Style",Baskerville,Georgia,serif;
+  }
+  .q6666-resolution-rail[data-ink-paper="cream"] {--q24-gold:#846022;--q24-gold-line:rgba(132,96,34,.47)}
+  .q6666-resolution-rail[data-ink-paper="parchment"] {--q24-gold:#6e4718;--q24-gold-line:rgba(110,71,24,.52)}
+  .q6666-resolution-rail:is([data-ink-paper="navy"],[data-ink-paper="midnight"]) {
+    --q24-gold:#dfbd7b;--q24-gold-line:rgba(223,189,123,.43);
+    --q24-soft-wash:rgba(223,189,123,.055);
+  }
+  .q6666-resolution-rail[data-ink-paper="phosphor"] {
+    --q24-gold:var(--ia-text);--q24-gold-line:var(--ia-strong-rule);
+    --q24-soft-wash:var(--ia-wash);
+  }
+  .q6666-rail-status {font:400 12px/1.48 Georgia,serif;color:var(--ia-dim);margin:8px 0 14px}
+  .q6666-resolution-rail .turn-resolution-theater.q43-cinematic {
+    width:100%!important;max-width:100%!important;height:auto!important;
+    max-height:none!important;min-height:0!important;
+    margin:0!important;padding:0 0 24px!important;
+    display:block!important;overflow:visible!important;
+    position:static!important;border:0!important;border-radius:0!important;
+    box-shadow:none!important;background:transparent!important;
+    color:var(--ia-copy)!important;opacity:1!important;
+    transform:none!important;animation:none!important;
+  }
+  .q6666-resolution-rail .q24-receipt-masthead {
+    gap:7px;padding:5px 0 12px;font-size:9px!important;letter-spacing:.07em;
+  }
+  .q6666-resolution-rail .q24-masthead-ornament {font-size:17px}
+  .q6666-resolution-rail .q24-turn-steps {
+    display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:0!important;padding:12px 0 9px!important;
+  }
+  .q6666-resolution-rail .q24-step {
+    flex-direction:column;gap:5px;padding:2px 4px!important;
+    font-size:9px;line-height:1.25;text-align:center;
+  }
+  .q6666-resolution-rail .q24-step-mark {width:24px;height:24px;font-size:10px}
+  .q6666-resolution-rail .turn-resolution-theater .theater-heading {
+    display:block!important;padding:17px 0 10px!important;margin:0!important;
+  }
+  .q6666-resolution-rail .turn-resolution-theater .theater-heading h2 {
+    font-size:clamp(27px,2.3vw,34px)!important;letter-spacing:-.025em!important;
+  }
+  .q6666-resolution-rail .turn-resolution-theater .theater-heading > span {
+    display:block;margin-top:7px;font-size:10px;line-height:1.3;
+  }
+  .q6666-resolution-rail .q24-section-caption {gap:8px;font-size:9px!important}
+  .q6666-resolution-rail .theater-result-card {width:100%!important;min-width:0;padding:15px 0!important;border:0!important}
+  .q6666-resolution-rail .theater-result-card > header {display:block!important}
+  .q6666-resolution-rail .theater-result-card > header strong {font-size:20px!important;overflow-wrap:anywhere}
+  .q6666-resolution-rail .theater-dice-stage,
+  .q6666-resolution-rail .q6660-resolved-rolls .theater-dice-stage {
+    display:grid!important;grid-template-columns:minmax(95px,38%) minmax(0,1fr)!important;
+    align-items:center!important;gap:10px!important;padding:8px 0!important;
+  }
+  .q6666-resolution-rail .inkbound-dice-illustration,
+  .q6666-resolution-rail .q6660-resolved-rolls .inkbound-dice-illustration {
+    width:100%!important;max-width:150px!important;max-height:150px!important;
+  }
+  .q6666-resolution-rail .theater-breakdown,
+  .q6666-resolution-rail .q6660-resolved-rolls .theater-breakdown {
+    min-width:0;padding:2px 0 2px 10px!important;
+    overflow-wrap:anywhere;font-size:12px!important;
+  }
+  .q6666-resolution-rail .theater-outcome {font-size:23px!important;overflow-wrap:anywhere}
+  .q6666-resolution-rail .q6660-dice-hold-actions {text-align:left;padding:13px 0 16px}
+  .q6666-resolution-rail .q6660-dice-hold-actions p {font-size:13px;line-height:1.5}
+  .q6666-resolution-rail .theater-finale-stage {
+    display:flex!important;flex-direction:column!important;gap:15px!important;
+    max-width:100%!important;overflow:visible!important;padding:12px 0 20px!important;
+  }
+  .q6666-resolution-rail .theater-finale-stage > * {grid-column:auto!important;grid-row:auto!important;min-width:0}
+  .q6666-resolution-rail .q6660-resolved-rolls {
+    position:static!important;max-height:none!important;width:100%!important;
+    overflow:visible!important;box-shadow:none!important;
+    padding:11px 0!important;background:transparent!important;
+  }
+  .q6666-resolution-rail .q24-outcome-masthead {gap:9px;justify-content:flex-start;padding:4px 0 12px}
+  .q6666-resolution-rail .q24-outcome-masthead img {width:58px!important;mix-blend-mode:normal}
+  .q6666-resolution-rail .q24-outcome-masthead h3 {font-size:21px!important}
+  .q6666-resolution-rail .q24-outcome-masthead p {font-size:13px}
+  .q6666-resolution-rail .theater-resolution-copy p {font-size:15px!important;line-height:1.55!important}
+  .q6666-resolution-rail .theater-progression-grid {display:block!important;min-width:0}
+  .q6666-resolution-rail .theater-progression-card {padding:12px 0!important}
+  .q6666-resolution-rail .q24-page-handoff {gap:8px;padding:12px 0 4px}
+  .q6666-resolution-rail .q24-page-handoff-ornament {font-size:26px}
+  .q6666-resolution-rail .q24-page-handoff p {font-size:13px}
+  .q6666-resolution-rail .theater-continue {
+    display:block;width:100%!important;min-width:0!important;
+    margin:12px 0 8px!important;white-space:normal;
+    font-size:11px!important;letter-spacing:.05em!important;
+  }
+  .q6666-resolution-rail :is(button,a):focus-visible {outline:2px solid var(--q24-gold);outline-offset:3px}
+}
+@media (prefers-reduced-motion:reduce) {
+  .q6666-resolution-rail *, .q6666-resolution-rail *::before, .q6666-resolution-rail *::after {
+    animation-duration:.01ms!important;transition-duration:.01ms!important;
+  }
+}

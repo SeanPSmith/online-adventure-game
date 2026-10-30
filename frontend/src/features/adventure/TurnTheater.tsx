@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import "../../styles/quillairoTurnRecovery6636.css";
 import type { IntermissionResult } from "../../services/game";
 import type { InkPaper } from "../appearance/inkboundPaper";
@@ -28,7 +29,7 @@ export function TurnTheater({
   onRetry,
   onSync,
   onRecover,
-  committedTurnReady = false,
+  committedTurnReady = false, resolutionHost = null,
   choiceLabel, hero, partyCount,
 }: {
   inkPaper?: InkPaper;
@@ -43,7 +44,22 @@ export function TurnTheater({
   onSync: () => void;
   onRecover: () => void;
   committedTurnReady?: boolean;
+  resolutionHost?: HTMLDivElement | null;
 }) {
+  // Match the same desktop breakpoint as the 66.65 three-region reader.
+  // Updating this on resize ensures the receipt remains reachable on phones.
+  const [wideRail, setWideRail] = useState(() =>
+    typeof window !== "undefined" && typeof window.matchMedia === "function"
+      && window.matchMedia("(min-width: 1240px)").matches,
+  );
+  useEffect(() => {
+    if (typeof window.matchMedia !== "function") return;
+    const query = window.matchMedia("(min-width: 1240px)");
+    const update = () => setWideRail(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
   const [showResync, setShowResync] = useState(false);
   const [writingSeconds, setWritingSeconds] = useState(0);
   useEffect(() => {
@@ -82,18 +98,27 @@ export function TurnTheater({
   if (theater.phase === "none") return null;
 
   if (theater.phase === "resolution" && theater.activeReceipt) {
+    const message = theater.activeReceipt.results?.some((result) => Boolean(result.check))
+      ? "The story has returned. The server's D20 results are now on screen."
+      : "The story has returned. The recorded consequences are now on screen.";
+    // The same receipt component and acknowledgement callback are used in both
+    // layouts. A portal changes *where* the player reads them, never the roll.
+    if (inkPaper && resolutionHost && wideRail) {
+      return createPortal(
+        <section className="q6666-resolution-rail inkbound-turn-theater" data-ink-paper={inkPaper}
+          role="region" aria-label="Current turn dice and consequences">
+          <p className="q6666-rail-status" role="status" aria-live="polite">{message}</p>
+          <TurnResolutionTheater receipt={theater.activeReceipt}
+            inkbound={true} onContinue={theater.acknowledgeResolution} />
+        </section>,
+        resolutionHost,
+      );
+    }
     return (
       <div className={`turn-theater-overlay is-resolution ${inkPaper ? "inkbound-turn-theater" : ""}`} data-ink-paper={inkPaper} role="dialog" aria-modal="true" aria-labelledby="q24-turn-title">
-        <div className="q38-dice-confirmation" role="status" aria-live="assertive">
-          {theater.activeReceipt.results?.some((result) => Boolean(result.check))
-            ? "The story has returned. The server's D20 results are now on screen."
-            : "The story has returned. The recorded consequences are now on screen."}
-        </div>
-        <TurnResolutionTheater
-          receipt={theater.activeReceipt}
-          inkbound={Boolean(inkPaper)}
-          onContinue={theater.acknowledgeResolution}
-        />
+        <div className="q38-dice-confirmation" role="status" aria-live="assertive">{message}</div>
+        <TurnResolutionTheater receipt={theater.activeReceipt}
+          inkbound={Boolean(inkPaper)} onContinue={theater.acknowledgeResolution} />
       </div>
     );
   }

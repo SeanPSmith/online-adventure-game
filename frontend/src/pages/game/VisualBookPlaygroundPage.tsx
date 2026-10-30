@@ -11,7 +11,7 @@ import { type LightingId } from "../../features/cosmetics/environmentCatalog";
 // PASS 64.4D: deliberately isolated playground, not a replacement for /game.
 // The image contains the physical desk and *blank* ivory book only. All menu
 // lettering and interactions are accessible DOM elements, never painted pixels.
-const MENU = ["Home", "Heroes", "Wardrobe", "My Adventures", "Discover", "System"] as const;
+const MENU = ["Home", "Heroes", "My Adventures", "Discover", "System"] as const;
 type Tab = (typeof MENU)[number];
 
 export function VisualBookPlaygroundPage() {

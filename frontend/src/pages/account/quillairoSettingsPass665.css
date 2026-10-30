@@ -1,5 +1,5 @@
 /* Quillairo Pass 66.37 — a single Inkspace presentation for the real Settings controls.
-   Earlier paper/wardrobe/terminal generations retain their JS contracts. No fake controls.
+   The six Inkscape paper palettes are the only visual themes.
    Scoped to Account preferences; no game, Arcade, or Author Studio selectors. */
 .inkbound-account-shell:has(.quill-settings-page){
   --qs-gold:#986c33;
@@ -96,14 +96,12 @@
 }
 .quill-settings-content>.quill-settings-panels{display:contents}
 .quill-settings-content .quill-settings-block,.quill-settings-content>.inkpaper-preferences,
-.quill-settings-wardrobe{width:100%;min-width:0;scroll-margin-top:36px}
 .quill-settings-content>.inkpaper-preferences{order:10}
 .quill-settings-storytime{order:20}
 .quill-settings-reading{order:30}
 .quill-settings-sound{order:40}
 .quill-settings-ai{order:50}
 .quill-settings-notifications{order:60}
-.quill-settings-wardrobe{order:70}
 .quill-settings-footnote{order:80}
 
 /* Shared panel treatment for Preferences and the separate Notifications tab. */
@@ -197,23 +195,8 @@
   display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 6px;
 }
 :is(.quill-settings-content,.account-tab-content>.quill-settings-panels--notifications) .button-row .button,
-.quill-settings-content .p64-wardrobe .button{
-  min-height:42px;padding:10px 15px!important;
-  background:transparent!important;color:var(--ib-text)!important;
-  border:1px solid var(--ib-line)!important;
-  font:600 12px/1.25 var(--ib-serif)!important;letter-spacing:.035em;
-}
 :is(.quill-settings-content,.account-tab-content>.quill-settings-panels--notifications) .button-row .button-primary,
-.quill-settings-content .p64-wardrobe .button-primary{
-  background:var(--ib-text)!important;color:var(--ib-button-ink)!important;
-  border-color:var(--ib-text)!important;
-}
 :is(.quill-settings-content,.account-tab-content>.quill-settings-panels--notifications) .button-row .button:hover:not(:disabled),
-.quill-settings-content .p64-wardrobe .button:hover:not(:disabled){border-color:var(--qs-gold)!important}
-:is(.quill-settings-content,.account-tab-content>.quill-settings-panels--notifications) .system-notice{
-  padding:13px 16px!important;margin:14px 0!important;border:1px solid var(--ib-line)!important;
-  background:var(--qs-panel)!important;color:var(--ib-copy)!important;overflow-wrap:anywhere;
-}
 :is(.quill-settings-content,.account-tab-content>.quill-settings-panels--notifications) .notification-event-grid{
   display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 25px;margin:17px 0;
 }
@@ -270,7 +253,6 @@
 .quill-settings-content .inkpaper-footnote{border-color:var(--ib-line);color:var(--ib-copy);font-size:12px;padding-top:15px;margin:20px 0 0}
 .quill-settings-content .quill-settings-footnote{padding-top:10px;border-top:1px solid var(--ib-line)}
 .quill-settings-content .quill-settings-footnote .panel-heading{font-size:21px!important}
-.quill-settings-wardrobe{padding-top:26px;border-top:1px solid var(--qs-gold-line)}
 
 /* Explicit focus and touch targets across all Settings controls. */
 .quill-settings-page :is(button,input,textarea,a,[role="button"]):focus-visible,

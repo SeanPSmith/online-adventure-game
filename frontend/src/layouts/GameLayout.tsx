@@ -3,21 +3,12 @@ import { Link, NavLink, Outlet, useLocation } from "react-router";
 import { useAuth } from "../state/AuthContext";
 import { canUseAuthorStudio } from "../services/author";
 import { useInkboundPaper } from "../features/appearance/inkboundPaper";
-import { useAppearance } from "../features/appearance/AppearanceContext";
-import "../styles/pass64Shell.css";
-import "../features/appearance/themePresentation.css";
-import { themeCssVars } from "../features/appearance/themePacks";
-import { themeEditionCssVars } from "../features/appearance/themeEditions";
-import "../features/appearance/themeEditions.css";
-import "../styles/brighterWorldShell.css";
 import "../styles/quillairoAdventureBoot.css";
-import type { CSSProperties } from "react";
 
 export function GameLayout() {
   const { user, logout } = useAuth();
   const [paper] = useInkboundPaper(user?.user_id ?? "");
   const location = useLocation();
-  const { preferences, libraryTheme, edition } = useAppearance();
   const canAuthor = canUseAuthorStudio(user?.permissions);
   const isAdmin = user?.permissions.includes("admin") ?? false;
   const isAdventureMode = location.pathname.startsWith("/game/adventure/");
@@ -29,7 +20,7 @@ export function GameLayout() {
   const isInkspaceHome = location.pathname === "/game" || location.pathname === "/game/";
 
   return (
-    <div className={`site-shell game-site-shell p64-shell inkbound-system-shell ${isAdventureMode ? "is-adventure-mode" : ""} ${isInkspaceAdventure ? "is-inkspace-route" : ""} ${isInkspaceHome ? "is-inkspace-home" : ""}`} data-ink-paper={paper} data-platform-skin={preferences.platformSkin} data-edition-family={edition.family} data-edition-mode={edition.mode} data-installed-library-theme={Boolean(libraryTheme)} data-theme-material={libraryTheme?.material} style={(libraryTheme ? themeCssVars(libraryTheme) : themeEditionCssVars(edition)) as CSSProperties}>
+    <div className={`site-shell game-site-shell p64-shell inkbound-system-shell ${isAdventureMode ? "is-adventure-mode" : ""} ${isInkspaceAdventure ? "is-inkspace-route" : ""} ${isInkspaceHome ? "is-inkspace-home" : ""}`} data-ink-paper={paper}>
       <a className="skip-link" href="#main-content">SKIP TO CONTENT</a>
       <header className={`site-header game-header ${isAdventureMode ? "is-adventure-header" : ""}`}>
         <Link className="brand q-site-brand" to="/game" aria-label="Quillairo home"><BrandLockup paper={paper} /></Link>
@@ -37,7 +28,7 @@ export function GameLayout() {
         <nav className="header-nav game-nav" aria-label="Primary navigation">
           <NavLink to="/game" end>HOME</NavLink>
           <NavLink to="/game/heroes">HEROES</NavLink>
-          <NavLink to="/account?tab=preferences#wardrobe">WARDROBE</NavLink>
+          <NavLink to="/account?tab=preferences#inkbound-paper">APPEARANCE</NavLink>
           <NavLink to="/game/adventures">MY ADVENTURES</NavLink>
           <details className="header-system-menu">
             <summary>SYSTEM</summary>

@@ -1,0 +1,16 @@
+{
+  "pass": "66.64r2",
+  "purpose": "Restore the active adventure catalog metadata lookup dropped by the legacy theme-engine cleanup; fix six TS errors",
+  "based_on": "quillairo-review-20261030-004500.zip + 66.63r2 + 66.64 + 66.64r1",
+  "files": {
+    "frontend/src/pages/game/AdventurePage.tsx": {
+      "before": "448532dafc8da4d8a88e20b45d10af20c123976f27f0a2ad856fa2ecffb28dff",
+      "after": "870e9cdecc1547f3b6771c390803935669e795978e0bd14ad30d924d30338429"
+    },
+    "tests/frontend/test_pass66_64r2_adventure_catalog_metadata.py": {
+      "before": null,
+      "after": "b1cfb9455b86b363e5409b8c9df6a237277245d830cc21392d5939bd7c0bbee8"
+    }
+  },
+  "protected": "No game state, AI Director, dice, progression, networking, backend or theme-engine code modified."
+}

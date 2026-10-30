@@ -1,0 +1,314 @@
+/* Quillairo Pass 66.37 — a single Inkspace presentation for the real Settings controls.
+   Earlier paper/wardrobe/terminal generations retain their JS contracts. No fake controls.
+   Scoped to Account preferences; no game, Arcade, or Author Studio selectors. */
+.inkbound-account-shell:has(.quill-settings-page){
+  --qs-gold:#986c33;
+  --qs-gold-line:color-mix(in srgb,var(--qs-gold) 45%,transparent);
+  --qs-panel:color-mix(in srgb,var(--ib-paper) 96%,var(--ib-text) 4%);
+}
+.inkbound-account-shell[data-ink-paper="navy"]:has(.quill-settings-page),
+.inkbound-account-shell[data-ink-paper="midnight"]:has(.quill-settings-page){--qs-gold:#d8b67e}
+.inkbound-account-shell[data-ink-paper="phosphor"]:has(.quill-settings-page){--qs-gold:var(--ib-copy)}
+.inkbound-account-shell:has(.quill-settings-page) .account-main{
+  width:min(100% - clamp(24px,5vw,100px),1540px);padding-top:26px;
+}
+.inkbound-account-shell:has(.quill-settings-page) .account-tab-content.quill-account-preferences{
+  padding:0!important;margin:0!important;border:0!important;background:transparent!important;
+}
+.inkbound-account-shell:has(.quill-settings-page) .account-tabs{
+  max-width:100%;display:flex;flex-wrap:wrap;gap:clamp(12px,2vw,32px);
+  justify-content:center;margin:0 0 42px;padding:10px 0 16px;
+  border-bottom:1px solid var(--ib-line)!important;
+}
+.inkbound-account-shell:has(.quill-settings-page) .account-tabs button{
+  width:auto;min-width:0;min-height:40px;padding:6px 5px!important;
+  border:0!important;border-bottom:2px solid transparent!important;
+  background:none!important;color:var(--ib-copy)!important;
+  letter-spacing:.11em;font:600 11px/1.3 var(--ib-mono);
+}
+.inkbound-account-shell:has(.quill-settings-page) .account-tabs button[aria-selected="true"]{
+  border-bottom-color:var(--qs-gold)!important;color:var(--ib-text)!important;
+}
+.inkbound-account-shell:has(.quill-settings-page) .account-tabs button small{display:none}
+
+/* The standalone Notifications tab has no preferences sidebar, but uses the same tokens. */
+.inkbound-account-shell .account-tab-content>.quill-settings-panels--notifications{
+  --qs-gold:#986c33;
+  --qs-gold-line:color-mix(in srgb,var(--qs-gold) 45%,transparent);
+  --qs-panel:color-mix(in srgb,var(--ib-paper) 96%,var(--ib-text) 4%);
+}
+.inkbound-account-shell[data-ink-paper="navy"] .account-tab-content>.quill-settings-panels--notifications,
+.inkbound-account-shell[data-ink-paper="midnight"] .account-tab-content>.quill-settings-panels--notifications{--qs-gold:#d8b67e}
+.inkbound-account-shell[data-ink-paper="phosphor"] .account-tab-content>.quill-settings-panels--notifications{--qs-gold:var(--ib-copy)}
+
+/* Editorial side folio; never overlays the interactive form. */
+.quill-settings-page{
+  display:grid;grid-template-columns:minmax(238px,25%) minmax(0,1fr);
+  gap:clamp(25px,4vw,74px);align-items:start;color:var(--ib-text);
+}
+.quill-settings-intro{
+  position:sticky;top:24px;display:flex;flex-direction:column;
+  min-height:660px;max-height:calc(100dvh - 48px);overflow:auto;
+  padding:clamp(16px,2vw,32px) clamp(20px,2.5vw,44px) 0 0;
+  border-right:1px solid var(--ib-line);
+}
+.quill-settings-kicker{
+  margin:0 0 22px!important;color:var(--qs-gold)!important;
+  font:600 11px/1.6 var(--ib-mono);letter-spacing:.17em;
+}
+.quill-settings-intro h1{
+  margin:0 0 18px;font:400 clamp(53px,6vw,91px)/.98 var(--ib-serif)!important;
+  letter-spacing:-.055em;color:var(--ib-text);
+}
+.quill-settings-tagline{
+  margin:0 0 17px!important;font:italic clamp(20px,2vw,27px)/1.35 var(--ib-serif)!important;
+  color:var(--ib-text)!important;
+}
+.quill-settings-summary{
+  max-width:345px;margin:0 0 28px;font:16px/1.65 var(--ib-serif)!important;
+  color:var(--ib-copy)!important;
+}
+.quill-settings-index{display:flex;flex-direction:column;max-width:340px;position:relative;z-index:1}
+.quill-settings-index a{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  border-bottom:1px solid var(--ib-line);padding:11px 2px;
+  color:var(--ib-text)!important;text-decoration:none;
+  font:600 12px/1.4 var(--ib-serif);letter-spacing:.025em;
+}
+.quill-settings-index a span{color:var(--qs-gold)}
+.quill-settings-index a:hover{text-decoration:underline;text-decoration-color:var(--qs-gold);text-underline-offset:5px}
+.quill-settings-index a:focus-visible{outline:2px solid var(--qs-gold);outline-offset:3px}
+.quill-settings-art{
+  display:block;align-self:center;width:112%;max-width:none;object-fit:contain;
+  margin:25px 0 8px -6%;pointer-events:none;opacity:.88;
+}
+.quill-settings-colophon{
+  margin:auto 0 20px!important;text-align:center;
+  font:italic 14px/1.5 var(--ib-serif);color:var(--ib-muted)!important;
+}
+.inkbound-account-shell[data-ink-paper="navy"] .quill-settings-art,
+.inkbound-account-shell[data-ink-paper="midnight"] .quill-settings-art{filter:invert(1) grayscale(1);opacity:.52}
+.inkbound-account-shell[data-ink-paper="phosphor"] .quill-settings-art{opacity:.45;filter:grayscale(1)}
+
+/* All live preferences occupy one generous manuscript column. */
+.quill-settings-content{
+  display:flex;flex-direction:column;gap:clamp(24px,3vw,40px);width:100%;min-width:0;
+}
+.quill-settings-content>.quill-settings-panels{display:contents}
+.quill-settings-content .quill-settings-block,.quill-settings-content>.inkpaper-preferences,
+.quill-settings-wardrobe{width:100%;min-width:0;scroll-margin-top:36px}
+.quill-settings-content>.inkpaper-preferences{order:10}
+.quill-settings-storytime{order:20}
+.quill-settings-reading{order:30}
+.quill-settings-sound{order:40}
+.quill-settings-ai{order:50}
+.quill-settings-notifications{order:60}
+.quill-settings-wardrobe{order:70}
+.quill-settings-footnote{order:80}
+
+/* Shared panel treatment for Preferences and the separate Notifications tab. */
+:is(.quill-settings-content,.account-tab-content>.quill-settings-panels--notifications) .quill-settings-block>.panel{
+  margin:0!important;padding:0!important;min-width:0;border:0!important;
+  background:transparent!important;box-shadow:none!important;
+}
+:is(.quill-settings-content,.account-tab-content>.quill-settings-panels--notifications) .quill-settings-block>.panel>.panel-heading{
+  display:block;margin:0!important;padding:6px 0 15px!important;
+  background:transparent!important;color:var(--ib-text)!important;
+  border:0!important;border-bottom:1px solid var(--qs-gold-line,var(--ib-line))!important;
+  font:400 clamp(25px,2.45vw,36px)/1.13 var(--ib-serif)!important;
+  text-transform:none;letter-spacing:-.025em;
+}
+:is(.quill-settings-content,.account-tab-content>.quill-settings-panels--notifications) .quill-settings-block>.panel>.panel-body{
+  padding:16px 0 0!important;background:transparent!important;color:var(--ib-text)!important;border:0!important;
+}
+:is(.quill-settings-content,.account-tab-content>.quill-settings-panels--notifications) .notification-settings-grid{
+  display:flex!important;flex-direction:column;gap:0!important;
+  padding:0!important;background:transparent!important;border:0!important;
+}
+:is(.quill-settings-content,.account-tab-content>.quill-settings-panels--notifications) .notification-settings-intro{
+  padding:0 0 18px!important;max-width:70ch;
+  font:15px/1.65 var(--ib-serif)!important;color:var(--ib-copy)!important;
+}
+:is(.quill-settings-content,.account-tab-content>.quill-settings-panels--notifications) .notification-setting-row{
+  display:flex!important;align-items:center;justify-content:space-between;gap:24px;
+  padding:20px 2px!important;margin:0!important;min-width:0;
+  border:0!important;border-bottom:1px solid var(--ib-line)!important;
+  background:transparent!important;
+}
+:is(.quill-settings-content,.account-tab-content>.quill-settings-panels--notifications) .notification-setting-row>div:first-child{flex:1;min-width:0}
+:is(.quill-settings-content,.account-tab-content>.quill-settings-panels--notifications) :is(.notification-setting-row strong,.audio-setting-slider strong,.notification-event-option strong){
+  font:600 15px/1.4 var(--ib-serif)!important;letter-spacing:.015em;color:var(--ib-text)!important;
+}
+:is(.quill-settings-content,.account-tab-content>.quill-settings-panels--notifications) :is(.notification-setting-row p,.notification-setting-row small,.audio-setting-slider small,.notification-event-option small){
+  display:block;font:14px/1.55 var(--ib-serif)!important;
+  color:var(--ib-muted)!important;margin:6px 0 0;
+}
+:is(.quill-settings-content,.account-tab-content>.quill-settings-panels--notifications) .notification-setting-row>.terminal-toggle{flex:0 0 auto}
+/* Keep the existing native checkbox for accessibility; only its surface is custom. */
+:is(.quill-settings-content,.account-tab-content>.quill-settings-panels--notifications) .terminal-toggle{
+  position:relative;display:flex;align-items:center;justify-content:center;
+  width:52px;height:29px;flex-shrink:0;cursor:pointer;
+}
+:is(.quill-settings-content,.account-tab-content>.quill-settings-panels--notifications) .terminal-toggle input[type="checkbox"]{
+  appearance:none!important;position:absolute!important;inset:0;
+  width:52px;height:29px;margin:0!important;border-radius:40px!important;
+  border:1px solid var(--ib-line)!important;background:var(--ib-wash)!important;
+  cursor:pointer;opacity:1!important;transition:background .18s ease;
+}
+:is(.quill-settings-content,.account-tab-content>.quill-settings-panels--notifications) .terminal-toggle input[type="checkbox"]:checked{
+  background:var(--ib-text)!important;border-color:var(--ib-text)!important;
+}
+:is(.quill-settings-content,.account-tab-content>.quill-settings-panels--notifications) .terminal-toggle input[type="checkbox"]:after{
+  content:"";position:absolute;top:3px;left:3px;width:21px;height:21px;
+  background:var(--ib-muted);border-radius:50%;transition:transform .18s ease,background .18s ease;
+}
+:is(.quill-settings-content,.account-tab-content>.quill-settings-panels--notifications) .terminal-toggle input[type="checkbox"]:checked:after{
+  transform:translateX(23px);background:var(--ib-paper);
+}
+:is(.quill-settings-content,.account-tab-content>.quill-settings-panels--notifications) .terminal-toggle input:focus-visible{
+  outline:2px solid var(--qs-gold,var(--ib-text))!important;outline-offset:4px;
+}
+:is(.quill-settings-content,.account-tab-content>.quill-settings-panels--notifications) .terminal-toggle input:disabled{opacity:.45!important;cursor:not-allowed}
+:is(.quill-settings-content,.account-tab-content>.quill-settings-panels--notifications) .terminal-toggle span{position:absolute!important;width:1px;height:1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+
+.quill-settings-content .audio-setting-slider{
+  display:block;min-width:0;padding:18px 2px;margin:0!important;
+  border-bottom:1px solid var(--ib-line);
+}
+.quill-settings-content .audio-setting-slider>span{display:flex;justify-content:space-between;gap:15px;color:var(--ib-text)}
+.quill-settings-content input[type="range"]{
+  width:100%;max-width:100%;min-height:30px;padding:0!important;
+  accent-color:var(--qs-gold);background:transparent!important;border:0!important;cursor:pointer;
+}
+.quill-settings-content :is(.narrator-voice-picker,.narrator-voice-current,.narrator-voice-library){min-width:0;max-width:100%}
+.quill-settings-content .narrator-voice-picker{margin:12px 0}
+.quill-settings-content .narrator-voice-current{
+  display:flex;justify-content:space-between;align-items:center;width:100%;
+  padding:13px 16px!important;border:1px solid var(--ib-line)!important;
+  background:var(--qs-panel)!important;color:var(--ib-text)!important;
+}
+.quill-settings-content .narrator-voice-library{
+  max-height:min(430px,60dvh);overflow:auto;padding:14px;
+  border:1px solid var(--ib-line);background:var(--ib-paper)!important;
+}
+.quill-settings-content .narrator-voice-option{display:flex;gap:12px;justify-content:space-between;align-items:center;border-bottom:1px solid var(--ib-line)}
+.quill-settings-content .narrator-voice-option button{white-space:normal;font-size:13px!important;min-width:0}
+:is(.quill-settings-content,.account-tab-content>.quill-settings-panels--notifications) .button-row{
+  display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 6px;
+}
+:is(.quill-settings-content,.account-tab-content>.quill-settings-panels--notifications) .button-row .button,
+.quill-settings-content .p64-wardrobe .button{
+  min-height:42px;padding:10px 15px!important;
+  background:transparent!important;color:var(--ib-text)!important;
+  border:1px solid var(--ib-line)!important;
+  font:600 12px/1.25 var(--ib-serif)!important;letter-spacing:.035em;
+}
+:is(.quill-settings-content,.account-tab-content>.quill-settings-panels--notifications) .button-row .button-primary,
+.quill-settings-content .p64-wardrobe .button-primary{
+  background:var(--ib-text)!important;color:var(--ib-button-ink)!important;
+  border-color:var(--ib-text)!important;
+}
+:is(.quill-settings-content,.account-tab-content>.quill-settings-panels--notifications) .button-row .button:hover:not(:disabled),
+.quill-settings-content .p64-wardrobe .button:hover:not(:disabled){border-color:var(--qs-gold)!important}
+:is(.quill-settings-content,.account-tab-content>.quill-settings-panels--notifications) .system-notice{
+  padding:13px 16px!important;margin:14px 0!important;border:1px solid var(--ib-line)!important;
+  background:var(--qs-panel)!important;color:var(--ib-copy)!important;overflow-wrap:anywhere;
+}
+:is(.quill-settings-content,.account-tab-content>.quill-settings-panels--notifications) .notification-event-grid{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 25px;margin:17px 0;
+}
+:is(.quill-settings-content,.account-tab-content>.quill-settings-panels--notifications) .notification-event-option{
+  display:flex;align-items:start;gap:12px;min-width:0;padding:11px 0;
+  background:transparent!important;border:0!important;
+}
+:is(.quill-settings-content,.account-tab-content>.quill-settings-panels--notifications) .notification-event-option input{flex:0 0 auto;accent-color:var(--qs-gold)}
+:is(.quill-settings-content,.account-tab-content>.quill-settings-panels--notifications) .notification-event-option span{min-width:0}
+:is(.quill-settings-content,.account-tab-content>.quill-settings-panels--notifications) .notification-phone-setup{width:min(100%,350px);display:flex;flex-direction:column;gap:10px}
+:is(.quill-settings-content,.account-tab-content>.quill-settings-panels--notifications) .notification-phone-line{display:flex;flex-wrap:wrap;gap:8px}
+:is(.quill-settings-content,.account-tab-content>.quill-settings-panels--notifications) .notification-phone-line input{
+  flex:1 1 160px;min-width:0;width:100%;min-height:43px;padding:10px!important;
+  color:var(--ib-text)!important;border:1px solid var(--ib-line)!important;
+}
+.quill-settings-content .p643-typeface-picker{
+  display:flex;flex-wrap:wrap;gap:16px 28px;min-width:0;
+  padding:20px 0 0;margin:18px 0 4px;border:0;border-top:1px solid var(--ib-line);
+}
+.quill-settings-content .p643-typeface-picker legend{
+  padding-right:10px;font:600 15px/1.5 var(--ib-serif);color:var(--ib-text);
+}
+.quill-settings-content .p643-typeface-picker label{
+  display:inline-flex;align-items:center;gap:8px;min-height:44px;
+  font:14px/1.4 var(--ib-serif);color:var(--ib-text);
+}
+.quill-settings-content .p643-typeface-picker input{accent-color:var(--qs-gold)}
+
+/* Live theme swatches, not screenshots of a skin. */
+.quill-settings-content>.inkpaper-preferences{
+  padding:0!important;margin:0!important;border:0!important;
+  background:transparent!important;color:var(--ib-text)!important;font-family:var(--ib-serif);
+}
+.quill-settings-content .inkpaper-kicker{display:none}
+.quill-settings-content .inkpaper-preferences h2{
+  margin:0 0 14px;padding:5px 0 15px;border-bottom:1px solid var(--qs-gold-line);
+  font:400 clamp(25px,2.45vw,36px)/1.13 var(--ib-serif)!important;
+  color:var(--ib-text)!important;letter-spacing:-.025em;
+}
+.quill-settings-content .inkpaper-description{
+  margin:0 0 18px;max-width:60ch;font:15px/1.6 var(--ib-serif);color:var(--ib-muted)!important;
+}
+.quill-settings-content .inkpaper-options{grid-template-columns:repeat(3,minmax(0,1fr));gap:22px 14px}
+.quill-settings-content .inkpaper-sample{min-height:130px;padding:17px 12px;gap:11px}
+.quill-settings-content .inkpaper-sample-title{font:400 22px/1.15 var(--ib-serif)}
+.quill-settings-content .inkpaper-sample-lines{font-size:11px;line-height:1.45}
+.quill-settings-content .inkpaper-option-foot{margin:12px 0 4px}
+.quill-settings-content .inkpaper-option-name{font-size:12px;color:var(--ib-text)!important}
+.quill-settings-content .inkpaper-option-description{font-size:12px;line-height:1.4;color:var(--ib-muted)!important}
+.quill-settings-content .inkpaper-option-check{color:var(--qs-gold)}
+.quill-settings-content .inkpaper-option[aria-pressed="true"] .inkpaper-sample{
+  outline:2px solid var(--qs-gold);outline-offset:3px;
+}
+.quill-settings-content .inkpaper-footnote{border-color:var(--ib-line);color:var(--ib-copy);font-size:12px;padding-top:15px;margin:20px 0 0}
+.quill-settings-content .quill-settings-footnote{padding-top:10px;border-top:1px solid var(--ib-line)}
+.quill-settings-content .quill-settings-footnote .panel-heading{font-size:21px!important}
+.quill-settings-wardrobe{padding-top:26px;border-top:1px solid var(--qs-gold-line)}
+
+/* Explicit focus and touch targets across all Settings controls. */
+.quill-settings-page :is(button,input,textarea,a,[role="button"]):focus-visible,
+.account-tab-content>.quill-settings-panels--notifications :is(button,input,textarea,a):focus-visible{
+  outline:2px solid var(--qs-gold,var(--ib-text))!important;outline-offset:3px;
+}
+@media (max-width:1200px){
+  .quill-settings-page{grid-template-columns:minmax(205px,25%) minmax(0,1fr)}
+  .quill-settings-content .inkpaper-options{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:950px){
+  .quill-settings-page{grid-template-columns:1fr;gap:25px}
+  .quill-settings-intro{position:static;max-height:none;overflow:visible;min-height:0;border-right:0;border-bottom:1px solid var(--ib-line);padding:0 0 23px}
+  .quill-settings-intro h1{margin-bottom:12px}
+  .quill-settings-kicker{margin-bottom:10px!important}
+  .quill-settings-summary{max-width:640px;margin-bottom:15px}
+  .quill-settings-index{max-width:none;display:flex;flex-direction:row;flex-wrap:wrap;gap:5px 20px}
+  .quill-settings-index a{border:0;padding:7px 0}
+  .quill-settings-art,.quill-settings-colophon{display:none}
+}
+@media (max-width:720px){
+  .inkbound-account-shell:has(.quill-settings-page) .account-tabs{justify-content:flex-start;gap:9px 14px;margin-bottom:22px}
+  .quill-settings-content{display:flex;flex-direction:column;gap:28px}
+  .quill-settings-content>*{width:100%;min-width:0}
+  .quill-settings-content .quill-settings-panels{display:contents}
+  .quill-settings-content .inkpaper-options{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .quill-settings-content .inkpaper-sample{min-height:108px;padding:12px}
+  .quill-settings-content .notification-setting-row{gap:13px}
+}
+@media(max-width:430px){
+  .quill-settings-content .inkpaper-options{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .quill-settings-content .notification-setting-row{align-items:flex-start}
+  .quill-settings-content .notification-event-grid{grid-template-columns:1fr}
+  .quill-settings-content .notification-setting-row strong{font-size:14px}
+  .quill-settings-index{font-size:11px}
+  .quill-settings-content .notification-phone-line>*{max-width:100%}
+}
+@media(prefers-reduced-motion:reduce){
+  .quill-settings-content .terminal-toggle input[type="checkbox"],
+  .quill-settings-content .terminal-toggle input[type="checkbox"]:after{transition:none}
+}

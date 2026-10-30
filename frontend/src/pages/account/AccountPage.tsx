@@ -3,7 +3,6 @@ import { useSearchParams } from "react-router";
 import { PageTitle } from "../../components/ui/PageTitle";
 import { Panel } from "../../components/ui/Panel";
 import { SettingsPage } from "./SettingsPage";
-import { AppearanceWardrobe } from "../../features/appearance/AppearanceWardrobe";
 import { InkboundPaperPreferences } from "../../features/appearance/InkboundPaperPreferences";
 import "./quillairoSettingsPass665.css";
 import "./inkscapeAccountPass6656.css";
@@ -461,7 +460,6 @@ export function AccountPage() {
               <a href="#ink-settings-gameplay">Sound &amp; Gameplay <span aria-hidden="true">↗</span></a>
               <a href="#ink-settings-notifications">Notifications <span aria-hidden="true">↗</span></a>
               {user?.permissions.includes("admin") ? <a href="#quill-settings-ai">AI Models <span aria-hidden="true">↗</span></a> : null}
-              <a href="#wardrobe">Personal Editions <span aria-hidden="true">↗</span></a>
             </nav>
             <img className="quill-settings-art" src="/art/inkbound/north-road-editorial.png" alt="" loading="lazy" />
             <p className="quill-settings-colophon">Different paths. The same wonder.</p>
@@ -470,7 +468,6 @@ export function AccountPage() {
             <InkboundPaperPreferences />
             <SettingsPage section="preferences" />
             <SettingsPage section="notifications" />
-            <div className="quill-settings-wardrobe"><AppearanceWardrobe /></div>
           </div>
         </div> : null}
         {activeTab === "notifications" ? <SettingsPage section="notifications" /> : null}

@@ -10,7 +10,7 @@ def test_current_settings_folio_and_anchors():
     css = READ("frontend/src/pages/account/quillairoSettingsPass665.css")
     assert 'className="quill-settings-page"' in account
     for anchor in ("#inkbound-paper", "#ink-settings-storytime", "#ink-settings-reading",
-                   "#ink-settings-gameplay", "#ink-settings-notifications", "#quill-settings-ai", "#wardrobe"):
+                   "#ink-settings-gameplay", "#ink-settings-notifications", "#quill-settings-ai"):
         assert anchor in account
     assert '.quill-settings-content>.quill-settings-panels{display:contents}' in css
     assert '.quill-settings-content>.inkpaper-preferences{order:10}' in css
@@ -20,21 +20,11 @@ def test_current_settings_folio_and_anchors():
     assert 'pointer-events:none' in css
 
 
-def test_legacy_wardrobe_controls_not_removed_or_faked():
-    widget = READ("frontend/src/features/appearance/AppearanceWardrobe.tsx")
-    for contract in ("useAppearance()", "EDITION_FAMILIES.map", "PLATFORM_SKINS.map",
-                     "INCLUDED_PACKS", "equipTheme(", "updateAppearance(", "installTheme(",
-                     "removeTheme(", "saveJSON(", "parseThemePack(", "TerminalSelect", "input type=\"color\""):
-        assert contract in widget, contract
-    wardrobe = READ("frontend/src/features/appearance/wardrobe.css")
-    editor = READ("frontend/src/features/appearance/themeWorkshop.css")
-    assert 'background:linear-gradient(125deg,#281b16,#0f1217)' not in wardrobe
-    assert 'background:#271914' not in wardrobe
-    assert 'background:#261a1538' not in editor
-    for source in (wardrobe, editor):
-        assert 'var(--ib-text)' in source
-        assert 'var(--ib-line)' in source
-
+def test_retired_wardrobe_controls_not_present():
+    account = READ("frontend/src/pages/account/AccountPage.tsx")
+    assert "AppearanceWardrobe" not in account
+    assert "#wardrobe" not in account
+    assert "<InkboundPaperPreferences />" in account
 
 def test_settings_services_and_access_control_unchanged():
     settings = READ("frontend/src/pages/account/SettingsPage.tsx")
@@ -58,6 +48,6 @@ def test_settings_remain_theme_aware_and_accessible():
     assert 'input[type="checkbox"]:checked:after' in css
     assert 'input:focus-visible' in css
     assert 'prefers-reduced-motion:reduce' in css
-    assert 'aria-pressed' in READ("frontend/src/features/appearance/AppearanceWardrobe.tsx")
+    assert 'aria-pressed' in READ("frontend/src/features/appearance/InkboundPaperPreferences.tsx")
     assert 'aria-pressed' in READ("frontend/src/pages/account/GlobalAiModelSettings.tsx")
     assert 'focus-visible' in ai

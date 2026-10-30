@@ -1,13 +1,6 @@
 import { HeroEffectList } from "../../features/adventure/HeroEffectList";
 import { genreInkIllustration } from "../../features/appearance/quillairoGenreArt";
-import { themeCssVars } from "../../features/appearance/themePacks";
-import { readerEditionFamily, themeEdition, themeEditionCssVars } from "../../features/appearance/themeEditions";
-import "../../features/appearance/themeEditions.css";
-import type { CSSProperties } from "react";
-import "./adventureWorldPass64.css";
 import "./adventureLiterary643.css";
-import { useAppearance } from "../../features/appearance/AppearanceContext";
-import { resolveAppearance } from "../../features/appearance/themeContract";
 import { NarratorVoicePicker } from "../../components/game/NarratorVoicePicker";
 import {
   useEffect,
@@ -111,7 +104,6 @@ export function AdventurePage() {
   const { roomId } = useParams();
   const { user } = useAuth();
   const [inkPaper] = useInkboundPaper(user?.user_id ?? "");
-  const { preferences, readerTheme, edition } = useAppearance();
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -147,20 +139,18 @@ export function AdventurePage() {
     [adventures, roomId],
   );
 
-  // Resolve by immutable catalog adventure ID, never a mutable display title.
-  // Author metadata is an allowlisted cosmetic ID; it cannot load arbitrary CSS.
-  const worldCatalogItem = catalog.find((item) => item.adventure_id === matchingAdventure?.adventure_id);
-  const worldSkin = resolveAppearance(preferences, worldCatalogItem
-    ? { adventureId: worldCatalogItem.adventure_id, metadata: worldCatalogItem.metadata,
-        tags: worldCatalogItem.tags, title: worldCatalogItem.title }
-    : { adventureId: matchingAdventure?.adventure_id, title: matchingAdventure?.adventure_title });
-
   const characterId =
     searchParams.get("hero")?.trim() ||
     matchingAdventure?.character_id ||
     undefined;
 
   const live = useLiveAdventure(roomId, characterId);
+
+  // Resolve story artwork and document IDs from the authoritative catalog.
+  // This metadata is independent of the retired appearance/edition system.
+  const worldCatalogItem = catalog.find(
+    (item) => item.adventure_id === (live.game?.adventure_id ?? matchingAdventure?.adventure_id),
+  );
 
   const normalizedRoomCode = roomId?.toUpperCase() ?? "";
   const turnNumber = live.game?.turn_number ?? matchingAdventure?.turn_number ?? 1;
@@ -939,11 +929,7 @@ export function AdventurePage() {
           {bookRequested ? "USE STANDARD READER" : "OPEN LIVING BOOK · PREVIEW"}
         </button>
       </div>}
-      <div className={`adventure-layout ${bookReady || inkboundReady || inkboundLobbyReady ? "adventure-layout--reader-hidden" : ""}`} data-world-skin={worldSkin.reader} data-reduced-motion={worldSkin.reducedMotion}
-        data-installed-reader-theme={Boolean(readerTheme && worldSkin.reader !== "plain")} data-theme-material={readerTheme?.material}
-        data-reader-edition-family={!readerTheme && worldSkin.reader !== "plain" ? readerEditionFamily(worldSkin.reader) : undefined}
-        data-edition-mode={edition.mode}
-        style={(worldSkin.reader === "plain" ? undefined : readerTheme ? themeCssVars(readerTheme) : themeEditionCssVars(themeEdition(readerEditionFamily(worldSkin.reader), edition.mode))) as CSSProperties | undefined}>
+      <div className={`adventure-layout ${bookReady || inkboundReady || inkboundLobbyReady ? "adventure-layout--reader-hidden" : ""}`} data-ink-paper={inkPaper}>
         <section className="story-pane panel" ref={storyPaneRef}>
           <div className="scene-art">
             <pre>{theater.chapterReleased ? (scene?.ascii_art?.trim() || "SETTING THE STAGE_") : "THE NEXT CHAPTER IS SEALED_"}</pre>
@@ -1195,8 +1181,8 @@ ${scene.body.slice(0, 260)}`}
                 <StoryReveal
                   sceneId={scene.id}
                   text={scene.body}
-                  decorativeInitials={storyPreferences.decorativeInitials && worldSkin.reader !== "plain"}
-                  readingTypeface={worldSkin.reader === "plain" ? "plain" : storyPreferences.readingTypeface}
+                  decorativeInitials={storyPreferences.decorativeInitials}
+                  readingTypeface={storyPreferences.readingTypeface}
                   enabled={storyPreferences.wordReveal && theater.phase === "none"}
                   followNarration={audioPreferences.narrationEnabled && followVoice && narration.cue?.kind === "story" && (narration.phase === "playing" || narration.phase === "paused")}
                   narrationCue={theater.chapterReleased && (narration.phase === "playing" || narration.phase === "paused") ? narration.cue : null}

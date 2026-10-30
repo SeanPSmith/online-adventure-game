@@ -4,13 +4,13 @@ ROOT = Path(__file__).resolve().parents[2]
 SRC = ROOT / 'frontend' / 'src'
 def read(path): return (SRC / path).read_text(encoding='utf-8')
 
-def test_saved_appearance_preferences_remain_compatible():
-    contract = read('features/appearance/themeContract.ts')
-    assert "platformSkin: 'brighter-world'" in contract
-    for skin in ('brighter-world', 'wanderers-desk', 'midnight-codex', 'clear-journal'):
-        assert f"'{skin}'" in contract
-    assert 'normalizeAppearance' in contract
-    assert 'verifiedEntitlements' in contract
+def test_only_six_inkscape_paper_themes_are_selectable():
+    paper = read('features/appearance/inkboundPaper.ts')
+    preferences = read('features/appearance/InkboundPaperPreferences.tsx')
+    assert 'INKBOUND_PAPERS' in preferences
+    for name in ('parchment','ivory','cream','navy','phosphor','midnight'):
+        assert f'id: "{name}"' in paper
+    assert not (SRC/'features/appearance/themeContract.ts').exists()
 
 def test_production_home_has_live_service_callbacks_and_no_retired_book():
     home = read('pages/game/GameHomePage.tsx')
@@ -33,7 +33,7 @@ def test_narration_and_turns_remain_authoritative():
     assert 'theater.chapterReleased && scene?.body' in adventure
     assert 'StoryReveal' in adventure
     assert 'decorativeInitials={storyPreferences.decorativeInitials' in adventure
-    assert 'readingTypeface={worldSkin.reader === "plain"' in adventure
+    assert 'readingTypeface={storyPreferences.readingTypeface}' in adventure
     assert 'storyPreferences.wordReveal && theater.phase === "none"' in adventure
 
 def test_type_options_have_simple_accessible_fallback():
@@ -55,7 +55,7 @@ def test_no_transition_overlay_or_native_controls_added():
     assert 'BookPageTurn' not in layout
     for p in (SRC/'pages/game/GameHomePage.tsx', SRC/'pages/account/SettingsPage.tsx'):
         assert '<select' not in p.read_text(encoding='utf-8')
-    assert 'p643-arrive' in read('styles/brighterWorldShell.css')
+    assert not (SRC/'styles/brighterWorldShell.css').exists()
 
 
 def test_curated_images_are_real_small_assets():

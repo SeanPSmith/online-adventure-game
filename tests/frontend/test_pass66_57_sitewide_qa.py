@@ -79,5 +79,5 @@ def test_audit_command_is_read_only_and_fails_on_regression():
 def test_no_logic_edits_in_sitewide_pass():
     entry = read("frontend/src/main.tsx")
     assert 'import "./styles/inkscapeSitewideQaPass6657.css";' in entry
-    for required in ("<AuthProvider>", "<AppearanceProvider>", "<GameSocketProvider>", "<ModalProvider>", "<RouterProvider router={router} />"):
+    for required in ("<AuthProvider>", "<GameSocketProvider>", "<ModalProvider>", "<RouterProvider router={router} />"):
         assert required in entry

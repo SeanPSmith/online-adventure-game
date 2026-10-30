@@ -35,7 +35,9 @@ def test_auditor_resolves_static_imports_and_artwork():
     auditor = load_script('audit-source-hygiene.py')
     issues, duplicates, asset_refs = auditor.audit(ROOT)
     assert issues == []
-    assert asset_refs >= 40
+    # Static references legitimately decrease as obsolete artwork and themes are retired.
+    # Validate actual source and asset integrity rather than an arbitrary catalog size.
+    assert asset_refs > 0, "The audit must inspect at least one real art/brand URI"
     assert any('brand/favicon.ico' in group for group in duplicates)
 
 
@@ -85,3 +87,23 @@ def test_pruner_blocks_referenced_features(tmp_path):
     root = sample_root(tmp_path, pruner)
     (root / 'frontend/src/main.tsx').write_text('import { BookPageTurn } from "./features/appearance/BookPageTurn";\n', encoding='utf-8')
     assert pruner.clean(root, apply=True) == 2
+
+
+def test_auditor_detects_broken_import_and_missing_artwork(tmp_path):
+    """Prevent a relaxed count check from masking real integrity problems."""
+    auditor = load_script('audit-source-hygiene.py')
+    root = tmp_path / 'broken-source'
+    src = root / 'frontend/src'
+    public = root / 'frontend/public'
+    src.mkdir(parents=True)
+    public.mkdir(parents=True)
+    (src / 'main.tsx').write_text(
+        'import { missing } from "./this-module-does-not-exist";\n'
+        'export const art = "/art/missing-scene.webp";\n',
+        encoding='utf-8',
+    )
+    issues, duplicates, asset_refs = auditor.audit(root)
+    assert any('Missing relative module:' in issue for issue in issues), issues
+    assert 'Missing explicit asset: /art/missing-scene.webp' in issues
+    assert asset_refs == 1
+    assert duplicates == []

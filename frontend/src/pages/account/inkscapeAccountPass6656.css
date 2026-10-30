@@ -68,7 +68,7 @@
 .inkbound-account-shell .billing-data-grid {gap:12px}
 .inkbound-account-shell .account-billing-note {max-width:66ch}
 .inkbound-account-shell .quill-settings-index a {min-height:44px; align-items:center}
-.inkbound-account-shell :is(.quill-settings-block,.quill-settings-wardrobe,.inkpaper-preferences){scroll-margin-top:35px}
+.inkbound-account-shell :is(.quill-settings-block,.inkpaper-preferences){scroll-margin-top:35px}
 @media (max-width:700px) {
   .inkbound-account-shell .account-command-bar {gap:15px 26px}
   .inkbound-account-shell .account-command-bar>div {min-width:0;flex:1 1 140px}

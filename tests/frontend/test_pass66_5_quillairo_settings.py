@@ -18,7 +18,7 @@ def test_real_account_preferences_uses_mockup_page_composition():
     assert '<SettingsPage section="preferences" />' in ACCOUNT
     assert '<SettingsPage section="notifications" />' in ACCOUNT
     assert "<InkboundPaperPreferences />" in ACCOUNT
-    assert "<AppearanceWardrobe />" in ACCOUNT
+    assert "<AppearanceWardrobe />" not in ACCOUNT
     assert "quillairoSettingsPass665.css" in ACCOUNT
 
 

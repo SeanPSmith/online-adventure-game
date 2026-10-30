@@ -1,0 +1,17 @@
+{
+  "pass": "66.64r1",
+  "purpose": "Repair obsolete artwork-count regression after retired appearance/theme removal",
+  "files": {
+    "tests/maintenance/test_pass66_19_source_hygiene.py": {
+      "before": "38cf496720b571870f111cd1c1f0cc86974e307cb5549cd81682c285a2e4226b",
+      "after": "cd68cd2fcd93c91d5dd057cd9146cb0ed588fbfd23cd1022f244f653faf0a5d3"
+    }
+  },
+  "checks": {
+    "pytest": [
+      "tests/maintenance/test_pass66_19_source_hygiene.py::test_auditor_resolves_static_imports_and_artwork",
+      "tests/maintenance/test_pass66_19_source_hygiene.py::test_auditor_detects_broken_import_and_missing_artwork",
+      "tests/frontend/test_pass66_64_only_six_inkscape_themes.py"
+    ]
+  }
+}

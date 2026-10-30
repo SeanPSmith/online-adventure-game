@@ -1,0 +1,625 @@
+import "../../styles/brighterWorldShell.css";
+import { useEffect, useMemo, useState } from "react";
+import {
+  readAudioPreferences, writeAudioPreferences, AUDIO_PREFERENCES_CHANGED, KOKORO_VOICES, NARRATION_PLAYBACK_SPEEDS,
+  type AudioPreferences,
+} from "../../services/audioPreferences";
+import { activateAudioFromGesture, playSound } from "../../services/audioDirector";
+import { adjustNarrationVolume, playNarration, stopNarration } from "../../services/storyNarrator";
+import { observeStoryTime, prepareStoryTime, stopStoryTimeEngine, type StoryTimeState } from "../../services/storyTimeEngine";
+import { PageTitle } from "../../components/ui/PageTitle";
+import { Panel } from "../../components/ui/Panel";
+import { NarratorVoicePicker } from "../../components/game/NarratorVoicePicker";
+import { useAuth } from "../../state/AuthContext";
+import { GlobalAiModelSettings } from "./GlobalAiModelSettings";
+import {
+  browserNotificationSupport,
+  disableWebPush,
+  enableWebPush,
+  getNotificationSettings,
+  readNotificationPreferences,
+  requestSmsVerification,
+  saveNotificationSettings,
+  verifySmsCode,
+  writeNotificationPreferences,
+  type NotificationChannels,
+  type NotificationPreferences,
+} from "../../services/notifications";
+import {
+  readStoryDisplayPreferences,
+  writeStoryDisplayPreferences,
+  type StoryDisplayPreferences,
+} from "../../services/storyPreferences";
+
+const EMPTY_CHANNELS: NotificationChannels = {
+  pushAvailable: false,
+  emailAvailable: false,
+  smsAvailable: false,
+  emailAddress: "",
+};
+
+function errorMessage(reason: unknown) {
+  return reason instanceof Error ? reason.message : "The notification service did not respond.";
+}
+
+export function SettingsPage({ section = "all" }: { section?: "all" | "notifications" | "preferences" }) {
+  const [preferences, setPreferences] = useState<NotificationPreferences>(() =>
+    readNotificationPreferences(),
+  );
+  const [channels, setChannels] = useState<NotificationChannels>(EMPTY_CHANNELS);
+  const [permission, setPermission] = useState(() => browserNotificationSupport().permission);
+  const [phoneDraft, setPhoneDraft] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
+  const [status, setStatus] = useState("Loading notification preferences…");
+  const [busy, setBusy] = useState(false);
+  const [storyDisplay, setStoryDisplay] = useState<StoryDisplayPreferences>(() =>
+    readStoryDisplayPreferences(),
+  );
+  const [audio, setAudio] = useState<AudioPreferences>(() => readAudioPreferences());
+  const { user } = useAuth();
+  const isAdmin = user?.permissions.includes("admin") ?? false;
+  const [seedState, setSeedState] = useState("");
+  const [seeding, setSeeding] = useState(false);
+  const [storyTime, setStoryTime] = useState<StoryTimeState>({ phase: "idle", percent: null, message: "" });
+
+  useEffect(() => {
+    const onChange = () => setAudio(readAudioPreferences());
+    window.addEventListener(AUDIO_PREFERENCES_CHANGED, onChange);
+    return () => window.removeEventListener(AUDIO_PREFERENCES_CHANGED, onChange);
+  }, []);
+
+  function setAudioPreference(next: Partial<AudioPreferences>) {
+    const saved = writeAudioPreferences(next);
+    setAudio(saved);
+    if (!saved.narrationEnabled) stopNarration();
+    adjustNarrationVolume();
+    if (saved.effectsEnabled) {
+      activateAudioFromGesture();
+      playSound("ui");
+    }
+  }
+
+  useEffect(() => section === "notifications" ? undefined : observeStoryTime(setStoryTime), [section]);
+  useEffect(() => {
+    if (section !== "notifications" && audio.narrationEnabled && audio.storyTimeApproved) void prepareStoryTime().catch(() => {});
+  }, [section, audio.narrationEnabled, audio.storyTimeApproved]);
+
+  async function seedVoicePreviews() {
+    if (!isAdmin || seeding) return;
+    setSeeding(true);
+    const api = import.meta.env.VITE_API_BASE ?? "";
+    try {
+      let completed = 0;
+      for (const voice of KOKORO_VOICES) {
+        setSeedState(`PREPARING ${voice.label} // ${completed}/${KOKORO_VOICES.length}`);
+        // GPU cold-start can take several minutes. No preview generation from
+        // ordinary player accounts, and retry only explicit 503 readiness.
+        let result: Response | null = null;
+        for (let attempt = 0; attempt < 30; attempt++) {
+          result = await fetch(`${api}/api/narration/previews/seed/${voice.value}`, {
+            method: "POST", credentials: "include", headers: { "X-TOT-Admin-Request": "1" },
+          });
+          if (result.status !== 503) break;
+          await new Promise(resolve => setTimeout(resolve, 6000));
+        }
+        if (!result?.ok) throw new Error(`Preview preparation stopped at ${voice.label} (HTTP ${result?.status ?? "offline"}).`);
+        completed++;
+      }
+      setSeedState(`ALL ${completed} ENGLISH VOICE SAMPLES ARE READY`);
+    } catch (reason) {
+      setSeedState(reason instanceof Error ? reason.message : "Preview preparation failed.");
+    } finally { setSeeding(false); }
+  }
+
+  function requestStoryTime() {
+    setAudioPreference({ storyTimeApproved: true, narrationEnabled: true });
+    void prepareStoryTime().catch(() => {});
+  }
+
+  useEffect(() => {
+    if (section === "preferences") return;
+    let cancelled = false;
+    void getNotificationSettings()
+      .then((settings) => {
+        if (cancelled) return;
+        setPreferences(settings.preferences);
+        setChannels(settings.channels);
+        setPhoneDraft(settings.preferences.phoneNumber);
+        setStatus("");
+      })
+      .catch((reason) => {
+        if (cancelled) return;
+        setStatus(errorMessage(reason));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [section]);
+
+  const pushSupported = permission !== "unsupported" && channels.pushAvailable;
+  const pushStatus = useMemo(() => {
+    if (permission === "unsupported") return "NOT SUPPORTED BY THIS BROWSER";
+    if (!channels.pushAvailable) return "SERVER PUSH KEY NOT AVAILABLE";
+    if (permission === "denied") return "BLOCKED IN BROWSER SITE SETTINGS";
+    if (preferences.push && permission === "granted") return "REAL WEB PUSH ENABLED";
+    if (permission === "granted") return "PERMISSION GRANTED // DELIVERY DISABLED";
+    return "READY TO REQUEST PERMISSION";
+  }, [channels.pushAvailable, permission, preferences.push]);
+
+  async function persist(next: NotificationPreferences, success = "Preferences saved.") {
+    setBusy(true);
+    setStatus("");
+    try {
+      const saved = await saveNotificationSettings(next);
+      setPreferences(saved.preferences);
+      setChannels(saved.channels);
+      setStatus(success);
+    } catch (reason) {
+      setStatus(errorMessage(reason));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function updateLocalInApp(value: boolean) {
+    const next = writeNotificationPreferences({ ...preferences, inApp: value });
+    setPreferences(next);
+    setStatus("In-app preference saved in this browser.");
+  }
+
+  async function update<K extends keyof NotificationPreferences>(
+    key: K,
+    value: NotificationPreferences[K],
+  ) {
+    await persist({ ...preferences, [key]: value });
+  }
+
+  async function enablePush() {
+    setBusy(true);
+    setStatus("Connecting this browser to Web Push…");
+    try {
+      const settings = await enableWebPush();
+      setPreferences(settings.preferences);
+      setChannels(settings.channels);
+      setPermission(browserNotificationSupport().permission);
+      setStatus("Web Push enabled for this browser.");
+    } catch (reason) {
+      setPermission(browserNotificationSupport().permission);
+      setStatus(errorMessage(reason));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function disablePush() {
+    setBusy(true);
+    try {
+      const settings = await disableWebPush();
+      setPreferences(settings.preferences);
+      setChannels(settings.channels);
+      setStatus("Web Push disabled on this browser.");
+    } catch (reason) {
+      setStatus(errorMessage(reason));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function sendSmsCode() {
+    setBusy(true);
+    setStatus("Sending your verification code…");
+    try {
+      const response = await requestSmsVerification(phoneDraft);
+      setStatus(`${response.message} Enter the six-digit code below.`);
+    } catch (reason) {
+      setStatus(errorMessage(reason));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function verifySms() {
+    setBusy(true);
+    setStatus("Verifying your number…");
+    try {
+      const settings = await verifySmsCode(verificationCode.trim());
+      setPreferences(settings.preferences);
+      setChannels(settings.channels);
+      setPhoneDraft(settings.preferences.phoneNumber);
+      setVerificationCode("");
+      setStatus("Phone verified. SMS alerts enabled.");
+    } catch (reason) {
+      setStatus(errorMessage(reason));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className={`quill-settings-panels quill-settings-panels--${section}`} aria-label="Quillairo preferences">
+      {section === "all" ? <PageTitle eyebrow="ACCOUNT" title="SETTINGS" /> : null}
+      {section !== "notifications" && isAdmin ? <GlobalAiModelSettings /> : null}
+
+      {section !== "preferences" ? (
+      <div className="quill-settings-block quill-settings-notifications" id="ink-settings-notifications">
+      <Panel title="REAL-WORLD ADVENTURE NOTIFICATIONS">
+        <div className="notification-settings-grid">
+          <p className="muted-copy notification-settings-intro">
+            In-app notices are local UI. Web Push, email, and SMS are server-delivered channels
+            designed for asynchronous co-op when Quillairo is in another tab—or completely closed.
+          </p>
+
+          <div className="notification-setting-row">
+            <div>
+              <strong>IN-APP ACTIVITY ALERTS</strong>
+              <p>Show in-app activity notices while Quillairo is already open.</p>
+              <small>THIS SETTING APPLIES ONLY TO THIS BROWSER.</small>
+            </div>
+            <label className="terminal-toggle">
+              <input
+                type="checkbox"
+                aria-label="In-app activity alerts" checked={preferences.inApp}
+                onChange={(event) => updateLocalInApp(event.target.checked)}
+              />
+              <span>{preferences.inApp ? "ON" : "OFF"}</span>
+            </label>
+          </div>
+
+          <div className="notification-setting-row">
+            <div>
+              <strong>WEB PUSH // DEVICE PING</strong>
+              <p>
+                Register this browser with the Quillairo push worker. Notifications can arrive
+                after you close the game page, and tapping one routes back to the relevant room.
+              </p>
+              <small>{pushStatus}</small>
+            </div>
+            <div className="button-row">
+              {preferences.push ? (
+                <button className="button" type="button" disabled={busy} onClick={() => void disablePush()}>
+                  DISABLE PUSH
+                </button>
+              ) : (
+                <button
+                  className="button button-primary"
+                  type="button"
+                  disabled={busy || !pushSupported || permission === "denied"}
+                  onClick={() => void enablePush()}
+                >
+                  ENABLE WEB PUSH
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="notification-setting-row">
+            <div>
+              <strong>EMAIL // AMAZON SES</strong>
+              <p>
+                Send selected adventure events to {channels.emailAddress || "your account email"}.
+              </p>
+              <small>
+                {channels.emailAvailable
+                  ? "SES CHANNEL CONFIGURED // OPT-IN"
+                  : "SES SENDER NOT CONFIGURED ON THIS ENVIRONMENT"}
+              </small>
+            </div>
+            <label className={`terminal-toggle${channels.emailAvailable ? "" : " is-disabled"}`}>
+              <input
+                type="checkbox"
+                aria-label="Email adventure alerts" checked={preferences.email}
+                disabled={busy || !channels.emailAvailable}
+                onChange={(event) => void update("email", event.target.checked)}
+              />
+              <span>{preferences.email ? "ON" : "OFF"}</span>
+            </label>
+          </div>
+
+          <div className="notification-setting-row notification-sms-row">
+            <div>
+              <strong>SMS // AWS</strong>
+              <p>
+                Optional text alerts. A number must be verified before Quillairo will send gameplay SMS.
+              </p>
+              <small>
+                {!channels.smsAvailable
+                  ? "SMS CHANNEL NOT ENABLED ON THIS ENVIRONMENT"
+                  : preferences.phoneVerified
+                    ? `VERIFIED // ${preferences.phoneNumber}`
+                    : "ENTER E.164 FORMAT, FOR EXAMPLE +14125551212"}
+              </small>
+            </div>
+
+            {preferences.phoneVerified ? (
+              <label className="terminal-toggle">
+                <input
+                  type="checkbox"
+                  aria-label="SMS adventure alerts" checked={preferences.sms}
+                  disabled={busy || !channels.smsAvailable}
+                  onChange={(event) => void update("sms", event.target.checked)}
+                />
+                <span>{preferences.sms ? "ON" : "OFF"}</span>
+              </label>
+            ) : (
+              <div className="notification-phone-setup">
+                <div className="notification-phone-line">
+                  <input
+                    className="input"
+                    type="tel"
+                    value={phoneDraft}
+                    disabled={busy || !channels.smsAvailable}
+                    onChange={(event) => setPhoneDraft(event.target.value)}
+                    placeholder="+14125551212"
+                    aria-label="Mobile phone number"
+                  />
+                  <button
+                    className="button"
+                    type="button"
+                    disabled={busy || !channels.smsAvailable || !phoneDraft.trim()}
+                    onClick={() => void sendSmsCode()}
+                  >
+                    SEND CODE
+                  </button>
+                </div>
+                <div className="notification-phone-line">
+                  <input
+                    className="input"
+                    inputMode="numeric"
+                    value={verificationCode}
+                    disabled={busy || !channels.smsAvailable}
+                    onChange={(event) => setVerificationCode(event.target.value.replace(/\D/g, "").slice(0, 6))}
+                    placeholder="6-DIGIT CODE"
+                    aria-label="SMS verification code"
+                  />
+                  <button
+                    className="button button-primary"
+                    type="button"
+                    disabled={busy || verificationCode.length !== 6}
+                    onClick={() => void verifySms()}
+                  >
+                    VERIFY
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="notification-event-grid notification-event-grid-four">
+            <label className="notification-event-option">
+              <input
+                type="checkbox"
+                checked={preferences.roomInvite}
+                disabled={busy}
+                onChange={(event) => void update("roomInvite", event.target.checked)}
+              />
+              <span>
+                <strong>ROOM INVITE</strong>
+                <small>Another Quillairo account directly invites you to a co-op room.</small>
+              </span>
+            </label>
+
+            <label className="notification-event-option">
+              <input
+                type="checkbox"
+                checked={preferences.partnerJoined}
+                disabled={busy}
+                onChange={(event) => void update("partnerJoined", event.target.checked)}
+              />
+              <span>
+                <strong>PARTNER JOINED</strong>
+                <small>Your invited partner enters the adventure.</small>
+              </span>
+            </label>
+
+            <label className="notification-event-option">
+              <input
+                type="checkbox"
+                checked={preferences.partnerLocked}
+                disabled={busy}
+                onChange={(event) => void update("partnerLocked", event.target.checked)}
+              />
+              <span>
+                <strong>WAITING ON YOU</strong>
+                <small>Your partner locks a choice and the room needs your decision.</small>
+              </span>
+            </label>
+
+            <label className="notification-event-option">
+              <input
+                type="checkbox"
+                checked={preferences.resultsReady}
+                disabled={busy}
+                onChange={(event) => void update("resultsReady", event.target.checked)}
+              />
+              <span>
+                <strong>RESULTS READY</strong>
+                <small>The dice and Story Director have finished the turn.</small>
+              </span>
+            </label>
+          </div>
+
+          {status ? <div className="system-notice notification-settings-status" role="status" aria-live="polite">{status}</div> : null}
+        </div>
+      </Panel>
+      </div>
+      ) : null}
+
+      {section !== "notifications" ? (<>
+      <div className="quill-settings-block quill-settings-sound" id="ink-settings-gameplay">
+      <Panel title="AUDIO // YOUR ADVENTURE, YOUR VOLUME">
+        <div className="notification-settings-grid">
+          <div className="notification-setting-row">
+            <div>
+              <strong>ENABLE SOUND EFFECTS</strong>
+              <p>Short cues for dice, choices, reactions, chapter changes, XP, and Hero outcomes.</p>
+              <small>OFF BY DEFAULT. AUDIO UNLOCKS WHEN YOU CLICK OR PRESS A KEY. THIS BROWSER ONLY.</small>
+            </div>
+            <label className="terminal-toggle">
+              <input type="checkbox" aria-label="Adventure sound effects" checked={audio.effectsEnabled}
+                onChange={(event) => setAudioPreference({ effectsEnabled: event.target.checked })} />
+              <span>{audio.effectsEnabled ? "ON" : "OFF"}</span>
+            </label>
+          </div>
+          {([
+            ["masterVolume", "MASTER VOLUME", "Controls all effects."],
+            ["effectsVolume", "STORY & DICE", "Story, QTE, dice, progression, and interface cues."],
+            ["arcadeVolume", "ARCADE", "Intermission cabinet cues; game-specific audio will follow."],
+          ] as const).map(([key, label, description]) => (
+            <label className="audio-setting-slider" key={key}>
+              <span><strong>{label}</strong><span>{audio[key]}%</span></span>
+              <small>{description}</small>
+              <input type="range" min={0} max={100} step={5} value={audio[key]}
+                disabled={!audio.effectsEnabled}
+                onChange={(event) => setAudioPreference({ ...audio, [key]: Number(event.target.value) })}
+                aria-label={label} />
+            </label>
+          ))}
+          <div className="button-row">
+            <button className="button" type="button" disabled={!audio.effectsEnabled}
+              onClick={() => { activateAudioFromGesture(); playSound("critical"); }}>
+              TEST YOUR SOUND
+            </button>
+          </div>
+          <p className="muted-copy">Sound effects are separate from narration. Turning one off never mutes the other.</p>
+        </div>
+      </Panel>
+
+      </div>
+      <div className="quill-settings-block quill-settings-storytime" id="ink-settings-storytime">
+      <Panel title="STORY TIME // YOUR STORYTELLER">
+        <div className="notification-settings-grid">
+          <div className="notification-setting-row">
+            <div>
+              <strong>ENABLE STORY NARRATION</strong>
+              <p>Hear the generated chapter and choices read aloud. Narration is prepared by an optional hosted Story Time service. No microphone or voice input.</p>
+              <small>OFF BY DEFAULT // YOUR PLAYBACK SETTINGS ARE PERSONAL</small>
+            </div>
+            <label className="terminal-toggle">
+              <input type="checkbox" aria-label="Story narration" checked={audio.narrationEnabled}
+                onChange={event => { if (event.target.checked) requestStoryTime(); else { setAudioPreference({ narrationEnabled: false }); stopStoryTimeEngine(); } }} />
+              <span>{audio.narrationEnabled ? "ON" : "OFF"}</span>
+            </label>
+          </div>
+          {audio.narrationEnabled ? (
+            <div className="system-notice story-time-status" role="status" aria-live="polite">
+              {storyTime.phase === "ready" ? "STORY TIME IS READY // YOUR STORYTELLER IS CONNECTED" :
+                storyTime.phase === "downloading" ? storyTime.message :
+                storyTime.phase === "error" ? `STORY TIME NEEDS HELP // ${storyTime.message}` : "YOUR STORYTELLER IS RESTING OR NOT CONNECTED"}
+              {storyTime.phase === "error" ? <button className="button" type="button"
+                onClick={() => void prepareStoryTime().catch(() => {})}>RETRY CONNECTION</button> : null}
+            </div>
+          ) : null}
+          <div className="notification-setting-row">
+            <div><strong>AUTO-READ NEW CHAPTERS</strong><p>Begin reading a newly revealed chapter automatically when your browser permits audio.</p></div>
+            <label className="terminal-toggle"><input type="checkbox" aria-label="Automatically read new chapters" checked={audio.narrationAutoPlay} disabled={!audio.narrationEnabled}
+              onChange={event => setAudioPreference({ narrationAutoPlay: event.target.checked })} />
+              <span>{audio.narrationAutoPlay ? "ON" : "OFF"}</span></label>
+          </div>
+          <div className="notification-setting-row">
+            <div><strong>READ CHOICES AFTER CHAPTER</strong><p>Once narration finishes, read each choice aloud in order. Listening never selects a choice.</p></div>
+            <label className="terminal-toggle"><input type="checkbox" aria-label="Read choices after each chapter" checked={audio.narrationAutoChoices} disabled={!audio.narrationEnabled}
+              onChange={event => setAudioPreference({ narrationAutoChoices: event.target.checked })} />
+              <span>{audio.narrationAutoChoices ? "ON" : "OFF"}</span></label>
+          </div>
+          <div className="notification-setting-row">
+            <div>
+              <strong>DRAMATIC PACING // BREATH BETWEEN CHOICES</strong>
+              <p>Add a short beat before the options and between different options. Story passages stay continuous. This changes only your browser, not the party's narrator or game timing.</p>
+            </div>
+            <label className="terminal-toggle">
+              <input type="checkbox" aria-label="Dramatic pacing between choices" checked={audio.narrationDramaticPacing} disabled={!audio.narrationEnabled}
+                onChange={event => setAudioPreference({ narrationDramaticPacing: event.target.checked })} />
+              <span>{audio.narrationDramaticPacing ? "ON" : "OFF"}</span>
+            </label>
+          </div>
+          <div className="audio-setting-slider">
+            <span><strong>NARRATOR VOICE</strong></span>
+            <NarratorVoicePicker value={audio.narrationVoice} disabled={!audio.narrationEnabled}
+              onChange={value => setAudioPreference({ narrationVoice: value })} />
+            <small>YOUR NARRATOR // Choose from all 28 English Kokoro voices. This preference belongs to your browser and can be changed during any adventure, independently of the host.</small>
+            {isAdmin ? <div className="narrator-admin-seed">
+              <button className="button button-quiet" type="button" disabled={seeding}
+                onClick={() => void seedVoicePreviews()}>
+                {seeding ? "GENERATING SAMPLE LIBRARY…" : "ADMIN // PREPARE VOICE PREVIEWS"}
+              </button>
+              <small>One-time explicit GPU generation, then samples remain in private S3 storage and player previews require no inference.</small>
+              {seedState && <small role="status">{seedState}</small>}
+            </div> : null}
+          </div>
+          <label className="audio-setting-slider"><span><strong>PLAYBACK SPEED</strong><span>{audio.narrationSpeed}×</span></span>
+            <input type="range" min={NARRATION_PLAYBACK_SPEEDS[0]}
+              max={NARRATION_PLAYBACK_SPEEDS[NARRATION_PLAYBACK_SPEEDS.length - 1]}
+              step="0.25" aria-label="Narration playback speed"
+              aria-valuetext={`${audio.narrationSpeed} times normal speed`}
+              disabled={!audio.narrationEnabled} value={audio.narrationSpeed}
+              onChange={event => setAudioPreference({ narrationSpeed: Number(event.target.value) })} />
+            <small>0.5× · 0.75× · 1× · 1.25× · 1.5× · 1.75× · 2×</small>
+          </label>
+          <label className="audio-setting-slider"><span><strong>NARRATION VOLUME</strong><span>{audio.narrationVolume}%</span></span>
+            <input type="range" min="0" max="100" step="5" disabled={!audio.narrationEnabled}
+              value={audio.narrationVolume} onChange={event => setAudioPreference({ narrationVolume: Number(event.target.value) })} />
+          </label>
+          <div className="button-row">
+            <button className="button" type="button" disabled={!audio.narrationEnabled || storyTime.phase !== "ready"}
+              onClick={() => void playNarration([{ text: "Welcome to Story Time. Your next adventure awaits.", kind: "story", label: "VOICE TEST" }])}>
+              TEST LIVE NARRATION
+            </button>
+            <button className="button" type="button" disabled={storyTime.phase !== "ready"}
+              onClick={stopNarration}>STOP READING</button>
+          </div>
+          <p className="muted-copy">Story Time uses optional hosted narration. There is no voice-model download, microphone, or speech-to-text. Each player can pick their own narrator. Saved voice samples play without GPU inference; TEST LIVE NARRATION uses the active narrator service.</p>
+        </div>
+      </Panel>
+
+      </div>
+      <div className="quill-settings-block quill-settings-reading" id="ink-settings-reading">
+      <Panel title="STORY DISPLAY">
+        <div className="notification-settings-grid">
+          <div className="notification-setting-row">
+            <div>
+              <strong>WORD-BY-WORD STORY REVEAL</strong>
+              <p>Fade new story prose in one word at a time instead of displaying the whole page at once.</p>
+              <small>CLICK THE STORY OR USE REVEAL ALL TO SKIP. REDUCED-MOTION BROWSER SETTINGS ALWAYS WIN.</small>
+            </div>
+            <label className="terminal-toggle">
+              <input
+                type="checkbox"
+                aria-label="Word-by-word story reveal" checked={storyDisplay.wordReveal}
+                onChange={(event) => {
+                  const next = writeStoryDisplayPreferences({ ...storyDisplay, wordReveal: event.target.checked });
+                  setStoryDisplay(next);
+                }}
+              />
+              <span>{storyDisplay.wordReveal ? "ON" : "OFF"}</span>
+            </label>
+          </div>
+          <div className="notification-setting-row">
+            <div><strong>ILLUMINATED INITIALS</strong><p>Open a new chapter with an ornamental first letter. Turn it off for simpler reading.</p></div>
+            <label className="terminal-toggle"><input type="checkbox" aria-label="Illuminated chapter initials" checked={storyDisplay.decorativeInitials}
+              onChange={event => setStoryDisplay(writeStoryDisplayPreferences({ ...storyDisplay, decorativeInitials: event.target.checked }))} />
+              <span>{storyDisplay.decorativeInitials ? "ON" : "OFF"}</span></label>
+          </div>
+          <fieldset className="p643-typeface-picker"><legend>STORY TYPEFACE</legend>
+            {(["literary", "typewriter", "plain"] as const).map(style => (
+              <label key={style}><input type="radio" name="story-typeface" value={style}
+                checked={storyDisplay.readingTypeface === style}
+                onChange={() => setStoryDisplay(writeStoryDisplayPreferences({ ...storyDisplay, readingTypeface: style }))} />
+                {style === "literary" ? "Novel" : style === "typewriter" ? "Typewriter" : "Plain / High legibility"}
+              </label>
+            ))}
+          </fieldset>
+        </div>
+      </Panel>
+
+      </div>
+      <div className="quill-settings-block quill-settings-footnote">
+      <Panel title="PRESENTATION NOTES">
+        <p className="muted-copy">
+          Reduced-motion browser settings always override animated story reveal. Effects are optional and never replace visual game feedback.
+        </p>
+      </Panel>
+      </div>
+      </>) : null}
+    </div>
+  );
+}

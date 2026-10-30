@@ -1,0 +1,51 @@
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { RouterProvider } from "react-router/dom";
+import { router } from "./router";
+import { AuthProvider } from "./state/AuthContext";
+import { AppearanceProvider } from "./features/appearance/AppearanceContext";
+import { ModalProvider } from "./state/ModalContext";
+import { GameSocketProvider } from "./state/GameSocketContext";
+import "./styles/tokens.css";
+import "./styles/global.css";
+import "./styles/layout.css";
+import "./styles/components.css";
+import "./styles/accessibility.css";
+import "./styles/quillairoBrand.css";
+import "./styles/inkboundSystemPass660.css";
+import "./styles/inkboundLegibilityPass661.css";
+import "./styles/inkboundStoryParityPass662.css";
+import "./styles/inkboundWaitingPass663.css";
+import "./styles/inkboundGameplayPass667.css";
+import "./styles/inkboundFramePass6610.css";
+import "./styles/inkboundQuickEventPass6611.css";
+import "./styles/quillairoPublicPass6612.css";
+import "./styles/quillairoInvitePass6613.css";
+import "./styles/quillairoLegacySurfacesPass6621.css";
+import "./styles/quillairoLiveFolioPass6623.css";
+import "./styles/quillairoTurnReceiptPass6624.css";
+import "./styles/quillairoIntermissionPass6625.css";
+import "./styles/quillairoFolioToolsPass6626.css";
+import "./styles/inkscapeSitewideQaPass6657.css";
+import "./styles/inkscapeLaunchPolishPass6658.css";
+import "./styles/inkscapeRouteSkeletonPass6661.css";
+
+const root = document.getElementById("root");
+
+if (!root) {
+  throw new Error("Missing #root.");
+}
+
+createRoot(root).render(
+  <StrictMode>
+    <AuthProvider>
+      <AppearanceProvider>
+      <GameSocketProvider>
+        <ModalProvider>
+          <RouterProvider router={router} />
+        </ModalProvider>
+      </GameSocketProvider>
+      </AppearanceProvider>
+    </AuthProvider>
+  </StrictMode>,
+);

@@ -26,14 +26,6 @@ const EXAMPLES = {
     alt: "Illustrative watercolor-style Hero portrait placeholder on parchment.",
     caption: "II. IN THE HERO HALL", style: "portrait",
   },
-  Wardrobe: {
-    label: "THE WARDROBE", title: "Same soul. Different worlds.",
-    prose: "Let the parchment drink a different shade. The coat may change, the compass may turn, but the tale is still yours.",
-    quote: "The finest disguises are made of possibilities.",
-    art: "/art/pass64/p644-ink-lab-watercolor.webp",
-    alt: "Soft watercolor view of a sunlit fantasy valley and an adventurous traveler.",
-    caption: "III. A NEW APPEARANCE", style: "landscape",
-  },
   "My Adventures": {
     label: "THE CHRONICLE", title: "The road remembers.",
     prose: "Chapters fade into memory, but nothing is truly lost. Come back, turn the page, and pick up where your last impossible idea began.",

@@ -31,7 +31,7 @@ def test_account_real_self_service_actions_preserved():
         'authApi.logoutOtherSessions()', 'authApi.getAccountUsage()',
         '<SettingsPage section="preferences" />',
         '<SettingsPage section="notifications" />',
-        '<InkboundPaperPreferences />', '<AppearanceWardrobe />',
+        '<InkboundPaperPreferences />',
         'SAVE PROFILE', 'CHANGE PASSWORD', 'SIGN OUT OTHER DEVICES',
         'DELETE ACCOUNT PERMANENTLY', 'NO PAYMENT METHOD REQUIRED',
     ):

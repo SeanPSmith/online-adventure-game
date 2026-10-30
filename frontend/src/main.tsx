@@ -3,7 +3,6 @@ import { createRoot } from "react-dom/client";
 import { RouterProvider } from "react-router/dom";
 import { router } from "./router";
 import { AuthProvider } from "./state/AuthContext";
-import { AppearanceProvider } from "./features/appearance/AppearanceContext";
 import { ModalProvider } from "./state/ModalContext";
 import { GameSocketProvider } from "./state/GameSocketContext";
 import "./styles/tokens.css";
@@ -39,13 +38,11 @@ if (!root) {
 createRoot(root).render(
   <StrictMode>
     <AuthProvider>
-      <AppearanceProvider>
       <GameSocketProvider>
         <ModalProvider>
           <RouterProvider router={router} />
         </ModalProvider>
       </GameSocketProvider>
-      </AppearanceProvider>
     </AuthProvider>
   </StrictMode>,
 );

@@ -15,7 +15,7 @@ def test_visual_playground_is_a_separate_protected_route() -> None:
 
 def test_only_top_menu_and_blank_book_no_gameplay_content() -> None:
     component = (FRONTEND / "src/pages/game/VisualBookPlaygroundPage.tsx").read_text()
-    assert 'const MENU = ["Home", "Heroes", "Wardrobe", "My Adventures", "Discover", "System"]' in component
+    assert 'const MENU = ["Home", "Heroes", "My Adventures", "Discover", "System"]' in component
     assert 'className="vb-book-space"' in component
     assert "GameHomePage" not in component
     assert "AdventurePage" not in component

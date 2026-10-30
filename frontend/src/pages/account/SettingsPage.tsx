@@ -1,4 +1,3 @@
-import "../../styles/brighterWorldShell.css";
 import { useEffect, useMemo, useState } from "react";
 import {
   readAudioPreferences, writeAudioPreferences, AUDIO_PREFERENCES_CHANGED, KOKORO_VOICES, NARRATION_PLAYBACK_SPEEDS,

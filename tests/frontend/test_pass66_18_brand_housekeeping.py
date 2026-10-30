@@ -30,13 +30,10 @@ def test_existing_branded_interfaces_still_have_stable_ids():
         assert old_tool_id in director
     for op in ("director_story", "director_recap", "director_json_repair", "director_schema_repair"):
         assert f'operation="{op}"' in director
-    assert 'tales-of-two-theme/v1' in read('frontend/src/features/appearance/themePacks.ts')
-    assert 'tales-of-two-theme/v2' in read('frontend/src/features/appearance/themeEditions.ts')
     assert 'tales-of-two:notification-preferences:v2' in read('frontend/src/services/notifications.ts')
 
 
 def test_quillairo_export_and_manifest():
-    assert 'quillairo-${pack.id}.json' in read('frontend/src/features/appearance/themePacks.ts')
     assert '`quillairo:${payload.kind' in read('frontend/public/notification-sw.js')
     assert json.loads(read('frontend/package.json'))['name'] == 'quillairo-frontend'
     assert json.loads(read('frontend/package-lock.json'))['packages']['']['name'] == 'quillairo-frontend'

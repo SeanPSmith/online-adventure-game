@@ -86,7 +86,7 @@ def test_audit_is_pretest_gate_not_a_false_visual_success():
 
 def test_gameplay_state_recovery_unchanged_by_pass():
     main = read("frontend/src/main.tsx")
-    for token in ("<AuthProvider>", "<AppearanceProvider>", "<GameSocketProvider>", "<ModalProvider>", "<RouterProvider router={router} />"):
+    for token in ("<AuthProvider>", "<GameSocketProvider>", "<ModalProvider>", "<RouterProvider router={router} />"):
         assert token in main
     assert 'import "./styles/inkscapeSitewideQaPass6657.css";' in main
     assert 'import "./styles/inkscapeLaunchPolishPass6658.css";' in main

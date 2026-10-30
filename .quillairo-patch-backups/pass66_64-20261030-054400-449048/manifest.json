@@ -1,0 +1,169 @@
+{
+  "pass": "66.64",
+  "baseline": "after verified Pass 66.63 R2 from quillairo-review-20261030-004500.zip",
+  "files": {
+    "frontend/src/main.tsx": {
+      "before": "590eac5b4eb60f1d28b081f0c86c55df7b523fcc7130deefb4e02d05d2423168",
+      "after": "5faf2ee80cbf596c90561a30203f6df55fc50eee6aaf631519a112b086e9d868"
+    },
+    "frontend/src/styles/brighterWorldShell.css": {
+      "before": "59a67bba537576e93e1d4625ee3d4ed0ca9945fa3c78b55288eee98ce82c1d81",
+      "after": null
+    },
+    "frontend/src/styles/pass64Shell.css": {
+      "before": "8c80fd1c5bca2941dbbcf19b883eed91777292d9526f25d4bb52bdce80d5aa78",
+      "after": null
+    },
+    "frontend/src/layouts/GameLayout.tsx": {
+      "before": "af39cf2e8b019d493ce718f5fcc5d602003ad94bece09e631184ef638b098949",
+      "after": "b10b492222510846d0743fd65f53215622241f85b7c59f8f8079437261dc1cc3"
+    },
+    "frontend/src/features/appearance/themePresentation.css": {
+      "before": "3a1a69b100ddd1b8f58c87c4cb2d2aef0608ebb4f6d374358da5176c31b93d82",
+      "after": null
+    },
+    "frontend/src/features/appearance/AppearanceContext.tsx": {
+      "before": "326d64484e244bf5bfb7581daed4fd493619d080bbfeed543d30f46793e275e0",
+      "after": null
+    },
+    "frontend/src/features/appearance/themeEditions.ts": {
+      "before": "5fae3e2c0c475c48c060751ba8c078940c3b2cd0b386829ebf2b5f6e8d2d2e91",
+      "after": null
+    },
+    "frontend/src/features/appearance/themeContract.ts": {
+      "before": "5cb76563bd4f3ccec20fb8189c2d320084cb0c65ff605aab624b409f7481e70e",
+      "after": null
+    },
+    "frontend/src/features/appearance/wardrobe.css": {
+      "before": "5dc4ed7a7a118eb5b9f9c132033d277444102c1e20c334073cc3a1b6e959a909",
+      "after": null
+    },
+    "frontend/src/features/appearance/themeWorkshop.css": {
+      "before": "863bdc52f5af5f119916e5ef2866938dc1661d0e65d4f50c98112649907cdc28",
+      "after": null
+    },
+    "frontend/src/features/appearance/AppearanceWardrobe.tsx": {
+      "before": "227d0fc8d5bd54a53a376ebf24ddce692974419341e85da1e9ef466fc9219e04",
+      "after": null
+    },
+    "frontend/src/features/appearance/themePacks.ts": {
+      "before": "8a993e83b0c2c571c2eaf171800677be0228f1a11acffd8783b78f531def61b6",
+      "after": null
+    },
+    "frontend/src/features/appearance/themeEditions.css": {
+      "before": "734e5d51dc46671491261ca7f29ad9c2ce884697d41f3b6d85bb1a0d8c5c76fe",
+      "after": null
+    },
+    "frontend/src/pages/account/inkscapeAccountPass6656.css": {
+      "before": "cc3e10bc8ef574b5dd48bb0022fa8d4a1fb00d19aae3fb4ae762cd75a1690db8",
+      "after": "9ab64d8cce9623e199cfa5e4296a69cbc8eda1ca7640b5e39ded96fa819d3887"
+    },
+    "frontend/src/pages/account/SettingsPage.tsx": {
+      "before": "c7684dd4f84206f701e52f7d0319b1c25a5e4484b6c9ffbf294b5c3d0fc192a3",
+      "after": "64892f98e5b96cec7d4deeda56155d3b15521728cceae87abd25dab1e9cdfca2"
+    },
+    "frontend/src/pages/account/AccountPage.tsx": {
+      "before": "688bb1ae28395a38e8899fb64f077125e7892fb6f51b4b562ffad1fafe9d62c5",
+      "after": "e455969a2d3df655f263c6073fd42e6a5577abddcc65efa4822769ed158ef71d"
+    },
+    "frontend/src/pages/account/quillairoSettingsPass665.css": {
+      "before": "32cdb1afc7c0eb7cdbabf2c67ee427e13690bae45f30f1e6053d4b1085ddc1c0",
+      "after": "05298ff8b7ff16207890765c646687eb0e64605eedcd09fc40398dca414d532c"
+    },
+    "frontend/src/pages/game/AdventurePage.tsx": {
+      "before": "440566690b01340858ea6957d9366124b26d58c989ad856a85a981f6b7c44ffb",
+      "after": "448532dafc8da4d8a88e20b45d10af20c123976f27f0a2ad856fa2ecffb28dff"
+    },
+    "frontend/src/pages/game/VisualBookPlaygroundPage.tsx": {
+      "before": "b83f1b5d014a6641206e04f18a20d388fdcb72f142490746b33e0587593f6992",
+      "after": "24a675bac5a599de723786e5f2078b193a8426efd5bcc5d86935dc116f5f3cc9"
+    },
+    "frontend/src/pages/game/adventureWorldPass64.css": {
+      "before": "7355d8975ea67cb7e44b19d184e87a753549009421940fbdf9d98b8e97d451eb",
+      "after": null
+    },
+    "frontend/src/pages/game/adventureLiterary643.css": {
+      "before": "ea429c6995e07b4f8f955d6a68b432a38f5ef86303b3989fba5eaf82b6701561",
+      "after": "64c42b7b6e61a6fdcdcafee1285849b14a5818a2a0b3ddef061f9de0b17b375e"
+    },
+    "frontend/src/pages/game/InkLabBook.tsx": {
+      "before": "56971e9d0ba4d1912e7a00c922c1ec2011da7f5e8579b24dca1392eb99175bfa",
+      "after": "e0075ae37b037e99ac59596aae38365ae2529e9be960e36a75e275b34b005d20"
+    },
+    "frontend/src/pages/game/InkspaceStoryPage.tsx": {
+      "before": "94e90d127502d2ec35562750309ebaac369b39f8280aa5877eb870dd302a4836",
+      "after": "1725f105f597bcf0190eb9a045231afa86ba7b374c82ab1a6fa85f382096b1ad"
+    },
+    "tests/adventures/test_pass64_4d_visual_playground.py": {
+      "before": "2ea03b81314a9793d50d4ba2a46f2fcca43d366d92cef14138f206e890f867a8",
+      "after": "aa49b76348f7c36a8d84b9f902ce1c5f72130bc7ffdc5169b6bfba2d1ef4f386"
+    },
+    "tests/adventures/test_pass64_3a_living_storybook.py": {
+      "before": "7869595d39d00bbccfce389eef1971116e90fcea1181de29452d4b5550aa5135",
+      "after": "5c764a9e8562987b2595355750bf1d26509fa0aa6aefa70ce18eaae17769e0f2"
+    },
+    "tests/adventures/test_pass64_3b_theme_editions.py": {
+      "before": "e2d8fe9070678837edefc4b882372f758fdc991538d63f72b1cf2c7d4cba76c9",
+      "after": null
+    },
+    "tests/adventures/test_pass64_2c_theme_workshop.py": {
+      "before": "6849c2c630b9756160c960b81422769ae07d14c03745c2bd423cd3817ef7d532",
+      "after": null
+    },
+    "tests/frontend/test_pass66_5_quillairo_settings.py": {
+      "before": "2b1fe82fe373f7299d1bb17893764b77504d9c4e9e93c2f07e4ee2d0ab9edbfd",
+      "after": "bf13d1efad52c0a84ca9eedde0e722f52acb6d9499d98d4a55940f7af53805bc"
+    },
+    "tests/frontend/test_pass66_56_inkscape_account_admin.py": {
+      "before": "b188548935406f01eb46e7a509dfd0af950b9d5fb635693b8bcf3466e983ef63",
+      "after": "5c43367173764a1862cecd5cbd72ec99e9d6c0ae751310bce5ac1a0d5e9627d5"
+    },
+    "tests/frontend/test_pass66_58_launch_readiness.py": {
+      "before": "78ac84cf8eba6b3580ce2b455257f217a7093c0e9b413f8d277b02502b7f01e2",
+      "after": "c6eeb195fc9c05b1ff6f007601c779585302059e8d13bed3bc36ad1935a131ea"
+    },
+    "tests/frontend/test_pass66_37_settings_inkspace_parity.py": {
+      "before": "083a60fccfa81eba3b352d15b509aa158f38114809ae63f5156a58488cfbe323",
+      "after": "5bfbb8f827906adec6df73dd09f1a635ef2cc846568e9067d048568b8be49b7a"
+    },
+    "tests/frontend/test_pass66_18_brand_housekeeping.py": {
+      "before": "79018218c7b91f88c90133b009e1dbcd570706efbed1b7609da7e8263e52d087",
+      "after": "980ea8af5718e7cb90ebc6ed97028975129bc9d124893401509faf4cc27ce4da"
+    },
+    "tests/frontend/test_pass66_57_sitewide_qa.py": {
+      "before": "fb9dd881cb000a4e0d90cd99e66ad9e368f56100c3dbcfcfbaa528384a6e1304",
+      "after": "9f64ef5a8459dcd22594dfb7dcf39dee476306ed67b7741761abf5af7e217230"
+    },
+    "tests/frontend/test_pass66_64_only_six_inkscape_themes.py": {
+      "before": null,
+      "after": "d6a33667209cb138ba54645bd69474f8cfbc0cc2010b6ddeb68b2c1fccf871ae"
+    },
+    "scripts/pass64/test-theme-packs.mjs": {
+      "before": "ca257250cf61f99dcfb2853f99a908e36e6c833209b23cefc66c8294c9091f11",
+      "after": null
+    }
+  },
+  "checks": {
+    "pytest": [
+      "tests/frontend/test_pass66_64_only_six_inkscape_themes.py",
+      "tests/frontend/test_pass66_37_settings_inkspace_parity.py",
+      "tests/frontend/test_pass66_5_quillairo_settings.py",
+      "tests/frontend/test_pass66_56_inkscape_account_admin.py",
+      "tests/frontend/test_pass66_57_sitewide_qa.py",
+      "tests/frontend/test_pass66_58_launch_readiness.py",
+      "tests/frontend/test_pass66_18_brand_housekeeping.py",
+      "tests/frontend/test_pass65_6_3_six_paper_ink_palettes.py",
+      "tests/frontend/test_pass66_44_production_inkspace_shell.py",
+      "tests/frontend/test_pass66_63r2_live_home_cleanup.py",
+      "tests/adventures/test_pass64_3a_living_storybook.py",
+      "tests/adventures/test_pass64_4d_visual_playground.py",
+      "tests/adventures/test_pass64_4o_dev_workshop.py",
+      "tests/adventures/test_ui_contract.py",
+      "tests/frontend/test_pass65_7_live_adventure_conversion.py"
+    ],
+    "node": [
+      "scripts/tests/route-loading.cjs",
+      "tests/frontend/hero-legacy.cjs"
+    ]
+  }
+}

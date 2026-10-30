@@ -13,7 +13,7 @@ const MASK_FRAMES = 33;
 const maskURL = (step: number) => `url("/art/pass64/ink-masks/ink-${String(Math.min(32, Math.max(0, step))).padStart(2, "0")}.webp")`;
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 const eased = (v: number) => { const t = clamp01(v); return t * t * (3 - 2 * t); };
-const tabMode = (tab: string): InkspaceMode => tab === "Discover" || tab === "My Adventures" ? "art-forward" : tab === "Heroes" || tab === "Wardrobe" ? "illuminated" : "narrative";
+const tabMode = (tab: string): InkspaceMode => tab === "Discover" || tab === "My Adventures" ? "art-forward" : tab === "Heroes" ? "illuminated" : "narrative";
 const sceneStyle = (side: PageSide): CSSProperties => {
   const pos = sceneRectStyle(SCENE_COMPOSITING.contentSafeZones[side]);
   return { "--leaf-x": pos.left, "--leaf-y": pos.top, "--leaf-width": pos.width, "--leaf-height": pos.height } as CSSProperties;

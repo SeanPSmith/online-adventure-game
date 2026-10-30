@@ -1,5 +1,6 @@
 import { Navigate, createBrowserRouter } from "react-router";
 import { RootLayout } from "./layouts/RootLayout";
+import { RouteSkeleton } from "./components/skeleton/RouteSkeleton";
 import { PublicLayout } from "./layouts/PublicLayout";
 import { GameLayout } from "./layouts/GameLayout";
 import { AccountLayout } from "./layouts/AccountLayout";
@@ -15,6 +16,7 @@ import { RouteErrorPage } from "./pages/RouteErrorPage";
 export const router = createBrowserRouter([
   {
     element: <RootLayout />,
+    hydrateFallbackElement: <RouteSkeleton />,
     errorElement: <RouteErrorPage />,
     children: [
       {

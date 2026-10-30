@@ -1,16 +1,13 @@
 import "../styles/quillairoAdventureBoot.css";
 import { Outlet, useNavigation } from "react-router";
+import { RouteSkeleton } from "../components/skeleton/RouteSkeleton";
 
 export function RootLayout() {
   const navigation = useNavigation();
 
   return (
     <>
-      {navigation.state !== "idle" ? (
-        <div className="route-transition-status quillairo-route-transition" role="status" aria-live="polite">
-          Opening the next page…
-        </div>
-      ) : null}
+      {navigation.state !== "idle" ? <RouteSkeleton path={navigation.location?.pathname} /> : null}
       <Outlet />
     </>
   );

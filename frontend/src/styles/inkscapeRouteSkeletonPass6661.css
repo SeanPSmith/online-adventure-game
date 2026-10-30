@@ -1,0 +1,38 @@
+/* Pass 66.61: eager, layout-matched Inkscape route loading. */
+.q661-route-skeleton {
+  --q661-paper:#f7f3e9;--q661-ink:#2c2823;--q661-line:#bfb5a5;
+  --q661-block:rgba(71,60,45,.105);
+  position:fixed;inset:0;z-index:9999;overflow:auto;overscroll-behavior:contain;
+  background:var(--q661-paper);color:var(--q661-ink);
+  font-family:"Iowan Old Style",Georgia,"Times New Roman",serif;
+  padding:clamp(16px,3vw,40px) clamp(16px,4vw,60px);
+}
+.q661-route-skeleton[data-ink-paper="cream"] {--q661-paper:#f6efdb;--q661-ink:#352a1e;--q661-line:#bdac94;}
+.q661-route-skeleton[data-ink-paper="parchment"] {--q661-paper:#e9dac1;--q661-ink:#30251c;--q661-line:#a6957f;}
+.q661-route-skeleton[data-ink-paper="navy"] {--q661-paper:#172639;--q661-ink:#f6f0e4;--q661-line:#6f7b83;--q661-block:rgba(244,233,214,.11);}
+.q661-route-skeleton[data-ink-paper="midnight"] {--q661-paper:#151515;--q661-ink:#ece9e3;--q661-line:#626262;--q661-block:rgba(235,233,227,.10);}
+.q661-route-skeleton[data-ink-paper="phosphor"] {--q661-paper:#092116;--q661-ink:#b6e5bd;--q661-line:#507b5b;--q661-block:rgba(184,222,178,.11);}
+.q661-skeleton-topline {display:flex;align-items:center;gap:clamp(15px,3vw,40px);max-width:1460px;margin:0 auto 34px;border-bottom:1px solid var(--q661-line);padding-bottom:16px;}
+.q661-skeleton-brand {font:500 clamp(17px,2vw,24px)/1.1 Georgia,serif;letter-spacing:.19em;color:var(--q661-ink)}
+.q661-skeleton-rule {height:1px;flex:1;background:var(--q661-line);opacity:.35}
+.q661-skeleton-grid {display:grid;grid-template-columns:minmax(180px,.9fr) minmax(360px,2.2fr) minmax(180px,.9fr);gap:clamp(12px,2vw,28px);max-width:1460px;margin:auto;align-items:start;}
+.q661-skeleton-folio,.q661-skeleton-aside,.q661-skeleton-manuscript,.q661-skeleton-card-grid>article,.q661-skeleton-panel {border:1px solid var(--q661-line);padding:clamp(17px,2vw,32px);min-width:0;background:transparent;}
+.q661-skeleton-manuscript {min-height:min(75vh,800px);padding:clamp(25px,4vw,64px);}
+.q661-skeleton-portrait {height:clamp(145px,20vw,265px);width:100%;max-width:230px;background:var(--q661-block);margin:0 auto 30px;}
+.q661-skeleton-heading {height:clamp(25px,4vw,46px);width:55%;background:var(--q661-block);margin-bottom:32px;}
+.q661-skeleton-lines {display:grid;gap:16px;}
+.q661-skeleton-lines>span {height:10px;width:100%;background:var(--q661-block);display:block;}
+.q661-skeleton-lines>span:nth-child(3n) {width:69%;}
+.q661-skeleton-lines>span:nth-child(4n) {width:86%;}
+.q661-skeleton-choices {display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:55px;}
+.q661-skeleton-choices span {height:80px;border:1px solid var(--q661-line)}
+.q661-skeleton-dice {height:140px;width:140px;max-width:100%;margin:20px auto 28px;background:var(--q661-block);clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);}
+.q661-skeleton-collection,.q661-skeleton-workspace {max-width:1100px;margin:0 auto;}
+.q661-skeleton-collection>.q661-skeleton-lines,.q661-skeleton-workspace>.q661-skeleton-lines {max-width:390px;margin-bottom:36px;}
+.q661-skeleton-card-grid {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;}
+.q661-skeleton-art {height:clamp(150px,17vw,220px);background:var(--q661-block);margin-bottom:24px;}
+.q661-skeleton-panel {min-height:220px;}
+.q661-skeleton-status {margin:20px auto;text-align:center;color:var(--q661-ink);font:italic 15px/1.5 Georgia,serif;opacity:.7;}
+/* No shimmer. A calm manuscript stays still, including reduced-motion users. */
+@media (max-width:900px) {.q661-skeleton-grid{grid-template-columns:minmax(165px,1fr) minmax(0,2.5fr)}.q661-skeleton-aside{grid-column:1 / -1;min-height:110px}.q661-skeleton-dice{height:70px;width:70px;margin:0 auto}.q661-skeleton-aside .q661-skeleton-lines{display:none;}}
+@media (max-width:650px) {.q661-route-skeleton{padding:15px}.q661-skeleton-topline{margin-bottom:20px}.q661-skeleton-grid{display:flex;flex-direction:column}.q661-skeleton-grid>*,.q661-skeleton-card-grid>article{width:100%}.q661-skeleton-folio{min-height:120px;display:flex;gap:20px}.q661-skeleton-portrait{width:90px;height:90px;margin:0;flex:0 0 90px}.q661-skeleton-folio .q661-skeleton-lines{width:50%;}.q661-skeleton-manuscript{min-height:340px;padding:26px}.q661-skeleton-aside{min-height:90px}.q661-skeleton-card-grid{grid-template-columns:1fr}.q661-skeleton-card-grid>article:nth-child(n+2){display:none}.q661-skeleton-choices{grid-template-columns:1fr;margin-top:32px}.q661-skeleton-choices span{height:54px}}

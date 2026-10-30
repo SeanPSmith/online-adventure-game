@@ -32,10 +32,11 @@ def test_party_voted_end_concludes_on_next_resolution():
     assert 'session.last_turn_result["finale"]' in main
 
 
-def test_cinematic_receipt_has_three_distinct_stages_and_same_saved_roll():
+def test_cinematic_receipt_has_two_deliberate_stages_and_same_saved_roll():
     src=(ROOT/'frontend/src/features/adventure/TurnResolutionTheater.tsx').read_text()
     css=(ROOT/'frontend/src/pages/game/quillairoCinematicTurnPass6643.css').read_text()
-    assert '"dice" | "consequences" | "page"' in src
+    assert '"dice" | "consequences"' in src
+    assert 'setFolioStage("page")' not in src
     assert 'if (inkbound ? index !== activeIndex : index > activeIndex)' in src
     assert 'result.check.roll' in src
     assert 'advanceFromConsequences' in src

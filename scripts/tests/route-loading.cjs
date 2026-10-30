@@ -46,7 +46,12 @@ test("slow navigation and failed chunk imports have accessible recovery", () => 
   const error = read("frontend/src/pages/RouteErrorPage.tsx");
   const css = read("frontend/src/styles/components.css");
   assert.match(shell, /useNavigation/);
-  assert.match(shell, /role="status"/);
+  assert.match(shell, /<RouteSkeleton\b/, "RootLayout should display the route-specific loading component");
+  assert.match(shell, /navigation\.state\s*!==\s*"idle"/, "loading component should appear during navigation");
+  const skeleton = read("frontend/src/components/skeleton/RouteSkeleton.tsx");
+  assert.match(skeleton, /role="status"/, "route skeleton must expose an accessible status");
+  assert.match(skeleton, /aria-live="polite"/, "loading announcements must remain noninterrupting");
+  assert.match(skeleton, /aria-label="Opening page"/, "loading state must have a useful accessible name");
   assert.match(error, /CHUNK_LOAD_FAILURE/);
   assert.match(error, /window\.location\.reload\(\)/);
   assert.match(error, /<Link[^>]*to="\/game"/);

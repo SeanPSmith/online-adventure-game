@@ -285,11 +285,7 @@ export function TurnResolutionTheater({
   const [settledIndex, setSettledIndex] = useState(-1);
   const [finished, setFinished] = useState(results.length === 0);
   const [showReceiptRecovery, setShowReceiptRecovery] = useState(false);
-  const [folioStage, setFolioStage] = useState<"dice" | "consequences" | "page">(results.length ? "dice" : "consequences");
-  const [fading, setFading] = useState(false);
-  const [leaving, setLeaving] = useState(false);
-  const continueRef = useRef(onContinue);
-  continueRef.current = onContinue;
+  const [folioStage, setFolioStage] = useState<"dice" | "consequences">(results.length ? "dice" : "consequences");
 
   useEffect(() => {
     setActiveIndex(0);
@@ -297,35 +293,11 @@ export function TurnResolutionTheater({
     setFinished(results.length === 0);
     setShowReceiptRecovery(false);
     setFolioStage(results.length ? "dice" : "consequences");
-    setFading(false);
-    setLeaving(false);
   }, [turnIdentity, results.length]);
 
-  // The authoritative roll remains visible until the reader deliberately
-  // opens consequences. Never fade away the settled result on a timer.
-  // The following timed transition remains presentation-only and starts only
-  // after the explicit continue action from the consequences screen.
-
-  useEffect(() => {
-    if (!inkbound || !leaving || folioStage !== "consequences") return;
-    const swap = window.setTimeout(() => {
-      setFolioStage("page");
-      setFading(false);
-    }, 260);
-    return () => window.clearTimeout(swap);
-  }, [inkbound, leaving, folioStage]);
-  useEffect(() => {
-    if (!inkbound || folioStage !== "page" || !leaving) return;
-    const timer = window.setTimeout(() => continueRef.current(), 850);
-    return () => window.clearTimeout(timer);
-  }, [inkbound, leaving, folioStage]);
-
-  const advanceFromConsequences = () => {
-    if (!inkbound) { onContinue(); return; }
-    if (leaving) return;
-    setLeaving(true);
-    setFading(true);
-  };
+  // Only the player acknowledges the authoritative receipt. Do not show a
+  // second "continuing adventure" screen or delay chapter release in the UI.
+  const advanceFromConsequences = () => onContinue();
 
   // Rendering the saved receipt must never depend indefinitely on an animation
   // timer (especially on phones in background tabs). Reveal a manual bypass
@@ -356,8 +328,7 @@ export function TurnResolutionTheater({
   const steps = [
     { id: "choice", title: "Choice committed", status: "complete" },
     { id: "dice", title: "The dice", status: folioStage === "dice" ? "current" : "complete" },
-    { id: "consequence", title: "The consequences", status: folioStage === "dice" ? "pending" : folioStage === "page" ? "complete" : "current" },
-    { id: "page", title: "Next page", status: folioStage === "page" ? "current" : "pending" },
+    { id: "consequence", title: "The consequences", status: folioStage === "dice" ? "pending" : "current" },
   ] as const;
 
   const finishCurrent = useCallback(() => {
@@ -379,7 +350,7 @@ export function TurnResolutionTheater({
     : [];
 
   return (
-    <div className={`turn-resolution-theater ${criticalNow ? "is-critical-pulse" : ""} ${inkbound ? "is-inkbound-manuscript q43-cinematic q6660-held-dice" : ""} ${fading ? "is-fading" : ""} is-stage-${presentedStage}`} data-presentation-stage={presentedStage}>
+    <div className={`turn-resolution-theater ${criticalNow ? "is-critical-pulse" : ""} ${inkbound ? "is-inkbound-manuscript q43-cinematic q6660-held-dice" : ""} is-stage-${presentedStage}`} data-presentation-stage={presentedStage}>
       {inkbound ? (
         <div className="q24-receipt-masthead" aria-hidden="true">
           <span>QUILLAIRO</span><span className="q24-masthead-ornament">✧</span><span>THE TURNING PAGE</span>
@@ -399,7 +370,7 @@ export function TurnResolutionTheater({
       <header className="theater-heading">
         <div>
           <span className="eyebrow">{inkbound ? `CHRONICLE · TURN ${receipt.resolved_turn_number ?? receipt.turn_number ?? "—"}` : "AUTHORITATIVE TURN RECEIPT"}</span>
-          <h2 id="q24-turn-title">{inkbound ? (folioStage === "page" ? "The Next Chapter Awaits" : folioStage === "consequences" ? "What the Choice Changed" : "The Dice Have Spoken") : "LET'S SEE HOW THAT WENT."}</h2>
+          <h2 id="q24-turn-title">{inkbound ? (folioStage === "consequences" ? "What the Choice Changed" : "The Dice Have Spoken") : "LET'S SEE HOW THAT WENT."}</h2>
         </div>
         <span>{receipt.preliminary ? "RESULTS READY // STORY WRITING" : (inkbound ? "A COMMITTED TURN · NO REROLL" : "SERVER RESOLVED")}</span>
       </header>
@@ -509,18 +480,15 @@ export function TurnResolutionTheater({
               </div>
             </div>
           ) : null}
-          <button className="button button-primary theater-continue" type="button" onClick={advanceFromConsequences} disabled={leaving}>
-            {receipt.completed ? "SEE HOW THIS ENDS" : "CONTINUE THE CHRONICLE"}
-          </button>
-        </div>
-      ) : null}
-      {inkbound && folioStage === "page" ? (
-        <div className="q43-chapter-handoff" role="status" aria-live="polite" key="page">
-          <span className="eyebrow">QUILLAIRO · THE NEXT PAGE</span>
-          <span className="q43-page-star" aria-hidden="true">✦</span>
-          <h3>{receipt.completed ? "Your ending is waiting." : "The story continues."}</h3>
-          <p>{receipt.completed ? "The final words of this journey." : "A new chapter unfolds."}</p>
-          <button className="button theater-continue" type="button" onClick={onContinue}>Continue now</button>
+          {inkbound ? (
+            <button className="button button-primary theater-continue" type="button" onClick={advanceFromConsequences}>
+              {receipt.completed ? "SEE HOW THIS ENDS" : "CONTINUE THE CHRONICLE"}
+            </button>
+          ) : (
+            <button className="button button-primary theater-continue" type="button" onClick={onContinue}>
+              {receipt.completed ? "SEE HOW THIS ENDS" : "CONTINUE THE CHRONICLE"}
+            </button>
+          )}
         </div>
       ) : null}
     </div>

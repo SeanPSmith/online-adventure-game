@@ -28,6 +28,7 @@ import "./styles/quillairoIntermissionPass6625.css";
 import "./styles/quillairoFolioToolsPass6626.css";
 import "./styles/inkscapeSitewideQaPass6657.css";
 import "./styles/inkscapeLaunchPolishPass6658.css";
+import "./styles/inkscapeRouteSkeletonPass6661.css";
 
 const root = document.getElementById("root");
 

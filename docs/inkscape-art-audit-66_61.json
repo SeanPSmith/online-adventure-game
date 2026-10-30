@@ -1,0 +1,579 @@
+{
+  "minimum_fraction_per_side": 0.1,
+  "results": [
+    {
+      "file": "frontend/public/art/inkbound/camp-cups.png",
+      "type": "transparent_illustration",
+      "size": [
+        430,
+        430
+      ],
+      "margins": [
+        0.3558,
+        0.3698,
+        0.2349,
+        0.214
+      ],
+      "status": "PASS"
+    },
+    {
+      "file": "frontend/public/art/inkbound/hero-vista.png",
+      "type": "transparent_illustration",
+      "size": [
+        1400,
+        607
+      ],
+      "margins": [
+        0.1214,
+        0.1763,
+        0.135,
+        0.145
+      ],
+      "status": "PASS"
+    },
+    {
+      "file": "frontend/public/art/inkbound/lantern-books.png",
+      "type": "transparent_illustration",
+      "size": [
+        430,
+        430
+      ],
+      "margins": [
+        0.3093,
+        0.3279,
+        0.2209,
+        0.214
+      ],
+      "status": "PASS"
+    },
+    {
+      "file": "frontend/public/art/inkbound/north-road-editorial.png",
+      "type": "transparent_illustration",
+      "size": [
+        1800,
+        930
+      ],
+      "margins": [
+        0.1322,
+        0.1785,
+        0.1283,
+        0.1591
+      ],
+      "status": "PASS"
+    },
+    {
+      "file": "frontend/public/art/inkbound/north-road.png",
+      "type": "transparent_illustration",
+      "size": [
+        1400,
+        607
+      ],
+      "margins": [
+        0.1214,
+        0.1664,
+        0.135,
+        0.1433
+      ],
+      "status": "PASS"
+    },
+    {
+      "file": "frontend/public/art/inkbound/paper-grain.png",
+      "type": "opaque_cover_or_background",
+      "size": [
+        512,
+        512
+      ],
+      "note": "Do not use as a floating illustration: rectangular pixels are intrinsic."
+    },
+    {
+      "file": "frontend/public/art/inkbound/signpost.png",
+      "type": "transparent_illustration",
+      "size": [
+        430,
+        430
+      ],
+      "margins": [
+        0.3651,
+        0.3581,
+        0.2419,
+        0.2163
+      ],
+      "status": "PASS"
+    },
+    {
+      "file": "frontend/public/art/pass64/brighter-desk.webp",
+      "type": "opaque_cover_or_background",
+      "size": [
+        1600,
+        1120
+      ],
+      "note": "Do not use as a floating illustration: rectangular pixels are intrinsic."
+    },
+    {
+      "file": "frontend/public/art/pass64/brighter-paper.webp",
+      "type": "opaque_cover_or_background",
+      "size": [
+        760,
+        900
+      ],
+      "note": "Do not use as a floating illustration: rectangular pixels are intrinsic."
+    },
+    {
+      "file": "frontend/public/art/pass64/brighter-vista.webp",
+      "type": "transparent_illustration",
+      "size": [
+        824,
+        690
+      ],
+      "margins": [
+        0.0012,
+        0.0014,
+        0.0012,
+        0.0014
+      ],
+      "status": "NEEDS_REVIEW"
+    },
+    {
+      "file": "frontend/public/art/pass64/desk-props.webp",
+      "type": "opaque_cover_or_background",
+      "size": [
+        883,
+        184
+      ],
+      "note": "Do not use as a floating illustration: rectangular pixels are intrinsic."
+    },
+    {
+      "file": "frontend/public/art/pass64/desk-scene.webp",
+      "type": "opaque_cover_or_background",
+      "size": [
+        1800,
+        1300
+      ],
+      "note": "Do not use as a floating illustration: rectangular pixels are intrinsic."
+    },
+    {
+      "file": "frontend/public/art/pass64/desk-wood.webp",
+      "type": "opaque_cover_or_background",
+      "size": [
+        900,
+        980
+      ],
+      "note": "Do not use as a floating illustration: rectangular pixels are intrinsic."
+    },
+    {
+      "file": "frontend/public/art/pass64/explorer.webp",
+      "type": "opaque_cover_or_background",
+      "size": [
+        768,
+        480
+      ],
+      "note": "Do not use as a floating illustration: rectangular pixels are intrinsic."
+    },
+    {
+      "file": "frontend/public/art/pass64/fantasy.webp",
+      "type": "opaque_cover_or_background",
+      "size": [
+        768,
+        480
+      ],
+      "note": "Do not use as a floating illustration: rectangular pixels are intrinsic."
+    },
+    {
+      "file": "frontend/public/art/pass64/gothic.webp",
+      "type": "opaque_cover_or_background",
+      "size": [
+        768,
+        480
+      ],
+      "note": "Do not use as a floating illustration: rectangular pixels are intrinsic."
+    },
+    {
+      "file": "frontend/public/art/pass64/harbor.webp",
+      "type": "opaque_cover_or_background",
+      "size": [
+        768,
+        480
+      ],
+      "note": "Do not use as a floating illustration: rectangular pixels are intrinsic."
+    },
+    {
+      "file": "frontend/public/art/pass64/horror.webp",
+      "type": "opaque_cover_or_background",
+      "size": [
+        768,
+        480
+      ],
+      "note": "Do not use as a floating illustration: rectangular pixels are intrinsic."
+    },
+    {
+      "file": "frontend/public/art/pass64/inkspace/forgotten-crossroads-cutout.png",
+      "type": "transparent_illustration",
+      "size": [
+        800,
+        360
+      ],
+      "margins": [
+        0.0838,
+        0.1,
+        0.0838,
+        0.1028
+      ],
+      "status": "NEEDS_REVIEW"
+    },
+    {
+      "file": "frontend/public/art/pass64/inkspace/forgotten-crossroads.webp",
+      "type": "opaque_cover_or_background",
+      "size": [
+        443,
+        154
+      ],
+      "note": "Do not use as a floating illustration: rectangular pixels are intrinsic."
+    },
+    {
+      "file": "frontend/public/art/pass64/inkspace/harbor-traveler-cutout.png",
+      "type": "transparent_illustration",
+      "size": [
+        1024,
+        600
+      ],
+      "margins": [
+        0.0322,
+        0.0817,
+        0.0312,
+        0.0833
+      ],
+      "status": "NEEDS_REVIEW"
+    },
+    {
+      "file": "frontend/public/art/pass64/inkspace/river-fortress-cutout.png",
+      "type": "transparent_illustration",
+      "size": [
+        760,
+        580
+      ],
+      "margins": [
+        0.0842,
+        0.0948,
+        0.0855,
+        0.0966
+      ],
+      "status": "NEEDS_REVIEW"
+    },
+    {
+      "file": "frontend/public/art/pass64/inkspace/river-fortress.webp",
+      "type": "opaque_cover_or_background",
+      "size": [
+        367,
+        291
+      ],
+      "note": "Do not use as a floating illustration: rectangular pixels are intrinsic."
+    },
+    {
+      "file": "frontend/public/art/pass64/p644-hero-portrait-fallback.webp",
+      "type": "opaque_cover_or_background",
+      "size": [
+        500,
+        500
+      ],
+      "note": "Do not use as a floating illustration: rectangular pixels are intrinsic."
+    },
+    {
+      "file": "frontend/public/art/pass64/p644-ink-lab-portrait.webp",
+      "type": "opaque_cover_or_background",
+      "size": [
+        500,
+        500
+      ],
+      "note": "Do not use as a floating illustration: rectangular pixels are intrinsic."
+    },
+    {
+      "file": "frontend/public/art/pass64/p644-ink-lab-watercolor.webp",
+      "type": "opaque_cover_or_background",
+      "size": [
+        1024,
+        536
+      ],
+      "note": "Do not use as a floating illustration: rectangular pixels are intrinsic."
+    },
+    {
+      "file": "frontend/public/art/pass64/p644-physical-book-edges.webp",
+      "type": "transparent_illustration",
+      "size": [
+        1341,
+        834
+      ],
+      "margins": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "status": "NEEDS_REVIEW"
+    },
+    {
+      "file": "frontend/public/art/pass64/p644-tabletop-clean.webp",
+      "type": "opaque_cover_or_background",
+      "size": [
+        1648,
+        928
+      ],
+      "note": "Do not use as a floating illustration: rectangular pixels are intrinsic."
+    },
+    {
+      "file": "frontend/public/art/pass64/p644-tabletop.webp",
+      "type": "opaque_cover_or_background",
+      "size": [
+        1648,
+        928
+      ],
+      "note": "Do not use as a floating illustration: rectangular pixels are intrinsic."
+    },
+    {
+      "file": "frontend/public/art/pass64/p644-watercolor-clean.webp",
+      "type": "opaque_cover_or_background",
+      "size": [
+        1024,
+        536
+      ],
+      "note": "Do not use as a floating illustration: rectangular pixels are intrinsic."
+    },
+    {
+      "file": "frontend/public/art/pass64/p644-watercolor-scene.webp",
+      "type": "opaque_cover_or_background",
+      "size": [
+        1024,
+        536
+      ],
+      "note": "Do not use as a floating illustration: rectangular pixels are intrinsic."
+    },
+    {
+      "file": "frontend/public/art/pass64/paper.webp",
+      "type": "opaque_cover_or_background",
+      "size": [
+        760,
+        900
+      ],
+      "note": "Do not use as a floating illustration: rectangular pixels are intrinsic."
+    },
+    {
+      "file": "frontend/public/art/pass64/pass64-4d-tabletop-book.webp",
+      "type": "opaque_cover_or_background",
+      "size": [
+        1672,
+        941
+      ],
+      "note": "Do not use as a floating illustration: rectangular pixels are intrinsic."
+    },
+    {
+      "file": "frontend/public/art/pass64/scene-kit/brass-compass-photographic.png",
+      "type": "transparent_illustration",
+      "size": [
+        428,
+        366
+      ],
+      "margins": [
+        0.0234,
+        0.0273,
+        0.0234,
+        0.0273
+      ],
+      "status": "NEEDS_REVIEW"
+    },
+    {
+      "file": "frontend/public/art/pass64/scene-kit/ink-bottle.webp",
+      "type": "transparent_illustration",
+      "size": [
+        512,
+        512
+      ],
+      "margins": [
+        0.2148,
+        0.127,
+        0.168,
+        0.0898
+      ],
+      "status": "NEEDS_REVIEW"
+    },
+    {
+      "file": "frontend/public/art/pass64/scene-kit/parchment-ribbon-grain.webp",
+      "type": "opaque_cover_or_background",
+      "size": [
+        380,
+        185
+      ],
+      "note": "Do not use as a floating illustration: rectangular pixels are intrinsic."
+    },
+    {
+      "file": "frontend/public/art/pass64/scene-kit/pressed-fern.webp",
+      "type": "transparent_illustration",
+      "size": [
+        512,
+        512
+      ],
+      "margins": [
+        0.0996,
+        0.1113,
+        0.2031,
+        0.1328
+      ],
+      "status": "PASS"
+    },
+    {
+      "file": "frontend/public/art/pass64/scene-kit/wax-seal-photographic.png",
+      "type": "transparent_illustration",
+      "size": [
+        252,
+        210
+      ],
+      "margins": [
+        0.0397,
+        0.0476,
+        0.0397,
+        0.0476
+      ],
+      "status": "NEEDS_REVIEW"
+    },
+    {
+      "file": "frontend/public/art/pass64/scene-kit/wax-seal.webp",
+      "type": "transparent_illustration",
+      "size": [
+        512,
+        512
+      ],
+      "margins": [
+        0.1348,
+        0.125,
+        0.1133,
+        0.0918
+      ],
+      "status": "NEEDS_REVIEW"
+    },
+    {
+      "file": "frontend/public/art/pass64/scene-kit/wildflowers.webp",
+      "type": "transparent_illustration",
+      "size": [
+        512,
+        512
+      ],
+      "margins": [
+        0.166,
+        0.0098,
+        0.207,
+        0.0977
+      ],
+      "status": "NEEDS_REVIEW"
+    },
+    {
+      "file": "frontend/public/art/pass64/scifi.webp",
+      "type": "opaque_cover_or_background",
+      "size": [
+        768,
+        480
+      ],
+      "note": "Do not use as a floating illustration: rectangular pixels are intrinsic."
+    },
+    {
+      "file": "frontend/public/art/quillairo-heroes/hero-hall-vista.png",
+      "type": "transparent_illustration",
+      "size": [
+        1000,
+        650
+      ],
+      "margins": [
+        0.169,
+        0.1231,
+        0.169,
+        0.1231
+      ],
+      "status": "PASS"
+    },
+    {
+      "file": "frontend/public/art/quillairo-heroes/memorial-crossroads.png",
+      "type": "transparent_illustration",
+      "size": [
+        1000,
+        440
+      ],
+      "margins": [
+        0.121,
+        0.1273,
+        0.121,
+        0.1295
+      ],
+      "status": "PASS"
+    },
+    {
+      "file": "frontend/public/art/quillairo-public/auth-journey-cover.webp",
+      "type": "opaque_cover_or_background",
+      "size": [
+        480,
+        600
+      ],
+      "note": "Do not use as a floating illustration: rectangular pixels are intrinsic."
+    },
+    {
+      "file": "frontend/public/art/quillairo-public/auth-journey.png",
+      "type": "transparent_illustration",
+      "size": [
+        1122,
+        1402
+      ],
+      "margins": [
+        0.0998,
+        0.0999,
+        0.0998,
+        0.0999
+      ],
+      "status": "PASS"
+    },
+    {
+      "file": "frontend/public/art/quillairo-public/home-vista-cover.webp",
+      "type": "opaque_cover_or_background",
+      "size": [
+        940,
+        529
+      ],
+      "note": "Do not use as a floating illustration: rectangular pixels are intrinsic."
+    },
+    {
+      "file": "frontend/public/art/quillairo-public/home-vista.png",
+      "type": "transparent_illustration",
+      "size": [
+        1672,
+        941
+      ],
+      "margins": [
+        0.0999,
+        0.0999,
+        0.0999,
+        0.0999
+      ],
+      "status": "PASS"
+    },
+    {
+      "file": "frontend/public/art/quillairo-public/living-worlds-cover.webp",
+      "type": "opaque_cover_or_background",
+      "size": [
+        940,
+        529
+      ],
+      "note": "Do not use as a floating illustration: rectangular pixels are intrinsic."
+    },
+    {
+      "file": "frontend/public/art/quillairo-public/living-worlds.png",
+      "type": "transparent_illustration",
+      "size": [
+        1672,
+        941
+      ],
+      "margins": [
+        0.1011,
+        0.1201,
+        0.1053,
+        0.1116
+      ],
+      "status": "PASS"
+    }
+  ],
+  "source": "quillairo-review-20261028-033129 + overlays through pass66.60; offline pixel alpha audit"
+}

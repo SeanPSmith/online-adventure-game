@@ -1,0 +1,77 @@
+/* Pass 66.67 — Artwork integration against the canonical Inkscape manuscript.
+   Every chapter presents ONE independently transparent illustration at a time.
+   The authored/fallback illustration remains visible until scene art has loaded.
+   No paper-matte masks, synthetic feathering, texture overlays or gameplay logic. */
+.inkbound-live .ibl-chapter-illustration {
+  width:min(100%,960px);
+  max-width:100%;
+  margin:clamp(8px,1.1vw,20px) auto clamp(18px,2.5vw,35px);
+  overflow:visible!important;
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+.inkbound-live .ibl-chapter-illustration .ibl-story-art {
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  align-items:center;
+  justify-items:center;
+  width:100%;
+  min-width:0;
+  min-height:clamp(150px,20vw,315px);
+  overflow:visible!important;
+  isolation:isolate;
+  background:none!important;
+}
+.inkbound-live .ibl-chapter-illustration .ibl-story-art img {
+  grid-area:1/1;
+  display:block;
+  width:100%!important;
+  height:auto!important;
+  max-height:clamp(215px,30vw,410px)!important;
+  min-width:0;
+  object-fit:contain!important;
+  object-position:center!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  border:0!important;
+  clip-path:none!important;
+  mask-image:none!important;
+  animation:none!important;
+  transition:opacity .22s ease-out;
+}
+/* Old version stacked the generic cover and the generated image, which could
+   make their different compositions appear to have hard geometric seams. */
+.inkbound-live .ibl-chapter-illustration[data-artwork-state="scene-ready"] .ibl-art-fallback {
+  opacity:0!important;
+  visibility:hidden;
+  pointer-events:none;
+}
+.inkbound-live .ibl-chapter-illustration:not([data-artwork-state="scene-ready"]) .ibl-art-fallback {
+  opacity:1!important;
+  visibility:visible;
+}
+.inkbound-live .ibl-chapter-illustration:not([data-artwork-state="scene-ready"]) .ibl-art-scene {
+  opacity:0!important;
+  visibility:hidden;
+}
+.inkbound-live .ibl-chapter-illustration[data-artwork-state="scene-ready"] .ibl-art-scene {
+  opacity:1!important;
+  visibility:visible;
+}
+/* No scene content is cropped or recolored by this pass. Dark-theme color
+   decisions and the six persisted theme values remain as previously approved. */
+@media (max-width:760px) {
+  .inkbound-live .ibl-chapter-illustration {
+    width:100%;margin:10px auto 22px;
+  }
+  .inkbound-live .ibl-chapter-illustration .ibl-story-art {
+    min-height:clamp(125px,34vw,225px);
+  }
+  .inkbound-live .ibl-chapter-illustration .ibl-story-art img {
+    max-height:clamp(165px,63vw,330px)!important;
+  }
+}
+@media (prefers-reduced-motion:reduce) {
+  .inkbound-live .ibl-chapter-illustration .ibl-story-art img {transition:none!important;}
+}

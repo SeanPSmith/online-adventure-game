@@ -65,7 +65,7 @@ def test_art_and_readability_are_independent_of_page_geometry():
     css = load(PAGES / "inkboundAdventurePass657.css")
     live = load(PAGES / "InkboundLiveRoom.tsx")
     assert 'illustrationSrc?: string' in live
-    assert '<figure className="ibl-chapter-illustration">' in live
+    assert '<figure className="ibl-chapter-illustration"' in live
     assert 'data-ink-paper={props.paper}' in live
     assert 'max-height:' in css
     assert 'overflow:visible' in css

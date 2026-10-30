@@ -22,7 +22,7 @@ def test_story_reference_production_screens_not_a_decorative_mockup():
     assert 'props.onSelectChoice(choice)' in ROOM
     assert 'props.onLockChoice' in ROOM
     assert 'Only the server decides the outcome' in ROOM
-    assert '<figure className="ibl-chapter-illustration">' in ROOM
+    assert '<figure className="ibl-chapter-illustration"' in ROOM
     assert '<section className="ibl-status-strip"' in ROOM
     assert '<details className="ibl-instruments-disclosure" open>' in ROOM
     assert 'props.messages.map' in ROOM

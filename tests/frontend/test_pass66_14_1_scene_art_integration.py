@@ -21,7 +21,9 @@ def test_scene_art_polling_belongs_to_a_controller_not_reader():
 def test_existing_figure_geometry_and_real_alpha_overlay_are_preserved():
     reader = (PAGES / 'InkboundLiveRoom.tsx').read_text(encoding='utf-8')
     css = (PAGES / 'inkboundLiveRoom.css').read_text(encoding='utf-8')
-    assert '<figure className="ibl-chapter-illustration">' in reader
+    assert '<figure className="ibl-chapter-illustration"' in reader
+    assert 'data-artwork-state={sceneArtReady' in reader
+    assert 'aria-hidden={sceneArtReady}' in reader and 'aria-hidden={!sceneArtReady}' in reader
     assert '<div className="ibl-story-art">' in reader
     assert 'props.sceneArtUrl' in reader
     assert 'scene.ascii_art.trim()' not in reader

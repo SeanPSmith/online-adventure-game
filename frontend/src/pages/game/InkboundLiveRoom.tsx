@@ -17,6 +17,7 @@ import "./inkboundLiveRoom.css";
 import "./quillairoInkscapeLivePass6648.css";
 import "./inkscapeGameplayPass6665.css";
 import "./inkscapeResolutionRailPass6666.css";
+import "./inkscapeArtworkPass6667.css";
 
 type Hero = Character | PartyHeroSnapshot;
 type Panel = "menu" | "journal" | "notes" | "party" | "chat" | "hero" | "history" | null;
@@ -90,6 +91,11 @@ export function InkboundLiveRoom(props: InkboundLiveRoomProps) {
   const [panel, setPanel] = useState<Panel>(null);
   const [chatText, setChatText] = useState("");
   const [coverAttempt, setCoverAttempt] = useState(0);
+  // Artwork presentation only: never conceal the known-good transparent
+  // illustration until the scene-specific asset has actually decoded.
+  // Comparison by URL also avoids showing a previous chapter's art on navigation.
+  const [loadedSceneArtUrl, setLoadedSceneArtUrl] = useState<string | null>(null);
+  const sceneArtReady = Boolean(props.sceneArtUrl && loadedSceneArtUrl === props.sceneArtUrl);
   const [selectedPortraitUrl, setSelectedPortraitUrl] = useState<string | null>(null);
   useEffect(() => { setCoverAttempt(0); }, [props.briefDocumentId, props.worldDocumentId]);
   useEffect(() => {
@@ -161,16 +167,21 @@ export function InkboundLiveRoom(props: InkboundLiveRoomProps) {
         {props.chapterReleased ? <article className="ibl-chapter" key={`${props.roomCode}-${props.scene.id}-${props.turnNumber}`}>
           <h1>{props.scene.title}</h1>
           <div className="ibl-flourish" aria-hidden="true"><span />✧<span /></div>
-          <figure className="ibl-chapter-illustration">
+          <figure className="ibl-chapter-illustration" data-artwork-state={sceneArtReady ? "scene-ready" : props.sceneArtUrl ? "loading-scene" : "fallback"}>
             <div className="ibl-story-art">
-            {coverAttempt < (props.briefDocumentId ? 1 : 0) + (props.worldDocumentId ? 1 : 0) ? (
-              <img className="ibl-art-fallback" key={`${props.scene.id}:${coverAttempt}`}
-                src={`/api/story-art/worlds/${encodeURIComponent(coverAttempt === 0 && props.briefDocumentId ? props.briefDocumentId : props.worldDocumentId ?? "")}/image`}
-                alt="Authored story or world ink illustration" onError={() => setCoverAttempt(value => value + 1)} />
-            ) : props.illustrationSrc ? <img className="ibl-art-fallback" src={props.illustrationSrc}
-                alt="Genre-specific watercolor illustration" /> : null}
-            {props.sceneArtUrl ? <img key={props.sceneArtUrl} className="ibl-art-scene" src={props.sceneArtUrl}
-                alt={`Illustration of ${props.scene.title}`} onError={props.onSceneArtError} /> : null}
+              {/* Exactly one illustration is visible: preserve the approved cutout
+                  until the optional server-generated scene art has fully loaded. */}
+              {coverAttempt < (props.briefDocumentId ? 1 : 0) + (props.worldDocumentId ? 1 : 0) ? (
+                <img className="ibl-art-fallback" key={`${props.scene.id}:${coverAttempt}`}
+                  src={`/api/story-art/worlds/${encodeURIComponent(coverAttempt === 0 && props.briefDocumentId ? props.briefDocumentId : props.worldDocumentId ?? "")}/image`}
+                  alt="Authored story or world ink illustration" aria-hidden={sceneArtReady}
+                  onError={() => setCoverAttempt(value => value + 1)} />
+              ) : props.illustrationSrc ? <img className="ibl-art-fallback" src={props.illustrationSrc}
+                  alt="Genre-specific watercolor illustration" aria-hidden={sceneArtReady} /> : null}
+              {props.sceneArtUrl ? <img key={props.sceneArtUrl} className="ibl-art-scene" src={props.sceneArtUrl}
+                  alt={`Illustration of ${props.scene.title}`} aria-hidden={!sceneArtReady}
+                  onLoad={() => setLoadedSceneArtUrl(props.sceneArtUrl ?? null)}
+                  onError={() => { setLoadedSceneArtUrl(null); props.onSceneArtError?.(); }} /> : null}
             </div>
           </figure>
           <Prose sceneId={props.scene.id} body={props.scene.body} wordRevealEnabled={props.wordRevealEnabled ?? false} decorativeInitials={props.decorativeInitials ?? true} followNarration={props.followNarration ?? false} narrationCue={props.narrationCue ?? null} />

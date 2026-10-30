@@ -1,0 +1,129 @@
+/* Pass 66.65 — approved Inkscape three-region reader presentation.
+   Uses only committed turn data. No dice generation, Director writes, or game-state changes.
+   The independent manuscript / Hero folio remain; the third panel is a read-only ledger.
+   On compact screens the existing accessible Hero folio and receipt remain authoritative. */
+.inkbound-live .ibl-turn-rail { display: none; }
+.inkbound-live .ibl-hero-portrait {
+  display:grid;place-items:center;width:100%;max-height:260px;
+  margin:0 auto 15px;overflow:hidden;background:transparent;
+}
+.inkbound-live .ibl-hero-portrait img {
+  display:block;width:100%;max-height:240px;object-fit:contain;
+  background:transparent;
+}
+.inkbound-live:is([data-ink-paper="navy"],[data-ink-paper="midnight"]) .ibl-hero-portrait img {
+  filter:invert(1) grayscale(1);
+}
+.inkbound-live[data-ink-paper="phosphor"] .ibl-hero-portrait img {
+  filter:invert(1) sepia(.75) saturate(1.1) hue-rotate(55deg);
+}
+@media (min-width:1240px) {
+  .game-site-shell.is-adventure-mode .inkbound-live > .ibl-layout,
+  .game-site-shell.is-adventure-mode:has(.inkbound-live) .inkbound-live > .ibl-layout {
+    display:grid!important;
+    grid-template-columns:clamp(215px,17.5vw,272px) minmax(0,1fr) clamp(222px,18.5vw,290px)!important;
+    gap:clamp(16px,1.65vw,30px)!important;
+    grid-template-rows:minmax(0,1fr);
+    width:min(calc(100% - 3vw),1840px)!important;
+    align-items:stretch!important;
+    min-height:0!important;
+  }
+  .game-site-shell.is-adventure-mode .inkbound-live > .ibl-layout > .ibl-main {
+    grid-column:2!important;grid-row:1!important;
+    width:100%!important;min-height:0!important;
+    padding-right:clamp(8px,1vw,16px);
+    overflow-x:hidden!important;overflow-y:auto!important;
+    overscroll-behavior-y:contain;
+  }
+  .game-site-shell.is-adventure-mode .inkbound-live > .ibl-layout > .ibl-instruments-disclosure {
+    grid-column:1!important;grid-row:1!important;
+    width:100%!important;min-width:0!important;
+    min-height:0!important;overflow-x:hidden!important;overflow-y:auto!important;
+    border-right:1px solid var(--ia-rule)!important;
+    border-left:0!important;
+    padding:0 clamp(10px,1.2vw,19px) 24px 0!important;
+  }
+  .game-site-shell.is-adventure-mode .inkbound-live .ibl-instruments-disclosure > .ibl-sidebar {
+    border:0!important;margin:0!important;padding:0!important;
+  }
+  .game-site-shell.is-adventure-mode .inkbound-live > .ibl-layout > .ibl-turn-rail {
+    display:flex;flex-direction:column;
+    grid-column:3;grid-row:1;
+    min-width:0;min-height:0;
+    overflow-x:hidden;overflow-y:auto;
+    overscroll-behavior-y:contain;
+    border-left:1px solid var(--ia-rule);
+    padding:14px 2px 24px clamp(14px,1.4vw,23px);
+    scrollbar-width:thin;
+    scrollbar-color:var(--ia-strong-rule) transparent;
+    color:var(--ia-copy);
+  }
+  .inkbound-live .ibl-turn-feedback { display:none; }
+  .inkbound-live .ibl-choices {grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+  .inkbound-live .ibl-choice {min-height:145px!important;}
+  .inkbound-live .ibl-chapter h1 {font-size:clamp(38px,3.6vw,63px)!important;}
+  .inkbound-live .ibl-prose {font-size:clamp(16px,1.22vw,19px)!important;}
+}
+.inkbound-live .ibl-rail-section {
+  padding:18px 0 22px;
+  border-bottom:1px solid var(--ia-rule);
+}
+.inkbound-live .ibl-rail-section:first-child {padding-top:0;}
+.inkbound-live .ibl-rail-kicker {
+  display:block;color:var(--ia-dim);
+  font:500 10px/1.5 "Iowan Old Style",Georgia,serif;
+  letter-spacing:.17em;
+}
+.inkbound-live .ibl-rail-section h2 {
+  font:400 clamp(25px,2vw,32px)/1.2 "Iowan Old Style",Georgia,serif;
+  margin:9px 0 11px;
+  color:var(--ia-text);
+}
+.inkbound-live .ibl-rail-section h3 {
+  font:400 19px/1.35 "Iowan Old Style",Georgia,serif;
+  color:var(--ia-text);
+  margin:10px 0 13px;
+}
+.inkbound-live .ibl-rail-section p {
+  font:400 14px/1.52 "Iowan Old Style",Georgia,serif;
+  color:var(--ia-copy);
+  margin:9px 0 0;
+}
+.inkbound-live .ibl-rail-die {
+  width:118px;height:132px;margin:10px auto 16px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  border:1px solid var(--ia-strong-rule);
+  outline:1px solid var(--ia-rule);outline-offset:5px;
+  background:var(--ia-wash);color:var(--ia-text);
+  clip-path:polygon(50% 0%,95% 24%,95% 76%,50% 100%,5% 76%,5% 24%);
+}
+.inkbound-live .ibl-rail-die span {font:11px/1.4 Georgia,serif;letter-spacing:.16em;}
+.inkbound-live .ibl-rail-die strong {font:400 52px/1 Georgia,serif;color:var(--ia-text);}
+.inkbound-live .ibl-rail-ledger {margin:0;}
+.inkbound-live .ibl-rail-ledger > div {
+  display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+  border-bottom:1px solid var(--ia-rule);padding:8px 0;
+}
+.inkbound-live .ibl-rail-ledger dt,
+.inkbound-live .ibl-rail-ledger dd {
+  margin:0;font:13px/1.42 "Iowan Old Style",Georgia,serif;
+}
+.inkbound-live .ibl-rail-ledger dt {color:var(--ia-dim);}
+.inkbound-live .ibl-rail-ledger dd {color:var(--ia-text);text-align:right;text-transform:capitalize;}
+.inkbound-live .ibl-rail-archive button {
+  display:flex;justify-content:space-between;align-items:center;
+  width:100%;margin-top:15px;min-height:44px;
+  padding:9px 0;border:0;border-top:1px solid var(--ia-rule);
+  background:transparent;text-align:left;
+  color:var(--ia-text);font:400 14px/1.4 Georgia,serif;
+}
+.inkbound-live .ibl-rail-archive button:focus-visible {
+  outline:2px solid var(--q23-gold,var(--ia-text));outline-offset:3px;
+}
+/* No absolute overlays over manuscript; keep the natural document on mobile. */
+@media (max-width:1239px) {
+  .inkbound-live .ibl-turn-rail {display:none!important;}
+}
+@media (prefers-reduced-motion:reduce) {
+  .inkbound-live .ibl-rail-archive button {transition:none;}
+}

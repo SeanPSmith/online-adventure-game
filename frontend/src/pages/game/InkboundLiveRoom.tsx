@@ -5,7 +5,7 @@ import { BrandLockup } from "../../components/brand/BrandLockup";
  */
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Link } from "react-router";
-import type { Character } from "../../services/characters";
+import { getHeroPortraits, type Character } from "../../services/characters";
 import { StoryReveal } from "../../features/adventure/StoryReveal";
 import { HeroEffectList } from "../../features/adventure/HeroEffectList";
 import { baseSuccessChance } from "../../features/adventure/choicePreview";
@@ -15,6 +15,7 @@ import type { ChatMessage, HeroProgressionUpdate, PartyHeroSnapshot, RoomPlayer,
 import "./inkboundFoundation.css";
 import "./inkboundLiveRoom.css";
 import "./quillairoInkscapeLivePass6648.css";
+import "./inkscapeGameplayPass6665.css";
 
 type Hero = Character | PartyHeroSnapshot;
 type Panel = "menu" | "journal" | "notes" | "party" | "chat" | "hero" | "history" | null;
@@ -57,6 +58,7 @@ export type InkboundLiveRoomProps = Readonly<{
   narrativePacing?: { act: number; beat: string; phase: string } | null;
   wrapUpCallout?: ReactNode;
   lastResult?: TurnResult | null;
+  turnPhase?: "none" | "intermission" | "story-ready" | "resolution" | "retry";
   lastProgression?: HeroProgressionUpdate | null;
   onClose: () => void;
 }>;
@@ -86,7 +88,21 @@ export function InkboundLiveRoom(props: InkboundLiveRoomProps) {
   const [panel, setPanel] = useState<Panel>(null);
   const [chatText, setChatText] = useState("");
   const [coverAttempt, setCoverAttempt] = useState(0);
+  const [selectedPortraitUrl, setSelectedPortraitUrl] = useState<string | null>(null);
   useEffect(() => { setCoverAttempt(0); }, [props.briefDocumentId, props.worldDocumentId]);
+  useEffect(() => {
+    let active = true;
+    setSelectedPortraitUrl(null);
+    const heroId = props.hero?.character_id;
+    if (!heroId) return;
+    // Reuse the owner-private Hero Hall lookup; never expose storage keys or
+    // generate/select a portrait from inside an active adventure.
+    void getHeroPortraits(heroId).then((book) => {
+      const chosen = book.candidates.find((candidate) => candidate.attempt === book.selected_attempt);
+      if (active) setSelectedPortraitUrl(chosen?.url ?? null);
+    }).catch(() => { if (active) setSelectedPortraitUrl(null); });
+    return () => { active = false; };
+  }, [props.hero?.character_id]);
   const chatLog = useRef<HTMLDivElement>(null);
   const chapterScroller = useRef<HTMLElement>(null);
   const healthy = props.hero ? Math.max(0, Math.min(100, (props.hero.health / Math.max(1, props.hero.max_health)) * 100)) : 0;
@@ -197,6 +213,7 @@ export function InkboundLiveRoom(props: InkboundLiveRoomProps) {
       <aside className="ibl-sidebar" aria-label="Adventure instruments">
         <section className="ibl-sidebar-section ibl-hero">
           <div className="ibl-sidebar-head"><h2>Hero</h2><button type="button" onClick={() => toggle("hero")}>Character sheet ↗</button></div>
+          {selectedPortraitUrl ? <div className="ibl-hero-portrait"><img src={selectedPortraitUrl} alt={`Selected illustration of ${props.hero?.name ?? props.playerName}`} /></div> : null}
           <div className="ibl-hero-name"><span className="ibl-avatar" aria-hidden="true">✦</span><span><strong>{props.hero?.name ?? props.playerName}</strong><small>Level {props.hero?.level ?? "–"} · {props.hero?.is_alive === false ? "Fallen" : "Adventurer"}</small></span></div>
           <div className="ibl-resource"><span>HP</span><div className="ibl-progress"><span style={{width:`${healthy}%`}} /></div><span>{props.hero ? `${props.hero.health}/${props.hero.max_health}` : "–"}</span></div>
           <div className="ibl-resource"><span>XP</span><div className="ibl-progress"><span style={{width:`${Math.max(0,Math.min(100,xpPercent))}%`}} /></div><span>{xp}</span></div>
@@ -228,6 +245,49 @@ export function InkboundLiveRoom(props: InkboundLiveRoomProps) {
         </section>
       </aside>
       </details>
+      <aside className="ibl-turn-rail" aria-label="Turn record and chapter continuity">
+        <section className="ibl-rail-section ibl-rail-current">
+          <span className="ibl-rail-kicker">THE CHRONICLE</span>
+          <h2>Chapter {props.turnNumber}</h2>
+          <p role="status" aria-live="polite">
+            {props.turnPhase === "intermission" ? "The Director is composing the next passage."
+              : props.turnPhase === "story-ready" ? "The saved chapter is being prepared."
+              : props.turnPhase === "resolution" ? "Review the committed dice and consequences."
+              : props.turnPhase === "retry" ? "Story recovery is available in the turn controls."
+              : !props.chapterReleased ? "The next passage is being prepared."
+              : props.choiceLocked ? "Your choice is recorded. Awaiting resolution."
+              : "Read the manuscript and choose your next action."}
+          </p>
+        </section>
+        <section className="ibl-rail-section ibl-rail-result" aria-label="Previous resolved turn">
+          <span className="ibl-rail-kicker">PREVIOUS TURN · SERVER RECORD</span>
+          {props.lastResult ? <>
+            <h3>{props.lastResult.choice_label}</h3>
+            {props.lastResult.check ? <>
+              <div className="ibl-rail-die" aria-label={`Recorded D20 ${props.lastResult.check.roll}`}>
+                <span>D20</span><strong>{props.lastResult.check.roll}</strong>
+              </div>
+              <dl className="ibl-rail-ledger">
+                <div><dt>Difficulty</dt><dd>{props.lastResult.check.difficulty}</dd></div>
+                <div><dt>Total</dt><dd>{props.lastResult.check.total}</dd></div>
+                <div><dt>Outcome</dt><dd>{props.lastResult.check.outcome.replaceAll("_", " ")}</dd></div>
+              </dl>
+            </> : <p>No check was required for this action.</p>}
+            <dl className="ibl-rail-ledger">
+              <div><dt>Experience</dt><dd>+{props.lastProgression?.xp_gained ?? props.lastResult.xp_reward} XP</dd></div>
+              {props.lastProgression ? <>
+                <div><dt>HP change</dt><dd>{props.lastProgression.health_change > 0 ? "+" : ""}{props.lastProgression.health_change}</dd></div>
+                <div><dt>Current HP</dt><dd>{props.lastProgression.health_after}/{props.lastProgression.max_health}</dd></div>
+              </> : null}
+            </dl>
+          </> : <p>The first resolved turn will appear here after the server records it.</p>}
+        </section>
+        <section className="ibl-rail-section ibl-rail-archive">
+          <span className="ibl-rail-kicker">YOUR RECORD</span>
+          <p>{props.history.length} resolved {props.history.length === 1 ? "turn" : "turns"} in this adventure.</p>
+          <button type="button" onClick={() => toggle("history")}>Open chronicle <span aria-hidden="true">→</span></button>
+        </section>
+      </aside>
     </div>
       <section className="ibl-status-strip" aria-label="Current Hero and party status">
         <button type="button" className="ibl-status-hero" onClick={() => toggle("hero")} aria-label="Open character sheet">

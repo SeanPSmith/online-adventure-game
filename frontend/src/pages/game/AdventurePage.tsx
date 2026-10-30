@@ -830,6 +830,7 @@ export function AdventurePage() {
         finalePanel={completedRoomRecovery ?? (theater.chapterReleased ? finalePanel : null)}
         narrativePacing={live.game?.narrative_pacing ?? null}
         lastResult={lastLocalResult}
+        turnPhase={theater.phase}
         lastProgression={lastLocalProgression}
         wrapUpCallout={live.game?.wrap_up_active ? (
           <div className="ibl-ending-invitation" role="status">

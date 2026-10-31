@@ -8,6 +8,7 @@ import { Link } from "react-router";
 import { getHeroPortraits, type Character } from "../../services/characters";
 import { StoryReveal } from "../../features/adventure/StoryReveal";
 import { HeroEffectList } from "../../features/adventure/HeroEffectList";
+import { ChoiceFactIcon } from "../../features/adventure/ChoiceFactIcon";
 import { baseSuccessChance } from "../../features/adventure/choicePreview";
 import type { NarrationCue } from "../../services/storyNarrator";
 import type { InkPaper } from "../../features/appearance/inkboundPaper";
@@ -18,8 +19,19 @@ import "./quillairoInkscapeLivePass6648.css";
 import "./inkscapeGameplayPass6665.css";
 import "./inkscapeResolutionRailPass6666.css";
 import "./inkscapeArtworkPass6667.css";
+import "./inkscapeFolioChoicesPass6669.css";
 
 type Hero = Character | PartyHeroSnapshot;
+
+const STAT_ORDER = ["strength", "agility", "intellect", "perception", "presence", "willpower", "luck"];
+const humanize = (value: string) => value.replaceAll("_", " ").replace(/^./, (first) => first.toUpperCase());
+/** Server-owned base stats in the rulebook's canonical order; unknown stats follow alphabetically. */
+function orderedStats(stats: Record<string, number> | null | undefined): Array<[string, number]> {
+  return Object.entries(stats ?? {}).filter(([, value]) => Number.isFinite(value)).sort(([a], [b]) => {
+    const ia = STAT_ORDER.indexOf(a), ib = STAT_ORDER.indexOf(b);
+    return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.localeCompare(b);
+  });
+}
 type Panel = "menu" | "journal" | "notes" | "party" | "chat" | "hero" | "history" | null;
 export type InkboundLiveRoomProps = Readonly<{
   roomCode: string;
@@ -115,6 +127,7 @@ export function InkboundLiveRoom(props: InkboundLiveRoomProps) {
   const chapterScroller = useRef<HTMLElement>(null);
   const healthy = props.hero ? Math.max(0, Math.min(100, (props.hero.health / Math.max(1, props.hero.max_health)) * 100)) : 0;
   const xp = props.hero?.experience ?? 0;
+  const heroStats = orderedStats(props.hero?.stats);
   const xpPercent = props.hero?.xp_progress_percent ?? 0;
   const closeButton = useRef<HTMLButtonElement>(null);
   const panelOpener = useRef<HTMLElement | null>(null);
@@ -189,29 +202,33 @@ export function InkboundLiveRoom(props: InkboundLiveRoomProps) {
           <div className="ibl-section-heading"><span />What do you do?<span /></div>
           <div className="ibl-finale-before-choices">{props.wrapUpCallout}</div>
           <div className="ibl-choices">
-            {props.scene.choices.map((choice, index) => <button key={choice.id} type="button" className={`ibl-choice ${props.selectedChoiceId === choice.id ? "is-chosen" : ""}`}
+            {props.scene.choices.map((choice, index) => {
+              const chance = choice.check
+                ? baseSuccessChance(choice, props.hero && "skills" in props.hero ? props.hero as Character : null)
+                : null;
+              return <button key={choice.id} type="button" className={`ibl-choice ${props.selectedChoiceId === choice.id ? "is-chosen" : ""}`}
               aria-pressed={props.selectedChoiceId === choice.id}
               disabled={!liveChoices}
               onClick={() => props.onSelectChoice(choice)}>
               <span className="ibl-choice-index">{String(index + 1).padStart(2,"0")}</span>
               <span className="ibl-choice-body"><strong>{choice.label}</strong><small>{choice.description}</small>
                 <span className="ibl-choice-statline">
-                  <span>{choice.check ? `DC ${choice.check.difficulty}` : "No check"}</span>
-                  {choice.check ? <span>{(choice.check.skill || choice.check.stat || "Check").replaceAll("_", " ")}</span> : null}
-                  <span>{choice.risk_level || "Unknown"} risk</span>
-                  <span>+{choice.xp_reward} XP</span>
-                  {choice.check ? <span>{(() => {
-                    const chance = baseSuccessChance(choice, props.hero && "skills" in props.hero ? props.hero as Character : null);
-                    return chance == null ? "Odds vary" : `Base chance ≈ ${chance}%`;
-                  })()}</span> : null}
+                  <span className="ibl-fact" data-fact="skill"><ChoiceFactIcon kind="skill" />{choice.check
+                    ? [humanize(choice.check.skill || choice.check.stat || "Check"), choice.check.skill && choice.check.stat ? humanize(choice.check.stat) : null].filter(Boolean).join(" · ")
+                    : "No check"}</span>
+                  {choice.check ? <span className="ibl-fact" data-fact="dc"><ChoiceFactIcon kind="dc" />DC {choice.check.difficulty}</span> : null}
+                  {choice.check ? <span className="ibl-fact" data-fact="odds"><ChoiceFactIcon kind="odds" />{chance == null ? "Odds vary" : `Base chance ≈ ${chance}%`}</span> : null}
+                  <span className="ibl-fact" data-fact="reward"><ChoiceFactIcon kind="reward" />{choice.risk_level ? `${humanize(choice.risk_level)} risk · ` : ""}+{choice.xp_reward} XP</span>
                 </span>
                 {choice.possible_gains?.length || choice.possible_costs?.length ? <span className="ibl-choice-stakes">
-                  {choice.possible_gains?.length ? `Possible: ${choice.possible_gains.slice(0, 2).join(", ")}` : ""}
-                  {choice.possible_costs?.length ? ` · At risk: ${choice.possible_costs.slice(0, 2).join(", ")}` : ""}
+                  {[choice.possible_gains?.length ? `Possible: ${choice.possible_gains.slice(0, 2).join(", ")}` : null,
+                    choice.possible_costs?.length ? `At risk: ${choice.possible_costs.slice(0, 2).join(", ")}` : null,
+                  ].filter(Boolean).join(" · ")}
                 </span> : null}
               </span>
               <span className="ibl-choice-arrow" aria-hidden="true">→</span>
-            </button>)}
+            </button>;
+            })}
           </div>
           <div className="ibl-commit" aria-live="polite">
             {props.choiceLocked ? <span>Your choice is locked; waiting for the story.</span>
@@ -230,6 +247,9 @@ export function InkboundLiveRoom(props: InkboundLiveRoomProps) {
           <div className="ibl-hero-name"><span className="ibl-avatar" aria-hidden="true">✦</span><span><strong>{props.hero?.name ?? props.playerName}</strong><small>Level {props.hero?.level ?? "–"} · {props.hero?.is_alive === false ? "Fallen" : "Adventurer"}</small></span></div>
           <div className="ibl-resource"><span>HP</span><div className="ibl-progress"><span style={{width:`${healthy}%`}} /></div><span>{props.hero ? `${props.hero.health}/${props.hero.max_health}` : "–"}</span></div>
           <div className="ibl-resource"><span>XP</span><div className="ibl-progress"><span style={{width:`${Math.max(0,Math.min(100,xpPercent))}%`}} /></div><span>{xp}</span></div>
+          {heroStats.length ? <dl className="ibl-hero-stats" aria-label="Hero stats">
+            {heroStats.map(([name, value]) => <div key={name}><dt>{humanize(name)}</dt><dd>{value}</dd></div>)}
+          </dl> : null}
           <div className="ibl-active-effects"><span>Active effects</span><HeroEffectList effects={props.hero?.effects} compact limit={4} /></div>
           {props.lastResult ? <div className="ibl-turn-feedback" role="status" aria-label="Last resolved turn">
             <span className="ibl-turn-feedback-label">Last resolved turn</span>
@@ -240,7 +260,7 @@ export function InkboundLiveRoom(props: InkboundLiveRoomProps) {
         </section>
         <section className="ibl-sidebar-section">
           <div className="ibl-sidebar-head"><h2>Party</h2><button type="button" onClick={() => toggle("party")}>Details ↗</button></div>
-          <div className="ibl-party-list">{props.party.map((person) => <div key={person.player_id}><span className="ibl-party-avatar">✧</span><span><strong>{person.name}</strong><small>{person.is_online ? "Online" : "Offline"}{person.is_host ? " · Host" : ""}</small></span></div>)}</div>
+          <div className="ibl-party-list">{props.party.map((person) => <div key={person.player_id}><span className="ibl-party-avatar" aria-hidden="true">{(person.name.trim()[0] ?? "✧").toUpperCase()}</span><span><strong>{person.name}</strong><small>{person.is_online ? "Online" : "Offline"}{person.is_host ? " · Host" : ""}</small></span></div>)}</div>
         </section>
         <section className="ibl-sidebar-section">
           <div className="ibl-sidebar-head"><h2>Journal</h2><button type="button" onClick={() => toggle("journal")}>Open ↗</button></div>

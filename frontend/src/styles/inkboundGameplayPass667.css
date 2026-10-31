@@ -51,7 +51,6 @@
   font:600 11px/1.5 "American Typewriter","Courier New",monospace;letter-spacing:.02em;
   color:var(--ia-text)}
 .inkbound-live .ibl-choice-statline>span{white-space:nowrap}
-.inkbound-live .ibl-choice-statline>span+span:before{content:"·";margin-right:10px;color:var(--ia-dim)}
 .inkbound-live .ibl-choice-stakes{display:block;margin-top:4px;color:var(--ia-dim);
   font:11px/1.5 "American Typewriter","Courier New",monospace}
 .inkbound-live .ibl-choice-body{gap:5px!important}

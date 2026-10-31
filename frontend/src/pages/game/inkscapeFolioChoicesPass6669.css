@@ -1,0 +1,59 @@
+/* Pass 66.69: hero stats and choice cards, matching the approved gameplay mockup.
+   Presentation only; every value shown is already supplied by the server-owned room state.
+   Uses the --ix48-* theme variables so all six Inkscape papers stay legible. */
+
+/* Choice columns: three across from tablet width up so a three-choice chapter never orphans a card;
+   one column on phones. The extra class in the selector makes this independent of stylesheet order
+   against the older !important column rules in the 66.2, 66.7, 66.23, 66.48 and 66.65 layers. */
+@media (min-width:761px) {
+  .inkbound-live .ibl-layout .ibl-choices {grid-template-columns:repeat(3,minmax(0,1fr))!important}
+}
+@media (max-width:760px) {
+  .inkbound-live .ibl-layout .ibl-choices {grid-template-columns:1fr!important}
+}
+/* Cards size to their content (older layers set 118px-220px minimums). */
+.inkbound-live .ibl-choices > .ibl-choice {min-height:0}
+
+/* Each card reads top-down: index and arrow, title, description, then icon-led facts. */
+.inkbound-live .ibl-choice {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  grid-template-areas:"index arrow" "body body";
+  align-content:start;
+  align-items:start;
+  gap:8px 10px;
+  min-height:0;
+  text-align:left;
+}
+.inkbound-live .ibl-choice > .ibl-choice-index {grid-area:index;justify-self:start;align-self:start;min-width:0;text-align:left;letter-spacing:.14em}
+.inkbound-live .ibl-choice > .ibl-choice-arrow {grid-area:arrow;justify-self:end;align-self:start;font-size:18px;line-height:1}
+.inkbound-live .ibl-choice > .ibl-choice-body {grid-area:body;display:flex;flex-direction:column;gap:8px;min-width:0}
+.inkbound-live .ibl-choice-statline {
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  gap:7px 12px;
+  margin-top:4px;
+  padding-top:10px;
+  border-top:1px solid var(--ix48-rule);
+  font-size:12px;
+  line-height:1.35;
+  color:var(--ix48-copy);
+}
+.inkbound-live .ibl-choice-statline > .ibl-fact {display:flex;align-items:center;gap:7px;min-width:0;white-space:normal;overflow-wrap:normal}
+.inkbound-live .ibl-choice-statline > .ibl-fact[data-fact="skill"],
+.inkbound-live .ibl-choice-statline > .ibl-fact[data-fact="reward"] {grid-column:1/-1}
+.inkbound-live .ibl-fact-icon {flex:none;width:15px;height:15px;color:var(--ix48-gold)}
+
+/* Hero stats: the rulebook's seven base stats in canonical order, as a quiet ruled ledger. */
+.inkbound-live .ibl-hero-stats {margin:14px 0 6px;padding:0;display:grid}
+.inkbound-live .ibl-hero-stats > div {
+  display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+  padding:5px 0;border-bottom:1px solid var(--ix48-rule);
+}
+.inkbound-live .ibl-hero-stats dt {margin:0;font:400 14px/1.3 var(--ix48-serif);color:var(--ix48-copy)}
+.inkbound-live .ibl-hero-stats dd {margin:0;font:600 14px/1.3 var(--ix48-label);color:var(--ix48-ink)}
+.inkbound-live .ibl-active-effects > span {display:block;margin-bottom:8px}
+
+@media (max-width:760px) {
+  .inkbound-live .ibl-choice-statline {grid-template-columns:repeat(2,minmax(0,1fr))}
+}

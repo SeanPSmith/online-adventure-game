@@ -62,7 +62,8 @@ def test_narrow_screens_keep_current_existing_reader_not_overflowing_rail():
     assert 'max-width:1239px' in STYLE
     assert '.ibl-turn-rail {display:none!important' in STYLE
     assert 'ibl-turn-feedback' in ROOM  # original accessible compact receipt retained
-    assert 'ibl-choices {grid-template-columns:repeat(2,minmax(0,1fr))' in STYLE
+    # Pass 66.69: the approved mockups show three choices across; phones fall back to one column.
+    assert 'ibl-choices {grid-template-columns:1fr!important}' in (ROOT / 'frontend/src/pages/game/inkscapeFolioChoicesPass6669.css').read_text()
 
 
 def test_all_six_inkscape_themes_retained():

@@ -111,5 +111,3 @@ echo " STAGING RELEASE COMPLETE"
 echo " Commit: $COMMIT_SHA"
 echo " Branch: $BRANCH"
 echo "============================================================"
-echo Deplo
-

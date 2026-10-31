@@ -12,12 +12,11 @@ def load(path):
 
 def test_inkbound_is_the_default_only_after_adventure_begins():
     page = load(PAGES / "AdventurePage.tsx")
-    assert 'const classicRequested = searchParams.get("reader") === "classic"' in page
-    assert 'const defaultInkbound = !classicRequested' in page
+    # Pass 66.73: Quillairo is the only reader; there is no Classic switch or ?reader= branching.
+    assert 'classicRequested' not in page and 'defaultInkbound' not in page and 'inkboundRequested' not in page
     assert 'bookRequested' not in page and 'bookReady' not in page
-    assert '(inkboundRequested || defaultInkbound)' in page
     assert 'live.game?.started && scene' in page
-    assert 'next.set("reader", "classic")' in page
+    assert '"classic"' not in page
     assert 'searchParams.get("reader") === "book"' not in page  # retired Living Book preview
     # Lobby and turn authority stay in the original parent, never the visual layer.
     assert 'live.startAdventure' in page
@@ -35,7 +34,7 @@ def test_real_room_data_not_synthetic_result_states():
         'onSendChat={(message)', 'history={turnHistory}',
         'messages={live.messages}', 'party={live.room?.players ?? []}',
         'onToggleStoryTime={toggleStoryTime}',
-        'paper={inkPaper}', 'onClose={() =>',
+        'paper={inkPaper}',
     ):
         assert required in page, required
     for forbidden in ('import { useGameSocket', 'import { useLiveAdventure', 'Math.random', 'fetch(', 'window.confirm(', '<select'):

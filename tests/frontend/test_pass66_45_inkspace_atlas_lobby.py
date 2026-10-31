@@ -24,7 +24,7 @@ def test_lobby_retains_authoritative_party_and_start_actions():
     for value in ('props.players.map(', 'props.readiness.find(', 'readiness?.ready',
                   'props.onBeginAdventure', 'props.canBeginAdventure',
                   'props.chapterPreparing', 'props.onToggleNarrator',
-                  'props.onStartSolo', '<RoomInviteButton', 'props.onClassicView'):
+                  'props.onStartSolo', '<RoomInviteButton'):
         assert value in LOBBY, value
     assert 'data-can-begin={props.canBeginAdventure && props.connected ? "yes" : "no"}' in LOBBY
 

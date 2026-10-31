@@ -96,8 +96,11 @@ test('story page only narrates the scene; explicit interruption stops playback',
   assert.match(page,/sceneNarrationItems\(scene\.body, scene\.choices/);
   assert.match(page,/stopNarration\(\)/);
   assert.match(page,/pending_micro_event/);
-  assert.match(page,/READ CHAPTER/);
-  assert.match(page,/READ CHOICES/);
-  assert.match(page,/Read choice \$\{index \+ 1\} aloud/);
+  assert.match(page,/Read this chapter aloud/);
+  assert.match(page,/Read choices aloud/);
+  // Per-choice listening lives on the Quillairo choice cards (never nested inside the choice button).
+  const room=fs.readFileSync(path.join(root,'frontend/src/pages/game/InkboundLiveRoom.tsx'),'utf8');
+  assert.match(room,/Read choice \$\{index \+ 1\} aloud/);
+  assert.match(page,/onListenChoice=/);
   assert.doesNotMatch(page,/getUserMedia|SpeechRecognition/);
 });

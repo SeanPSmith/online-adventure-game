@@ -45,7 +45,7 @@ def test_invite_controls_are_exposed_for_open_coop_rooms():
     adventure = read("frontend/src/pages/game/AdventurePage.tsx")
     assert "RoomInviteButton" in adventure
     assert 'live.room?.play_mode === "coop"' in adventure
-    assert "INVITE / SHARE" in adventure
+    assert "Invite another player →" in adventure
 
 
 def test_hero_creation_can_return_to_invitation():

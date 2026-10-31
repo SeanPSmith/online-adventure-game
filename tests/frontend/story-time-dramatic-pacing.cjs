@@ -122,7 +122,7 @@ test('pacing controls and dialogue display are wired without modifying story tex
   const settings = read('frontend/src/pages/account/SettingsPage.tsx');
   const prefs = read('frontend/src/services/audioPreferences.ts');
   const reveal = read('frontend/src/features/adventure/StoryReveal.tsx');
-  assert.match(page, /PACE \{audioPreferences\.narrationDramaticPacing \? "ON" : "OFF"\}/);
+  assert.match(page, /Dramatic pacing · \{audioPreferences\.narrationDramaticPacing \? "on" : "off"\}/);
   assert.match(settings, /DRAMATIC PACING \/\/ BREATH BETWEEN CHOICES/);
   assert.match(prefs, /narrationDramaticPacing: true/);
   assert.match(reveal, /story-dialogue-paragraph/);

@@ -1,5 +1,0 @@
-/* Pass 66.68: the only rules retained from the retired Living Book reader stylesheet.
-   They belong to the Classic/Inkbound reader switch, not to the retired book room. */
-.adventure-layout--reader-hidden{display:none!important}
-.inkspace-live-entry{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin:9px 0}
-.inkspace-live-entry button{background:#f3dfb5;color:#4e2c1a;border:1px solid #926c3e;padding:9px 13px;cursor:pointer;font:bold 12px Georgia,serif}

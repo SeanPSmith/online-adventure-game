@@ -63,7 +63,7 @@ def test_old_theme_engines_and_global_overrides_are_removed():
 
 def test_story_typeface_and_gameplay_are_not_regressed():
     reader = read('pages/game/AdventurePage.tsx')
-    for live in ('useLiveAdventure(', 'useTurnTheater(', 'StoryReveal', 'storyPreferences.readingTypeface',
+    for live in ('useLiveAdventure(', 'useTurnTheater(',
                  'storyPreferences.decorativeInitials', 'data-ink-paper={inkPaper}'):
         assert live in reader, live
     for retired in ('data-world-skin', 'data-reader-edition-family', 'data-installed-reader-theme'):

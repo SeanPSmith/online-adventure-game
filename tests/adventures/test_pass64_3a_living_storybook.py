@@ -31,10 +31,9 @@ def test_narration_and_turns_remain_authoritative():
     adventure = read('pages/game/AdventurePage.tsx')
     assert 'useTurnTheater' in adventure
     assert 'theater.chapterReleased && scene?.body' in adventure
-    assert 'StoryReveal' in adventure
+    assert 'StoryReveal' in read('pages/game/InkboundLiveRoom.tsx')
     assert 'decorativeInitials={storyPreferences.decorativeInitials' in adventure
-    assert 'readingTypeface={storyPreferences.readingTypeface}' in adventure
-    assert 'storyPreferences.wordReveal && theater.phase === "none"' in adventure
+    assert 'wordRevealEnabled={storyPreferences.wordReveal}' in adventure
 
 def test_type_options_have_simple_accessible_fallback():
     settings = read('pages/account/SettingsPage.tsx')

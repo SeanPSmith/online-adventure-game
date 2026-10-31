@@ -57,8 +57,8 @@ def test_lobby_displays_synopsis_and_only_enables_playable_openings() -> None:
     server = (PROJECT_ROOT / "app/main.py").read_text()
     assert '"adventure_synopsis":' in server
     assert '"opening_ready":' in server
-    assert "live.game?.adventure_synopsis" in page
-    assert "!canBeginAdventure" in page
+    assert "live.game.adventure_synopsis" in page
+    assert "canBeginAdventure={canBeginAdventure}" in page
     assert "live.startAdventure" in page
 
 

@@ -7,7 +7,7 @@ def test_one_finale_renders_in_classic_and_inkbound():
     page=(ROOT/'frontend/src/pages/game/AdventurePage.tsx').read_text()
     reader=(ROOT/'frontend/src/pages/game/InkboundLiveRoom.tsx').read_text()
     assert page.count('className="finale-inline journey-finale-summary"') == 1
-    assert 'inkboundReady ? null : finalePanel' in page
+    assert 'completedRoomRecovery ?? (live.status === "ready" && theater.chapterReleased ? finalePanel : null)' in page
     assert 'finalePanel={completedRoomRecovery ?? (theater.chapterReleased ? finalePanel : null)}' in page
     assert 'chapterReleased={theater.chapterReleased' in page
     assert '|| Boolean(completedRoomRecovery)' in page
@@ -38,7 +38,7 @@ def test_dice_and_progression_are_existing_server_authored_components():
 def test_authoritative_party_snapshot_is_preferred_over_stale_character_fetch():
     page=(ROOT/'frontend/src/pages/game/AdventurePage.tsx').read_text()
     assert 'partyHeroes.find((p) => p.character_id === characterId) ?? hero' in page
-    assert 'inspectedPartyHero ?? (isInspectingSelf ? hero : null)' in page
+    assert 'hero={partyHeroes.find((p) => p.character_id === characterId) ?? hero ?? null}' in page
 
 
 def test_final_chapter_is_prominent_and_uses_existing_vote_api():

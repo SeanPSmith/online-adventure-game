@@ -83,7 +83,7 @@ test('frontend lets each participant control voice while preserving local speed 
   assert.match(context, /narration_voice: readAudioPreferences\(\)\.narrationVoice/);
   assert.match(backend, /session\.narrator_voice = proposed_voice/);
   assert.match(page, /setAdventureNarratorVoice\(live\.game\?\.narrator_voice/);
-  assert.match(page, /YOUR VOICE \/\//);
+  assert.match(page, /Your voice · \{narratorVoiceLabel/);
   assert.match(page, /NarratorVoicePicker/);
   assert.match(narrator, /readAudioPreferences\(\)\.narrationVoice \|\| adventureVoice/);
   assert.match(narrator, /audio\.playbackRate = prefs\.narrationSpeed/);
@@ -96,7 +96,7 @@ test('reconnect and offline actions stop audio and never allow hidden narration'
   assert.match(page, /if \(!connected \|\| live\.status !== "ready"\) stopNarration\(\)/);
   assert.match(page, /autoReadGate\.current\.isNewScene/);
   assert.match(page, /sessionStorage\.getItem\(key\)/);
-  assert.match(page, /!connected \|\| live\.status !== "ready" \|\| !scene\?\.body/);
+  assert.match(page, /!connected \|\| live\.status !== "ready" \|\| !audioPreferences\.narrationEnabled \|\| !theater\.chapterReleased \|\| !scene\?\.body/);
   assert.match(page, /!connected \|\| live\.status !== "ready" \|\| !audioPreferences\.narrationEnabled/);
   assert.match(page, /theater\.chapterReleased/);
 });

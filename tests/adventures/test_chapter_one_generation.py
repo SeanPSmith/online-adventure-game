@@ -64,8 +64,9 @@ def test_prestart_scene_is_masked_and_opening_never_uses_countdown_or_arcade():
     assert '"chapter_preparing"' in server
     assert 'opening_mode=True' in server
     assert '"OPENING"' in director
-    assert '"BEGIN ADVENTURE"' in page
-    assert '"THE STORY DIRECTOR IS WRITING CHAPTER ONE_"' in page
+    lobby = (PROJECT_ROOT / "frontend/src/pages/game/InkboundLobby.tsx").read_text()
+    assert 'BEGIN ADVENTURE' in lobby
+    assert 'Writing Chapter One' in lobby
 
 
 def test_persistence_and_voice_are_adventure_scoped():

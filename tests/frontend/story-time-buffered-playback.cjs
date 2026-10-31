@@ -320,7 +320,7 @@ test('Story Time keeps the full authoritative chapter readable and does not leak
   assert.match(reveal, /followNarration/);
   assert.match(reveal, /estimateSentenceIndex/);
   assert.match(page, /theater\.chapterReleased && scene\?\.body/);
-  assert.match(page, /FOLLOW VOICE/);
+  assert.match(page, /Follow voice · \{followVoice \? "on" : "off"\}/);
   assert.match(page, /narration\.cue/);
   assert.match(narrator, /speed: 1/);
 });

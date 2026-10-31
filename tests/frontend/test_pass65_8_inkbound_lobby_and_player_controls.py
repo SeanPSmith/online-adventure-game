@@ -45,7 +45,7 @@ def test_real_coop_lobby_preserves_authority_and_invitations():
     assert 'canStartSolo={Boolean(live.game.can_start_solo)}' in parent
     assert 'onStartSolo={confirmSoloStart}' in parent
     assert 'props.canStartSolo && props.isHost' in lobby
-    assert 'next.set("reader", "classic")' in parent
+    assert '"classic"' not in parent
 
 
 def test_existing_adventure_functionality_not_hidden_by_reader():
@@ -84,13 +84,3 @@ def test_all_six_theme_lobby_and_device_breakpoints():
     assert 'radial-gradient(' not in css
     assert 'position:absolute' not in css
     assert 'background:var(--ia-paper)' in css
-
-
-def test_legacy_shell_is_hidden_without_clipping_the_document():
-    page, css = text(PAGE), text(CSS)
-    assert 'inkboundReady || inkboundLobbyReady' in page
-    assert '!inkboundReady && !inkboundLobbyReady' in page
-    assert '.game-site-shell:has(.inkbound-lobby)' in css
-    assert 'height:auto!important' in css
-    assert 'overflow:visible!important' in css
-    assert 'min-height:100dvh' in css

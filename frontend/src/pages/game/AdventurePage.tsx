@@ -1,4 +1,3 @@
-import { HeroEffectList } from "../../features/adventure/HeroEffectList";
 import { genreInkIllustration } from "../../features/appearance/quillairoGenreArt";
 import "./adventureLiterary643.css";
 import { NarratorVoicePicker } from "../../components/game/NarratorVoicePicker";
@@ -7,30 +6,26 @@ import {
   useMemo,
   useRef,
   useState,
-  type FormEvent,
 } from "react";
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router";
-import { Panel } from "../../components/ui/Panel";
 import { observeStoryTime, prepareStoryTime, stopStoryTimeEngine, keepStoryTimeAlive, type StoryTimeState } from "../../services/storyTimeEngine";
 import { RoomInviteButton } from "../../components/game/RoomInviteButton";
 import { InkboundLiveRoom } from "./InkboundLiveRoom";
 import { useSceneArtwork } from "../../features/adventure/useSceneArtwork";
 import { InkboundLobby } from "./InkboundLobby";
-import "./adventureReaderSwitchPass6668.css";
+import "./adventureRestorePass6673.css";
 import { ShareMomentButton } from "../../components/game/ShareMomentButton";
-import { ChoiceInspector } from "../../features/adventure/ChoiceInspector";
 import { LevelUpModal } from "../../features/adventure/LevelUpModal";
 import { HeroDeathModal } from "../../features/adventure/HeroDeathModal";
 import { QuickEventModal } from "../../features/adventure/QuickEventModal";
 import { TurnTheater } from "../../features/adventure/TurnTheater";
-import { StoryReveal } from "../../features/adventure/StoryReveal";
 import { useTurnTheater } from "../../features/adventure/useTurnTheater";
 import { getCharacter, type Character } from "../../services/characters";
-import type { PartyHeroSnapshot, SceneChoice } from "../../services/game";
+import type { SceneChoice } from "../../services/game";
 import { rememberGameRoute } from "../../services/gameRouteMemory";
 import {
   readAudioPreferences, writeAudioPreferences, AUDIO_PREFERENCES_CHANGED, NARRATION_PLAYBACK_SPEEDS,
-  type AudioPreferences, KOKORO_VOICES, narratorVoiceLabel,
+  type AudioPreferences, narratorVoiceLabel,
 } from "../../services/audioPreferences";
 import { activateAudioFromGesture, playSound } from "../../services/audioDirector";
 import {
@@ -51,21 +46,6 @@ import "./inkboundPass6628.css";
 import "./quillairoCinematicTurnPass6643.css";
 import { useLiveAdventure } from "../../state/useLiveAdventure";
 import { useModal } from "../../state/ModalContext";
-import {
-  ASCII_REACTIONS,
-  ASCII_REACTION_GROUPS,
-  presenceFace,
-} from "../../features/social/asciiSocial";
-
-const CORE_STATS = [
-  ["strength", "STR"],
-  ["agility", "AGI"],
-  ["intellect", "INT"],
-  ["perception", "PER"],
-  ["presence", "PRE"],
-  ["willpower", "WIL"],
-  ["luck", "LCK"],
-] as const;
 
 function choiceStorageKey(roomCode: string, characterId: string, turnNumber: number) {
   return `tot:choice:${roomCode}:${characterId}:${turnNumber}`;
@@ -90,15 +70,6 @@ function storeChoice(roomCode: string, characterId: string, turnNumber: number, 
   }
 }
 
-function signed(value: number) {
-  if (value > 0) return `+${value}`;
-  return String(value);
-}
-
-function outcomeLabel(outcome: string) {
-  return outcome.replaceAll("_", " ").toUpperCase();
-}
-
 export function AdventurePage() {
   const { roomId } = useParams();
   const { user } = useAuth();
@@ -106,14 +77,10 @@ export function AdventurePage() {
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const inkboundRequested = searchParams.get("reader") === "inkbound";
-  // Inkbound is the normal started-adventure reader; the classic UI remains an explicit fallback.
-  // Retired reader values (including the former "book" preview) fall through to Inkbound.
-  const classicRequested = searchParams.get("reader") === "classic";
-  const defaultInkbound = !classicRequested;
+  // Quillairo (Inkbound) is the only reader. Retired ?reader= values are simply ignored.
   // Preserve the selected edition throughout reconnects, loading and turn
   // transitions; data readiness must never flash legacy terminal dialogs.
-  const inkspacePaper = (inkboundRequested || defaultInkbound) ? inkPaper : undefined;
+  const inkspacePaper = inkPaper;
   const { openModal, closeModal } = useModal();
 
   const {
@@ -161,12 +128,8 @@ export function AdventurePage() {
     error: live.error,
   });
 
-  const [chatText, setChatText] = useState("");
   const [fieldNotes, setFieldNotes] = useState("");
-  const [asciiPickerOpen, setAsciiPickerOpen] = useState(false);
   const [hero, setHero] = useState<Character | null>(null);
-  const [heroError, setHeroError] = useState("");
-  const [inspectedCharacterId, setInspectedCharacterId] = useState(characterId ?? "");
   const [selectedChoiceId, setSelectedChoiceId] = useState("");
   const [lockPending, setLockPending] = useState(false);
   const [dismissedLevelUpKey, setDismissedLevelUpKey] = useState("");
@@ -185,13 +148,10 @@ export function AdventurePage() {
   const autoReadGate = useRef(createAutoReadGate());
   const [storyTime, setStoryTime] = useState<StoryTimeState>({ phase: "idle", percent: null, message: "" });
   const narratorAvailable = storyTime.phase === "ready";
-  const [historyIndex, setHistoryIndex] = useState(0);
-  const storyPaneRef = useRef<HTMLElement | null>(null);
 
   const scene = live.game?.scene;
   const readiness = live.game?.readiness ?? [];
   const turnHistory = live.game?.turn_history ?? [];
-  const historyEntry = turnHistory[historyIndex] ?? null;
 
   const localReadiness = readiness.find(
     (player) => player.player_id === live.playerId,
@@ -202,15 +162,6 @@ export function AdventurePage() {
   );
 
   const partyHeroes = live.game?.party_heroes ?? [];
-  const inspectedRoomPlayer = live.room?.players.find(
-    (player) => player.character_id === inspectedCharacterId,
-  );
-  const inspectedPartyHero = partyHeroes.find(
-    (partyHero) => partyHero.character_id === inspectedCharacterId,
-  ) ?? null;
-  const isInspectingSelf = inspectedCharacterId === characterId;
-  const displayHero: Character | PartyHeroSnapshot | null =
-    inspectedPartyHero ?? (isInspectingSelf ? hero : null);
 
   const choiceLocked = Boolean(
     live.game?.started && (localReadiness?.ready || live.choiceAccepted),
@@ -237,20 +188,6 @@ export function AdventurePage() {
       ) ?? null
     : null;
 
-  const inspectedResult = useMemo(
-    () =>
-      live.lastTurn?.results?.find(
-        (result) => result.character_id === inspectedCharacterId,
-      ) ?? null,
-    [inspectedCharacterId, live.lastTurn],
-  );
-
-  const inspectedProgression = inspectedCharacterId && live.lastTurn?.hero_progression
-    ? Object.values(live.lastTurn.hero_progression).find(
-        (update) => update.character_id === inspectedCharacterId,
-      ) ?? null
-    : null;
-
   const levelUpKey = lastLocalProgression?.leveled_up
     ? [
         normalizedRoomCode,
@@ -273,16 +210,7 @@ export function AdventurePage() {
     theater.chapterReleased,
   );
 
-  const openingReady = Boolean(live.game?.opening_ready);
   const canBeginAdventure = Boolean(live.game?.can_begin_adventure);
-
-  const directorState = live.game?.director_request_active
-    ? "WRITING"
-    : live.game?.director_retry_required
-      ? "RECOVERY"
-      : live.game?.turn_pending
-        ? "PENDING"
-        : "READY";
 
   const choicesBlocked =
     !connected ||
@@ -295,22 +223,6 @@ export function AdventurePage() {
     Boolean(live.game?.pending_micro_event) ||
     theater.phase !== "none" ||
     !theater.chapterReleased;
-
-  useEffect(() => {
-    if (turnHistory.length === 0) {
-      setHistoryIndex(0);
-      return;
-    }
-    setHistoryIndex((current) => Math.min(turnHistory.length - 1, Math.max(0, current)));
-  }, [turnHistory.length]);
-
-  useEffect(() => {
-    // New completed turns should land on the newest history card, while manual
-    // carousel navigation remains stable until another turn is committed.
-    if (turnHistory.length > 0) {
-      setHistoryIndex(turnHistory.length - 1);
-    }
-  }, [turnHistory.length, turnNumber]);
 
   useEffect(() => {
     rememberGameRoute(`${location.pathname}${location.search}`);
@@ -375,7 +287,6 @@ export function AdventurePage() {
   // The host voice is only an initial room default/prefetch hint; each
   // participant's actual narration voice is their independent browser choice.
   const roomVoiceId = live.game?.narrator_voice ?? null;
-  const roomVoiceName = KOKORO_VOICES.find(v => v.value === roomVoiceId)?.label ?? "HOST SELECTED";
   useEffect(() => {
     setAdventureNarratorVoice(live.game?.narrator_voice ?? null);
     setAdventureNarratorRoom(normalizedRoomCode);
@@ -467,17 +378,6 @@ export function AdventurePage() {
     if (showLevelUp) playSound("level-up", `level:${levelUpKey}`);
   }, [showLevelUp, levelUpKey]);
 
-  useEffect(() => {
-    // A new Director scene should always begin at the top of the story pane.
-    // The turn theater/intermission can leave desktop and mobile users scrolled
-    // near the choices from the previous turn, which makes fresh prose appear
-    // to be missing.
-    const timer = window.setTimeout(() => {
-      storyPaneRef.current?.scrollTo({ top: 0, behavior: "smooth" });
-    }, 80);
-
-    return () => window.clearTimeout(timer);
-  }, [turnNumber, scene?.id, live.finale?.ending_label]);
 
   useEffect(() => {
     if (!characterId) return;
@@ -488,31 +388,15 @@ export function AdventurePage() {
       .then((value) => {
         if (!alive) return;
         setHero(value);
-        setHeroError("");
       })
-      .catch((reason) => {
-        if (!alive) return;
-        setHeroError(
-          reason instanceof Error ? reason.message : "Hero record unavailable.",
-        );
+      .catch(() => {
+        // The reader keeps the last known Hero record; a failed refresh is not fatal.
       });
 
     return () => {
       alive = false;
     };
   }, [characterId, live.game?.turn_number, live.lastTurn]);
-
-  useEffect(() => {
-    if (!characterId) return;
-
-    const availableIds = new Set(
-      live.room?.players.map((player) => player.character_id) ?? [characterId],
-    );
-
-    if (!inspectedCharacterId || !availableIds.has(inspectedCharacterId)) {
-      setInspectedCharacterId(characterId);
-    }
-  }, [characterId, inspectedCharacterId, live.room?.players]);
 
   useEffect(() => {
     if (!characterId || !normalizedRoomCode) return;
@@ -555,24 +439,6 @@ export function AdventurePage() {
     if (live.status !== "ready") setLockPending(false);
   }, [live.status]);
 
-  function submitChat(event: FormEvent) {
-    event.preventDefault();
-
-    const clean = chatText.trim();
-    if (!clean || !connected || live.status !== "ready") return;
-
-    live.sendChat(clean);
-    setChatText("");
-  }
-
-  function insertAsciiFace(face: string) {
-    setChatText((current) => {
-      const trimmed = current.trimEnd();
-      return `${trimmed}${trimmed ? " " : ""}${face}`;
-    });
-    setAsciiPickerOpen(false);
-  }
-
   function selectChoice(choice: SceneChoice) {
     if (choicesBlocked) return;
     playSound("ui");
@@ -587,14 +453,6 @@ export function AdventurePage() {
         choice.id,
       );
     }
-  }
-
-  function inspectChoice(choice: SceneChoice) {
-    openModal({
-      title: `CHOICE DOSSIER // ${choice.label.toUpperCase()}`,
-      body: <ChoiceInspector choice={choice} />,
-      dismissLabel: "RETURN TO CHOICES",
-    });
   }
 
   function confirmSoloStart() {
@@ -636,8 +494,8 @@ export function AdventurePage() {
   // Presentation-only mount point. The existing authoritative resolution receipt
   // is shown in the manuscript rail at desktop widths, not reimplemented here.
   const [resolutionHost, setResolutionHost] = useState<HTMLDivElement | null>(null);
-  const inkboundReady = Boolean((inkboundRequested || defaultInkbound) && live.status === "ready" && live.game?.started && scene);
-  const inkboundLobbyReady = Boolean((inkboundRequested || defaultInkbound) && live.status === "ready" && live.game && !live.game.started);
+  const inkboundReady = Boolean(live.status === "ready" && live.game?.started && scene);
+  const inkboundLobbyReady = Boolean(live.status === "ready" && live.game && !live.game.started);
   const fantasyIllustration = Boolean(worldCatalogItem?.tags?.some((tag) => /fantasy|medieval|fairy|sword/i.test(tag)));
   const sceneArtReady = inkboundReady && theater.chapterReleased && theater.phase === "none"
     && !live.game?.director_request_active && !live.game?.turn_pending;
@@ -775,18 +633,6 @@ export function AdventurePage() {
 
   return (
     <>
-      {live.status !== "ready" ? (
-        <div className="system-notice adventure-restore-failure" role="status" aria-live="polite">
-          <strong>{connected ? "RESTORING ADVENTURE" : "CONNECTION INTERRUPTED"}</strong>
-          <span>{live.error || "Waiting for your saved room and current turn. Actions unlock when restoration finishes."}</span>
-          <div className="button-row">
-            <button className="button" type="button" onClick={live.restore} disabled={live.status === "resuming"}>
-              RECONNECT / RESTORE
-            </button>
-            <Link className="button" to="/game/adventures">MY ADVENTURES</Link>
-          </div>
-        </div>
-      ) : null}
       {inkboundLobbyReady && live.game && <InkboundLobby
         roomCode={normalizedRoomCode}
         paper={inkPaper}
@@ -807,7 +653,6 @@ export function AdventurePage() {
         narratorName={narratorVoiceLabel(audioPreferences.narrationVoice)}
         onToggleNarrator={toggleStoryTime}
         onBeginAdventure={live.startAdventure}
-        onClassicView={() => { const next = new URLSearchParams(searchParams); next.set("reader", "classic"); navigate({ pathname: location.pathname, search: next.toString() }, { replace: true }); }}
       />}
       {inkboundReady && scene && <InkboundLiveRoom
         onResolutionHost={setResolutionHost}
@@ -853,6 +698,8 @@ export function AdventurePage() {
         lockPending={lockPending}
         choicesBlocked={choicesBlocked}
         onSelectChoice={selectChoice}
+        canListenChoice={audioPreferences.narrationEnabled && connected && live.status === "ready" && narratorAvailable === true && theater.chapterReleased && !live.game?.pending_micro_event && !choiceLocked && !showDeath}
+        onListenChoice={(choice, index) => { void playNarration([{ text: `Option ${index + 1}. ${choice.label}`, label: `CHOICE ${index + 1}`, kind: "choice" }]); }}
         onLockChoice={lockChoice}
         onSendChat={(message) => { if (connected && live.status === "ready") live.sendChat(message); }}
         notes={fieldNotes}
@@ -872,14 +719,34 @@ export function AdventurePage() {
           {audioPreferences.narrationEnabled && <>
             <span className="ibl-utility-label">Narrator voice</span>
             <NarratorVoicePicker value={audioPreferences.narrationVoice} onChange={(voice) => setAudioPreferences(writeAudioPreferences({ narrationVoice: voice }))} />
+            <span className="ibl-utility-label" title="Voice selection belongs to your browser and can change during the adventure.">Your voice · {narratorVoiceLabel(audioPreferences.narrationVoice)} · volume {audioPreferences.narrationVolume}%</span>
             <button type="button" onClick={cycleNarrationSpeed}>Reading speed · {audioPreferences.narrationSpeed}×</button>
             <button type="button" aria-pressed={audioPreferences.narrationDramaticPacing} onClick={() => setAudioPreferences(writeAudioPreferences({ narrationDramaticPacing: !audioPreferences.narrationDramaticPacing }))}>Dramatic pacing · {audioPreferences.narrationDramaticPacing ? "on" : "off"}</button>
+            <button type="button" aria-pressed={followVoice} aria-label="Follow the approximate spoken sentence in the visible chapter" onClick={() => setFollowVoice((value) => !value)}>Follow voice · {followVoice ? "on" : "off"}</button>
             <button type="button" onClick={narrateChapter} disabled={!connected || !narratorAvailable || !theater.chapterReleased || !scene?.body || Boolean(live.game?.pending_micro_event) || showDeath}>Read this chapter aloud →</button>
             <button type="button" onClick={narrateChoices} disabled={!connected || !narratorAvailable || !theater.chapterReleased || !scene?.choices.length || Boolean(live.game?.pending_micro_event) || choiceLocked || showDeath}>Read choices aloud →</button>
             {(narration.phase === "playing" || narration.phase === "loading" || narration.phase === "buffering") && <button type="button" onClick={pauseNarration}>Pause narration</button>}
             {narration.phase === "paused" && <button type="button" onClick={() => { void resumeNarration(); }}>Resume narration</button>}
             {narration.phase !== "idle" && <button type="button" onClick={stopNarration}>Stop narration</button>}
-            {storyTime.phase !== "ready" && <span className="ibl-utility-label" role="status">{storyTime.phase === "error" ? storyTime.message : "Connecting to Story Time…"}</span>}
+            <span className="ibl-utility-label" role="status" aria-live="polite">
+              {!narratorAvailable
+                ? storyTime.phase === "error" ? `Story Time error · ${storyTime.message}` : "Connecting to Story Time…"
+                : narration.phase === "error" ? narration.error
+                : narration.phase === "loading" ? `Preparing voice · ${narration.label}`
+                : narration.phase === "buffering" ? `Buffering next passage · ${narration.label}`
+                : narration.phase === "playing" ? `Reading · ${narration.label}`
+                : narration.phase === "paused" ? "Narration paused" : ""}
+            </span>
+            <details className="ibl-voice-performance">
+              <summary>Voice performance · this browser</summary>
+              <div className="ibl-voice-performance-body">
+                <span>Replay {speechDiagnostics.localHits} · Memory {speechDiagnostics.memoryHits} · S3 {speechDiagnostics.s3Hits} · Generated {speechDiagnostics.generated}</span>
+                {speechDiagnostics.unknownResponses > 0 ? <span>Unreported {speechDiagnostics.unknownResponses}</span> : null}
+                <span>Last {speechDiagnostics.lastSource?.toUpperCase() ?? "—"} · Wait {speechDiagnostics.lastWaitMs ?? "—"}ms · Server {speechDiagnostics.lastServerMs ?? "—"}ms · Inference {speechDiagnostics.lastInferenceMs ?? "—"}ms</span>
+                <span>Estimated timings from completed requests. Cold-start waits and network time affect Wait; local replays need no new request.</span>
+                <button type="button" onClick={resetNarrationDiagnostics}>Reset counters</button>
+              </div>
+            </details>
           </>}
           {live.room?.play_mode === "coop" && localRoomPlayer?.is_host && live.room.player_count < live.room.max_players &&
             <RoomInviteButton roomCode={normalizedRoomCode} adventureTitle={live.game?.adventure_title} className="ibl-utility-invite" label="Invite another player →" />}
@@ -894,708 +761,22 @@ export function AdventurePage() {
             text={`${live.game?.adventure_title ?? "Quillairo"} // ${scene.title}\n${scene.body.slice(0,260)}`}
             url={`${window.location.origin}/`} label="Share this moment →" />}
         </>}
-        onClose={() => { const next = new URLSearchParams(searchParams); next.set("reader", "classic"); navigate({pathname:location.pathname,search:next.toString()},{replace:true}); }}
       />}
-      {!inkboundReady && !inkboundLobbyReady && <div className="inkspace-live-entry">
-        <button type="button" onClick={() => { const next = new URLSearchParams(searchParams); if (inkboundRequested || defaultInkbound) next.set("reader", "classic"); else next.set("reader", "inkbound"); navigate({pathname:location.pathname, search: next.toString()}, {replace:true}); }}>
-          {inkboundRequested || defaultInkbound ? "USE CLASSIC READER" : "OPEN QUILLAIRO READER"}
-        </button>
-      </div>}
-      <div className={`adventure-layout ${inkboundReady || inkboundLobbyReady ? "adventure-layout--reader-hidden" : ""}`} data-ink-paper={inkPaper}>
-        <section className="story-pane panel" ref={storyPaneRef}>
-          <div className="scene-art">
-            <pre>{theater.chapterReleased ? (scene?.ascii_art?.trim() || "SETTING THE STAGE_") : "THE NEXT CHAPTER IS SEALED_"}</pre>
+      {!inkboundReady && !inkboundLobbyReady && <main className="ink-restore" data-ink-paper={inkPaper} aria-live="polite">
+        {completedRoomRecovery ?? (live.status === "ready" && theater.chapterReleased ? finalePanel : null)}
+        {!completedRoomRecovery && !(live.status === "ready" && theater.chapterReleased && finalePanel) ? <section className="ink-restore-card" role="status">
+          <span className="ink-restore-kicker">THE CHRONICLE</span>
+          <h1>{live.status === "ready" ? "The next page is being prepared." : connected ? "Finding your place in the Chronicle." : "The thread was interrupted."}</h1>
+          <p>{live.error || (live.status === "ready" ? "Your Hero and choices are safe. The story will appear here the moment it is ready." : "Your journey has been saved. Actions unlock once your place is restored.")}</p>
+          <div className="ink-restore-actions">
+            <button type="button" onClick={live.restore} disabled={live.status === "resuming"}>Reconnect</button>
+            {live.error ? <button type="button" onClick={live.clearError}>Dismiss message</button> : null}
+            <Link to="/game/adventures">My adventures</Link>
+            <Link to="/game">Return to the Adventure Hall</Link>
           </div>
+        </section> : null}
+      </main>}
 
-          <div className="scene-meta">
-            <span>
-              {live.game?.adventure_title ?? matchingAdventure?.adventure_title ?? "RESTORING THE THREAD_"}
-              {" // "}
-              TURN {turnNumber}
-            </span>
-
-            <span>
-              ROOM {normalizedRoomCode || "—"}
-              {" // "}
-              {connected ? "CONNECTED" : "RECONNECTING"}
-            </span>
-          </div>
-
-          <section className="adventure-command-strip" aria-label="Current turn state">
-            <div className="turn-status-cluster">
-              {readiness.map((player) => (
-                <div className={`turn-status-chip ${player.ready ? "is-ready" : ""}`} key={player.player_id}>
-                  <span>
-                    <b className="status-ascii" aria-hidden="true">{presenceFace(player.online, player.ready)}</b>
-                    {player.player_id === live.playerId ? "YOU" : player.name}
-                  </span>
-                  <strong>
-                    {!live.game?.started
-                      ? player.online ? "READY" : "OFFLINE"
-                      : player.ready
-                        ? "LOCKED"
-                        : player.online
-                          ? "CHOOSING"
-                          : "OFFLINE"}
-                  </strong>
-                </div>
-              ))}
-
-              <div className={`turn-status-chip director-status is-${directorState.toLowerCase()}`}>
-                <span>STORY</span>
-                <strong>{directorState}</strong>
-              </div>
-
-              <div className="turn-status-chip">
-                <span>MODE</span>
-                <strong>{live.room?.play_mode?.toUpperCase() ?? "—"}</strong>
-              </div>
-            </div>
-
-            <div className="adventure-session-actions">
-              <button className="button button-quiet" type="button"
-                aria-label={audioPreferences.effectsEnabled ? "Mute sound effects" : "Enable sound effects"}
-                aria-pressed={audioPreferences.effectsEnabled}
-                title="Sound effects only — Story Time is controlled separately"
-                onClick={() => {
-                  const next = writeAudioPreferences({ effectsEnabled: !audioPreferences.effectsEnabled });
-                  setAudioPreferences(next);
-                  if (next.effectsEnabled) {
-                    activateAudioFromGesture();
-                    playSound("ui");
-                  }
-                }}>
-                {audioPreferences.effectsEnabled ? "SFX ON // MUTE" : "SFX OFF // ENABLE"}
-              </button>
-              {live.room?.play_mode === "coop" && localRoomPlayer?.is_host && live.room.player_count < live.room.max_players ? (
-                <RoomInviteButton
-                  roomCode={normalizedRoomCode}
-                  adventureTitle={live.game?.adventure_title ?? matchingAdventure?.adventure_title}
-                  className="button button-quiet"
-                  label="[+] INVITE / SHARE"
-                />
-              ) : null}
-
-              {theater.chapterReleased && scene?.body ? (
-                <ShareMomentButton
-                  title={`${scene.title} — Quillairo`}
-                  text={`${live.game?.adventure_title ?? "Quillairo"} // ${scene.title}
-${scene.body.slice(0, 260)}`}
-                  url={`${window.location.origin}/`}
-                  label="[↗] SHARE MOMENT"
-                />
-              ) : null}
-
-              {live.game?.can_start_solo && localRoomPlayer?.is_host ? (
-                <button
-                  className="button button-quiet"
-                  type="button"
-                  onClick={confirmSoloStart}
-                >
-                  START SOLO
-                </button>
-              ) : null}
-
-              {live.game?.wrap_up_available && !live.game.wrap_up_active ? (
-                <button
-                  className="button button-quiet"
-                  type="button"
-                  disabled={!connected || live.status !== "ready" || Boolean(live.playerId && live.game.wrap_up_votes.includes(live.playerId))}
-                  onClick={live.requestWrapUp}
-                >
-                  {live.playerId && live.game.wrap_up_votes.includes(live.playerId)
-                    ? "FINAL CHAPTER REQUESTED"
-                    : "END ADVENTURE HERE"}
-                </button>
-              ) : null}
-
-              {live.game?.wrap_up_active ? (
-                <span className="wrap-up-status compact-wrap-up-status">
-                  FINAL CHAPTER // {live.game.wrap_up_turns_remaining} TURNS
-                </span>
-              ) : null}
-            </div>
-          </section>
-
-          {theater.chapterReleased && live.game?.last_resolution ? (
-            <section className="previous-resolution">
-              <span className="eyebrow">PREVIOUS TURN // WHAT JUST HAPPENED</span>
-              <p>{live.game.last_resolution}</p>
-            </section>
-          ) : null}
-
-          {!live.game?.started ? (
-            <article className="story-copy adventure-lobby-stage">
-              <div className="story-heading-row">
-                <span className="eyebrow">BEFORE THE FIRST PAGE</span>
-                <span className="story-turn-marker">CHAPTER I // THE BEGINNING</span>
-              </div>
-              <h1>{live.game?.adventure_title ?? matchingAdventure?.adventure_title ?? "A NEW TALE AWAITS"}</h1>
-              <section className="adventure-lobby-synopsis" aria-label="Adventure synopsis">
-                <span className="eyebrow">THE TALE AHEAD</span>
-                <p>{live.game?.adventure_synopsis || "A new road opens before your Hero. Every choice will shape the tale that follows."}</p>
-              </section>
-              <div className={`adventure-opening-status ${openingReady ? "is-ready" : ""}`} role="status" aria-live="polite">
-                <strong>{live.game?.chapter_preparing ? "THE STORY DIRECTOR IS WRITING CHAPTER ONE_" : "YOUR ADVENTURE AWAITS"}</strong>
-                <span>{live.game?.chapter_preparing
-                  ? "Chapter One is being created. The adventure will begin automatically when it is ready."
-                  : "Assemble your party, then begin your first chapter."}</span>
-              </div>
-              {live.room?.play_mode === "coop" ? (
-                <p className="muted-copy">Invite your companion, then begin when both Heroes have arrived.</p>
-              ) : (
-                <p className="muted-copy">A solitary road is yours to take whenever you are ready.</p>
-              )}
-              {audioPreferences.narrationEnabled && roomVoiceId ? (
-                <p className="muted-copy">NARRATOR // {narratorVoiceLabel(audioPreferences.narrationVoice)} · YOUR OWN VOICE · ROOM DEFAULT {roomVoiceName}</p>
-              ) : null}
-              <div className="adventure-lobby-roster">
-                {readiness.map((player) => (
-                  <div className={`adventure-lobby-player ${player.online ? "is-ready" : ""}`} key={player.player_id}>
-                    <span>{player.player_id === live.playerId ? "YOU" : player.name}</span>
-                    <strong>{player.online ? "READY" : "OFFLINE"}</strong>
-                  </div>
-                ))}
-              </div>
-              {localRoomPlayer?.is_host ? (
-                <button
-                  className="button button-primary adventure-get-started"
-                  type="button"
-                  disabled={!connected || live.status !== "ready" || !canBeginAdventure}
-                  onClick={live.startAdventure}
-                >
-                  {live.game?.chapter_preparing ? "PREPARING CHAPTER ONE_" : canBeginAdventure ? "BEGIN ADVENTURE" : "AWAITING YOUR PARTY"}
-                </button>
-              ) : (
-                <div className="system-notice">THE HOST WILL BEGIN THE ADVENTURE WHEN THE PARTY IS READY.</div>
-              )}
-            </article>
-          ) : (
-            <article className="story-copy">
-              <div className="story-heading-row">
-                <span className="eyebrow">CURRENT SCENE</span>
-                <span className="story-turn-marker">TURN {String(turnNumber).padStart(2, "0")}</span>
-              </div>
-              <h1>{theater.chapterReleased ? (scene?.title ?? "PICKING UP THE THREAD_") : "THE NEXT CHAPTER IS SEALED_"}</h1>
-              <div className="adventure-narration-controls" aria-label="Optional Story Time chapter narration">
-                <button className="button button-quiet" type="button"
-                  aria-pressed={audioPreferences.narrationEnabled}
-                  onClick={toggleStoryTime}>
-                  {audioPreferences.narrationEnabled ? "STORY TIME ON" : "STORY TIME OFF"}
-                </button>
-                {audioPreferences.narrationEnabled ? (
-                  <>
-                    <span className="eyebrow" title="Voice selection belongs to your browser and can change during the adventure.">
-                      YOUR VOICE // {narratorVoiceLabel(audioPreferences.narrationVoice)} · VOLUME {audioPreferences.narrationVolume}%
-                    </span>
-                    <NarratorVoicePicker value={audioPreferences.narrationVoice}
-                      onChange={voice => setAudioPreferences(writeAudioPreferences({ narrationVoice: voice }))} />
-                    <button className="button button-quiet" type="button"
-                      aria-label={`Change narrator playback speed, currently ${audioPreferences.narrationSpeed} times normal`}
-                      title="Cycle playback speed: 0.5× to 2×"
-                      onClick={cycleNarrationSpeed}>
-                      SPEED {audioPreferences.narrationSpeed}×
-                    </button>
-                    <button className="button button-quiet" type="button"
-                      aria-pressed={audioPreferences.narrationDramaticPacing}
-                      aria-label="Toggle local dramatic pacing between narrated choices"
-                      title="A brief breath before and between choices; doesn't slow down the chapter or gameplay"
-                      onClick={() => setAudioPreferences(writeAudioPreferences({ narrationDramaticPacing: !audioPreferences.narrationDramaticPacing }))}>
-                      PACE {audioPreferences.narrationDramaticPacing ? "ON" : "OFF"}
-                    </button>
-                    <button className="button button-quiet" type="button"
-                      aria-pressed={followVoice}
-                      aria-label="Follow the approximate spoken sentence in the visible chapter"
-                      onClick={() => setFollowVoice(value => !value)}>
-                      FOLLOW VOICE {followVoice ? "ON" : "OFF"}
-                    </button>
-                    <button className="button button-quiet" type="button"
-                      disabled={!connected || live.status !== "ready" || !scene?.body || narratorAvailable !== true || !theater.chapterReleased || Boolean(live.game?.pending_micro_event) || showDeath}
-                      onClick={narrateChapter}>READ CHAPTER</button>
-                    <button className="button button-quiet" type="button"
-                      disabled={!connected || live.status !== "ready" || !scene?.choices.length || narratorAvailable !== true || !theater.chapterReleased || Boolean(live.game?.pending_micro_event) || choiceLocked || showDeath}
-                      onClick={narrateChoices}>READ CHOICES</button>
-                    {(narration.phase === "playing" || narration.phase === "loading" || narration.phase === "buffering") ? (
-                      <button className="button button-quiet" type="button" onClick={pauseNarration}>PAUSE</button>
-                    ) : narration.phase === "paused" ? (
-                      <button className="button button-quiet" type="button" onClick={() => { void resumeNarration(); }}>RESUME</button>
-                    ) : null}
-                    {narration.phase !== "idle" ? (
-                      <button className="button button-quiet" type="button" onClick={stopNarration}>STOP</button>
-                    ) : null}
-                  </>
-                ) : null}
-                <small role="status" aria-live="polite">
-                  {audioPreferences.narrationEnabled && !narratorAvailable
-                    ? storyTime.phase === "error" ? `STORY TIME ERROR // ${storyTime.message}` :
-                      "CONNECTING TO STORY TIME_"
-                    : narration.phase === "error" ? narration.error
-                    : narration.phase === "loading" ? `PREPARING VOICE // ${narration.label}`
-                    : narration.phase === "buffering" ? `BUFFERING NEXT PASSAGE // ${narration.label}`
-                    : narration.phase === "playing" ? `READING // ${narration.label}`
-                    : narration.phase === "paused" ? "NARRATION PAUSED" : ""}
-                </small>
-              </div>
-              {audioPreferences.narrationEnabled ? (
-                <details className="story-time-diagnostics">
-                  <summary>VOICE PERFORMANCE // THIS BROWSER</summary>
-                  <div className="story-time-diagnostics-body">
-                    <span>REPLAY {speechDiagnostics.localHits} · MEMORY {speechDiagnostics.memoryHits} · S3 {speechDiagnostics.s3Hits} · GENERATED {speechDiagnostics.generated}</span>
-                    {speechDiagnostics.unknownResponses > 0 ? <span>UNREPORTED {speechDiagnostics.unknownResponses}</span> : null}
-                    <span>LAST {speechDiagnostics.lastSource?.toUpperCase() ?? "—"} · WAIT {speechDiagnostics.lastWaitMs ?? "—"}ms · SERVER {speechDiagnostics.lastServerMs ?? "—"}ms · INFERENCE {speechDiagnostics.lastInferenceMs ?? "—"}ms</span>
-                    <span>Estimated timings from completed requests. Cold-start waits and network time affect WAIT; local replays require no new request.</span>
-                    <button className="button button-quiet" type="button" onClick={resetNarrationDiagnostics}>RESET COUNTERS</button>
-                  </div>
-                </details>
-              ) : null}
-
-              {theater.chapterReleased && scene?.body ? (
-                <StoryReveal
-                  sceneId={scene.id}
-                  text={scene.body}
-                  decorativeInitials={storyPreferences.decorativeInitials}
-                  readingTypeface={storyPreferences.readingTypeface}
-                  enabled={storyPreferences.wordReveal && theater.phase === "none"}
-                  followNarration={audioPreferences.narrationEnabled && followVoice && narration.cue?.kind === "story" && (narration.phase === "playing" || narration.phase === "paused")}
-                  narrationCue={theater.chapterReleased && (narration.phase === "playing" || narration.phase === "paused") ? narration.cue : null}
-                />
-              ) : (
-                <>
-                  <p className="muted-copy">
-                    {live.status === "error"
-                      ? "THE CHRONICLE CANNOT BE OPENED."
-                      : "CONSULTING THE CHRONICLE_"}
-                  </p>
-                  {live.status === "error" ? (
-                    <div className="system-notice adventure-restore-failure">
-                      <strong>{live.error || "THE RESTORE DID NOT COMPLETE."}</strong>
-                      <span>
-                        The Adventure Hall has a recovery/abandon control for this saved room.
-                      </span>
-                      <Link className="button button-primary" to="/game">
-                        RETURN TO ADVENTURE HALL
-                      </Link>
-                    </div>
-                  ) : null}
-                </>
-              )}
-            </article>
-          )}
-
-          {completedRoomRecovery ? (
-            inkboundReady ? null : completedRoomRecovery
-          ) : live.game?.started && theater.chapterReleased && live.finale ? (
-            inkboundReady ? null : finalePanel
-          ) : live.game?.started ? (
-            <section className="choice-area">
-              <header className="choice-area-heading">
-                <div>
-                  <span className="eyebrow">YOUR NEXT MOVE</span>
-                  <strong>CHOOSE AN INTENT</strong>
-                </div>
-                <span>
-                  {choiceLocked
-                    ? "LOCKED // WAITING FOR THE THREAD"
-                    : selectedChoice
-                      ? "SELECTED // REVIEW OR LOCK"
-                      : "NOTHING IS CANON YET"}
-                </span>
-              </header>
-
-              <div className="choice-grid">
-                {(theater.chapterReleased ? scene?.choices ?? [] : []).map((choice, index) => {
-                  const selected = choice.id === selectedChoiceId;
-                  const locked = selected && choiceLocked;
-                  const challenge = choice.check?.challenge_tier?.toUpperCase() ?? null;
-                  const checkName = choice.check
-                    ? (choice.check.skill ?? choice.check.stat ?? "CHECK").toUpperCase()
-                    : "NO CHECK";
-
-                  return (
-                    <article
-                      className={`choice-card ${selected ? "is-selected" : ""} ${locked ? "is-locked" : ""}`}
-                      key={choice.id}
-                    >
-                      <button
-                        className="choice-select-button"
-                        type="button"
-                        disabled={choicesBlocked && !selected}
-                        onClick={() => selectChoice(choice)}
-                      >
-                        <span className="choice-number">
-                          {String(index + 1).padStart(2, "0")}
-                        </span>
-
-                        <span className="choice-copy">
-                          <strong>{choice.label}</strong>
-                          <span className="choice-meta-tags">
-                            <small>
-                              {choice.check
-                                ? `${checkName}${challenge ? ` // ${challenge}` : ""} // DC ${choice.check.difficulty}`
-                                : "NO CHECK"}
-                            </small>
-                            {choice.risk_level ? (
-                              <small className={`choice-risk-tag risk-${choice.risk_level.toLowerCase()}`}>
-                                {choice.risk_level.toUpperCase()} RISK
-                              </small>
-                            ) : null}
-                            <small>+{choice.xp_reward} XP</small>
-                          </span>
-                        </span>
-                      </button>
-
-                      {audioPreferences.narrationEnabled ? (
-                        <button className="choice-narrate-button" type="button"
-                          disabled={!connected || live.status !== "ready" || narratorAvailable !== true || !theater.chapterReleased || Boolean(live.game?.pending_micro_event) || choiceLocked || showDeath}
-                          aria-label={`Read choice ${index + 1} aloud`}
-                          title="Listen to this choice without selecting it"
-                          onClick={() => { void playNarration([{ text: `Option ${index + 1}. ${choice.label}`, label: `CHOICE ${index + 1}`, kind: "choice" }]); }}>
-                          LISTEN
-                        </button>
-                      ) : null}
-                      <button
-                        className="choice-info-button"
-                        type="button"
-                        onClick={() => inspectChoice(choice)}
-                        aria-label={`Inspect ${choice.label}`}
-                      >
-                        i
-                      </button>
-                    </article>
-                  );
-                })}
-              </div>
-
-              <div className="choice-commit-bar">
-                <div className="choice-commit-copy">
-                  <span className="eyebrow">TURN INTENT</span>
-                  <strong>
-                    {choiceLocked
-                      ? `LOCKED // ${selectedChoice?.label ?? live.choiceAccepted?.choice_label ?? "CHOICE RECORDED"}`
-                      : lockPending
-                        ? "LOCKING CHOICE_"
-                        : selectedChoice
-                          ? selectedChoice.label
-                          : "SELECT AN ACTION_"}
-                  </strong>
-                  {selectedChoice && !choiceLocked ? (
-                    <span>{selectedChoice.description}</span>
-                  ) : null}
-                </div>
-
-                <button
-                  className="button button-primary choice-lock-button"
-                  type="button"
-                  disabled={!selectedChoiceId || choicesBlocked}
-                  onClick={lockChoice}
-                >
-                  {choiceLocked ? "LOCKED" : lockPending ? "LOCKING_" : "LOCK IN CHOICE"}
-                </button>
-              </div>
-            </section>
-          ) : null}
-        </section>
-
-        <aside className="adventure-sidebar">
-          <Panel title="HERO // PARTY VIEW" className="hero-panel">
-            {(live.room?.players.length ?? 0) > 1 ? (
-              <div className="party-hero-switcher" role="tablist" aria-label="Room Heroes">
-                {live.room?.players.map((player) => {
-                  const selected = player.character_id === inspectedCharacterId;
-                  return (
-                    <button
-                      type="button"
-                      role="tab"
-                      aria-selected={selected}
-                      className={selected ? "is-active" : ""}
-                      key={player.player_id}
-                      onClick={() => setInspectedCharacterId(player.character_id)}
-                    >
-                      <span aria-hidden="true">{presenceFace(player.is_online, false)}</span>
-                      <strong>{player.character_id === characterId ? "YOU" : player.name}</strong>
-                    </button>
-                  );
-                })}
-              </div>
-            ) : null}
-
-            {displayHero ? (
-              <div className="live-hero">
-                <div className="live-hero-heading">
-                  <div>
-                    <span className="eyebrow">LEVEL {displayHero.level}</span>
-                    <strong>{displayHero.name}</strong>
-                  </div>
-                  <span className={`hero-hp ${displayHero.is_alive ? "" : "is-fallen"}`}>
-                    {displayHero.is_alive ? `HP ${displayHero.health}/${displayHero.max_health}` : "FALLEN"}
-                  </span>
-                </div>
-
-                {displayHero.bio ? <p className="hero-bio-snippet">{displayHero.bio}</p> : null}
-
-                <div className="hero-vital-row">
-                  <span>HP</span>
-                  <div className="meter" aria-label={`HP ${displayHero.health} of ${displayHero.max_health}`}>
-                    <span
-                      style={{
-                        width: `${Math.max(0, Math.min(100, (displayHero.health / displayHero.max_health) * 100))}%`,
-                      }}
-                    />
-                  </div>
-                  <strong>{displayHero.health}/{displayHero.max_health}</strong>
-                </div>
-
-                <div className="xp-readout">
-                  <div>
-                    <span>XP {displayHero.experience}</span>
-                    <span>{displayHero.xp_needed_for_next_level} TO NEXT</span>
-                  </div>
-                  <div className="xp-meter">
-                    <span style={{ width: `${displayHero.xp_progress_percent}%` }} />
-                  </div>
-                </div>
-
-                <div className="hero-stat-segments" aria-label="Core Hero attributes">
-                  {CORE_STATS.map(([key, label]) => {
-                    const value = Math.max(0, Math.min(7, displayHero.stats[key] ?? 0));
-                    return (
-                      <div className="hero-segment-stat" key={key}>
-                        <div>
-                          <b>{label}</b>
-                          <strong>{value}</strong>
-                        </div>
-                        <span className="segmented-meter" aria-label={`${key} ${value} of 7`}>
-                          {Array.from({ length: 7 }, (_, index) => (
-                            <i className={index < value ? "is-filled" : ""} key={index} />
-                          ))}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {isInspectingSelf && hero && (hero.unspent_stat_points + hero.unspent_skill_points + hero.unspent_talent_points) > 0 ? (
-                  <div className="hero-advancement-alert">
-                    <strong>ADVANCEMENT READY</strong>
-                    <span>
-                      {hero.unspent_stat_points} ATTR // {hero.unspent_skill_points} SKILL // {hero.unspent_talent_points} TALENT
-                    </span>
-                  </div>
-                ) : null}
-
-                {inspectedResult ? (
-                  <section className={`hero-last-check ${inspectedResult.check?.outcome ? `is-${inspectedResult.check.outcome}` : ""}`}>
-                    <div className="hero-last-check-heading">
-                      <span className="eyebrow">LAST CHECK</span>
-                      <strong>+{inspectedResult.xp_reward} XP</strong>
-                    </div>
-
-                    {inspectedResult.check ? (
-                      <>
-                        <div className="hero-dice-readout">
-                          <div>
-                            <span>D20</span>
-                            <strong>{inspectedResult.check.roll}</strong>
-                          </div>
-                          <span>+</span>
-                          <div>
-                            <span>MOD</span>
-                            <strong>{signed(inspectedResult.check.total_modifier)}</strong>
-                          </div>
-                          <span>=</span>
-                          <div>
-                            <span>TOTAL</span>
-                            <strong>{inspectedResult.check.total}</strong>
-                          </div>
-                          <span>/</span>
-                          <div>
-                            <span>DC</span>
-                            <strong>{inspectedResult.check.difficulty}</strong>
-                          </div>
-                        </div>
-                        <div className="hero-check-outcome">
-                          <strong>{outcomeLabel(inspectedResult.check.outcome)}</strong>
-                          <span>
-                            {(inspectedResult.check.skill ?? inspectedResult.check.stat ?? "CHECK").toUpperCase()}
-                            {inspectedResult.check.challenge_tier
-                              ? ` // ${inspectedResult.check.challenge_tier.toUpperCase()}`
-                              : ""}
-                          </span>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="hero-check-outcome">
-                        <strong>ACTION RESOLVED</strong>
-                        <span>NO CHECK REQUIRED</span>
-                      </div>
-                    )}
-
-                    {inspectedProgression?.leveled_up ? (
-                      <div className="hero-level-flash">
-                        LEVEL UP // {inspectedProgression.level_before} → {inspectedProgression.level_after}
-                      </div>
-                    ) : null}
-                  </section>
-                ) : null}
-
-                <div className="hero-effect-list" aria-label="Active Hero effects">
-                  <HeroEffectList effects={displayHero.effects} compact />
-                </div>
-
-                {isInspectingSelf ? (
-                  <Link className="hero-sheet-link" to={`/game/heroes/${encodeURIComponent(characterId)}`}>
-                    OPEN YOUR CHARACTER SHEET →
-                  </Link>
-                ) : (
-                  <div className="party-hero-readonly">
-                    READ-ONLY PARTY VIEW // {inspectedRoomPlayer?.is_online ? "ONLINE" : "OFFLINE"}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <p className="muted-copy">
-                {heroError || "RECOVERING HERO RECORD_"}
-              </p>
-            )}
-          </Panel>
-
-          {turnHistory.length > 0 ? (
-            <Panel title={`TURN HISTORY // ${turnHistory.length}`} className="turn-history-panel">
-              <div className="turn-history-controls">
-                <button
-                  type="button"
-                  aria-label="Previous resolved turn"
-                  disabled={historyIndex <= 0}
-                  onClick={() => setHistoryIndex((current) => Math.max(0, current - 1))}
-                >
-                  ←
-                </button>
-                <span>TURN {historyEntry?.turn_number ?? historyIndex + 1}</span>
-                <button
-                  type="button"
-                  aria-label="Next resolved turn"
-                  disabled={historyIndex >= turnHistory.length - 1}
-                  onClick={() => setHistoryIndex((current) => Math.min(turnHistory.length - 1, current + 1))}
-                >
-                  →
-                </button>
-              </div>
-
-              {historyEntry ? (
-                <article className="turn-history-card">
-                  <div className="turn-history-scene">
-                    <span className="eyebrow">{historyEntry.scene_title || "PREVIOUS SCENE"}</span>
-                    {historyEntry.next_scene_title ? (
-                      <small>→ {historyEntry.next_scene_title}</small>
-                    ) : null}
-                  </div>
-
-                  <div className="turn-history-choices">
-                    {historyEntry.choices.map((choice, index) => (
-                      <div key={`${choice.player_name}:${choice.choice_label}:${index}`}>
-                        <span>{choice.player_name || `HERO ${index + 1}`}</span>
-                        <strong>{choice.choice_label}</strong>
-                        <em className={choice.outcome ? `is-${choice.outcome.replaceAll("_", "-")}` : ""}>
-                          {choice.outcome
-                            ? outcomeLabel(choice.outcome)
-                            : "NO CHECK"}
-                          {choice.total != null && choice.difficulty != null
-                            ? ` // ${choice.total} / DC ${choice.difficulty}${choice.roll != null ? ` (D20 ${choice.roll})` : ""}`
-                            : ""}
-                        </em>
-                      </div>
-                    ))}
-                  </div>
-
-                  {historyEntry.resolution ? (
-                    <p>{historyEntry.resolution}</p>
-                  ) : null}
-                </article>
-              ) : null}
-            </Panel>
-          ) : null}
-
-          {live.error && !live.retryableError && !live.game?.director_retry_required ? (
-            <div className="adventure-error">
-              <strong>SOMETHING SLIPPED OUT OF THE THREAD.</strong>
-              <span>{live.error}</span>
-              <div className="adventure-error-actions">
-                <button className="button" type="button" onClick={live.sync}>
-                  ASK THE SERVER WHAT HAPPENED
-                </button>
-                <button className="button" type="button" onClick={live.clearError}>
-                  DISMISS
-                </button>
-              </div>
-            </div>
-          ) : null}
-
-          <Panel title={`PARTY CHAT // ${live.messages.length}`} className="chat-panel">
-            <div className="chat-log">
-              {live.messages.length === 0 ? (
-                <span className="system-line">
-                  SYSTEM // NO ONE HAS SAID ANYTHING YET. OMINOUS.
-                </span>
-              ) : (
-                live.messages.map((message) => (
-                  <div className="chat-message" key={message.id}>
-                    <span className="chat-name">{message.player_name}</span>
-                    <span className="chat-text">{message.text}</span>
-                  </div>
-                ))
-              )}
-            </div>
-
-            <form className="chat-compose" onSubmit={submitChat}>
-              <span>&gt;</span>
-              <input
-                value={chatText}
-                onChange={(event) => setChatText(event.target.value)}
-                maxLength={500}
-                disabled={live.status !== "ready"}
-                placeholder="say something regrettable..."
-              />
-              <button
-                type="button"
-                aria-expanded={asciiPickerOpen}
-                title="ASCII face picker"
-                onClick={() => setAsciiPickerOpen((current) => !current)}
-              >
-                :-)
-              </button>
-              <button
-                type="submit"
-                disabled={live.status !== "ready" || !chatText.trim()}
-              >
-                SEND
-              </button>
-            </form>
-
-            {asciiPickerOpen ? (
-              <div className="ascii-picker ascii-reaction-library" aria-label="ASCII reaction picker">
-                {ASCII_REACTION_GROUPS.map((group) => (
-                  <section className="ascii-reaction-group" key={group}>
-                    <span>{group}</span>
-                    <div>
-                      {ASCII_REACTIONS.filter((reaction) => reaction.group === group).map((reaction) => (
-                        <button
-                          type="button"
-                          key={`${group}:${reaction.value}`}
-                          title={reaction.label}
-                          aria-label={`${reaction.label}: ${reaction.value}`}
-                          onClick={() => insertAsciiFace(reaction.value)}
-                        >
-                          {reaction.value}
-                        </button>
-                      ))}
-                    </div>
-                  </section>
-                ))}
-              </div>
-            ) : null}
-          </Panel>
-        </aside>
-      </div>
 
       {showDeath && lastLocalProgression ? (
         <HeroDeathModal

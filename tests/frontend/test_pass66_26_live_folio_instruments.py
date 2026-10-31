@@ -17,7 +17,7 @@ def test_real_actions_and_source_data_are_preserved():
         'entry.choices.map', 'entry.resolution', 'props.notes',
         'props.onNotesChange(event.target.value)', 'props.messages.map',
         'props.onSendChat(text)', 'maxLength={500}', 'props.connected',
-        'props.onClose', 'props.sessionUtilities', 'setPanel("notes")',
+        'props.sessionUtilities', 'setPanel("notes")',
         'setPanel("history")', 'role="dialog"', 'aria-modal="true"',
         'props.onLockChoice', 'props.onSelectChoice',
     ):

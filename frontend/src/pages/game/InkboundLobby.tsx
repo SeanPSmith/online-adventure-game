@@ -28,7 +28,6 @@ export interface InkboundLobbyProps {
   narratorName: string;
   onToggleNarrator: () => void;
   onBeginAdventure: () => void;
-  onClassicView: () => void;
 }
 
 export function InkboundLobby(props: InkboundLobbyProps) {
@@ -39,7 +38,6 @@ export function InkboundLobby(props: InkboundLobbyProps) {
       <nav aria-label="Lobby navigation" className="ibl-nav">
         <Link to="/game">Adventure hall</Link>
         <Link to="/game/heroes">Your heroes</Link>
-        <button type="button" onClick={props.onClassicView}>Classic view</button>
       </nav>
     </header>
     <main id="inkbound-lobby-main" className="ibl-lobby-main">

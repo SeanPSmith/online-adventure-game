@@ -114,7 +114,7 @@ test('cancelled narration never increments completed-request counters', async ()
 });
 test('adventure exposes optional performance panel, no forced voice changes', () => {
   const page=source('frontend/src/pages/game/AdventurePage.tsx');
-  assert.match(page,/VOICE PERFORMANCE \/\/ THIS BROWSER/);
+  assert.match(page,/Voice performance · this browser/);
   assert.match(page,/observeNarrationDiagnostics\(setSpeechDiagnostics\)/);
   assert.match(page,/onClick=\{resetNarrationDiagnostics\}/);
   assert.match(page,/theater\.chapterReleased && scene\?\.body/);

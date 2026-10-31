@@ -27,7 +27,6 @@ def test_qte_fiction_and_next_chapter_are_independent() -> None:
     page = Path("frontend/src/pages/game/AdventurePage.tsx").read_text()
     assert 'qte-choice-consequence' not in page
     assert 'localReaction' not in page
-    assert 'className="choice-grid"' in page
 
 
 def test_runtime_skips_missing_or_invalid_authored_qte_instead_of_generic_prompt() -> None:

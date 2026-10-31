@@ -9,7 +9,6 @@ def source(file): return (GAME/file).read_text()
 
 def test_live_inkbound_reader_is_opt_in_and_does_not_open_another_socket():
     parent,live=source('AdventurePage.tsx'),source('InkboundLiveRoom.tsx')
-    assert 'searchParams.get("reader") === "inkbound"' in parent
     assert '<InkboundLiveRoom' in parent
     for fragment in ['onSelectChoice={selectChoice}','onLockChoice={lockChoice}',
                      'history={turnHistory}', 'party={live.room?.players ?? []}',

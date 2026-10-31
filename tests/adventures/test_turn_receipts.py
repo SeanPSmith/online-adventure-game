@@ -48,7 +48,7 @@ def test_scene_reveal_waits_for_turn_theater_to_release_it() -> None:
     result = (PROJECT_ROOT / "frontend/src/features/adventure/TurnResolutionTheater.tsx").read_text()
     # Turn theater owns scene release. Reveal remains enabled until the
     # narrator actually starts supplying a spoken cue.
-    assert 'enabled={storyPreferences.wordReveal && theater.phase === "none"' in page
+    assert 'wordRevealEnabled={storyPreferences.wordReveal}' in page
     assert 'narration.cue?.kind === "story"' in page
     # Only intermediate visual dice faces are random in the browser; the
     # authoritative check is supplied by the server, never calculated here.
@@ -57,5 +57,3 @@ def test_scene_reveal_waits_for_turn_theater_to_release_it() -> None:
     assert 'setDisplayRoll(check.roll)' in result
     assert "[turnIdentity, results.length]" in result
     assert 'theater.chapterReleased && scene?.body' in page
-    assert 'theater.chapterReleased ? scene?.choices ?? [] : []' in page
-    assert 'theater.chapterReleased && live.game?.last_resolution' in page

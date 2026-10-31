@@ -35,7 +35,6 @@ def test_marginal_controls_stay_reachable_with_sticky_sidebar():
     for panel in ('menu','journal','party','chat','hero','history','notes'):
         assert f'"{panel}"' in ROOM
     assert 'panel === "menu"' in ROOM
-    assert 'Switch to Classic view' in ROOM
     assert 'role="dialog"' in ROOM and 'aria-modal="true"' in ROOM
     assert 'event.key === "Escape"' in ROOM
     assert 'onToggleStoryTime' in ROOM

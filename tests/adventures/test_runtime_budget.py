@@ -80,10 +80,6 @@ def test_turn_archive_is_exposed_and_rendered_as_compact_carousel() -> None:
     assert 'session.director_history[' in session and '-10:' in session
     assert '"turn_archive":' in store
     assert 'export interface TurnHistoryEntry' in service
-    assert 'TURN HISTORY //' in page
-    assert 'turn-history-controls' in page
-    assert 'turn-history-card' in page
-    assert '.turn-history-panel' in css
 
 
 def test_preliminary_receipt_has_stable_resolved_turn_identity() -> None:

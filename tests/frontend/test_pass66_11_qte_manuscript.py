@@ -23,7 +23,7 @@ def test_qte_uses_real_game_event_and_choice_callbacks():
 
 def test_presentation_is_tied_to_live_adventure_and_not_to_fake_data():
     assert 'inkPaper={inkspacePaper}' in PAGE
-    assert 'const inkspacePaper = (inkboundRequested || defaultInkbound)' in PAGE
+    assert 'const inkspacePaper = inkPaper' in PAGE
     assert 'fantasyArtwork={fantasyIllustration}' in PAGE
     assert 'event={' in PAGE and 'live.game?.pending_micro_event' in PAGE
     assert 'resolution={' in PAGE and 'live.microEventResolution' in PAGE

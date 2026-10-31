@@ -74,8 +74,10 @@ export type InkboundLiveRoomProps = Readonly<{
   lastResult?: TurnResult | null;
   turnPhase?: "none" | "intermission" | "story-ready" | "resolution" | "retry";
   onResolutionHost?: (element: HTMLDivElement | null) => void;
+  /** Kokoro narration: listen to one choice aloud without selecting it. */
+  canListenChoice?: boolean;
+  onListenChoice?: (choice: SceneChoice, index: number) => void;
   lastProgression?: HeroProgressionUpdate | null;
-  onClose: () => void;
 }>;
 
 function Prose({ sceneId, body, wordRevealEnabled, decorativeInitials, followNarration, narrationCue }: {
@@ -206,7 +208,8 @@ export function InkboundLiveRoom(props: InkboundLiveRoomProps) {
               const chance = choice.check
                 ? baseSuccessChance(choice, props.hero && "skills" in props.hero ? props.hero as Character : null)
                 : null;
-              return <button key={choice.id} type="button" className={`ibl-choice ${props.selectedChoiceId === choice.id ? "is-chosen" : ""}`}
+              return <div className="ibl-choice-cell" key={choice.id}>
+              <button type="button" className={`ibl-choice ${props.selectedChoiceId === choice.id ? "is-chosen" : ""}`}
               aria-pressed={props.selectedChoiceId === choice.id}
               disabled={!liveChoices}
               onClick={() => props.onSelectChoice(choice)}>
@@ -227,7 +230,11 @@ export function InkboundLiveRoom(props: InkboundLiveRoomProps) {
                 </span> : null}
               </span>
               <span className="ibl-choice-arrow" aria-hidden="true">→</span>
-            </button>;
+            </button>
+            {props.onListenChoice && props.canListenChoice ? <button type="button" className="ibl-choice-listen"
+              aria-label={`Read choice ${index + 1} aloud`} title="Listen to this choice without selecting it"
+              onClick={() => props.onListenChoice?.(choice, index)}>Listen</button> : null}
+            </div>;
             })}
           </div>
           <div className="ibl-commit" aria-live="polite">
@@ -353,7 +360,6 @@ export function InkboundLiveRoom(props: InkboundLiveRoomProps) {
           <Link to="/game">Adventure hall <span aria-hidden="true">↗</span></Link>
           <Link to="/game/heroes">Heroes <span aria-hidden="true">↗</span></Link>
           <Link to="/game/adventures">My adventures <span aria-hidden="true">↗</span></Link>
-          <button type="button" onClick={props.onClose}>Switch to Classic view <span aria-hidden="true">↗</span></button>
           {props.sessionUtilities && <section className="ibl-utility-actions ibl-folio-utilities" aria-label="In-game controls">
             <h3>Session &amp; preferences</h3>{props.sessionUtilities}
           </section>}

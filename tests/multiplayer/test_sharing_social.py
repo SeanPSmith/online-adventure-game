@@ -66,15 +66,6 @@ def test_room_game_state_hydrates_party_heroes_without_weakening_character_owner
     assert 'detail=\n                "Character does not exist."' in character_routes
 
 
-def test_adventure_can_switch_between_room_hero_views():
-    page = read("frontend/src/pages/game/AdventurePage.tsx")
-    service = read("frontend/src/services/game.ts")
-
-    assert "party-hero-switcher" in page
-    assert "setInspectedCharacterId(player.character_id)" in page
-    assert "READ-ONLY PARTY VIEW" in page
-    assert "party_heroes" in service
-    assert "PartyHeroSnapshot" in service
 
 
 def test_ascii_social_library_is_large_curated_and_used_in_social_ui():
@@ -85,8 +76,6 @@ def test_ascii_social_library_is_large_curated_and_used_in_social_ui():
     assert library.count("{ value:") >= 45
     assert "ASCII_REACTION_GROUPS" in library
     assert "table flip" in library
-    assert "presenceFace" in page
-    assert "ASCII_REACTIONS" in page
     assert "notificationFace(notification.kind)" in socket_context
 
 
@@ -96,12 +85,12 @@ def test_share_controls_are_visible_during_play_and_in_chronicles():
     share = read("frontend/src/components/game/ShareMomentButton.tsx")
     invite = read("frontend/src/components/game/RoomInviteButton.tsx")
 
-    assert "SHARE MOMENT" in adventure
+    assert "Share this moment →" in adventure
     assert "SHARE ENDING" in adventure
     assert "SHARE CHRONICLE" in history
     assert "navigator.share" in share
     assert "navigator.clipboard" in share
-    assert "INVITE / SHARE" in adventure
+    assert "Invite another player →" in adventure
     assert "[↗] SHARE..." in invite
 
 

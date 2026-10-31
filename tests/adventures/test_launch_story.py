@@ -111,7 +111,7 @@ def test_react_launch_ui_uses_get_started_and_no_browser_native_controls() -> No
         for path in FRONTEND.rglob("*.tsx")
     )
 
-    assert '"BEGIN ADVENTURE"' in page
+    assert 'BEGIN ADVENTURE' in read("frontend/src/pages/game/InkboundLobby.tsx")
     assert "live.startAdventure" in page
     assert "confirmSoloStart" in page
     assert "window.confirm" not in react_source

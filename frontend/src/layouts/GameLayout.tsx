@@ -12,10 +12,8 @@ export function GameLayout() {
   const canAuthor = canUseAuthorStudio(user?.permissions);
   const isAdmin = user?.permissions.includes("admin") ?? false;
   const isAdventureMode = location.pathname.startsWith("/game/adventure/");
-  // Keep the selected Inkspace shell mounted while its lazy-loaded reader
-  // bundle resolves. Classic and physical Book are explicit opt-in exceptions.
-  const reader = new URLSearchParams(location.search).get("reader");
-  const isInkspaceAdventure = isAdventureMode && reader !== "classic" && reader !== "book";
+  // Keep the Quillairo shell mounted while the lazy-loaded reader bundle resolves.
+  const isInkspaceAdventure = isAdventureMode;
   // The live Adventure Hall has its own document-scrolling Inkscape surface.
   const isInkspaceHome = location.pathname === "/game" || location.pathname === "/game/";
 

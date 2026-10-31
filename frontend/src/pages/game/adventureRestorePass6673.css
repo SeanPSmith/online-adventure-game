@@ -1,0 +1,10 @@
+/* Pass 66.73: the only non-reader state (connecting, restoring, waiting for the first scene). */
+.inkbound-system-shell .ink-restore, .ink-restore {min-height:60vh!important; display:grid!important; place-items:center!important; padding:48px 20px!important;}
+.ink-restore-card {max-width:560px; text-align:center; display:grid; gap:14px;}
+.ink-restore-kicker {font:500 11px/1.2 var(--ix48-label, ui-monospace, monospace); letter-spacing:.22em; color:var(--ix48-gold, #8a6a2c);}
+.ink-restore-card h1 {margin:0; font:400 clamp(26px, 4vw, 38px)/1.15 var(--ix48-serif, Georgia, serif); color:var(--ix48-ink, inherit);}
+.ink-restore-card p {margin:0; font:400 16px/1.6 var(--ix48-serif, Georgia, serif); color:var(--ix48-copy, inherit);}
+.ink-restore-actions {display:flex; flex-wrap:wrap; justify-content:center; gap:12px; margin-top:8px;}
+.ink-restore-actions button, .ink-restore-actions a {min-height:44px; padding:0 20px; display:inline-flex; align-items:center; background:transparent; color:var(--ix48-ink, inherit); border:1px solid var(--ix48-ink, currentColor); font:500 13px/1 var(--ix48-serif, Georgia, serif); letter-spacing:.06em; text-decoration:none; cursor:pointer;}
+.ink-restore-actions button:disabled {opacity:.5; cursor:default;}
+.ink-restore-actions :focus-visible {outline:2px solid var(--ix48-gold, currentColor); outline-offset:3px;}

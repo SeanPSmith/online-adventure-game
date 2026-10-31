@@ -12,7 +12,16 @@
   .inkbound-live .ibl-layout .ibl-choices {grid-template-columns:1fr!important}
 }
 /* Cards size to their content (older layers set 118px-220px minimums). */
-.inkbound-live .ibl-choices > .ibl-choice {min-height:0}
+.inkbound-live .ibl-choices .ibl-choice {min-height:0}
+/* Pass 66.74: each card sits in a cell so the Kokoro "Listen" control is never nested inside the choice button. */
+.inkbound-live .ibl-choice-cell {position:relative;display:flex;min-width:0}
+.inkbound-live .ibl-choice-cell > .ibl-choice {flex:1 1 auto;min-width:0;width:100%}
+.inkbound-live .ibl-choice-cell > .ibl-choice-listen {position:absolute;top:14px;right:40px;min-height:28px;padding:0 10px;background:transparent;color:var(--ix48-copy,inherit);border:1px solid var(--ix48-rule,currentColor);font:500 11px/1 var(--ix48-label,ui-monospace,monospace);letter-spacing:.12em;text-transform:uppercase;cursor:pointer}
+.inkbound-live .ibl-choice-cell > .ibl-choice-listen:hover {color:var(--ix48-gold,inherit);border-color:var(--ix48-gold,currentColor)}
+.inkbound-live .ibl-choice-cell > .ibl-choice-listen:focus-visible {outline:2px solid var(--ix48-gold,currentColor);outline-offset:2px}
+.inkbound-live .ibl-voice-performance {font:400 13px/1.5 var(--ix48-serif,Georgia,serif);color:var(--ix48-copy,inherit)}
+.inkbound-live .ibl-voice-performance summary {cursor:pointer;min-height:32px;display:flex;align-items:center}
+.inkbound-live .ibl-voice-performance-body {display:grid;gap:6px;padding:6px 0 10px}
 
 /* Each card reads top-down: index and arrow, title, description, then icon-led facts. */
 .inkbound-live .ibl-choice {

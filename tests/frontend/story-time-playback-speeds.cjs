@@ -55,7 +55,7 @@ test('rate changes remain browser-local and update live narration',()=>{
   assert.match(settings,/max=\{NARRATION_PLAYBACK_SPEEDS\[NARRATION_PLAYBACK_SPEEDS\.length - 1\]\}/);
   assert.match(adventure,/\[audioPreferences\.narrationVolume, audioPreferences\.narrationSpeed\]/);
   assert.match(adventure,/onClick=\{cycleNarrationSpeed\}/);
-  assert.match(adventure,/SPEED \{audioPreferences\.narrationSpeed\}×/);
+  assert.match(adventure,/Reading speed · \{audioPreferences\.narrationSpeed\}×/);
   assert.match(narrator,/audio\.playbackRate = prefs\.narrationSpeed/);
   assert.match(narrator,/audio\.preservesPitch = true/);
   assert.match(narrator,/speed: 1/);

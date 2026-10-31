@@ -35,7 +35,7 @@ def test_choices_are_three_across_from_tablet_up_and_one_column_on_phones():
     assert "@media (min-width:761px)" in CSS
     assert ".inkbound-live .ibl-layout .ibl-choices {grid-template-columns:repeat(3,minmax(0,1fr))!important}" in CSS
     assert ".inkbound-live .ibl-layout .ibl-choices {grid-template-columns:1fr!important}" in CSS
-    assert ".inkbound-live .ibl-choices > .ibl-choice {min-height:0}" in CSS
+    assert ".inkbound-live .ibl-choices .ibl-choice {min-height:0}" in CSS
     older = (ROOT / "frontend/src/styles/quillairoLiveFolioPass6623.css").read_text(encoding="utf-8")
     assert "@media (min-width:761px){.inkbound-live .ibl-choices{grid-template-columns:repeat(3" in older
     assert "min-height:220px" not in older

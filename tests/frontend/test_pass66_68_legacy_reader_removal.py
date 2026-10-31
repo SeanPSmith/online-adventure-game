@@ -46,19 +46,13 @@ def test_retired_experiment_files_are_gone():
     assert not present, present
 
 
-def test_adventure_page_has_no_living_book_branch_but_keeps_the_classic_switch():
+def test_adventure_page_has_no_living_book_or_classic_branch():
     page = read("pages/game/AdventurePage.tsx")
     for retired in ("InkspaceLiveRoom", "bookRequested", "bookReady", "changeBookView",
                     "OPEN LIVING BOOK", "USE STANDARD READER", 'set("reader", "book")', "bookNotes"):
         assert retired not in page, retired
-    # A stale ?reader=book bookmark falls through to the default Inkbound reader.
-    assert 'const defaultInkbound = !classicRequested' in page
-    # The explicit Classic fallback is deliberately preserved by this pass.
-    assert 'USE CLASSIC READER' in page and 'searchParams.get("reader") === "classic"' in page
-    assert 'import "./adventureReaderSwitchPass6668.css";' in page
-    switch = (GAME / "adventureReaderSwitchPass6668.css").read_text()
-    assert ".adventure-layout--reader-hidden{display:none!important}" in switch
-    assert ".inkspace-live-entry" in switch
+    # Pass 66.73 removed the Classic fallback as well; see test_pass66_73_classic_reader_removal.py.
+    assert "classicRequested" not in page and "USE CLASSIC READER" not in page
 
 
 def test_live_gameplay_wiring_is_untouched():

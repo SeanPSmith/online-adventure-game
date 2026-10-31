@@ -36,12 +36,6 @@ def test_return_to_game_uses_last_game_route_memory() -> None:
     assert 'clean.startsWith("/game")' in memory
 
 
-def test_ascii_picker_is_interactive_and_inserts_chat_text() -> None:
-    page = read("pages/game/AdventurePage.tsx")
-
-    assert "setAsciiPickerOpen((current) => !current)" in page
-    assert "function insertAsciiFace(face: string)" in page
-    assert "onClick={() => insertAsciiFace(reaction.value)}" in page
 
 
 def test_director_retry_failure_stays_in_turn_theater_modal() -> None:
@@ -49,7 +43,7 @@ def test_director_retry_failure_stays_in_turn_theater_modal() -> None:
     theater = read("features/adventure/useTurnTheater.ts")
 
     assert "error: live.error" in page
-    assert "!live.game?.director_retry_required" in page
+    assert "Boolean(live.game?.director_retry_required)" in page
     assert "director-retry-panel" not in page
     assert "game?.director_retry_required ? error" in theater
 
@@ -102,7 +96,7 @@ def test_resume_watchdog_prevents_infinite_restoring_screen() -> None:
     assert "resumeWatchdog" in live
     assert "12000" in live
     assert "did not finish restoring this room" in live
-    assert "RETURN TO ADVENTURE HALL" in page
+    assert "Return to the Adventure Hall" in page
 
 
 def test_director_wall_clock_timeout_and_abandon_use_real_task_cancellation() -> None:
@@ -248,22 +242,6 @@ def test_arcade_game_feel_pass_adds_forgiving_timing_feedback_and_variants() -> 
     assert "TARGET DOWN" in artillery
 
 
-def test_gameplay_ui_consolidation_prioritizes_story_hero_dice_and_compact_chat() -> None:
-    page = read("pages/game/AdventurePage.tsx")
-    layout = read("layouts/GameLayout.tsx")
-    styles = read("styles/components.css")
-
-    assert "adventure-command-strip" in page
-    assert 'title="HERO // PARTY VIEW"' in page
-    assert "hero-stat-segments" in page
-    assert "hero-last-check" in page
-    assert "hero-dice-readout" in page
-    assert "PARTY CHAT // ${live.messages.length}" in page
-    assert "choice-meta-tags" in page
-    assert "choice-commit-copy" in page
-    assert "is-adventure-mode" in layout
-    assert ".adventure-command-strip" in styles
-    assert ".segmented-meter" in styles
 
 
 def test_qte_recovery_pass_starts_visible_timer_and_keeps_story_context() -> None:
@@ -296,7 +274,6 @@ def test_playtest_pass_21_adds_mobile_arcade_readability_finale_and_qte_resoluti
     maze = read("features/adventure/MazeGame.tsx")
     styles = read("styles/components.css")
 
-    assert 'storyPaneRef.current?.scrollTo({ top: 0, behavior: "smooth" })' in adventure
     assert "journey-finale-summary" in adventure
     assert "END ADVENTURE HERE // RETURN TO HALL" in adventure
     assert "finalHero.checks_total" in adventure

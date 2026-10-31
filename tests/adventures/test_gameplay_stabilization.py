@@ -57,6 +57,8 @@ def test_war_first_showed_equal_ranks_and_displays_tiebreaker_separately() -> No
 
 def test_word_reveal_runs_until_actual_spoken_story_cue() -> None:
     src = source("frontend/src/pages/game/AdventurePage.tsx")
-    assert 'enabled={storyPreferences.wordReveal && theater.phase === "none"}' in src
+    # Inkbound: the reveal is enabled by preference; the chapter is withheld until the turn theater releases it.
+    assert 'wordRevealEnabled={storyPreferences.wordReveal}' in src
+    assert 'chapterReleased={theater.chapterReleased && theater.phase === "none"' in src
     assert 'narration.cue?.kind === "story"' in src
     assert '!(audioPreferences.narrationEnabled && audioPreferences.narrationAutoPlay)' not in src

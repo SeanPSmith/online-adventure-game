@@ -59,8 +59,9 @@ def test_no_transition_overlay_or_native_controls_added():
 
 
 def test_curated_images_are_real_small_assets():
+    # Pass 66.72: the retired desk/tabletop art is gone; the two public-home covers remain.
     art = ROOT / 'frontend/public/art/pass64'
-    for filename in ('brighter-desk.webp', 'brighter-vista.webp', 'brighter-paper.webp'):
+    for filename in ('scifi.webp', 'gothic.webp'):
         file = art / filename
         assert file.is_file()
         assert 1_000 < file.stat().st_size < 300_000

@@ -8,6 +8,7 @@ from fastapi import (
     Depends,
     HTTPException,
     Query,
+    BackgroundTasks,
     Request,
     Response,
     status,
@@ -29,6 +30,9 @@ from app.auth.schemas import (
     LoginRequest,
     MessageResponse,
     PasswordChangeRequest,
+    PasswordResetConfirm,
+    PasswordResetRequest,
+    PasswordResetStatus,
     ProfileUpdateRequest,
     RegisterRequest,
     SecurityResponse,
@@ -36,6 +40,7 @@ from app.auth.schemas import (
     UserResponse,
 )
 
+from app.auth.password_reset import password_reset_service
 from app.auth.service import (
     auth_service,
 )
@@ -359,6 +364,59 @@ async def login(
                 result.user
             ),
     )
+
+
+# =========================================================
+# PASSWORD RECOVERY (Pass 66.71)
+# =========================================================
+
+def _require_safe_public_write(request: Request) -> None:
+    if not _request_is_safe_account_write(request):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Request rejected.",
+        )
+
+
+@router.get("/password-reset/status", response_model=PasswordResetStatus)
+async def password_reset_status():
+    return PasswordResetStatus(available=password_reset_service.is_available())
+
+
+@router.post("/password-reset/request", response_model=MessageResponse)
+async def password_reset_request(
+    payload: PasswordResetRequest,
+    request: Request,
+    background: BackgroundTasks,
+):
+    _require_safe_public_write(request)
+    if not password_reset_service.is_available():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Password recovery by email is not available right now.",
+        )
+    # Lookup, token creation and email delivery happen after the response, so the reply and its
+    # timing are identical whether or not the account exists.
+    background.add_task(password_reset_service.request_reset, payload.identifier)
+    return MessageResponse(
+        message="If an account matches, a reset link is on its way. It works once and expires in 30 minutes.",
+    )
+
+
+@router.post("/password-reset/confirm", response_model=MessageResponse)
+async def password_reset_confirm(
+    payload: PasswordResetConfirm,
+    request: Request,
+):
+    _require_safe_public_write(request)
+    try:
+        await password_reset_service.complete_reset(payload.token, payload.new_password)
+    except (InvalidCredentialsError, RegistrationError) as error:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(error),
+        ) from error
+    return MessageResponse(message="Your password has been changed. Sign in with the new password.")
 
 
 # =========================================================

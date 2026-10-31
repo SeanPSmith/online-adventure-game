@@ -122,3 +122,16 @@ class MessageResponse(
 ):
 
     message: str
+
+
+class PasswordResetRequest(BaseModel):
+    identifier: str = Field(min_length=1, max_length=254)
+
+
+class PasswordResetConfirm(BaseModel):
+    token: str = Field(min_length=20, max_length=200)
+    new_password: str = Field(min_length=10, max_length=256)
+
+
+class PasswordResetStatus(BaseModel):
+    available: bool

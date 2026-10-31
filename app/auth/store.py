@@ -4,7 +4,7 @@ import asyncio
 import hashlib
 import json
 
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from app.database import (
@@ -282,6 +282,42 @@ class SQLiteAuthStore:
                     idx_auth_sessions_expires_at
                 ON auth_sessions (
                     expires_at
+                )
+                """
+            )
+
+            # Pass 66.71: single-use, hashed, expiring password-reset tokens. Timestamps are
+            # fixed-width UTC text so comparisons behave identically on SQLite and PostgreSQL.
+            connection.execute(
+                """
+                CREATE TABLE IF NOT EXISTS password_reset_tokens (
+                    token_hash TEXT PRIMARY KEY,
+
+                    user_id TEXT NOT NULL,
+
+                    created_at TEXT NOT NULL,
+
+                    expires_at TEXT NOT NULL,
+
+                    used_at TEXT,
+
+                    FOREIGN KEY (
+                        user_id
+                    )
+                    REFERENCES users (
+                        user_id
+                    )
+                    ON DELETE CASCADE
+                )
+                """
+            )
+
+            connection.execute(
+                """
+                CREATE INDEX IF NOT EXISTS
+                    idx_password_reset_tokens_user_id
+                ON password_reset_tokens (
+                    user_id
                 )
                 """
             )
@@ -1469,6 +1505,188 @@ class SQLiteAuthStore:
                 row["last_seen_at"]
             ),
         )
+
+
+    # =====================================================
+    # PASSWORD RESET TOKENS (Pass 66.71)
+    # =====================================================
+
+    @staticmethod
+    def reset_timestamp(value: datetime) -> str:
+        """Fixed-width UTC text: lexicographic order equals chronological order."""
+
+        return value.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+
+    async def create_password_reset_token(
+        self,
+        *,
+        user_id: str,
+        token_hash: str,
+        created_at: datetime,
+        expires_at: datetime,
+    ) -> None:
+        """Store a new token and retire every earlier unused token for the user."""
+
+        await asyncio.to_thread(
+            self._create_password_reset_token_sync,
+            user_id,
+            token_hash,
+            self.reset_timestamp(created_at),
+            self.reset_timestamp(expires_at),
+        )
+
+    def _create_password_reset_token_sync(
+        self,
+        user_id: str,
+        token_hash: str,
+        created_at: str,
+        expires_at: str,
+    ) -> None:
+
+        with self._connect() as connection:
+
+            connection.execute(
+                "DELETE FROM password_reset_tokens WHERE user_id = ? AND used_at IS NULL",
+                (user_id,),
+            )
+
+            connection.execute(
+                """
+                INSERT INTO password_reset_tokens (
+                    token_hash, user_id, created_at, expires_at, used_at
+                )
+                VALUES (?, ?, ?, ?, NULL)
+                """,
+                (token_hash, user_id, created_at, expires_at),
+            )
+
+            connection.commit()
+
+    async def latest_password_reset_created_at(
+        self,
+        user_id: str,
+    ) -> str | None:
+
+        return await asyncio.to_thread(
+            self._latest_password_reset_created_at_sync,
+            user_id,
+        )
+
+    def _latest_password_reset_created_at_sync(
+        self,
+        user_id: str,
+    ) -> str | None:
+
+        with self._connect() as connection:
+
+            row = connection.execute(
+                """
+                SELECT created_at
+                FROM password_reset_tokens
+                WHERE user_id = ?
+                ORDER BY created_at DESC
+                LIMIT 1
+                """,
+                (user_id,),
+            ).fetchone()
+
+            return None if row is None else str(row["created_at"])
+
+    async def consume_password_reset_token(
+        self,
+        *,
+        token_hash: str,
+        now: datetime,
+    ) -> str | None:
+        """Atomically spend a valid token. Returns its user_id, or None if unknown/used/expired."""
+
+        return await asyncio.to_thread(
+            self._consume_password_reset_token_sync,
+            token_hash,
+            self.reset_timestamp(now),
+        )
+
+    def _consume_password_reset_token_sync(
+        self,
+        token_hash: str,
+        now: str,
+    ) -> str | None:
+
+        with self._connect() as connection:
+
+            cursor = connection.execute(
+                """
+                UPDATE password_reset_tokens
+                SET used_at = ?
+                WHERE token_hash = ?
+                  AND used_at IS NULL
+                  AND expires_at > ?
+                """,
+                (now, token_hash, now),
+            )
+
+            if not (cursor.rowcount or 0):
+                connection.commit()
+                return None
+
+            row = connection.execute(
+                "SELECT user_id FROM password_reset_tokens WHERE token_hash = ?",
+                (token_hash,),
+            ).fetchone()
+
+            connection.commit()
+
+            return None if row is None else str(row["user_id"])
+
+    async def delete_user_password_reset_tokens(
+        self,
+        user_id: str,
+    ) -> None:
+
+        await asyncio.to_thread(
+            self._delete_user_password_reset_tokens_sync,
+            user_id,
+        )
+
+    def _delete_user_password_reset_tokens_sync(
+        self,
+        user_id: str,
+    ) -> None:
+
+        with self._connect() as connection:
+
+            connection.execute(
+                "DELETE FROM password_reset_tokens WHERE user_id = ?",
+                (user_id,),
+            )
+
+            connection.commit()
+
+    async def purge_expired_password_reset_tokens(
+        self,
+        now: datetime,
+    ) -> int:
+
+        return await asyncio.to_thread(
+            self._purge_expired_password_reset_tokens_sync,
+            self.reset_timestamp(now),
+        )
+
+    def _purge_expired_password_reset_tokens_sync(
+        self,
+        now: str,
+    ) -> int:
+
+        with self._connect() as connection:
+
+            cursor = connection.execute(
+                "DELETE FROM password_reset_tokens WHERE expires_at <= ? OR used_at IS NOT NULL",
+                (now,),
+            )
+
+            connection.commit()
+
+            return int(getattr(cursor, "rowcount", 0) or 0)
 
 
 auth_store = SQLiteAuthStore()

@@ -25,6 +25,7 @@ export const router = createBrowserRouter([
           { path: "login", lazy: async () => ({ Component: (await import("./pages/auth/LoginPage")).LoginPage }) },
           { path: "register", lazy: async () => ({ Component: (await import("./pages/auth/RegisterPage")).RegisterPage }) },
           { path: "forgot-password", lazy: async () => ({ Component: (await import("./pages/auth/ForgotPasswordPage")).ForgotPasswordPage }) },
+          { path: "reset-password", lazy: async () => ({ Component: (await import("./pages/auth/ResetPasswordPage")).ResetPasswordPage }) },
           { path: "privacy", lazy: async () => ({ Component: (await import("./pages/legal/PrivacyPage")).PrivacyPage }) },
           { path: "terms", lazy: async () => ({ Component: (await import("./pages/legal/TermsPage")).TermsPage }) },
           { path: "rulebook", lazy: async () => ({ Component: (await import("./pages/game/RulebookPage")).RulebookPage }) },

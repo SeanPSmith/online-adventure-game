@@ -62,9 +62,12 @@ def test_small_screen_type_and_touch_targets_are_reachable():
         assert forbidden not in css
 
 
-def test_known_password_reset_blocker_is_reported_not_hidden():
+def test_password_recovery_blocker_is_cleared_but_real_world_validation_stays_listed():
+    # Pass 66.71 connected email recovery, so the "explicitly unavailable" blocker no longer applies.
+    # Email delivery from the verified SES sender still has to be validated by a person after deploy.
     result = scan()
-    assert any("Password recovery" in reason for reason in result["launch_blockers"])
+    assert not any("Password recovery" in reason for reason in result["launch_blockers"])
+    assert any("password recovery, email delivery" in item for item in result["requires_real_browser"])
     assert len(result["requires_real_browser"]) >= 5
 
 
@@ -74,7 +77,7 @@ def test_audit_cli_json_and_strict_source():
     assert process.returncode == 0, process.stdout + process.stderr
     data = json.loads(process.stdout)
     assert data["pass"] == "66.58"
-    assert data["launch_blockers"]
+    assert data["launch_blockers"] == []
 
 
 def test_audit_is_pretest_gate_not_a_false_visual_success():

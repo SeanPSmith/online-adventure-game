@@ -142,3 +142,23 @@ export function saveGlobalAiModels(story_model: string, economy_model: string) {
     body: JSON.stringify({ story_model, economy_model }),
   });
 }
+
+export function getPasswordResetStatus() {
+  return apiFetch<{ available: boolean }>("/api/auth/password-reset/status");
+}
+
+export function requestPasswordReset(identifier: string) {
+  return apiFetch<{ message: string }>("/api/auth/password-reset/request", {
+    method: "POST",
+    headers: ACCOUNT_WRITE_HEADERS,
+    body: JSON.stringify({ identifier }),
+  });
+}
+
+export function confirmPasswordReset(token: string, newPassword: string) {
+  return apiFetch<{ message: string }>("/api/auth/password-reset/confirm", {
+    method: "POST",
+    headers: ACCOUNT_WRITE_HEADERS,
+    body: JSON.stringify({ token, new_password: newPassword }),
+  });
+}

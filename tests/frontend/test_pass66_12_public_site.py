@@ -38,7 +38,8 @@ def test_auth_not_simulated_and_return_path_survives():
     assert 'autoComplete="current-password"' in login
     assert 'autoComplete="new-password"' in register
     assert 'role="alert"' in login and 'role="alert"' in register
-    assert 'Password reset is not connected.' in recovery
+    # Pass 66.71: recovery is real; when the server reports it unavailable the page says so honestly.
+    assert 'requestPasswordReset(' in recovery and 'Email recovery is not available right now.' in recovery
     assert 'sendResetEmail' not in recovery
 
 

@@ -33,7 +33,7 @@ test("heavy and account-specific screens are split from the app entry chunk", ()
 });
 
 test("public deep links, protected routes and legacy settings redirect remain", () => {
-  for (const route of ["login", "register", "forgot-password", "join/:roomCode", "privacy", "terms", "rulebook", "adventure/:roomId", "heroes/:heroId", "arcade", "adventures", "history", "admin", "author"]) {
+  for (const route of ["login", "register", "forgot-password", "reset-password", "join/:roomCode", "privacy", "terms", "rulebook", "adventure/:roomId", "heroes/:heroId", "arcade", "adventures", "history", "admin", "author"]) {
     assert.ok(router.includes(`path: "${route}"`), `missing route ${route}`);
   }
   assert.match(router, /element: <RequireAuth \/>/);

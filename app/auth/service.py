@@ -92,6 +92,10 @@ class AuthService:
             utc_now()
         )
 
+        await auth_store.purge_expired_password_reset_tokens(
+            utc_now()
+        )
+
 
         # One-way migration from the old shell allowlist into durable account
         # permissions. Once granted, author access survives terminal/server
